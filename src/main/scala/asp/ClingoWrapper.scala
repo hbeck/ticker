@@ -1,9 +1,9 @@
-package jtms.clingo
+package asp
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
-import jtms.clingo.ClingoWrapper.AspModel
+import asp.ClingoWrapper.AspModel
 
 import scala.sys.process._
 

@@ -1,4 +1,4 @@
-package jtms.clingo
+package asp
 
 import core.{Program, Rule}
 

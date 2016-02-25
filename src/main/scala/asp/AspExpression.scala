@@ -1,4 +1,4 @@
-package jtms.clingo
+package asp
 
 /**
   * Created by FM on 25.02.16.

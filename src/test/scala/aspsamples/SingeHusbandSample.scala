@@ -1,4 +1,4 @@
-package jtms.asp
+package aspsamples
 
 import core.{Program, Rule, Premise, Atom}
 import jtms.TMN

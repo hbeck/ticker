@@ -1,7 +1,7 @@
-package jtms.clingo
+package asp
 
 import core.{Rule, Premise, Atom, Program}
-import jtms.asp.SingeHusbandSample
+import aspsamples.SingeHusbandSample
 import org.scalatest.{FlatSpec}
 
 /**
