@@ -1,24 +1,24 @@
 package asp
 
-import core.Evaluation.Model
-import core.{Evaluation, Atom, Program}
+import core._
 
 /**
   * Created by FM on 25.02.16.
   */
 
 object Asp {
-  def apply(program: Program): Set[Model] = {
+  def apply(program: Program): Option[EvaluationResult] = {
     val asp = new Asp(ClingoWrapper())
 
     asp(program)
   }
+
   def apply() = new Asp(ClingoWrapper())
 }
 
 class Asp(val clingo: ClingoWrapper) extends Evaluation {
 
-  def apply(program: Program): Set[Model] = {
+  def apply(program: Program): Option[EvaluationResult] = {
     val expressions = AspConversion(program)
 
     val result = clingo.run(expressions)
@@ -26,10 +26,13 @@ class Asp(val clingo: ClingoWrapper) extends Evaluation {
 
     if (models.isDefined) {
       val convertedModels = models.get.map(m => m.map(a => Atom(a)))
-      return convertedModels
+      if (convertedModels.size > 1)
+        return Some(MultipleModels(convertedModels))
+      else
+        return Some(SingleModel(convertedModels.head))
     }
 
-    Set()
+    None
   }
 
 }

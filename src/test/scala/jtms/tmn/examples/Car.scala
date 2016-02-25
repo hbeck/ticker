@@ -40,7 +40,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.head.contains(D) == false)
+      assert(model.get.contains(D) == false)
     }
 
     it should "result in a defect" in {
@@ -49,39 +49,40 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.head.contains(D))
+      assert(model.get.contains(D))
     }
 
     it should "result in not enough gas" in {
       info("When the car is not starting and there is no gas information")
-      val tmn = TMN(program + notStarting)
+      val p = program + notStarting
 
-      val model = tmn.getModel()
+      val model = evaluation(p)
 
-      assert(model.contains(G_not))
+      assert(model.get.contains(G_not))
     }
 
     it should "result in a defect because of the ignition" in {
       info("When the car is not starting and there is a broken ignition")
-      val tmn = TMN(program + notStarting + brokenIgnition)
+      val p =program + notStarting + brokenIgnition
 
-      val model = tmn.getModel()
+      val model = evaluation(p)
 
-      assert(model.contains(D))
+      assert(model.get.contains(D))
     }
 
     it should "result in a defect because of the ign" in {
       info("When the car is not starting and there is a broken ignition and enough gas")
-      val tmn = TMN(program + notStarting + enoughGas + brokenIgnition)
+      val p = program + notStarting + enoughGas + brokenIgnition
 
-      val model = tmn.getModel()
+      val model = evaluation(p)
 
-      assert(model.contains(D))
+      assert(model.get.contains(D))
     }
   }
 }
 
 class Car extends FlatSpec with CarBehavior {
-  "Using the TMN implementation" should behave like theCar(new jTmn)
+
   "Using the ASP implementation" should behave like theCar(Asp())
+  "Using the TMN implementation" should behave like theCar(new jTmn)
 }

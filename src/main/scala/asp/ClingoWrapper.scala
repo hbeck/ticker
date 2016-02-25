@@ -79,12 +79,11 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
 
 
       val models = lines.init.map(line => line.split(' ').toSet)
-
-      return Some(models.toSet)
+      // An (satisfiable) but empty model is not a result for us
+      if (models.nonEmpty)
+        return Some(models.toSet)
     }
 
     None
   }
-
-
 }

@@ -32,13 +32,13 @@ husband :- man, not single.
 
 
     it should "include the model man, single" in {
-      assert(evaluation(program) contains Set(man, single))
+      assert(evaluation(program).get contains Set(man, single))
     }
 
     it should "include man, husband" in {
       if (evaluation.isInstanceOf[jTmn])
         pending
-      assert(evaluation(program) contains Set(man, husband))
+      assert(evaluation(program).get contains Set(man, husband))
     }
   }
 }
