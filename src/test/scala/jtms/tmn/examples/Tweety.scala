@@ -1,5 +1,6 @@
 package jtms.tmn.examples
 
+import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
 import org.scalatest.FlatSpec
@@ -7,13 +8,13 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 11.02.16.
   */
-class Tweety extends FlatSpec {
-
-  val V = Atom("Vogel sein")
-  val P = Atom("Pinguin sein")
-  val F = Atom("Fliegen können")
-  val F_not = Atom("nicht fliegen können")
-  val N_cont = ContradictionAtom("Widerspruch")
+trait TweetyBehavior {
+  this: FlatSpec =>
+  val V = Atom("vogel_sein")
+  val P = Atom("pinguin_sein")
+  val F = Atom("fliegen_koennen")
+  val F_not = Atom("nicht_fliegen_koennen")
+  val N_cont = ContradictionAtom("widerspruch")
 
   val j0 = Rule.in(P).head(F_not)
   val j1 = Rule.in(P).head(V)
@@ -25,21 +26,21 @@ class Tweety extends FlatSpec {
 
   val program = Program(j0, j1, j2, j3, j4)
 
-  def Tmn = {
-    val tmn = TMN(program)
+  def tweety(evaluation: Evaluation) = {
+    it should "contain only V and F" in {
+      info("The initial model")
+      assert(evaluation(program) contains SingleModel(Set(V, F)))
+    }
 
-    tmn
+    it should "result in a new Model containing V, P and F_not" in {
+      info("Adding a new Premise P")
+      val p = program + j5
+
+      assert(evaluation(p) contains SingleModel(Set(V, P, F_not)))
+    }
   }
+}
 
-  "The initial model" should "contain only V and F" in {
-    assert(Tmn.getModel() == Set(V, F))
-  }
-
-  "Adding a new Premise P" should "result in a new Model containing V, P and F_not" in {
-    val tmn = Tmn
-
-    tmn.add(j5)
-
-    assert(tmn.getModel() == Set(V, P, F_not))
-  }
+class Tweety extends FlatSpec with TweetyBehavior with EvaluateBothImplementations {
+  "The Tweety" should behave like theSame(tweety)
 }

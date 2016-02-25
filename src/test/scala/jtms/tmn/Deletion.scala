@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core.{Rule, Premise, Atom}
-import jtms.tmn.examples.{LibraryAtomValidation, Tweety, JTMS_5, JMTS_21}
+import jtms.tmn.examples._
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -164,8 +164,11 @@ class Deletion extends FlatSpec {
 
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
     // arrange
+    class Tweety extends FlatSpec with TweetyBehavior
+
     val setup = new Tweety
-    val tmn = setup.Tmn
+
+    val tmn = TMN(setup.program)
 
     tmn.add(setup.j5)
 
