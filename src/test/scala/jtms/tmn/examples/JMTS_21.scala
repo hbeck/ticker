@@ -5,7 +5,7 @@ import core.{Rule, ContradictionAtom}
 /**
   * Created by FM on 11.02.16.
   */
-class JMTS_21 extends JTMS {
+class JMTS_21 extends JTMSSpec {
   val N_cont = ContradictionAtom("N_cont")
 
   val j7 = Rule.in(B).out(C).head(N_cont)

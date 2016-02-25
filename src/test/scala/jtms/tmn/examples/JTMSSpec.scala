@@ -1,13 +1,13 @@
 package jtms.tmn.examples
 
-import core.{Rule, Premise, Atom}
+import core.{Program, Rule, Premise, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 05.02.16.
   */
-class JTMS extends FlatSpec {
+class JTMSSpec extends FlatSpec {
 
   val A = Atom("A")
   val B = Atom("B")
@@ -24,17 +24,10 @@ class JTMS extends FlatSpec {
   val j5 = Premise(E)
   val j6 = Rule.in(C, E).head(F)
 
-  def JTMS = {
-    //    var tmn = new TMN(Set(A, B, C, D, E, F), Set(j1, j2, j3, j4a, j4b, j5, j6).to)
+  val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 
-    val tmn = new TMN(Set(A, B, C, D, E, F))
-    tmn.add(j1)
-    tmn.add(j2)
-    tmn.add(j3)
-    tmn.add(j4a)
-    tmn.add(j4b)
-    tmn.add(j5)
-    tmn.add(j6)
+  def JTMS = {
+    val tmn = TMN(program)
 
     tmn
   }

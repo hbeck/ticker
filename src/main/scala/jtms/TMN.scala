@@ -5,6 +5,16 @@ import core._
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map}
 
+object TMN {
+  def apply(P: Program) = {
+    val tmn = new TMN(P.atoms)
+
+    P.rules.foreach(tmn.add)
+
+    tmn
+  }
+}
+
 /**
   * truth maintenance network
   * Created by hb on 12/22/15.

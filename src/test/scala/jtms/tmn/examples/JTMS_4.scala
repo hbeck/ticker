@@ -6,7 +6,7 @@ import jtms.{in, out}
 /**
   * Created by FM on 05.02.16.
   */
-class JTMS_4 extends JTMS with AtomValidation {
+class JTMS_4 extends JTMSSpec with AtomValidation {
 
   val tmn = {
     val tmn = JTMS

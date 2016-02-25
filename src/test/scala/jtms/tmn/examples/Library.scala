@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Rule, Premise, ContradictionAtom, Atom}
+import core._
 import jtms._
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
@@ -31,29 +31,21 @@ class Library extends FlatSpec with AtomValidation {
   val j8 = Rule.in(H).head(A_not)
   val j9 = Rule.in(A, A_not).head(N_cont)
 
-  val jExclusionA =  Rule.in(A).head(N_cont)
+  val jExclusionA = Rule.in(A).head(N_cont)
 
-  def TMN = {
-    val tmn = new TMN(Set(V, G, P, F, P_not, A, N, A_not, H, N_cont))
+  val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
-    tmn.add(j1)
-    tmn.add(j2)
-    tmn.add(j3)
-    tmn.add(j4)
-    tmn.add(j5)
-    tmn.add(j6)
-    tmn.add(j7)
-    tmn.add(j8)
-    tmn.add(j9)
+  def Tmn = {
+    val tmn = TMN(program)
 
     tmn
   }
 
   "The valid model" should "be V, P, A" in {
-    assert(TMN.getModel() == Set(V, P, A))
+    assert(Tmn.getModel() == Set(V, P, A))
   }
 
-  "Atom V" must behave like atomValidation(TMN, V) { validator =>
+  "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)
     validator.Rules(j1)
     validator.SJ(Some(j1))
@@ -66,7 +58,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(P, A)
   }
 
-  "Atom P" must behave like atomValidation(TMN, P) { validator =>
+  "Atom P" must behave like atomValidation(Tmn, P) { validator =>
     validator.state(in)
     validator.Rules(j2)
     validator.SJ(Some(j2))
@@ -79,7 +71,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(A)
   }
 
-  "Atom A" must behave like atomValidation(TMN, A) { validator =>
+  "Atom A" must behave like atomValidation(Tmn, A) { validator =>
     validator.state(in)
     validator.Rules(j5)
     validator.SJ(Some(j5))
@@ -92,7 +84,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans()
   }
 
-  "Atom F" must behave like atomValidation(TMN, F) { validator =>
+  "Atom F" must behave like atomValidation(Tmn, F) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -104,7 +96,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.ACons(P, P_not)
     validator.AConsTrans(P, A, P_not, N_cont)
   }
-  "Atom G" must behave like atomValidation(TMN, G) { validator =>
+  "Atom G" must behave like atomValidation(Tmn, G) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -118,7 +110,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
 
-  "Atom H" must behave like atomValidation(TMN, H) { validator =>
+  "Atom H" must behave like atomValidation(Tmn, H) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -130,7 +122,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.ACons(A, A_not)
     validator.AConsTrans(A, A_not, N_cont)
   }
-  "Atom N" must behave like atomValidation(TMN, N) { validator =>
+  "Atom N" must behave like atomValidation(Tmn, N) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -143,7 +135,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(A, A_not, N_cont)
   }
 
-  "Atom P_not" must behave like atomValidation(TMN, P_not) { validator =>
+  "Atom P_not" must behave like atomValidation(Tmn, P_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j3, j4)
@@ -156,7 +148,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(N_cont)
   }
 
-  "Atom A_not" must behave like atomValidation(TMN, A_not) { validator =>
+  "Atom A_not" must behave like atomValidation(Tmn, A_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j8, j7)
@@ -169,7 +161,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(N_cont)
   }
 
-  "Atom N_cont" must behave like atomValidation(TMN, N_cont) { validator =>
+  "Atom N_cont" must behave like atomValidation(Tmn, N_cont) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j6, j9)
@@ -183,7 +175,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   "With the premise H the model" should "be V,H,P,A_not" in {
-    val tmn = TMN
+    val tmn = Tmn
     tmn.add(Premise(H))
 
     val model = tmn.getModel()
@@ -192,7 +184,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   "With a contradiction node for A the model" should "be A_not,H,P, V" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(jExclusionA)
 
@@ -202,7 +194,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   it should "also return the same model when using just a single contradiction node" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(Rule.in(A).head(N_cont))
 
@@ -212,7 +204,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   "With a contradiction node for P the model" should "be P_not,F,V" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(Rule.in(P).head(N_cont))
 

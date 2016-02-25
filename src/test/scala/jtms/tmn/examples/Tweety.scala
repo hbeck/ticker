@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Rule, Premise, ContradictionAtom, Atom}
+import core._
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -23,24 +23,20 @@ class Tweety extends FlatSpec {
 
   val j5 = Premise(P)
 
-  def TMN = {
-    val tmn = new TMN(Set(V, P, F, F_not, N_cont))
+  val program = Program(j0, j1, j2, j3, j4)
 
-    tmn.add(j0)
-    tmn.add(j1)
-    tmn.add(j2)
-    tmn.add(j3)
-    tmn.add(j4)
+  def Tmn = {
+    val tmn = TMN(program)
 
     tmn
   }
 
   "The initial model" should "contain only V and F" in {
-    assert(TMN.getModel() == Set(V, F))
+    assert(Tmn.getModel() == Set(V, F))
   }
 
   "Adding a new Premise P" should "result in a new Model containing V, P and F_not" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(j5)
 

@@ -1,6 +1,7 @@
 package jtms.asp
 
-import jtms.{TMN, Rule, Premise, Atom}
+import core.{Program, Rule, Premise, Atom}
+import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**
@@ -21,15 +22,9 @@ husband :- man, not single.
   val r1 = Rule.in(man).out(husband).head(single)
   val r2 = Rule.in(man).out(single).head(husband)
 
-  val tmn = {
-    val t = new TMN(Set(man, single, husband))
+  val program = Program(r0, r1, r2)
 
-    t.add(r0)
-    t.add(r1)
-    t.add(r2)
-
-    t
-  }
+  val tmn = TMN(program)
 
   "One model" should "include the model man, single" in {
     assert(tmn.getModel() == Set(man, single))

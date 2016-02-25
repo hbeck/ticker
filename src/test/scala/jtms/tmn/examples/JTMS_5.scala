@@ -5,7 +5,7 @@ import core.{Premise, Atom}
 /**
   * Created by FM on 06.02.16.
   */
-class JTMS_5 extends JTMS {
+class JTMS_5 extends JTMSSpec {
 
   val j0 = Premise(A)
 

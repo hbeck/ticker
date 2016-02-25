@@ -165,7 +165,7 @@ class Deletion extends FlatSpec {
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
     // arrange
     val setup = new Tweety
-    val tmn = setup.TMN
+    val tmn = setup.Tmn
 
     tmn.add(setup.j5)
 
@@ -195,7 +195,7 @@ class Deletion extends FlatSpec {
 
   "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {
     val setup = new Library
-    val tmn = setup.TMN
+    val tmn = setup.Tmn
 
     tmn.add(setup.jExclusionA)
 

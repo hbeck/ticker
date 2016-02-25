@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Rule, Premise, ContradictionAtom, Atom}
+import core._
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -29,20 +29,16 @@ class Car extends FlatSpec {
   val notEnoughGas = Premise(G_not)
   val brokenIgnition = Premise(C)
 
-  def TMN = {
-    val tmn = new TMN(Set(S_not, G, G_not, D, I, C, N_cont));
+  val program = Program(j0, j1, j2, j3, j4)
 
-    tmn.add(j0)
-    tmn.add(j1)
-    tmn.add(j2)
-    tmn.add(j3)
-    tmn.add(j4)
+  def Tmn = {
+    val t = TMN(program)
 
-    tmn
+    t
   }
 
   "When the car is not starting and there is not enough gas" should "not result in a defect" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(notStarting)
     tmn.add(notEnoughGas)
@@ -53,7 +49,7 @@ class Car extends FlatSpec {
   }
 
   "When the car is not starting and there is enough gas" should "result in a defect" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(notStarting)
     tmn.add(enoughGas)
@@ -64,7 +60,7 @@ class Car extends FlatSpec {
   }
 
   "When the car is not starting and there is no gas information" should "result in not enough gas" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(notStarting)
 
@@ -74,7 +70,7 @@ class Car extends FlatSpec {
   }
 
   "When the car is not starting and there is a broken ignition" should "result in a defect" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(notStarting)
     tmn.add(brokenIgnition)
@@ -85,7 +81,7 @@ class Car extends FlatSpec {
   }
 
   "When the car is not starting and there is a broken ignition and enogh gas" should "result in a defect" in {
-    val tmn = TMN
+    val tmn = Tmn
 
     tmn.add(notStarting)
     tmn.add(enoughGas)
