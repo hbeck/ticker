@@ -20,15 +20,19 @@ class Deletion extends FlatSpec {
     tmn.add(j0)
 
     assume(tmn.getModel() == Set(A))
+    assume(tmn.status(A) == in)
 
     tmn.remove(j0)
 
-    // TODO: Define what needs to be reset by remove/delete
-    //    assert(tmn.N.isEmpty)
-    //    assert(tmn.status.isEmpty)
+    assert(tmn.N.isEmpty)
+    assert(tmn.status.isEmpty)
 
     assert(tmn.J.isEmpty)
     assert(tmn.getModel() == Set())
+
+    assert(tmn.Cons.isEmpty)
+    assert(tmn.Supp.isEmpty)
+    assert(tmn.SJ.isEmpty)
   }
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
@@ -54,6 +58,8 @@ class Deletion extends FlatSpec {
     assert(tmn.SJ(A) == None)
     assert(tmn.SJ(B) == None)
     assert(tmn.Cons(A) == Set(B))
+    assert(tmn.N == Set(A, B))
+    assert(tmn.status.keys == Set(A, B))
   }
 
   it should "have the Model A after deletion of a rule" in {
@@ -78,6 +84,9 @@ class Deletion extends FlatSpec {
     assert(tmn.Supp(A) == Set())
     assert(tmn.SJ(A) == Some(j1))
     assert(tmn.Cons(A) == Set())
+
+    assert(tmn.N == Set(A))
+    assert(tmn.status.keys == Set(A))
   }
 
   "A TMN with three atoms" should "have only Model A after deleting a rule" in {
@@ -101,6 +110,9 @@ class Deletion extends FlatSpec {
     assert(tmn.Supp(C) == Set(B))
     assert(tmn.Cons(A) == Set())
     assert(tmn.SJ(C) == None)
+
+    assert(tmn.N == Set(A, B, C))
+    assert(tmn.status.keys == Set(A, B, C))
   }
 
   "A TMN with three atoms and a redundant rule" should "have Model A,C after deleting a rule supporting B" in {

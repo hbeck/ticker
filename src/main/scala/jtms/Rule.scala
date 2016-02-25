@@ -24,6 +24,8 @@ sealed trait Rule {
   val I: Set[Atom]
   val O: Set[Atom]
   val head: Atom
+
+  val atoms = I union O + head
 }
 
 /**

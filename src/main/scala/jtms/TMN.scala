@@ -120,11 +120,13 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     diffState.map(_._1).toSet
   }
 
-  def remove(j: Rule) = {
+  def remove(rule: Rule) = {
+
+    val head = rule.head
 
     val rulesFromBacktracking = J.filter(_.isInstanceOf[RuleFromBacktracking])
 
-    val L = AffectedAtoms(j.head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
+    var L = AffectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
 
     def removeRule(j: Rule) = {
       for (m <- j.I union j.O) {
@@ -134,9 +136,19 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
       J -= j
     }
 
-    removeRule(j)
+    removeRule(rule)
 
     rulesFromBacktracking.foreach(removeRule)
+
+    // if no other rule exists containing the atom - remove it completely
+    if (!J.exists(_.atoms.contains(head))) {
+      N -= head
+      status.remove(head)
+      Supp.remove(head)
+      SJ.remove(head)
+      Cons.remove(head)
+      L -= head
+    }
 
     this.update(L)
   }
