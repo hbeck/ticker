@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core.{Rule, Premise, Atom}
-import jtms.tmn.examples.{Library, Tweety, JTMS_5, JMTS_21}
+import jtms.tmn.examples.{LibraryAtomValidation, Tweety, JTMS_5, JMTS_21}
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -194,7 +194,7 @@ class Deletion extends FlatSpec {
   }
 
   "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {
-    val setup = new Library
+    val setup = new LibraryAtomValidation
     val tmn = setup.Tmn
 
     tmn.add(setup.jExclusionA)

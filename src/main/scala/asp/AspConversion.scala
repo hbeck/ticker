@@ -1,6 +1,6 @@
 package asp
 
-import core.{Atom, Program, Rule}
+import core.{ContradictionAtom, Atom, Program, Rule}
 
 /**
   * Created by FM on 22.02.16.
@@ -20,7 +20,7 @@ object AspConversion {
 
       val parts = iParts ++ oParts
 
-      val expression = parts.mkString(apply(rule.head) + " :- ", ", ", ".")
+      val expression = parts.mkString(apply(rule.head) + " :- ", ", ", ".").trim
 
       AspExpression(expression)
     }
@@ -32,6 +32,12 @@ object AspConversion {
 
     if (atom.caption.exists(c => c.isWhitespace))
       throw new IllegalArgumentException("Constants in ASP cannot contain a whitespace. You provided " + atom)
+
+    if (!atom.caption.matches("^[a-zA-Z0-9_]*$"))
+      throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
+
+    if(atom.isInstanceOf[ContradictionAtom])
+      return ""
 
     atom.caption
   }

@@ -1,6 +1,6 @@
 package asp
 
-import core.{Program, Rule, Premise, Atom}
+import core._
 import org.scalatest.FlatSpec
 
 /**
@@ -46,6 +46,12 @@ class AspConversionSpecs extends FlatSpec {
     assert(AspConversion(j) == AspExpression("a :- b, not c."))
   }
 
+  "A rule with a ContradictionNode" should "be transformed into an integrety contraint ':- a, not c.'" in{
+    val r = Rule.in(a).out(c).head(new ContradictionAtom("cont"))
+
+    assert(AspConversion(r) == AspExpression(":- a, not c."))
+  }
+
   "An empty program" should "return no AspExpressions" in {
     val p = Program()
 
@@ -69,6 +75,12 @@ class AspConversionSpecs extends FlatSpec {
     val a_b = Atom("a b")
     intercept[IllegalArgumentException] {
       AspConversion(a_b)
+    }
+  }
+  it should "be thrown if the Atom contains non ASCII characters" in {
+    val umlaut = Atom("ü")
+    intercept[IllegalArgumentException] {
+      AspConversion(umlaut)
     }
   }
 }

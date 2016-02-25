@@ -1,5 +1,6 @@
 package jtms.tmn.examples
 
+import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
 import jtms.tmn.AtomValidation
@@ -8,18 +9,20 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 11.02.16.
   */
-class Library extends FlatSpec with AtomValidation {
 
-  val V = Atom("verfügbar")
+trait LibraryBehavior {
+  this: FlatSpec =>
+
+  val V = Atom("verfuegbar")
   val G = Atom("gestohlen")
-  val P = Atom("am angegebenen Platz vorhanden")
-  val F = Atom("falsch einsortiert")
-  val P_not = Atom("nicht am angegebenen Platz vorhanden")
+  val P = Atom("am_angegebenen_Platz_vorhanden")
+  val F = Atom("falsch_einsortiert")
+  val P_not = Atom("nicht_am_angegebenen_Platz_vorhanden")
   val A = Atom("ausleihbar")
-  val N = Atom("Nachschlagewerk")
-  val A_not = Atom("nicht ausleihbar")
-  val H = Atom("im Handapperart einer Veranstaltung")
-  val N_cont = ContradictionAtom("Widerspruch")
+  val N = Atom("nachschlagewerk")
+  val A_not = Atom("nicht_ausleihbar")
+  val H = Atom("im_Handapperart_einer_Veranstaltung")
+  val N_cont = ContradictionAtom("widerspruch")
 
   val j1 = Premise(V)
   val j2 = Rule.in(V).out(F, G).head(P)
@@ -35,15 +38,56 @@ class Library extends FlatSpec with AtomValidation {
 
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
-  def Tmn = {
-    val tmn = TMN(program)
+  def library(evaluation: Evaluation) = {
+    it should "be V, P, A" in {
+      info("The valid model")
+      assert(evaluation(program) contains SingleModel(Set(V, P, A)))
+    }
+    it should "be V,H,P,A_not" in {
+      info("With the premise H the model")
+      val p = program + Premise(H)
 
-    tmn
-  }
+      val model = evaluation(p)
 
-  "The valid model" should "be V, P, A" in {
-    assert(Tmn.getModel() == Set(V, P, A))
+      assert(model contains SingleModel(Set(V, H, P, A_not)))
+    }
+
+    it should "be A_not,H,P, V" in {
+      info("With a contradiction node for A the model" )
+      val p = program + jExclusionA
+
+      val model = evaluation(p)
+
+      info("H is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(A_not, H, P, V)))
+    }
+
+    it should "also return the same model when using just a single contradiction node" in {
+      val p = program + Rule.in(A).head(N_cont)
+
+      val model = evaluation(p)
+      info("H is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(A_not, H, P, V)))
+    }
+
+    it should "be P_not,F,V" in {
+      info("With a contradiction node for P the model")
+      val p = program + Rule.in(P).head(N_cont)
+
+      val model = evaluation(p)
+      info("F is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(P_not, F, V)))
+    }
   }
+}
+
+class Library extends FlatSpec with LibraryBehavior with EvaluateBothImplementations {
+  "The Library Sample" should behave like theSame(library)
+}
+
+class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
+
+  def Tmn = TMN(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)
@@ -172,44 +216,5 @@ class Library extends FlatSpec with AtomValidation {
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()
-  }
-
-  "With the premise H the model" should "be V,H,P,A_not" in {
-    val tmn = Tmn
-    tmn.add(Premise(H))
-
-    val model = tmn.getModel()
-
-    assert(model == Set(V, H, P, A_not))
-  }
-
-  "With a contradiction node for A the model" should "be A_not,H,P, V" in {
-    val tmn = Tmn
-
-    tmn.add(jExclusionA)
-
-    val model = tmn.getModel()
-    info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V))
-  }
-
-  it should "also return the same model when using just a single contradiction node" in {
-    val tmn = Tmn
-
-    tmn.add(Rule.in(A).head(N_cont))
-
-    val model = tmn.getModel()
-    info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V))
-  }
-
-  "With a contradiction node for P the model" should "be P_not,F,V" in {
-    val tmn = Tmn
-
-    tmn.add(Rule.in(P).head(N_cont))
-
-    val model = tmn.getModel()
-    info("F is currently chosen 'by random'")
-    assert(model == Set(P_not, F, V))
   }
 }

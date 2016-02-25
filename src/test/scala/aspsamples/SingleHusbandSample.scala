@@ -1,6 +1,5 @@
 package aspsamples
 
-import asp.{ClingoWrapper, Asp}
 import core._
 import jtms.{jTmn, TMN}
 import org.scalatest.FlatSpec
@@ -23,7 +22,7 @@ trait SingleHusbandBehavior {
 
   val program = Program(r0, r1, r2)
 
-  def singleHusband(evaluation: => Evaluation) {
+  def singleHusband(evaluation: Evaluation) {
     /*
   man.
 single :- man, not husband.
@@ -43,11 +42,6 @@ husband :- man, not single.
   }
 }
 
-class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
-  def tmn = new jTmn
-
-  def asp = Asp()
-
-  "The TMN implementation " should behave like singleHusband(tmn)
-  "The ASP implementation " should behave like singleHusband(asp)
+class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior with EvaluateBothImplementations {
+  "The Single-Husband Sample" should behave like theSame(singleHusband)
 }
