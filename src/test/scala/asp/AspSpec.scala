@@ -1,7 +1,7 @@
 package asp
 
 import core.{Rule, Premise, Atom, Program}
-import aspsamples.SingeHusbandSample
+import aspsamples.SingleHusbandSample
 import org.scalatest.{FlatSpec}
 
 /**
@@ -47,7 +47,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program with two models" can "be executed and converted back into both models" in {
-    val example = new SingeHusbandSample()
+    val example = new SingleHusbandSample()
     val asp = Asp(example.program)
 
     assert(asp.size == 2)

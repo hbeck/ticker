@@ -13,6 +13,7 @@ object Asp {
 
     asp(program)
   }
+  def apply() = new Asp(ClingoWrapper())
 }
 
 class Asp(val clingo: ClingoWrapper) extends Evaluation {
