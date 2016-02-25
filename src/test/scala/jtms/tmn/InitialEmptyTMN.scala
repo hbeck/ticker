@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import jtms.{in, Justification, TMN, Node}
+import jtms.{in, Justification, TMN, Atom$}
 import org.scalatest.{BeforeAndAfter}
 
 /**
@@ -34,8 +34,8 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
   }
 
   it should "have no consequences and no support" in {
-    assert(tmn.Cons(assumptionA.n).size == 0)
-    assert(tmn.Supp(assumptionA.n).size == 0)
+    assert(tmn.Cons(assumptionA.head).size == 0)
+    assert(tmn.Supp(assumptionA.head).size == 0)
   }
 
   "An TMN with the same assumptions applied two times" should "still contain one status" in {

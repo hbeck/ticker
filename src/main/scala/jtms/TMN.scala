@@ -7,31 +7,31 @@ import scala.collection.mutable.{HashMap, Map}
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set()) {
+class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set()) {
 
-  val Cons: Map[Node, Set[Node]] = new HashMap[Node, Set[Node]]
-  val Supp: Map[Node, Set[Node]] = new HashMap[Node, Set[Node]]
-  val SJ: Map[Node, Option[Justification]] = new HashMap[Node, Option[Justification]]
-  val status: Map[Node, Status] = new HashMap[Node, Status]
+  val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val SJ: Map[Atom, Option[Justification]] = new HashMap[Atom, Option[Justification]]
+  val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
-  for (n <- N) {
-    init(n)
+  for (a <- N) {
+    init(a)
   }
   for (j <- J) {
     for (m <- j.I union j.O) {
-      Cons(m) += j.n
+      Cons(m) += j.head
     }
   }
 
-  def init(n: Node) = {
-    if (!status.isDefinedAt(n)) status(n) = out
-    if (!Cons.isDefinedAt(n)) Cons(n) = Set[Node]()
-    if (!Supp.isDefinedAt(n)) Supp(n) = Set[Node]()
-    if (!SJ.isDefinedAt(n)) SJ(n) = None
+  def init(a: Atom) = {
+    if (!status.isDefinedAt(a)) status(a) = out
+    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
+    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
+    if (!SJ.isDefinedAt(a)) SJ(a) = None
   }
 
   /** @return true if M is admissible **/
-  def set(M: Set[Node]): Boolean = {
+  def set(M: Set[Atom]): Boolean = {
     val m = M.toList
     for (i <- 0 to M.size - 1) {
       val j: Option[Justification] = findSJ(m, i)
@@ -50,10 +50,10 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
     status.filter(_._2 == in).map(_._1).toSet
   }
 
-  /** takes node at list M index idx and tries to find a valid justification
+  /** takes atoms at list M index idx and tries to find a valid justification
     * that is founded wrt indexes 0..idx-1
     */
-  def findSJ(M: List[Node], idx: Int): Option[Justification] = {
+  def findSJ(M: List[Atom], idx: Int): Option[Justification] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
     val justifications = Jn(n).filter(j => j.I.subsetOf(MSub) && j.O.intersect(M.toSet).isEmpty)
@@ -61,49 +61,49 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
   }
 
   //TMS update algorithm
-  def add(j: Justification): Set[Node] = {
+  def add(j: Justification): Set[Atom] = {
 
-    val n = j.n //alias
+    val head = j.head //alias
 
     //update structure
     J += j
     for (m <- j.I union j.O) {
-      Cons(m) += n
+      Cons(m) += head
     }
 
-    init(n)
+    init(head)
 
     //if conclusion was already drawn, we are done
-    if (status(n) == in) {
+    if (status(head) == in) {
       return scala.collection.immutable.Set()
     }
 
     //otherwise, we are done, if the new justification is not valid in M, i.e.,
-    //n does not need to be concluded
-    val spoiler: Option[Node] = findSpoiler(j)
+    //head does not need to be concluded
+    val spoiler: Option[Atom] = findSpoiler(j)
     if (spoiler.isDefined) {
-      Supp(n) += spoiler.get
+      Supp(head) += spoiler.get
       return scala.collection.immutable.Set()
     }
 
-    if (ACons(n).isEmpty) {
-      //then we can treat n independently
+    if (ACons(head).isEmpty) {
+      //then we can treat head independently
       setIn(j)
       checkForDDB
-      // TODO (CF): Missing to add n to M (M = M + n)?
+      // TODO (CF): Missing to add head to M (M = M + head)?
       return scala.collection.immutable.Set()
     }
 
-    val L = AffectedNodes(n)
+    val L = AffectedAtoms(head)
 
-    updateNodes(L)
+    update(L)
   }
 
-  def updateNodes(L: Set[Node]): Set[Node] = {
+  def update(L: Set[Atom]): Set[Atom] = {
 
-    def stateOfNodes() = L.map(n => (n, status(n))).toList
+    def stateOfAtoms() = L.map(n => (n, status(n))).toList
 
-    val oldState = stateOfNodes
+    val oldState = stateOfAtoms
 
     setUnknown(L)
 
@@ -113,7 +113,7 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
 
     checkForDDB
 
-    val newState = stateOfNodes
+    val newState = stateOfAtoms
 
     val diffState = oldState.diff(newState)
 
@@ -124,11 +124,11 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
 
     val justificationsFromBacktracking = J.filter(_.isInstanceOf[JustificationFromBacktracking])
 
-    val L = AffectedNodes(j.n) ++ justificationsFromBacktracking.flatMap(x => AffectedNodes(x.n))
+    val L = AffectedAtoms(j.head) ++ justificationsFromBacktracking.flatMap(x => AffectedAtoms(x.head))
 
     def removeJustification(j: Justification) = {
       for (m <- j.I union j.O) {
-        Cons(m) -= j.n
+        Cons(m) -= j.head
       }
 
       J -= j
@@ -138,7 +138,7 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
 
     justificationsFromBacktracking.foreach(removeJustification)
 
-    this.updateNodes(L)
+    this.update(L)
   }
 
   def checkForDDB() = {
@@ -150,20 +150,20 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
     }
   }
 
-  def DDB(n: Node) = {
-    val assumptions = MaxAssumptions(n)
+  def DDB(a: Atom) = {
+    val assumptions = MaxAssumptions(a)
 
     if (assumptions.isEmpty)
-      throw new RuntimeException("We have an unsolvable contradiction for node " + n)
+      throw new RuntimeException("We have an unsolvable contradiction for atom " + a)
 
     // TODO: Ordering + Selection?
     val n_a = selectJustification(assumptions).get
 
     // TODO: Ordering + Selection?
     // (we pick currently only the first O)
-    val n_star = selectNode(n_a.O).get
+    val n_star = selectAtom(n_a.O).get
 
-    val j_cont = Jn(assumptions.map(_.n))
+    val j_cont = Jn(assumptions.map(_.head))
 
     val I_cont = j_cont.flatMap(_.I)
     val O_cont = j_cont.flatMap(_.O) - n_star;
@@ -173,32 +173,32 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
     add(justification)
   }
 
-  def Jn(nodes: Set[Node]) = {
-    SJ.filterKeys(nodes.contains(_)).values.map(_.get).toSet
+  def Jn(atoms: Set[Atom]) = {
+    SJ.filterKeys(atoms.contains(_)).values.map(_.get).toSet
   }
 
-  def Jn(n: Node) = J.filter(_.n == n)
+  def Jn(n: Atom) = J.filter(_.head == n)
 
   //ACons(n) = {x ∈ Cons(n) | n ∈ Supp(x)}
-  def ACons(n: Node): Set[Node] = Cons(n).filter(Supp(_).contains(n))
+  def ACons(n: Atom): Set[Atom] = Cons(n).filter(Supp(_).contains(n))
 
-  def AConsTrans(n: Node) = trans(ACons, n)
+  def AConsTrans(n: Atom) = trans(ACons, n)
 
-  def SuppTrans(n: Node) = trans(Supp, n)
+  def SuppTrans(n: Atom) = trans(Supp, n)
 
-  def Ant(n: Node): Set[Node] = {
+  def Ant(n: Atom): Set[Atom] = {
     if (status(n) == in)
       return Supp(n)
     return Set()
   }
 
-  def AntTrans(n: Node) = trans(Ant, n)
+  def AntTrans(a: Atom) = trans(Ant, a)
 
-  def AffectedNodes(n: Node) = AConsTrans(n) + n
+  def AffectedAtoms(a: Atom) = AConsTrans(a) + a
 
-  def MaxAssumptions(n: Node): Set[Justification] = {
+  def MaxAssumptions(n: Atom): Set[Justification] = {
 
-    def asAssumption(n: Node) = SJ(n).filterNot(_.O.isEmpty)
+    def asAssumption(assumption: Atom) = SJ(assumption).filterNot(_.O.isEmpty)
 
     if (Ncont.contains(n)) {
       val assumptionsOfN = AntTrans(n).map(asAssumption).filter(_.isDefined).map(_.get)
@@ -207,9 +207,9 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
         .filter(a => {
           val otherAssumptions = assumptionsOfN - a
 
-          val allOtherAssumptions = otherAssumptions.flatMap(x => AntTrans(x.n))
+          val allOtherAssumptions = otherAssumptions.flatMap(x => AntTrans(x.head))
 
-          !allOtherAssumptions.contains(a.n)
+          !allOtherAssumptions.contains(a.head)
         })
 
       return assumptions
@@ -219,110 +219,110 @@ class TMN(var N: collection.immutable.Set[Node], var J: Set[Justification] = Set
   }
 
   def setIn(j: Justification) = {
-    status(j.n) = in
-    Supp(j.n) = j.I union j.O
-    SJ(j.n) = Option(j)
+    status(j.head) = in
+    Supp(j.head) = j.I union j.O
+    SJ(j.head) = Option(j)
   }
 
-  def setOut(n: Node) = {
+  def setOut(n: Atom) = {
     status(n) = out
     Supp(n) = Jn(n).map(findSpoiler(_).get)
     SJ(n) = None
   }
 
-  def findSpoiler(j: Justification): Option[Node] = {
+  def findSpoiler(j: Justification): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = selectNode(j.I.filter(status(_) == out))
+      val opt = selectAtom(j.I.filter(status(_) == out))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectNode(j.O.filter(status(_) == in))
+        return selectAtom(j.O.filter(status(_) == in))
       }
     } else {
-      val opt = selectNode(j.O.filter(status(_) == in))
+      val opt = selectAtom(j.O.filter(status(_) == in))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectNode(j.I.filter(status(_) == out))
+        return selectAtom(j.I.filter(status(_) == out))
       }
     }
   }
 
-  def setUnknown(n: Node): Unit = {
-    status(n) = unknown
-    Supp(n) = Set()
-    SJ(n) = None
+  def setUnknown(atom: Atom): Unit = {
+    status(atom) = unknown
+    Supp(atom) = Set()
+    SJ(atom) = None
   }
 
-  def setUnknown(L: Set[Node]): Unit = L.foreach(setUnknown(_))
+  def setUnknown(L: Set[Atom]): Unit = L.foreach(setUnknown(_))
 
-  def setConsequences(L: Set[Node]): Unit = {
+  def setConsequences(L: Set[Atom]): Unit = {
     for (n <- L) {
       setConsequences(n)
     }
   }
 
-  def setConsequences(n: Node): Unit = {
-    if (status(n) == unknown) {
-      val jn = Jn(n)
+  def setConsequences(a: Atom): Unit = {
+    if (status(a) == unknown) {
+      val jn = Jn(a)
       val j: Option[Justification] = selectJustification(jn.filter(foundedValid))
       if (j.isDefined) {
         setIn(j.get)
-        setConsequences(unknownCons(n))
+        setConsequences(unknownCons(a))
       } else if (jn.forall(foundedInvalid)) {
-        setOut(n)
-        setConsequences(unknownCons(n))
+        setOut(a)
+        setConsequences(unknownCons(a))
       }
     }
   }
 
-  def chooseAssignments(L: Set[Node]): Unit = {
+  def chooseAssignments(L: Set[Atom]): Unit = {
     for (n <- L) {
       chooseAssignments(n)
     }
   }
 
-  def chooseAssignments(n: Node): Unit = {
-    if (status(n) == unknown) {
-      val jn = Jn(n)
+  def chooseAssignments(a: Atom): Unit = {
+    if (status(a) == unknown) {
+      val jn = Jn(a)
       val j: Option[Justification] = selectJustification(jn.filter(unfoundedValid))
       if (j.isDefined) {
-        val aCons = ACons(n)
+        val aCons = ACons(a)
         if (aCons.isEmpty) {
           setIn(j.get)
           j.get.O.filter(status(_) == unknown).foreach(status(_) = out)
-          chooseAssignments(unknownCons(n))
+          chooseAssignments(unknownCons(a))
         } else {
-          for (m <- (aCons + n)) {
+          for (m <- (aCons + a)) {
             status(m) = unknown
             chooseAssignments(m)
           }
         }
       } else {
-        //all jn are unfounded invalid. in particular, for every j in jn, some node in j.I is unknown
-        status(n) = out
+        //all jn are unfounded invalid. in particular, for every j in jn, some atom in j.I is unknown
+        status(a) = out
         for (h <- jn) {
-          val m = selectNode(h.I.filter(status(_) == unknown))
+          val m = selectAtom(h.I.filter(status(_) == unknown))
           // TODO: this might be needed because of the non existing ordering
           // We usually can expect to always have a justification (if ordering is correct)
           m.foreach(status(_) = out)
         }
-        setOut(n)
-        chooseAssignments(unknownCons(n))
+        setOut(a)
+        chooseAssignments(unknownCons(a))
       }
     }
   }
 
-  def Ncont = N.filter(_.isInstanceOf[ContradictionNode])
+  def Ncont = N.filter(_.isInstanceOf[ContradictionAtom])
 
-  def unknownCons(n: Node) = Cons(n).filter(status(_) == unknown)
+  def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
 
-  def selectNode(nodes: Set[Node]): Option[Node] = {
-    if (nodes.isEmpty)
+  def selectAtom(atoms: Set[Atom]): Option[Atom] = {
+    if (atoms.isEmpty)
       return None
 
     //TODO what about the ordering?
-    Some(nodes.head)
+    Some(atoms.head)
   }
 
   def selectJustification(justifications: Set[Justification]): Option[Justification] = {

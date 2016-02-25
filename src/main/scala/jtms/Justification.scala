@@ -1,35 +1,35 @@
 package jtms
 
 
-class JustificationBuilder(I: Set[Node] = Set(), O: Set[Node] = Set()) {
-  def in(nodes: Node*) = new JustificationBuilder(I ++ nodes, O)
+class JustificationBuilder(I: Set[Atom] = Set(), O: Set[Atom] = Set()) {
+  def in(atoms: Atom*) = new JustificationBuilder(I ++ atoms, O)
 
-  def out(nodes: Node*) = new JustificationBuilder(I, O ++ nodes)
+  def out(atoms: Atom*) = new JustificationBuilder(I, O ++ atoms)
 
-  def node(n: Node) = new UserDefinedJustification(I, O, n)
+  def head(head: Atom) = new UserDefinedJustification(I, O, head)
 }
 
 object Premise {
-  def apply(n: Node) = Justification.premise(n)
+  def apply(head: Atom) = Justification.premise(head)
 }
 
 object Justification {
-  def in(nodes: Node*) = new JustificationBuilder(nodes.toSet)
+  def in(atoms: Atom*) = new JustificationBuilder(atoms.toSet)
 
-  def out(nodes: Node*) = new JustificationBuilder(Set(), nodes.toSet)
+  def out(atoms: Atom*) = new JustificationBuilder(Set(), atoms.toSet)
 
-  def premise(n: Node) = new UserDefinedJustification(Set(), Set(), n)
+  def premise(head: Atom) = new UserDefinedJustification(Set(), Set(), head)
 }
 
 sealed trait Justification {
-  val I: Set[Node]
-  val O: Set[Node]
-  val n: Node
+  val I: Set[Atom]
+  val O: Set[Atom]
+  val head: Atom
 }
 
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedJustification(I: Set[Node], O: Set[Node], n: Node) extends Justification
+case class UserDefinedJustification(I: Set[Atom], O: Set[Atom], head: Atom) extends Justification
 
-case class JustificationFromBacktracking(I: Set[Node], O: Set[Node], n: Node) extends Justification
+case class JustificationFromBacktracking(I: Set[Atom], O: Set[Atom], head: Atom) extends Justification

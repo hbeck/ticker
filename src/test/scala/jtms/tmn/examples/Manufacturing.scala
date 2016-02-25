@@ -8,15 +8,15 @@ import org.scalatest.FlatSpec
   */
 class Manufacturing extends FlatSpec {
 
-  val C = Node("Product")
-  val B = Node("troubles")
-  val A1 = Node("Resource 1")
-  val A2 = Node("Resource 2")
-  val L1 = Node("supply problems A1")
+  val C = Atom("Product")
+  val B = Atom("troubles")
+  val A1 = Atom("Resource 1")
+  val A2 = Atom("Resource 2")
+  val L1 = Atom("supply problems A1")
 
-  val j0 = Justification.in(C).out(B).node(A1)
-  val j1 = Justification.in(C, B).node(A2)
-  val j2 = Justification.in(L1).node(B)
+  val j0 = Justification.in(C).out(B).head(A1)
+  val j1 = Justification.in(C, B).head(A2)
+  val j2 = Justification.in(L1).head(B)
   val j3 = Justification.premise(C)
 
   def TMN = {
@@ -31,13 +31,13 @@ class Manufacturing extends FlatSpec {
   }
 
   "When manufacturing without troubles" should "use resource A1" in {
-    val tmn = TMN;
+    val tmn = TMN
 
     assert(tmn.getModel() == Set(C, A1))
   }
 
   "When there are supply problems with A1" should "mark as troubles and use resource A2" in {
-    val tmn = TMN;
+    val tmn = TMN
 
     tmn.add(Premise(L1))
 

@@ -1,36 +1,36 @@
 package jtms.tmn.examples
 
 import jtms._
-import jtms.tmn.NodeValidation
+import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-class Library extends FlatSpec with NodeValidation {
+class Library extends FlatSpec with AtomValidation {
 
-  val V = Node("verfügbar")
-  val G = Node("gestohlen")
-  val P = Node("am angegebenen Platz vorhanden")
-  val F = Node("falsch einsortiert")
-  val P_not = Node("nicht am angegebenen Platz vorhanden")
-  val A = Node("ausleihbar")
-  val N = Node("Nachschlagewerk")
-  val A_not = Node("nicht ausleihbar")
-  val H = Node("im Handapperart einer Veranstaltung")
-  val N_cont = ContradictionNode("Widerspruch")
+  val V = Atom("verfügbar")
+  val G = Atom("gestohlen")
+  val P = Atom("am angegebenen Platz vorhanden")
+  val F = Atom("falsch einsortiert")
+  val P_not = Atom("nicht am angegebenen Platz vorhanden")
+  val A = Atom("ausleihbar")
+  val N = Atom("Nachschlagewerk")
+  val A_not = Atom("nicht ausleihbar")
+  val H = Atom("im Handapperart einer Veranstaltung")
+  val N_cont = ContradictionAtom("Widerspruch")
 
   val j1 = Premise(V)
-  val j2 = Justification.in(V).out(F, G).node(P)
-  val j3 = Justification.in(F).node(P_not)
-  val j4 = Justification.in(G).node(P_not)
-  val j5 = Justification.in(P).out(H, N).node(A)
-  val j6 = Justification.in(P, P_not).node(N_cont)
-  val j7 = Justification.in(N).node(A_not)
-  val j8 = Justification.in(H).node(A_not)
-  val j9 = Justification.in(A, A_not).node(N_cont)
+  val j2 = Justification.in(V).out(F, G).head(P)
+  val j3 = Justification.in(F).head(P_not)
+  val j4 = Justification.in(G).head(P_not)
+  val j5 = Justification.in(P).out(H, N).head(A)
+  val j6 = Justification.in(P, P_not).head(N_cont)
+  val j7 = Justification.in(N).head(A_not)
+  val j8 = Justification.in(H).head(A_not)
+  val j9 = Justification.in(A, A_not).head(N_cont)
 
-  val jExclusionA =  Justification.in(A).node(N_cont)
+  val jExclusionA =  Justification.in(A).head(N_cont)
 
   def TMN = {
     val tmn = new TMN(Set(V, G, P, F, P_not, A, N, A_not, H, N_cont))
@@ -52,7 +52,7 @@ class Library extends FlatSpec with NodeValidation {
     assert(TMN.getModel() == Set(V, P, A))
   }
 
-  "Node V" must behave like nodeValidation(TMN, V) { validator =>
+  "Atom V" must behave like atomValidation(TMN, V) { validator =>
     validator.state(in)
     validator.Justifications(j1)
     validator.SJ(Some(j1))
@@ -65,7 +65,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans(P, A)
   }
 
-  "Node P" must behave like nodeValidation(TMN, P) { validator =>
+  "Atom P" must behave like atomValidation(TMN, P) { validator =>
     validator.state(in)
     validator.Justifications(j2)
     validator.SJ(Some(j2))
@@ -78,7 +78,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans(A)
   }
 
-  "Node A" must behave like nodeValidation(TMN, A) { validator =>
+  "Atom A" must behave like atomValidation(TMN, A) { validator =>
     validator.state(in)
     validator.Justifications(j5)
     validator.SJ(Some(j5))
@@ -91,7 +91,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans()
   }
 
-  "Node F" must behave like nodeValidation(TMN, F) { validator =>
+  "Atom F" must behave like atomValidation(TMN, F) { validator =>
     validator.state(out)
     validator.Justifications()
     validator.SJ(None)
@@ -103,7 +103,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.ACons(P, P_not)
     validator.AConsTrans(P, A, P_not, N_cont)
   }
-  "Node G" must behave like nodeValidation(TMN, G) { validator =>
+  "Atom G" must behave like atomValidation(TMN, G) { validator =>
     validator.state(out)
     validator.Justifications()
     validator.SJ(None)
@@ -117,7 +117,7 @@ class Library extends FlatSpec with NodeValidation {
   }
 
 
-  "Node H" must behave like nodeValidation(TMN, H) { validator =>
+  "Atom H" must behave like atomValidation(TMN, H) { validator =>
     validator.state(out)
     validator.Justifications()
     validator.SJ(None)
@@ -129,7 +129,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.ACons(A, A_not)
     validator.AConsTrans(A, A_not, N_cont)
   }
-  "Node N" must behave like nodeValidation(TMN, N) { validator =>
+  "Atom N" must behave like atomValidation(TMN, N) { validator =>
     validator.state(out)
     validator.Justifications()
     validator.SJ(None)
@@ -142,7 +142,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans(A, A_not, N_cont)
   }
 
-  "Node P_not" must behave like nodeValidation(TMN, P_not) { validator =>
+  "Atom P_not" must behave like atomValidation(TMN, P_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Justifications(j3, j4)
@@ -155,7 +155,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans(N_cont)
   }
 
-  "Node A_not" must behave like nodeValidation(TMN, A_not) { validator =>
+  "Atom A_not" must behave like atomValidation(TMN, A_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Justifications(j8, j7)
@@ -168,7 +168,7 @@ class Library extends FlatSpec with NodeValidation {
     validator.AConsTrans(N_cont)
   }
 
-  "Node N_cont" must behave like nodeValidation(TMN, N_cont) { validator =>
+  "Atom N_cont" must behave like atomValidation(TMN, N_cont) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Justifications(j6, j9)
@@ -203,7 +203,7 @@ class Library extends FlatSpec with NodeValidation {
   it should "also return the same model when using just a single contradiction node" in {
     val tmn = TMN
 
-    tmn.add(Justification.in(A).node(N_cont))
+    tmn.add(Justification.in(A).head(N_cont))
 
     val model = tmn.getModel()
     info("H is currently chosen 'by random'")
@@ -213,7 +213,7 @@ class Library extends FlatSpec with NodeValidation {
   "With a contradiction node for P the model" should "be P_not,F,V" in {
     val tmn = TMN
 
-    tmn.add(Justification.in(P).node(N_cont))
+    tmn.add(Justification.in(P).head(N_cont))
 
     val model = tmn.getModel()
     info("F is currently chosen 'by random'")

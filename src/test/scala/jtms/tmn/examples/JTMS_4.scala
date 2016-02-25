@@ -1,15 +1,12 @@
 package jtms.tmn.examples
 
-import jtms.tmn.NodeValidation
+import jtms.tmn.AtomValidation
 import jtms.{in, out}
-import org.scalatest.GivenWhenThen
-
-import scala.xml.Node
 
 /**
   * Created by FM on 05.02.16.
   */
-class JTMS_4 extends JTMS with NodeValidation {
+class JTMS_4 extends JTMS with AtomValidation {
 
   val tmn = {
     val tmn = JTMS
@@ -17,7 +14,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     tmn
   }
 
-  "Node A" must behave like   nodeValidation(tmn, A) { validator =>
+  "Atom A" must behave like   atomValidation(tmn, A) { validator =>
     validator.state(out)
     validator.Justifications(j1)
     validator.SJ(None)
@@ -30,7 +27,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     validator.AntTrans()
   }
 
-  "Node B" must behave like nodeValidation(tmn, B) { validator =>
+  "Atom B" must behave like atomValidation(tmn, B) { validator =>
     validator.state(in)
     validator.Justifications(j2)
     validator.SJ(Some(j2))
@@ -43,7 +40,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     validator.AntTrans(A)
   }
 
-  "Node C" must behave like nodeValidation(tmn, C) { validator =>
+  "Atom C" must behave like atomValidation(tmn, C) { validator =>
     validator.state(out)
     validator.Justifications(j3)
     validator.SJ(None)
@@ -56,7 +53,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     validator.AntTrans()
   }
 
-  "Node D" must behave like nodeValidation(tmn, D) { validator =>
+  "Atom D" must behave like atomValidation(tmn, D) { validator =>
     validator.state(in)
     validator.Justifications(j4a,j4b)
     validator.SJ(Some(j4a))
@@ -69,7 +66,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     validator.AntTrans(B, A)
   }
 
-  "Node E" must behave like nodeValidation(tmn, E) { validator =>
+  "Atom E" must behave like atomValidation(tmn, E) { validator =>
     validator.state(in)
     validator.Justifications(j5)
     validator.SJ(Some(j5))
@@ -82,7 +79,7 @@ class JTMS_4 extends JTMS with NodeValidation {
     validator.AntTrans()
   }
 
-  "Node F" must behave like nodeValidation(tmn, F) { validator =>
+  "Atom F" must behave like atomValidation(tmn, F) { validator =>
     validator.state(out)
     validator.Justifications(j6)
     validator.SJ(None)

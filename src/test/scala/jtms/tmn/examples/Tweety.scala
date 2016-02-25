@@ -8,16 +8,16 @@ import org.scalatest.FlatSpec
   */
 class Tweety extends FlatSpec {
 
-  val V = Node("Vogel sein")
-  val P = Node("Pinguin sein")
-  val F = Node("Fliegen können")
-  val F_not = Node("nicht fliegen können")
-  val N_cont = ContradictionNode("Widerspruch")
+  val V = Atom("Vogel sein")
+  val P = Atom("Pinguin sein")
+  val F = Atom("Fliegen können")
+  val F_not = Atom("nicht fliegen können")
+  val N_cont = ContradictionAtom("Widerspruch")
 
-  val j0 = Justification.in(P).node(F_not)
-  val j1 = Justification.in(P).node(V)
-  val j2 = Justification.in(V).out(P).node(F)
-  val j3 = Justification.in(F, F_not).node(N_cont)
+  val j0 = Justification.in(P).head(F_not)
+  val j1 = Justification.in(P).head(V)
+  val j2 = Justification.in(V).out(P).head(F)
+  val j3 = Justification.in(F, F_not).head(N_cont)
   val j4 = Premise(V)
 
   val j5 = Premise(P)

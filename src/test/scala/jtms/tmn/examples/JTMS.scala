@@ -8,20 +8,20 @@ import org.scalatest.FlatSpec
   */
 class JTMS extends FlatSpec {
 
-  val A = Node("A")
-  val B = Node("B")
-  val C = Node("C")
-  val D = Node("D")
-  val E = Node("E")
-  val F = Node("F")
+  val A = Atom("A")
+  val B = Atom("B")
+  val C = Atom("C")
+  val D = Atom("D")
+  val E = Atom("E")
+  val F = Atom("F")
 
-  val j1 = Justification.in(C).node(A)
-  val j2 = Justification.out(A).node(B)
-  val j3 = Justification.in(A).node(C)
-  val j4a = Justification.in(B).node(D)
-  val j4b = Justification.in(C).node(D)
+  val j1 = Justification.in(C).head(A)
+  val j2 = Justification.out(A).head(B)
+  val j3 = Justification.in(A).head(C)
+  val j4a = Justification.in(B).head(D)
+  val j4b = Justification.in(C).head(D)
   val j5 = Premise(E)
-  val j6 = Justification.in(C, E).node(F)
+  val j6 = Justification.in(C, E).head(F)
 
   def JTMS = {
     //    var tmn = new TMN(Set(A, B, C, D, E, F), Set(j1, j2, j3, j4a, j4b, j5, j6).to)

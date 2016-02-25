@@ -9,11 +9,11 @@ import org.scalatest.FlatSpec
   */
 class Deletion extends FlatSpec {
 
-  val A = Node("A")
-  val B = Node("B")
-  val C = Node("C")
+  val A = Atom("A")
+  val B = Atom("B")
+  val C = Atom("C")
 
-  "A model with only one justification" should "have no Justifications and Nodes after deletion" in {
+  "A model with only one justification" should "have no Justifications and atoms after deletion" in {
     val j0 = Premise(A)
 
     val tmn = new TMN(Set(A))
@@ -31,9 +31,9 @@ class Deletion extends FlatSpec {
     assert(tmn.getModel() == Set())
   }
 
-  "A stable TMN with 2 Nodes and two justifications" should "have an empty model after deletion of a supporting Premise" in {
+  "A stable TMN with 2 atoms and two justifications" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
-    val j0 = Justification.in(A).node(B)
+    val j0 = Justification.in(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -58,7 +58,7 @@ class Deletion extends FlatSpec {
 
   it should "have the Model A after deletion of a justification" in {
     // arrange
-    val j0 = Justification.in(A).node(B)
+    val j0 = Justification.in(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -80,10 +80,10 @@ class Deletion extends FlatSpec {
     assert(tmn.Cons(A) == Set())
   }
 
-  "A TMN with three nodes" should "have only Model A after deleting a justification" in {
-    val j0 = Justification.in(A).node(B)
+  "A TMN with three atoms" should "have only Model A after deleting a justification" in {
+    val j0 = Justification.in(A).head(B)
     val j1 = Premise(A)
-    val j2 = Justification.in(B).node(C)
+    val j2 = Justification.in(B).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 
@@ -103,11 +103,11 @@ class Deletion extends FlatSpec {
     assert(tmn.SJ(C) == None)
   }
 
-  "A TMN with three nodes and a redundant justification" should "have Model A,C after deleting a justification supporting B" in {
-    val j0 = Justification.in(A).node(B)
+  "A TMN with three atoms and a redundant justification" should "have Model A,C after deleting a justification supporting B" in {
+    val j0 = Justification.in(A).head(B)
     val j1 = Premise(A)
-    val j2 = Justification.in(B).node(C)
-    val j3 = Justification.in(A).node(C)
+    val j2 = Justification.in(B).head(C)
+    val j3 = Justification.in(A).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 

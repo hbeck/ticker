@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import jtms.{Premise, Node}
+import jtms.{Premise, Atom}
 
 
 /**
@@ -10,7 +10,7 @@ class JTMS_5 extends JTMS {
 
   val j0 = Premise(A)
 
-  var diff: Set[Node] = Set();
+  var diff: Set[Atom] = Set();
   val tmn = {
     val tmn = JTMS
     tmn.set(Set(E, B, D))

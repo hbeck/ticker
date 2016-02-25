@@ -8,20 +8,20 @@ import org.scalatest.FlatSpec
   */
 class Car extends FlatSpec {
 
-  val S_not = Node("car is not starting")
-  val G_not = Node("not enough gas")
-  val G = Node("enough gas")
-  val D = Node("defect")
-  val I = Node("ignition broken")
-  val C = Node("carb broken")
+  val S_not = Atom("car is not starting")
+  val G_not = Atom("not enough gas")
+  val G = Atom("enough gas")
+  val D = Atom("defect")
+  val I = Atom("ignition broken")
+  val C = Atom("carb broken")
 
-  val N_cont = ContradictionNode("contradiction")
+  val N_cont = ContradictionAtom("contradiction")
 
-  val j0 = Justification.in(S_not).out(D).node(G_not);
-  val j1 = Justification.in(S_not, G).node(D)
-  val j2 = Justification.in(G, G_not).node(N_cont)
-  val j3 = Justification.in(I).node(D)
-  val j4 = Justification.in(C).node(D)
+  val j0 = Justification.in(S_not).out(D).head(G_not);
+  val j1 = Justification.in(S_not, G).head(D)
+  val j2 = Justification.in(G, G_not).head(N_cont)
+  val j3 = Justification.in(I).head(D)
+  val j4 = Justification.in(C).head(D)
 
   val notStarting = Premise(S_not)
   val enoughGas = Premise(G)

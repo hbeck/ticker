@@ -9,14 +9,14 @@ object TmnTransformation {
 
   def apply(j: Justification): ClingoExpression = {
     if ((j.I union j.O).isEmpty) {
-      return j.n.caption + '.'
+      return j.head.caption + '.'
     } else {
       val iParts = j.I.map(_.caption)
       val oParts = j.O.map(_.caption).map("not " + _)
 
       val parts = iParts ++ oParts
 
-      parts.mkString(j.n.caption + " :- ", ", ", ".")
+      parts.mkString(j.head.caption + " :- ", ", ", ".")
     }
   }
 }
