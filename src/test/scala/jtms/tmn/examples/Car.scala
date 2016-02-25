@@ -1,8 +1,7 @@
 package jtms.tmn.examples
 
-import asp.Asp
+import aspsamples.EvaluateBothImplementations
 import core._
-import jtms._
 import org.scalatest.FlatSpec
 
 /**
@@ -33,7 +32,7 @@ trait CarBehavior {
 
   val program = Program(j0, j1, j2, j3, j4)
 
-  def theCar(evaluation: => Evaluation): Unit = {
+  def theCar(evaluation: Evaluation): Unit = {
     it should "not result in a defect" in {
       info("When the car is not starting and there is not enough gas")
       val p = program + notStarting + notEnoughGas
@@ -63,7 +62,7 @@ trait CarBehavior {
 
     it should "result in a defect because of the ignition" in {
       info("When the car is not starting and there is a broken ignition")
-      val p =program + notStarting + brokenIgnition
+      val p = program + notStarting + brokenIgnition
 
       val model = evaluation(p)
 
@@ -81,8 +80,7 @@ trait CarBehavior {
   }
 }
 
-class Car extends FlatSpec with CarBehavior {
-
-  "Using the ASP implementation" should behave like theCar(Asp())
-  "Using the TMN implementation" should behave like theCar(new jTmn)
+class Car extends FlatSpec with CarBehavior with EvaluateBothImplementations{
+  "The car sample" should behave like theSame(theCar)
 }
+
