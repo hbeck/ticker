@@ -1,4 +1,4 @@
-package jtms
+package core
 
 class RuleBuilder(I: Set[Atom] = Set(), O: Set[Atom] = Set()) {
   def in(atoms: Atom*) = new RuleBuilder(I ++ atoms, O)
