@@ -30,7 +30,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     init(a)
   }
   for (j <- J) {
-    for (m <- j.I union j.O) {
+    for (m <- j.body) {
       Cons(m) += j.head
     }
   }
@@ -79,7 +79,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
     //update structure
     J += j
-    for (m <- j.I union j.O) {
+    for (m <- j.body) {
       Cons(m) += head
     }
 
@@ -141,7 +141,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     var L = AffectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
 
     def removeRule(j: Rule) = {
-      for (m <- j.I union j.O) {
+      for (m <- j.body) {
         Cons(m) -= j.head
       }
 
@@ -244,7 +244,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
   def setIn(j: Rule) = {
     status(j.head) = in
-    Supp(j.head) = j.I union j.O
+    Supp(j.head) = j.body
     SJ(j.head) = Option(j)
   }
 

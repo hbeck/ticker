@@ -6,7 +6,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 22.02.16.
   */
-class TmnTransformationSpecs extends FlatSpec {
+class AspSpecs extends FlatSpec {
 
   val A = Atom("A")
   val B = Atom("B")
@@ -16,34 +16,34 @@ class TmnTransformationSpecs extends FlatSpec {
 
     val premise = Premise(A)
 
-    assert(TmnTransformation(premise) == "A.")
+    assert(Asp(premise) == AspExpression("A."))
   }
 
   "A rule with only positive support" should "be transformed into the expression 'A :- B.'" in {
     val j = Rule.in(B).head(A)
 
-    assert(TmnTransformation(j) == "A :- B.")
+    assert(Asp(j) == AspExpression("A :- B."))
   }
   it should "be transformed into the expression 'A :- B, C.'" in {
     val j = Rule.in(B, C).head(A)
 
-    assert(TmnTransformation(j) == "A :- B, C.")
+    assert(Asp(j) == AspExpression("A :- B, C."))
   }
 
   "A rule with only negative support" should "be transformed into the expression 'A :- not B.'" in {
     val j = Rule.out(B).head(A)
 
-    assert(TmnTransformation(j) == "A :- not B.")
+    assert(Asp(j) == AspExpression("A :- not B."))
   }
   it should "be transformed into the expression 'A:- not B, not C" in {
     val j = Rule.out(B, C).head(A)
 
-    assert(TmnTransformation(j) == "A :- not B, not C.")
+    assert(Asp(j) == AspExpression("A :- not B, not C."))
   }
 
-  "A rule with both positive an negative support" should "be transfomred into 'A :- B, not C.'" in {
+  "A rule with both positive an negative support" should "be transformed into 'A :- B, not C.'" in {
     val j = Rule.in(B).out(C).head(A)
 
-    assert(TmnTransformation(j) == "A :- B, not C.")
+    assert(Asp(j) == AspExpression("A :- B, not C."))
   }
 }
