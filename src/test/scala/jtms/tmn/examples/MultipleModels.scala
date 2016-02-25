@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import jtms.{UserDefinedAtom, TMN, Justification, Atom}
+import jtms.{UserDefinedAtom, TMN, Rule, Atom}
 import org.scalatest.FlatSpec
 
 /**
@@ -11,8 +11,8 @@ class MultipleModels  extends  FlatSpec{
   val A = Atom("A")
   val B = Atom("B")
 
-  val j1 = Justification.out(A).head(B)
-  val j2 = Justification.out(B).head(A)
+  val j1 = Rule.out(A).head(B)
+  val j2 = Rule.out(B).head(A)
 
   def TMN = new TMN(Set(A,B))
 

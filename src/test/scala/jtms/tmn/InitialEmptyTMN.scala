@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import jtms.{in, Justification, TMN, Atom$}
+import jtms.{in, Rule$, TMN, Atom$}
 import org.scalatest.{BeforeAndAfter}
 
 /**
@@ -15,7 +15,7 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
     tmn.add(assumptionA)
   }
 
-  "An empty TMN" should "have no Justifications and no status values set" in {
+  "An empty TMN" should "have no rules and no status values set" in {
     val empty = EmptyTMN
     assert(empty.J.size == 0)
     assert(empty.status.size == 0)
@@ -29,7 +29,7 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
     assert(tmn.status.filter(_._2 == in).size == 1)
   }
 
-  it should "contain one Justification" in {
+  it should "contain one rule" in {
     assert(tmn.J.size == 1)
   }
 
@@ -43,7 +43,7 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
 
     assert(tmn.status.size == 1)
   }
-  it should "also contain just one Justification" in {
+  it should "also contain just one rule" in {
     tmn.add(assumptionA)
 
     assert(tmn.J.size ==1)

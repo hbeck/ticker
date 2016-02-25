@@ -13,7 +13,7 @@ class Deletion extends FlatSpec {
   val B = Atom("B")
   val C = Atom("C")
 
-  "A model with only one justification" should "have no Justifications and atoms after deletion" in {
+  "A model with only one rule" should "have no rules and atoms after deletion" in {
     val j0 = Premise(A)
 
     val tmn = new TMN(Set(A))
@@ -31,9 +31,9 @@ class Deletion extends FlatSpec {
     assert(tmn.getModel() == Set())
   }
 
-  "A stable TMN with 2 atoms and two justifications" should "have an empty model after deletion of a supporting Premise" in {
+  "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
-    val j0 = Justification.in(A).head(B)
+    val j0 = Rule.in(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -56,9 +56,9 @@ class Deletion extends FlatSpec {
     assert(tmn.Cons(A) == Set(B))
   }
 
-  it should "have the Model A after deletion of a justification" in {
+  it should "have the Model A after deletion of a rule" in {
     // arrange
-    val j0 = Justification.in(A).head(B)
+    val j0 = Rule.in(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -80,10 +80,10 @@ class Deletion extends FlatSpec {
     assert(tmn.Cons(A) == Set())
   }
 
-  "A TMN with three atoms" should "have only Model A after deleting a justification" in {
-    val j0 = Justification.in(A).head(B)
+  "A TMN with three atoms" should "have only Model A after deleting a rule" in {
+    val j0 = Rule.in(A).head(B)
     val j1 = Premise(A)
-    val j2 = Justification.in(B).head(C)
+    val j2 = Rule.in(B).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 
@@ -103,11 +103,11 @@ class Deletion extends FlatSpec {
     assert(tmn.SJ(C) == None)
   }
 
-  "A TMN with three atoms and a redundant justification" should "have Model A,C after deleting a justification supporting B" in {
-    val j0 = Justification.in(A).head(B)
+  "A TMN with three atoms and a redundant rule" should "have Model A,C after deleting a rule supporting B" in {
+    val j0 = Rule.in(A).head(B)
     val j1 = Premise(A)
-    val j2 = Justification.in(B).head(C)
-    val j3 = Justification.in(A).head(C)
+    val j2 = Rule.in(B).head(C)
+    val j3 = Rule.in(A).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 
@@ -135,7 +135,7 @@ class Deletion extends FlatSpec {
     assert(tmn.Cons(B) == Set(C))
   }
 
-  "Removing an additional justification form the JTMS 5 sample" should "result in the original model" in {
+  "Removing an additional rule form the JTMS 5 sample" should "result in the original model" in {
     // arrange
     val setup = new JTMS_5
     val tmn = setup.tmn
@@ -165,7 +165,7 @@ class Deletion extends FlatSpec {
     assert(tmn.getModel() == Set(setup.V, setup.F))
   }
 
-  "Removing a justification from a TMN where backtracking occurred" should "result in the original model" in {
+  "Removing a rule from a TMN where backtracking occurred" should "result in the original model" in {
     // arrange
     val setup = new JMTS_21
     val tmn = setup.JTMS_DDB
@@ -180,7 +180,7 @@ class Deletion extends FlatSpec {
     assert(tmn.getModel() == Set(setup.E, setup.B, setup.D))
   }
 
-  "Removing a exclusion justification for A in the library sample" should "result in the initial model" in {
+  "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {
     val setup = new Library
     val tmn = setup.TMN
 

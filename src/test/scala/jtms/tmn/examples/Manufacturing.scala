@@ -14,10 +14,10 @@ class Manufacturing extends FlatSpec {
   val A2 = Atom("Resource 2")
   val L1 = Atom("supply problems A1")
 
-  val j0 = Justification.in(C).out(B).head(A1)
-  val j1 = Justification.in(C, B).head(A2)
-  val j2 = Justification.in(L1).head(B)
-  val j3 = Justification.premise(C)
+  val j0 = Rule.in(C).out(B).head(A1)
+  val j1 = Rule.in(C, B).head(A2)
+  val j2 = Rule.in(L1).head(B)
+  val j3 = Rule.premise(C)
 
   def TMN = {
     val tmn = new TMN(Set(C, B, A1, A2, L1))

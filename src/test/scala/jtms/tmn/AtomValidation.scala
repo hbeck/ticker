@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import jtms.{Justification, Status, Atom, TMN}
+import jtms.{Rule, Status, Atom, TMN}
 import org.scalatest.{GivenWhenThen, FlatSpec}
 
 /**
@@ -30,20 +30,20 @@ trait AtomValidation {
       }
     }
 
-    def Justifications(justifications: Justification*) = {
-      val justificationSet = justifications.toSet
-      it should "have the justifications" + justificationSet in {
-        assert(tmn.Jn(atom) == justificationSet)
+    def Rules(rules: Rule*) = {
+      val ruleSet = rules.toSet
+      it should "have the rules" + ruleSet in {
+        assert(tmn.Jn(atom) == ruleSet)
       }
     }
 
-    def SJ(j: Option[Justification]) = {
+    def SJ(j: Option[Rule]) = {
 
       var text: String = ""
       if (j.isDefined)
-        text = "have the supporting justification " + j;
+        text = "have the supporting rule " + j;
       else
-        text = "have no supporting justifications";
+        text = "have no supporting rules";
 
       it should text in {
         assert(tmn.SJ(atom) == j)

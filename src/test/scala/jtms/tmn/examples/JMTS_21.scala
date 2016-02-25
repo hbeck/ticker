@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import jtms.{ContradictionAtom, Justification}
+import jtms.{ContradictionAtom, Rule}
 
 /**
   * Created by FM on 11.02.16.
@@ -8,7 +8,7 @@ import jtms.{ContradictionAtom, Justification}
 class JMTS_21 extends JTMS {
   val N_cont = ContradictionAtom("N_cont")
 
-  val j7 = Justification.in(B).out(C).head(N_cont)
+  val j7 = Rule.in(B).out(C).head(N_cont)
 
   def JTMS_DDB = {
     val tmn = JTMS

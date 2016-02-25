@@ -17,11 +17,11 @@ class Car extends FlatSpec {
 
   val N_cont = ContradictionAtom("contradiction")
 
-  val j0 = Justification.in(S_not).out(D).head(G_not);
-  val j1 = Justification.in(S_not, G).head(D)
-  val j2 = Justification.in(G, G_not).head(N_cont)
-  val j3 = Justification.in(I).head(D)
-  val j4 = Justification.in(C).head(D)
+  val j0 = Rule.in(S_not).out(D).head(G_not);
+  val j1 = Rule.in(S_not, G).head(D)
+  val j2 = Rule.in(G, G_not).head(N_cont)
+  val j3 = Rule.in(I).head(D)
+  val j4 = Rule.in(C).head(D)
 
   val notStarting = Premise(S_not)
   val enoughGas = Premise(G)

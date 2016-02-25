@@ -7,11 +7,11 @@ import scala.collection.mutable.{HashMap, Map}
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set()) {
+class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SJ: Map[Atom, Option[Justification]] = new HashMap[Atom, Option[Justification]]
+  val SJ: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
   for (a <- N) {
@@ -34,7 +34,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
   def set(M: Set[Atom]): Boolean = {
     val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val j: Option[Justification] = findSJ(m, i)
+      val j: Option[Rule] = findSJ(m, i)
       if (j.isEmpty) {
         return false
       }
@@ -50,18 +50,18 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     status.filter(_._2 == in).map(_._1).toSet
   }
 
-  /** takes atoms at list M index idx and tries to find a valid justification
+  /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSJ(M: List[Atom], idx: Int): Option[Justification] = {
+  def findSJ(M: List[Atom], idx: Int): Option[Rule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
-    val justifications = Jn(n).filter(j => j.I.subsetOf(MSub) && j.O.intersect(M.toSet).isEmpty)
-    selectJustification(justifications)
+    val rules = Jn(n).filter(j => j.I.subsetOf(MSub) && j.O.intersect(M.toSet).isEmpty)
+    selectRule(rules)
   }
 
   //TMS update algorithm
-  def add(j: Justification): Set[Atom] = {
+  def add(j: Rule): Set[Atom] = {
 
     val head = j.head //alias
 
@@ -78,7 +78,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
       return scala.collection.immutable.Set()
     }
 
-    //otherwise, we are done, if the new justification is not valid in M, i.e.,
+    //otherwise, we are done, if the new rules is not valid in M, i.e.,
     //head does not need to be concluded
     val spoiler: Option[Atom] = findSpoiler(j)
     if (spoiler.isDefined) {
@@ -120,13 +120,13 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     diffState.map(_._1).toSet
   }
 
-  def remove(j: Justification) = {
+  def remove(j: Rule) = {
 
-    val justificationsFromBacktracking = J.filter(_.isInstanceOf[JustificationFromBacktracking])
+    val rulesFromBacktracking = J.filter(_.isInstanceOf[RuleFromBacktracking])
 
-    val L = AffectedAtoms(j.head) ++ justificationsFromBacktracking.flatMap(x => AffectedAtoms(x.head))
+    val L = AffectedAtoms(j.head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
 
-    def removeJustification(j: Justification) = {
+    def removeRule(j: Rule) = {
       for (m <- j.I union j.O) {
         Cons(m) -= j.head
       }
@@ -134,9 +134,9 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
       J -= j
     }
 
-    removeJustification(j)
+    removeRule(j)
 
-    justificationsFromBacktracking.foreach(removeJustification)
+    rulesFromBacktracking.foreach(removeRule)
 
     this.update(L)
   }
@@ -157,7 +157,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
       throw new RuntimeException("We have an unsolvable contradiction for atom " + a)
 
     // TODO: Ordering + Selection?
-    val n_a = selectJustification(assumptions).get
+    val n_a = selectRule(assumptions).get
 
     // TODO: Ordering + Selection?
     // (we pick currently only the first O)
@@ -168,9 +168,9 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     val I_cont = j_cont.flatMap(_.I)
     val O_cont = j_cont.flatMap(_.O) - n_star;
 
-    val justification = new JustificationFromBacktracking(I_cont, O_cont, n_star)
+    val rule = new RuleFromBacktracking(I_cont, O_cont, n_star)
 
-    add(justification)
+    add(rule)
   }
 
   def Jn(atoms: Set[Atom]) = {
@@ -196,7 +196,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
 
   def AffectedAtoms(a: Atom) = AConsTrans(a) + a
 
-  def MaxAssumptions(n: Atom): Set[Justification] = {
+  def MaxAssumptions(n: Atom): Set[Rule] = {
 
     def asAssumption(assumption: Atom) = SJ(assumption).filterNot(_.O.isEmpty)
 
@@ -218,7 +218,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     Set()
   }
 
-  def setIn(j: Justification) = {
+  def setIn(j: Rule) = {
     status(j.head) = in
     Supp(j.head) = j.I union j.O
     SJ(j.head) = Option(j)
@@ -230,7 +230,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     SJ(n) = None
   }
 
-  def findSpoiler(j: Justification): Option[Atom] = {
+  def findSpoiler(j: Rule): Option[Atom] = {
     if (math.random < 0.5) {
       val opt = selectAtom(j.I.filter(status(_) == out))
       if (opt.isDefined) {
@@ -265,7 +265,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
   def setConsequences(a: Atom): Unit = {
     if (status(a) == unknown) {
       val jn = Jn(a)
-      val j: Option[Justification] = selectJustification(jn.filter(foundedValid))
+      val j: Option[Rule] = selectRule(jn.filter(foundedValid))
       if (j.isDefined) {
         setIn(j.get)
         setConsequences(unknownCons(a))
@@ -285,7 +285,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
   def chooseAssignments(a: Atom): Unit = {
     if (status(a) == unknown) {
       val jn = Jn(a)
-      val j: Option[Justification] = selectJustification(jn.filter(unfoundedValid))
+      val j: Option[Rule] = selectRule(jn.filter(unfoundedValid))
       if (j.isDefined) {
         val aCons = ACons(a)
         if (aCons.isEmpty) {
@@ -304,7 +304,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
         for (h <- jn) {
           val m = selectAtom(h.I.filter(status(_) == unknown))
           // TODO: this might be needed because of the non existing ordering
-          // We usually can expect to always have a justification (if ordering is correct)
+          // We usually can expect to always have a rule (if ordering is correct)
           m.foreach(status(_) = out)
         }
         setOut(a)
@@ -325,24 +325,24 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Justification] = Set
     Some(atoms.head)
   }
 
-  def selectJustification(justifications: Set[Justification]): Option[Justification] = {
-    if (justifications.isEmpty)
+  def selectRule(rules: Set[Rule]): Option[Rule] = {
+    if (rules.isEmpty)
       return None
 
     //TODO what about the ordering?
-    Some(justifications.head)
+    Some(rules.head)
   }
 
-  def foundedValid(j: Justification): Boolean = {
-    j.I.forall(status(_) == in) && j.O.forall(status(_) == out)
+  def foundedValid(r: Rule): Boolean = {
+    r.I.forall(status(_) == in) && r.O.forall(status(_) == out)
   }
 
-  def foundedInvalid(j: Justification): Boolean = {
-    j.I.exists(status(_) == out) || j.O.exists(status(_) == in)
+  def foundedInvalid(r: Rule): Boolean = {
+    r.I.exists(status(_) == out) || r.O.exists(status(_) == in)
   }
 
-  def unfoundedValid(j: Justification): Boolean = {
-    j.I.forall(status(_) == in) && !j.O.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
+  def unfoundedValid(r: Rule): Boolean = {
+    r.I.forall(status(_) == in) && !r.O.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {

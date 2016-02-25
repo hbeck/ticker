@@ -21,16 +21,16 @@ class Library extends FlatSpec with AtomValidation {
   val N_cont = ContradictionAtom("Widerspruch")
 
   val j1 = Premise(V)
-  val j2 = Justification.in(V).out(F, G).head(P)
-  val j3 = Justification.in(F).head(P_not)
-  val j4 = Justification.in(G).head(P_not)
-  val j5 = Justification.in(P).out(H, N).head(A)
-  val j6 = Justification.in(P, P_not).head(N_cont)
-  val j7 = Justification.in(N).head(A_not)
-  val j8 = Justification.in(H).head(A_not)
-  val j9 = Justification.in(A, A_not).head(N_cont)
+  val j2 = Rule.in(V).out(F, G).head(P)
+  val j3 = Rule.in(F).head(P_not)
+  val j4 = Rule.in(G).head(P_not)
+  val j5 = Rule.in(P).out(H, N).head(A)
+  val j6 = Rule.in(P, P_not).head(N_cont)
+  val j7 = Rule.in(N).head(A_not)
+  val j8 = Rule.in(H).head(A_not)
+  val j9 = Rule.in(A, A_not).head(N_cont)
 
-  val jExclusionA =  Justification.in(A).head(N_cont)
+  val jExclusionA =  Rule.in(A).head(N_cont)
 
   def TMN = {
     val tmn = new TMN(Set(V, G, P, F, P_not, A, N, A_not, H, N_cont))
@@ -54,7 +54,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "Atom V" must behave like atomValidation(TMN, V) { validator =>
     validator.state(in)
-    validator.Justifications(j1)
+    validator.Rules(j1)
     validator.SJ(Some(j1))
     validator.Supp()
     validator.SuppTrans()
@@ -67,7 +67,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "Atom P" must behave like atomValidation(TMN, P) { validator =>
     validator.state(in)
-    validator.Justifications(j2)
+    validator.Rules(j2)
     validator.SJ(Some(j2))
     validator.Supp(V, F, G)
     validator.SuppTrans(V, F, G)
@@ -80,7 +80,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "Atom A" must behave like atomValidation(TMN, A) { validator =>
     validator.state(in)
-    validator.Justifications(j5)
+    validator.Rules(j5)
     validator.SJ(Some(j5))
     validator.Supp(P, H, N)
     validator.SuppTrans(P, H, N, V, F, G)
@@ -93,7 +93,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "Atom F" must behave like atomValidation(TMN, F) { validator =>
     validator.state(out)
-    validator.Justifications()
+    validator.Rules()
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
@@ -105,7 +105,7 @@ class Library extends FlatSpec with AtomValidation {
   }
   "Atom G" must behave like atomValidation(TMN, G) { validator =>
     validator.state(out)
-    validator.Justifications()
+    validator.Rules()
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
@@ -119,7 +119,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "Atom H" must behave like atomValidation(TMN, H) { validator =>
     validator.state(out)
-    validator.Justifications()
+    validator.Rules()
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
@@ -131,7 +131,7 @@ class Library extends FlatSpec with AtomValidation {
   }
   "Atom N" must behave like atomValidation(TMN, N) { validator =>
     validator.state(out)
-    validator.Justifications()
+    validator.Rules()
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
@@ -145,7 +145,7 @@ class Library extends FlatSpec with AtomValidation {
   "Atom P_not" must behave like atomValidation(TMN, P_not) { validator =>
     validator.state(out)
     validator.SJ(None)
-    validator.Justifications(j3, j4)
+    validator.Rules(j3, j4)
     validator.Supp(F, G)
     validator.SuppTrans(F, G)
     validator.Ant()
@@ -158,7 +158,7 @@ class Library extends FlatSpec with AtomValidation {
   "Atom A_not" must behave like atomValidation(TMN, A_not) { validator =>
     validator.state(out)
     validator.SJ(None)
-    validator.Justifications(j8, j7)
+    validator.Rules(j8, j7)
     validator.Supp(H, N)
     validator.SuppTrans(H, N)
     validator.Ant()
@@ -171,7 +171,7 @@ class Library extends FlatSpec with AtomValidation {
   "Atom N_cont" must behave like atomValidation(TMN, N_cont) { validator =>
     validator.state(out)
     validator.SJ(None)
-    validator.Justifications(j6, j9)
+    validator.Rules(j6, j9)
     validator.Supp(P_not, A_not)
     validator.SuppTrans(P_not, A_not, F, G, H, N)
     validator.Ant()
@@ -203,7 +203,7 @@ class Library extends FlatSpec with AtomValidation {
   it should "also return the same model when using just a single contradiction node" in {
     val tmn = TMN
 
-    tmn.add(Justification.in(A).head(N_cont))
+    tmn.add(Rule.in(A).head(N_cont))
 
     val model = tmn.getModel()
     info("H is currently chosen 'by random'")
@@ -213,7 +213,7 @@ class Library extends FlatSpec with AtomValidation {
   "With a contradiction node for P the model" should "be P_not,F,V" in {
     val tmn = TMN
 
-    tmn.add(Justification.in(P).head(N_cont))
+    tmn.add(Rule.in(P).head(N_cont))
 
     val model = tmn.getModel()
     info("F is currently chosen 'by random'")

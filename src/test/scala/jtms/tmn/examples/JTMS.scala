@@ -15,13 +15,13 @@ class JTMS extends FlatSpec {
   val E = Atom("E")
   val F = Atom("F")
 
-  val j1 = Justification.in(C).head(A)
-  val j2 = Justification.out(A).head(B)
-  val j3 = Justification.in(A).head(C)
-  val j4a = Justification.in(B).head(D)
-  val j4b = Justification.in(C).head(D)
+  val j1 = Rule.in(C).head(A)
+  val j2 = Rule.out(A).head(B)
+  val j3 = Rule.in(A).head(C)
+  val j4a = Rule.in(B).head(D)
+  val j4b = Rule.in(C).head(D)
   val j5 = Premise(E)
-  val j6 = Justification.in(C, E).head(F)
+  val j6 = Rule.in(C, E).head(F)
 
   def JTMS = {
     //    var tmn = new TMN(Set(A, B, C, D, E, F), Set(j1, j2, j3, j4a, j4b, j5, j6).to)
