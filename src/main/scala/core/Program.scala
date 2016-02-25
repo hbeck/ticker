@@ -10,4 +10,9 @@ object Program {
   */
 case class Program(rules: Set[Rule]) {
   val atoms = rules.flatMap(_.atoms)
+
+  def +(rule: Rule) = Program(this.rules + rule)
+
+  def ++(other: Program) = Program(this.rules ++ other.rules)
+
 }
