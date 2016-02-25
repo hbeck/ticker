@@ -6,7 +6,7 @@ import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 25.02.16.
-  */
+  “*/
 class SingeHusbandSample extends FlatSpec {
   /*
   man.

@@ -8,7 +8,7 @@ sealed trait Atom {
 }
 
 object Atom {
-  def apply(caption: String) = UserDefinedAtom(caption)
+  def apply(caption: String): Atom = UserDefinedAtom(caption)
 }
 
 case class UserDefinedAtom(caption: String) extends Atom

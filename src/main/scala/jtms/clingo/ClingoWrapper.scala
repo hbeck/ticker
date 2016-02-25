@@ -30,14 +30,16 @@ object ClingoWrapper {
 
     val clingoVersion = parseVersion(versionOutput)
 
-    new ClingoWrapper(Process("clingo --verbose=0"), clingoVersion)
+    new ClingoWrapper(Process("clingo --verbose=0 --models=0"), clingoVersion)
   }
 }
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
 
+  def run(expressions: Set[AspExpression]): String = run(expressions.mkString(System.lineSeparator))
 
-  def run(program: String) = {
+
+  def run(program: String): String = {
 
     val inputStream = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8))
     val resultStream = clingoProcess.#<(inputStream).lineStream_!
