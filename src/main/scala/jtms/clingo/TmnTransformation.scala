@@ -1,6 +1,6 @@
 package jtms.clingo
 
-import jtms.Rule
+import core.Rule
 
 /**
   * Created by FM on 22.02.16.

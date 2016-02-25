@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
-import jtms.{UserDefinedAtom, TMN, Rule, Atom}
+import core.{Rule, Atom}
+import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**

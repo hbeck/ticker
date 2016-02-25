@@ -1,5 +1,6 @@
 package jtms.tmn.examples
 
+import core.{Rule, Premise, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 

@@ -1,7 +1,6 @@
 package jtms.tmn.examples
 
-import jtms.{Premise, Atom}
-
+import core.{Premise, Atom}
 
 /**
   * Created by FM on 06.02.16.

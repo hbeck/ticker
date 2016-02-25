@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import jtms.{ContradictionAtom, Rule}
+import core.{Rule, ContradictionAtom}
 
 /**
   * Created by FM on 11.02.16.

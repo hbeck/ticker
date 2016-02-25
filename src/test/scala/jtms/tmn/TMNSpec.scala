@@ -1,5 +1,6 @@
 package jtms.tmn
 
+import core.{Premise, Rule, UserDefinedAtom, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 

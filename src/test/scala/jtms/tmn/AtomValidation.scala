@@ -1,6 +1,7 @@
 package jtms.tmn
 
-import jtms.{Rule, Status, Atom, TMN}
+import core.{Rule, Atom}
+import jtms.{Status, TMN}
 import org.scalatest.{GivenWhenThen, FlatSpec}
 
 /**

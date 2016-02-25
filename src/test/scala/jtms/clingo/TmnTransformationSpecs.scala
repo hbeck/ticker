@@ -1,6 +1,6 @@
 package jtms.clingo
 
-import jtms.{Rule, Atom, Premise}
+import core.{Rule, Premise, Atom}
 import org.scalatest.FlatSpec
 
 /**

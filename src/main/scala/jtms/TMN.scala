@@ -1,5 +1,7 @@
 package jtms
 
+import core._
+
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map}
 

@@ -1,5 +1,6 @@
 package jtms.tmn.examples
 
+import core.{Rule, Premise, ContradictionAtom, Atom}
 import jtms._
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec

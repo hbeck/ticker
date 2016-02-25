@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import jtms.{in, Rule$, TMN, Atom$}
+import jtms.in
 import org.scalatest.{BeforeAndAfter}
 
 /**
