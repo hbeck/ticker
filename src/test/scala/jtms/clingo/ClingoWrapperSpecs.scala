@@ -38,12 +38,12 @@ class ClingoWrapperSpecs extends FlatSpec {
   "The satisfiable result of clingo" should "be interpreted correctly and contain a, b" in {
     val clingo = ClingoWrapper()
 
-    assert(clingo.parseResult("a b\nSATISFIABLE") == Some(Set("a", "b")))
+    assert(clingo.parseResult("a b\nSATISFIABLE") == Some(Set(Set("a", "b"))))
   }
   it should "be interpreted correctly and only contain a" in {
     val clingo = ClingoWrapper()
 
-    assert(clingo.parseResult("a\nSATISFIABLE") == Some(Set("a")))
+    assert(clingo.parseResult("a\nSATISFIABLE") == Some(Set(Set("a"))))
   }
 
   "A not satisfiable result" should "return None" in {
@@ -65,6 +65,17 @@ class ClingoWrapperSpecs extends FlatSpec {
 b c
 SATISFIABLE"""
 
-    assert(clingo.parseResult(result) == Some(Set("b", "c")))
+    assert(clingo.parseResult(result) == Some(Set(Set("b", "c"))))
+  }
+
+  "A result with multiple models" should "return all possible models" in {
+    val clingo = ClingoWrapper()
+
+    val result =
+      """man single
+man husband
+SATISFIABLE"""
+
+    assert(clingo.parseResult(result) == Some(Set(Set("man", "single"), Set("man", "husband"))))
   }
 }

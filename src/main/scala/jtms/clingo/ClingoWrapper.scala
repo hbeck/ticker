@@ -3,9 +3,15 @@ package jtms.clingo
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
+import jtms.clingo.ClingoWrapper.AspModel
+
 import scala.sys.process._
 
+
 object ClingoWrapper {
+
+  type AspModel = Set[String]
+
   def parseVersion(versionString: String) = {
     val regex = """^clingo version (\d\.\d\.\d)""".r("version")
 
@@ -29,6 +35,7 @@ object ClingoWrapper {
 }
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
+
 
   def run(program: String) = {
 
@@ -58,20 +65,20 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
     //    output.toString()
   }
 
-  def parseResult(result: String): Option[Set[String]] = {
+  def parseResult(result: String): Option[Set[AspModel]] = {
 
     if (result.endsWith("SATISFIABLE")) {
-      val firstLine = result.linesWithSeparators
+      val lines = result.linesWithSeparators
         // clingo outputs warnings for undefined atoms
         // TODO check if we should use --warn no-atom-undefined for the clingo execution
         .filterNot(line => line.startsWith("-:") || line.startsWith(" ") || line.trim.isEmpty)
+        .map(_.stripLineEnd)
         .toList
-        .head
-        .stripLineEnd
 
-      val model = firstLine.split(' ')
 
-      return Some(model.toSet)
+      val models = lines.init.map(line => line.split(' ').toSet)
+
+      return Some(models.toSet)
     }
 
     None

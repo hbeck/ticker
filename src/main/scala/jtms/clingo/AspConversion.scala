@@ -1,11 +1,15 @@
 package jtms.clingo
 
-import core.Rule
+import core.{Program, Rule}
 
 /**
   * Created by FM on 22.02.16.
   */
-object Asp {
+object AspConversion {
+
+  def apply(program: Program): Set[AspExpression] = {
+    program.rules.map(apply)
+  }
 
   def apply(rule: Rule): AspExpression = {
     if (rule.body.isEmpty) {
