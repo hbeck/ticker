@@ -1,5 +1,6 @@
 package jtms.tmn.examples
 
+import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
@@ -58,6 +59,8 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
+      if(evaluation.isInstanceOf[Asp]) pending
+
       info("H is currently chosen 'by random'")
       assert(model contains SingleModel(Set(A_not, H, P, V)))
     }
@@ -66,6 +69,9 @@ trait LibraryBehavior {
       val p = program + Rule.in(A).head(N_cont)
 
       val model = evaluation(p)
+
+      if(evaluation.isInstanceOf[Asp]) pending
+
       info("H is currently chosen 'by random'")
       assert(model contains SingleModel(Set(A_not, H, P, V)))
     }
@@ -75,6 +81,9 @@ trait LibraryBehavior {
       val p = program + Rule.in(P).head(N_cont)
 
       val model = evaluation(p)
+
+      if(evaluation.isInstanceOf[Asp]) pending
+
       info("F is currently chosen 'by random'")
       assert(model contains SingleModel(Set(P_not, F, V)))
     }
