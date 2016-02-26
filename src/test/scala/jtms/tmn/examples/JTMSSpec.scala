@@ -9,20 +9,20 @@ import org.scalatest.FlatSpec
   */
 class JTMSSpec extends FlatSpec {
 
-  val A = Atom("A")
-  val B = Atom("B")
-  val C = Atom("C")
-  val D = Atom("D")
-  val E = Atom("E")
-  val F = Atom("F")
+  val a = Atom("a")
+  val b = Atom("b")
+  val c = Atom("c")
+  val d = Atom("d")
+  val e = Atom("e")
+  val f = Atom("f")
 
-  val j1 = Rule.in(C).head(A)
-  val j2 = Rule.out(A).head(B)
-  val j3 = Rule.in(A).head(C)
-  val j4a = Rule.in(B).head(D)
-  val j4b = Rule.in(C).head(D)
-  val j5 = Premise(E)
-  val j6 = Rule.in(C, E).head(F)
+  val j1 = Rule.in(c).head(a)
+  val j2 = Rule.out(a).head(b)
+  val j3 = Rule.in(a).head(c)
+  val j4a = Rule.in(b).head(d)
+  val j4b = Rule.in(c).head(d)
+  val j5 = Premise(e)
+  val j6 = Rule.in(c, e).head(f)
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 

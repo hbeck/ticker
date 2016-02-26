@@ -153,13 +153,13 @@ class Deletion extends FlatSpec {
     val setup = new JTMS_5
     val tmn = setup.tmn
 
-    assume(tmn.getModel() == Set(setup.A, setup.C, setup.D, setup.E, setup.F))
+    assume(tmn.getModel() == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
 
     // act
     tmn.remove(setup.j0)
 
     // assert
-    assert(tmn.getModel() == Set(setup.E, setup.B, setup.D))
+    assert(tmn.getModel() == Set(setup.e, setup.b, setup.d))
   }
 
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
@@ -183,17 +183,18 @@ class Deletion extends FlatSpec {
 
   "Removing a rule from a TMN where backtracking occurred" should "result in the original model" in {
     // arrange
+    class JMTS_21 extends JTMSSpec with JTMS_21Behavior
     val setup = new JMTS_21
-    val tmn = setup.JTMS_DDB
+    val tmn = TMN(setup.p)
 
-    assume(tmn.getModel() == Set(setup.A, setup.C, setup.D, setup.F, setup.E))
+    assume(tmn.getModel() == Set(setup.a, setup.c, setup.d, setup.f, setup.e))
 
     // act
     tmn.remove(setup.j7)
 
     // assert
     assert(tmn.getModel() == setup.JTMS.getModel())
-    assert(tmn.getModel() == Set(setup.E, setup.B, setup.D))
+    assert(tmn.getModel() == Set(setup.e, setup.b, setup.d))
   }
 
   "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {

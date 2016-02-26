@@ -10,81 +10,81 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
 
   val tmn = {
     val tmn = JTMS
-    tmn.set(Set(E, B, D))
+    tmn.set(Set(e, b, d))
     tmn
   }
 
-  "Atom A" must behave like   atomValidation(tmn, A) { validator =>
+  "Atom A" must behave like   atomValidation(tmn, a) { validator =>
     validator.state(out)
     validator.Rules(j1)
     validator.SJ(None)
-    validator.Supp(C)
-    validator.SuppTrans(C, A)
-    validator.Cons(B, C)
-    validator.ACons(B, C)
-    validator.AConsTrans(B, C, D, A, F)
+    validator.Supp(c)
+    validator.SuppTrans(c, a)
+    validator.Cons(b, c)
+    validator.ACons(b, c)
+    validator.AConsTrans(b, c, d, a, f)
     validator.Ant()
     validator.AntTrans()
   }
 
-  "Atom B" must behave like atomValidation(tmn, B) { validator =>
+  "Atom B" must behave like atomValidation(tmn, b) { validator =>
     validator.state(in)
     validator.Rules(j2)
     validator.SJ(Some(j2))
-    validator.Supp(A)
-    validator.SuppTrans(A, C)
-    validator.Cons(D)
-    validator.ACons(D)
-    validator.AConsTrans(D)
-    validator.Ant(A)
-    validator.AntTrans(A)
+    validator.Supp(a)
+    validator.SuppTrans(a, c)
+    validator.Cons(d)
+    validator.ACons(d)
+    validator.AConsTrans(d)
+    validator.Ant(a)
+    validator.AntTrans(a)
   }
 
-  "Atom C" must behave like atomValidation(tmn, C) { validator =>
+  "Atom C" must behave like atomValidation(tmn, c) { validator =>
     validator.state(out)
     validator.Rules(j3)
     validator.SJ(None)
-    validator.Supp(A)
-    validator.SuppTrans(A, C)
-    validator.Cons(A, D, F)
-    validator.ACons(A, F)
-    validator.AConsTrans(A, F, B, C, D)
+    validator.Supp(a)
+    validator.SuppTrans(a, c)
+    validator.Cons(a, d, f)
+    validator.ACons(a, f)
+    validator.AConsTrans(a, f, b, c, d)
     validator.Ant()
     validator.AntTrans()
   }
 
-  "Atom D" must behave like atomValidation(tmn, D) { validator =>
+  "Atom D" must behave like atomValidation(tmn, d) { validator =>
     validator.state(in)
     validator.Rules(j4a,j4b)
     validator.SJ(Some(j4a))
-    validator.Supp(B)
-    validator.SuppTrans(B, A, C)
+    validator.Supp(b)
+    validator.SuppTrans(b, a, c)
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()
-    validator.Ant(B)
-    validator.AntTrans(B, A)
+    validator.Ant(b)
+    validator.AntTrans(b, a)
   }
 
-  "Atom E" must behave like atomValidation(tmn, E) { validator =>
+  "Atom E" must behave like atomValidation(tmn, e) { validator =>
     validator.state(in)
     validator.Rules(j5)
     validator.SJ(Some(j5))
     validator.Supp()
     validator.SuppTrans()
-    validator.Cons(F)
+    validator.Cons(f)
     validator.ACons()
     validator.AConsTrans()
     validator.Ant()
     validator.AntTrans()
   }
 
-  "Atom F" must behave like atomValidation(tmn, F) { validator =>
+  "Atom F" must behave like atomValidation(tmn, f) { validator =>
     validator.state(out)
     validator.Rules(j6)
     validator.SJ(None)
-    validator.Supp(C)
-    validator.SuppTrans(C, A)
+    validator.Supp(c)
+    validator.SuppTrans(c, a)
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()

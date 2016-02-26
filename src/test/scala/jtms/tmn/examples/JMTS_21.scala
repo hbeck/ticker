@@ -1,26 +1,33 @@
 package jtms.tmn.examples
 
-import core.{Rule, ContradictionAtom}
+import aspsamples.EvaluateBothImplementations
+import core.{SingleModel, Evaluation, Rule, ContradictionAtom}
+import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-class JMTS_21 extends JTMSSpec {
-  val N_cont = ContradictionAtom("N_cont")
+trait JTMS_21Behavior extends JTMSSpec {
+  this: FlatSpec =>
+  val N_cont = ContradictionAtom("n_cont")
 
-  val j7 = Rule.in(B).out(C).head(N_cont)
+  val j7 = Rule.in(b).out(c).head(N_cont)
 
-  def JTMS_DDB = {
-    val tmn = JTMS
-
-    tmn.N +=  N_cont
-
-    tmn.add(j7)
-
-    tmn
+  def p = {
+    val p = program + j7
+    p
   }
 
-  "The model" should "contain A,C,D,F,E" in {
-    assert(JTMS_DDB.getModel() == Set(A, C, D, F, E))
+  def example21(evaluation: Evaluation): Unit = {
+    it should "contain A,C,D,F,E" in {
+      val model = evaluation(p)
+
+      assert(model contains SingleModel(Set(a, c, d, f, e)))
+    }
   }
+}
+
+class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateBothImplementations {
+  "The example 21" should behave like theSame(example21)
+
 }

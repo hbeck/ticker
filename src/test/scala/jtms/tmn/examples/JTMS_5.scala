@@ -7,20 +7,20 @@ import core.{Premise, Atom}
   */
 class JTMS_5 extends JTMSSpec {
 
-  val j0 = Premise(A)
+  val j0 = Premise(a)
 
   var diff: Set[Atom] = Set();
   val tmn = {
     val tmn = JTMS
-    tmn.set(Set(E, B, D))
+    tmn.set(Set(e, b, d))
     diff = tmn.add(j0)
     tmn
   }
 
   "The new model" should "be A,C,D,E,F" in {
-    assert(tmn.getModel() == Set(A, C, D, E, F))
+    assert(tmn.getModel() == Set(a, c, d, e, f))
   }
   it should "have state changes in A,B,C,F" in {
-    assert(diff == Set(A, B, C, F))
+    assert(diff == Set(a, b, c, f))
   }
 }
