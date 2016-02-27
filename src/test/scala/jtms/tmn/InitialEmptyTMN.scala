@@ -1,18 +1,21 @@
 package jtms.tmn
 
-import jtms.in
-import org.scalatest.{BeforeAndAfter}
+import core.{Program, Atom, Premise}
+import jtms.{TMN, in}
+import org.scalatest.{FlatSpec, BeforeAndAfter}
 
 /**
   * Created by FM on 05.02.16.
   */
-class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
+class InitialEmptyTMN extends FlatSpec {
 
-  val assumptionA = Assumption("A")
-  val tmn = EmptyTMN
+  val assumptionA = Premise(Atom("A"))
+  val program = Program(assumptionA)
+  
+  val EmptyTMN = TMN(Program())
 
-  before {
-    tmn.add(assumptionA)
+  val tmn = {
+    TMN(program)
   }
 
   "An empty TMN" should "have no rules and no status values set" in {
@@ -46,6 +49,6 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
   it should "also contain just one rule" in {
     tmn.add(assumptionA)
 
-    assert(tmn.J.size ==1)
+    assert(tmn.J.size == 1)
   }
 }
