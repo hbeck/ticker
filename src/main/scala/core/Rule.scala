@@ -1,11 +1,11 @@
 package core
 
-class RuleBuilder(I: Set[Atom] = Set(), O: Set[Atom] = Set()) {
-  def in(atoms: Atom*) = new RuleBuilder(I ++ atoms, O)
+class RuleBuilder(pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) {
+  def pos(atoms: Atom*) = new RuleBuilder(pos ++ atoms, neg)
 
-  def out(atoms: Atom*) = new RuleBuilder(I, O ++ atoms)
+  def neg(atoms: Atom*) = new RuleBuilder(pos, neg ++ atoms)
 
-  def head(head: Atom) = new UserDefinedRule(I, O, head)
+  def head(head: Atom) = new UserDefinedRule(pos, neg, head)
 }
 
 object Premise {
@@ -13,25 +13,25 @@ object Premise {
 }
 
 object Rule {
-  def in(atoms: Atom*) = new RuleBuilder(atoms.toSet)
+  def pos(atoms: Atom*) = new RuleBuilder(atoms.toSet)
 
-  def out(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
+  def neg(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
 
   def premise(head: Atom) = new UserDefinedRule(Set(), Set(), head)
 }
 
 sealed trait Rule {
-  val I: Set[Atom]
-  val O: Set[Atom]
-  val head: Atom
+  val pos: Set[Atom]
+  val neg: Set[Atom]
+  val head: Atom //TODO later: Option[Atom] for constraints
 
-  val body = I union O
+  val body = pos union neg
   val atoms = body + head
 }
 
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedRule(I: Set[Atom], O: Set[Atom], head: Atom) extends Rule
+case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule
 
-case class RuleFromBacktracking(I: Set[Atom], O: Set[Atom], head: Atom) extends Rule
+case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule

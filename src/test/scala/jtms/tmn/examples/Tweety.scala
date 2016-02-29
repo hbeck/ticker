@@ -15,10 +15,10 @@ class Tweety extends FlatSpec {
   val F_not = Atom("nicht fliegen können")
   val N_cont = ContradictionAtom("Widerspruch")
 
-  val j0 = Rule.in(P).head(F_not)
-  val j1 = Rule.in(P).head(V)
-  val j2 = Rule.in(V).out(P).head(F)
-  val j3 = Rule.in(F, F_not).head(N_cont)
+  val j0 = Rule.pos(P).head(F_not)
+  val j1 = Rule.pos(P).head(V)
+  val j2 = Rule.pos(V).neg(P).head(F)
+  val j3 = Rule.pos(F, F_not).head(N_cont)
   val j4 = Premise(V)
 
   val j5 = Premise(P)

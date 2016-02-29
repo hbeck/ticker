@@ -19,29 +19,29 @@ class AspConversionSpecs extends FlatSpec {
   }
 
   "A rule with only positive support" should "be transformed into the expression 'A :- B.'" in {
-    val j = Rule.in(B).head(A)
+    val j = Rule.pos(B).head(A)
 
     assert(AspConversion(j) == AspExpression("A :- B."))
   }
   it should "be transformed into the expression 'A :- B, C.'" in {
-    val j = Rule.in(B, C).head(A)
+    val j = Rule.pos(B, C).head(A)
 
     assert(AspConversion(j) == AspExpression("A :- B, C."))
   }
 
   "A rule with only negative support" should "be transformed into the expression 'A :- not B.'" in {
-    val j = Rule.out(B).head(A)
+    val j = Rule.neg(B).head(A)
 
     assert(AspConversion(j) == AspExpression("A :- not B."))
   }
   it should "be transformed into the expression 'A:- not B, not C" in {
-    val j = Rule.out(B, C).head(A)
+    val j = Rule.neg(B, C).head(A)
 
     assert(AspConversion(j) == AspExpression("A :- not B, not C."))
   }
 
   "A rule with both positive an negative support" should "be transformed into 'A :- B, not C.'" in {
-    val j = Rule.in(B).out(C).head(A)
+    val j = Rule.pos(B).neg(C).head(A)
 
     assert(AspConversion(j) == AspExpression("A :- B, not C."))
   }

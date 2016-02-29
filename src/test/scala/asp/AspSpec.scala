@@ -30,7 +30,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing a premise and a rule" should "return only the premise" in {
-    val program = Program(Premise(a), Rule.in(b).head(c))
+    val program = Program(Premise(a), Rule.pos(b).head(c))
 
     val asp = Asp(program)
 
@@ -38,7 +38,7 @@ class AspSpec extends FlatSpec {
     assert(asp.head.size == 1)
   }
   it should "return two nodes" in {
-    val program = Program(Premise(a), Rule.in(a).head(b))
+    val program = Program(Premise(a), Rule.pos(a).head(b))
 
     val asp = Asp(program)
 

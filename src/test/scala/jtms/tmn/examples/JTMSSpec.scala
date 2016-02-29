@@ -16,13 +16,13 @@ class JTMSSpec extends FlatSpec {
   val E = Atom("E")
   val F = Atom("F")
 
-  val j1 = Rule.in(C).head(A)
-  val j2 = Rule.out(A).head(B)
-  val j3 = Rule.in(A).head(C)
-  val j4a = Rule.in(B).head(D)
-  val j4b = Rule.in(C).head(D)
+  val j1 = Rule.pos(C).head(A)
+  val j2 = Rule.neg(A).head(B)
+  val j3 = Rule.pos(A).head(C)
+  val j4a = Rule.pos(B).head(D)
+  val j4b = Rule.pos(C).head(D)
   val j5 = Premise(E)
-  val j6 = Rule.in(C, E).head(F)
+  val j6 = Rule.pos(C, E).head(F)
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 

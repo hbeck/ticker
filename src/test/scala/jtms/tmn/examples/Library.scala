@@ -22,16 +22,16 @@ class Library extends FlatSpec with AtomValidation {
   val N_cont = ContradictionAtom("Widerspruch")
 
   val j1 = Premise(V)
-  val j2 = Rule.in(V).out(F, G).head(P)
-  val j3 = Rule.in(F).head(P_not)
-  val j4 = Rule.in(G).head(P_not)
-  val j5 = Rule.in(P).out(H, N).head(A)
-  val j6 = Rule.in(P, P_not).head(N_cont)
-  val j7 = Rule.in(N).head(A_not)
-  val j8 = Rule.in(H).head(A_not)
-  val j9 = Rule.in(A, A_not).head(N_cont)
+  val j2 = Rule.pos(V).neg(F, G).head(P)
+  val j3 = Rule.pos(F).head(P_not)
+  val j4 = Rule.pos(G).head(P_not)
+  val j5 = Rule.pos(P).neg(H, N).head(A)
+  val j6 = Rule.pos(P, P_not).head(N_cont)
+  val j7 = Rule.pos(N).head(A_not)
+  val j8 = Rule.pos(H).head(A_not)
+  val j9 = Rule.pos(A, A_not).head(N_cont)
 
-  val jExclusionA = Rule.in(A).head(N_cont)
+  val jExclusionA = Rule.pos(A).head(N_cont)
 
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
@@ -196,7 +196,7 @@ class Library extends FlatSpec with AtomValidation {
   it should "also return the same model when using just a single contradiction node" in {
     val tmn = Tmn
 
-    tmn.add(Rule.in(A).head(N_cont))
+    tmn.add(Rule.pos(A).head(N_cont))
 
     val model = tmn.getModel()
     info("H is currently chosen 'by random'")
@@ -206,7 +206,7 @@ class Library extends FlatSpec with AtomValidation {
   "With a contradiction node for P the model" should "be P_not,F,V" in {
     val tmn = Tmn
 
-    tmn.add(Rule.in(P).head(N_cont))
+    tmn.add(Rule.pos(P).head(N_cont))
 
     val model = tmn.getModel()
     info("F is currently chosen 'by random'")

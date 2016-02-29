@@ -12,8 +12,8 @@ class MultipleModels  extends  FlatSpec{
   val A = Atom("A")
   val B = Atom("B")
 
-  val j1 = Rule.out(A).head(B)
-  val j2 = Rule.out(B).head(A)
+  val j1 = Rule.neg(A).head(B)
+  val j2 = Rule.neg(B).head(A)
 
   def TMN = new TMN(Set(A,B))
 

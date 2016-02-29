@@ -8,7 +8,7 @@ import core.{Rule, ContradictionAtom}
 class JMTS_21 extends JTMSSpec {
   val N_cont = ContradictionAtom("N_cont")
 
-  val j7 = Rule.in(B).out(C).head(N_cont)
+  val j7 = Rule.pos(B).neg(C).head(N_cont)
 
   def JTMS_DDB = {
     val tmn = JTMS

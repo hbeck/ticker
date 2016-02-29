@@ -15,9 +15,9 @@ class Manufacturing extends FlatSpec {
   val A2 = Atom("Resource 2")
   val L1 = Atom("supply problems A1")
 
-  val j0 = Rule.in(C).out(B).head(A1)
-  val j1 = Rule.in(C, B).head(A2)
-  val j2 = Rule.in(L1).head(B)
+  val j0 = Rule.pos(C).neg(B).head(A1)
+  val j1 = Rule.pos(C, B).head(A2)
+  val j2 = Rule.pos(L1).head(B)
   val j3 = Rule.premise(C)
 
   val program = Program(j0, j1, j2, j3)

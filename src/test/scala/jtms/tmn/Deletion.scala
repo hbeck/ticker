@@ -38,7 +38,7 @@ class Deletion extends FlatSpec {
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
-    val j0 = Rule.in(A).head(B)
+    val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -65,7 +65,7 @@ class Deletion extends FlatSpec {
 
   it should "have the Model A after deletion of a rule" in {
     // arrange
-    val j0 = Rule.in(A).head(B)
+    val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
 
     val tmn = new TMN(Set(A, B))
@@ -91,9 +91,9 @@ class Deletion extends FlatSpec {
   }
 
   "A TMN with three atoms" should "have only Model A after deleting a rule" in {
-    val j0 = Rule.in(A).head(B)
+    val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
-    val j2 = Rule.in(B).head(C)
+    val j2 = Rule.pos(B).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 
@@ -117,10 +117,10 @@ class Deletion extends FlatSpec {
   }
 
   "A TMN with three atoms and a redundant rule" should "have Model A,C after deleting a rule supporting B" in {
-    val j0 = Rule.in(A).head(B)
+    val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
-    val j2 = Rule.in(B).head(C)
-    val j3 = Rule.in(A).head(C)
+    val j2 = Rule.pos(B).head(C)
+    val j3 = Rule.pos(A).head(C)
 
     val tmn = new TMN(Set(A, B, C))
 
