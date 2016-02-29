@@ -13,4 +13,4 @@ object Atom {
 
 case class UserDefinedAtom(caption: String) extends Atom
 
-case class ContradictionAtom(caption: String) extends Atom //TODO hb
+case class ContradictionAtom(caption: String) extends Atom //TODO (HB)
