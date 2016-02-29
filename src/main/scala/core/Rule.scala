@@ -1,11 +1,11 @@
 package core
 
-class RuleBuilder(pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) {
-  def pos(atoms: Atom*) = new RuleBuilder(pos ++ atoms, neg)
+class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
+  def pos(atoms: Atom*) = new RuleBuilder(bodyPos ++ atoms, bodyNeg)
 
-  def neg(atoms: Atom*) = new RuleBuilder(pos, neg ++ atoms)
+  def neg(atoms: Atom*) = new RuleBuilder(bodyPos, bodyNeg ++ atoms)
 
-  def head(head: Atom) = new UserDefinedRule(pos, neg, head)
+  def head(head: Atom) = new UserDefinedRule(bodyPos, bodyNeg, head)
 }
 
 object Premise {

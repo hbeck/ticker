@@ -59,7 +59,8 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   }
 
   def getModel() = {
-    status.filter(_._2 == in).map(_._1).toSet
+    //status.filter(_._2 == in).map(_._1).toSet
+    status.filter(_._2 == in).keySet //TODO hb review
   }
 
   /** takes atoms at list M index idx and tries to find a valid rule
