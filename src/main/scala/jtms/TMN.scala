@@ -92,16 +92,17 @@ class TMN() {
     rule.body.foreach(Cons(_) += rule.head)
 
     //if conclusion was already drawn, we are done
-    if (status(head) == in) {
+    if (status(head) == in || isInvalid) {
       return collection.immutable.Set()
     }
 
-    //otherwise, we are done, if the new rule is not valid in M
-    //because then the head does not need to be concluded
-    val spoiler: Option[Atom] = findSpoiler(rule)
-    if (spoiler.isDefined) {
-      Supp(head) += spoiler.get
-      return collection.immutable.Set()
+    def isInvalid(): Boolean = { //TODO (HB) isValid vs (un)foundedInvalid later
+      val spoiler: Option[Atom] = findSpoiler(rule)
+      if (spoiler.isDefined) {
+        Supp(head) += spoiler.get
+        return true
+      }
+      false
     }
 
     //we now know that the rule is valid in M
