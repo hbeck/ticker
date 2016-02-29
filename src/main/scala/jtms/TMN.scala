@@ -3,14 +3,22 @@ package jtms
 import core._
 
 import scala.annotation.tailrec
-import scala.collection.mutable.{HashMap, Map}
+import scala.collection.mutable.{HashMap, Map, Set}
 
 object TMN {
-  def apply(P: Program) = {
-    val tmn = new TMN(P.atoms)
 
+  def apply(P: Program) = {
+    val tmn = new TMN()
+
+    P.atoms.foreach(tmn.add)
     P.rules.foreach(tmn.add) //TODO (HB) think about order
 
+    tmn
+  }
+
+  def apply(atoms: collection.immutable.Set[Atom]) = {
+    val tmn = new TMN()
+    atoms.foreach(tmn.add)
     tmn
   }
 }
@@ -19,20 +27,19 @@ object TMN {
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
+class TMN() {
+
+  var atoms: Set[Atom]= Set()
+  var rules: Set[Rule]= Set()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
-  for (a <- N) {
+  def add(a: Atom): Unit = {
+    atoms += a
     init(a)
-  }
-  for (rule <- rules) {
-    for (m <- rule.body) {
-      Cons(m) += rule.head
-    }
   }
 
   def init(a: Atom) = {
@@ -43,7 +50,8 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   }
 
   /** @return true if M is admissible **/
-  def set(M: Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
+  //TODO (HB) review need of method
+  def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
     val m = M.toList
     for (i <- 0 to M.size - 1) {
       val rule: Option[Rule] = findSuppRule(m, i)
@@ -52,7 +60,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
       }
       setIn(rule.get)
     }
-    for (n <- N diff M) {
+    for (n <- atoms diff M) {
       setOut(n)
     }
     true
@@ -74,21 +82,18 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   }
 
   //TMS update algorithm
-  def add(rule: Rule): Set[Atom] = {
+  def add(rule: Rule): collection.immutable.Set[Atom] = {
 
     val head = rule.head //alias
 
-    //update structure
-    rules += rule
-    for (m <- rule.body) {
-      Cons(m) += head
-    }
+    add(head) //TODO (HB) prev called "init" - why not needed for body?
 
-    init(head)
+    rules += rule
+    rule.body.foreach(Cons(_) += rule.head)
 
     //if conclusion was already drawn, we are done
     if (status(head) == in) {
-      return scala.collection.immutable.Set()
+      return collection.immutable.Set()
     }
 
     //otherwise, we are done, if the new rule is not valid in M
@@ -96,7 +101,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     val spoiler: Option[Atom] = findSpoiler(rule)
     if (spoiler.isDefined) {
       Supp(head) += spoiler.get
-      return scala.collection.immutable.Set()
+      return collection.immutable.Set()
     }
 
     //we now know that the rule is valid in M
@@ -105,7 +110,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
       setIn(rule)
       checkForDDB //TODO (HB): how come this step is necessary, if rule.head is independent?
       // TODO (CF): Missing to add head to M (M = M + head)?
-      return scala.collection.immutable.Set()
+      return collection.immutable.Set()
     }
 
     val L = AffectedAtoms(head)
@@ -113,7 +118,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     update(L)
   }
 
-  def update(atoms: Set[Atom]): Set[Atom] = {
+  def update(atoms: Set[Atom]): collection.immutable.Set[Atom] = {
 
     def stateOfAtoms() = atoms.map(a => (a, status(a))).toList
 
@@ -144,7 +149,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     def removeRule(rule: Rule) = {
       for (m <- rule.body) {
-        Cons(m) -= rule.head
+        Cons(m) -= rule.head //TODO (HB) not necessarily
       }
 
       rules -= rule
@@ -156,7 +161,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     // if no other rule exists containing the atom - remove it completely
     if (!rules.exists(_.atoms.contains(head))) {
-      N -= head
+      atoms -= head
       status.remove(head)
       Supp.remove(head)
       SuppRule.remove(head)
@@ -246,7 +251,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
-    Supp(rule.head) = rule.body
+    Supp(rule.head) = Set() ++ rule.body //TODO
     SuppRule(rule.head) = Option(rule)
   }
 
@@ -256,20 +261,20 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     SuppRule(n) = None
   }
 
-  def findSpoiler(j: Rule): Option[Atom] = {
+  def findSpoiler(rule: Rule): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = selectAtom(j.pos.filter(status(_) == out))
+      val opt = selectAtom(rule.pos.filter(status(_) == out))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.neg.filter(status(_) == in))
+        return selectAtom(rule.neg.filter(status(_) == in))
       }
     } else {
-      val opt = selectAtom(j.neg.filter(status(_) == in))
+      val opt = selectAtom(rule.neg.filter(status(_) == in))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.pos.filter(status(_) == out))
+        return selectAtom(rule.pos.filter(status(_) == out))
       }
     }
   }
@@ -339,11 +344,11 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     }
   }
 
-  def Ncontr = N.filter(_.isInstanceOf[ContradictionAtom])
+  def Ncontr = atoms.filter(_.isInstanceOf[ContradictionAtom])
 
   def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
 
-  def selectAtom(atoms: Set[Atom]): Option[Atom] = {
+  def selectAtom(atoms: collection.immutable.Set[Atom]): Option[Atom] = {
     if (atoms.isEmpty)
       return None
 
@@ -351,7 +356,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     Some(atoms.head)
   }
 
-  def selectRule(rules: Set[Rule]): Option[Rule] = {
+  def selectRule(rules: collection.mutable.Set[Rule]): Option[Rule] = {
     if (rules.isEmpty)
       return None
 

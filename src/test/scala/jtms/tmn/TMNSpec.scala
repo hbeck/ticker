@@ -12,5 +12,5 @@ class TMNSpec extends FlatSpec {
 
   def Assumption(node: Atom): Rule = Premise(node)
 
-  def EmptyTMN = new TMN(Set())
+  def EmptyTMN = new TMN()
 }
