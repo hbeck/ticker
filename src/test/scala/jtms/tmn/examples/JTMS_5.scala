@@ -1,13 +1,13 @@
 package jtms.tmn.examples
 
-import core.{Premise, Atom}
+import core.{Fact, Atom}
 
 /**
   * Created by FM on 06.02.16.
   */
 class JTMS_5 extends JTMSSpec {
 
-  val j0 = Premise(a)
+  val j0 = Fact(a)
 
   var diff: Set[Atom] = Set();
   val tmn = {

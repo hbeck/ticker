@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import core.{Program, Atom, Premise}
+import core.{Program, Atom, Fact}
 import jtms.{TMN, in}
 import org.scalatest.{FlatSpec, BeforeAndAfter}
 
@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, BeforeAndAfter}
   */
 class InitialEmptyTMN extends FlatSpec {
 
-  val assumptionA = Premise(Atom("A"))
+  val assumptionA = Fact(Atom("A"))
   val program = Program(assumptionA)
   
   val EmptyTMN = TMN(Program())

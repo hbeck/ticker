@@ -13,41 +13,41 @@ class AspConversionSpecs extends FlatSpec {
   val c = Atom("c")
 
   "A premise A" should "be transformed into the expression 'a.'" in {
-    val premise = Premise(a)
+    val premise = Fact(a)
 
     assert(AspConversion(premise) == AspExpression("a."))
   }
 
   "A rule with only positive support" should "be transformed into the expression 'a :- b.'" in {
-    val j = Rule.in(b).head(a)
+    val j = Rule.pos(b).head(a)
 
     assert(AspConversion(j) == AspExpression("a :- b."))
   }
   it should "be transformed into the expression 'a :- b, c.'" in {
-    val j = Rule.in(b, c).head(a)
+    val j = Rule.pos(b, c).head(a)
 
     assert(AspConversion(j) == AspExpression("a :- b, c."))
   }
 
   "A rule with only negative support" should "be transformed into the expression 'a :- not b.'" in {
-    val j = Rule.out(b).head(a)
+    val j = Rule.neg(b).head(a)
 
     assert(AspConversion(j) == AspExpression("a :- not b."))
   }
   it should "be transformed into the expression 'a:- not b, not c" in {
-    val j = Rule.out(b, c).head(a)
+    val j = Rule.neg(b, c).head(a)
 
     assert(AspConversion(j) == AspExpression("a :- not b, not c."))
   }
 
   "A rule with both positive an negative support" should "be transformed into 'a :- b, not c.'" in {
-    val j = Rule.in(b).out(c).head(a)
+    val j = Rule.pos(b).neg(c).head(a)
 
     assert(AspConversion(j) == AspExpression("a :- b, not c."))
   }
 
   "A rule with a ContradictionNode" should "be transformed into an integrety contraint ':- a, not c.'" in{
-    val r = Rule.in(a).out(c).head(new ContradictionAtom("cont"))
+    val r = Rule.pos(a).neg(c).head(new ContradictionAtom("cont"))
 
     assert(AspConversion(r) == AspExpression(":- a, not c."))
   }
@@ -59,7 +59,7 @@ class AspConversionSpecs extends FlatSpec {
   }
 
   "A program containing one rule" should "return one expression" in {
-    val p = Program(Premise(a))
+    val p = Program(Fact(a))
 
     assert(AspConversion(p).size == 1)
   }
@@ -68,7 +68,7 @@ class AspConversionSpecs extends FlatSpec {
     val A = Atom("A")
 
     intercept[IllegalArgumentException] {
-      AspConversion(Premise(A))
+      AspConversion(Fact(A))
     }
   }
   it should "be thrown if the Atom contains whitespace characters" in {

@@ -15,8 +15,8 @@ object AspConversion {
     if (rule.body.isEmpty) {
       return AspExpression(apply(rule.head) + '.')
     } else {
-      val iParts = rule.I.map(apply)
-      val oParts = rule.O.map(apply).map("not " + _)
+      val iParts = rule.pos.map(apply)
+      val oParts = rule.neg.map(apply).map("not " + _)
 
       val parts = iParts ++ oParts
 

@@ -19,16 +19,16 @@ trait CarBehavior {
 
   val N_cont = ContradictionAtom("contradiction")
 
-  val j0 = Rule.in(S_not).out(D).head(G_not);
-  val j1 = Rule.in(S_not, G).head(D)
-  val j2 = Rule.in(G, G_not).head(N_cont)
-  val j3 = Rule.in(I).head(D)
-  val j4 = Rule.in(C).head(D)
+  val j0 = Rule.pos(S_not).neg(D).head(G_not);
+  val j1 = Rule.pos(S_not, G).head(D)
+  val j2 = Rule.pos(G, G_not).head(N_cont)
+  val j3 = Rule.pos(I).head(D)
+  val j4 = Rule.pos(C).head(D)
 
-  val notStarting = Premise(S_not)
-  val enoughGas = Premise(G)
-  val notEnoughGas = Premise(G_not)
-  val brokenIgnition = Premise(C)
+  val notStarting = Fact(S_not)
+  val enoughGas = Fact(G)
+  val notEnoughGas = Fact(G_not)
+  val brokenIgnition = Fact(C)
 
   val program = Program(j0, j1, j2, j3, j4)
 

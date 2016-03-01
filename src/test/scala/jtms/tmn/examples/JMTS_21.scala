@@ -12,7 +12,7 @@ trait JTMS_21Behavior extends JTMSSpec {
   this: FlatSpec =>
   val N_cont = ContradictionAtom("n_cont")
 
-  val j7 = Rule.in(b).out(c).head(N_cont)
+  val j7 = Rule.pos(b).neg(c).head(N_cont)
 
   def p = {
     val p = program + j7

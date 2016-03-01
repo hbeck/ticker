@@ -16,9 +16,9 @@ trait SingleHusbandBehavior {
   val single = Atom("single")
   val husband = Atom("husband")
 
-  val r0 = Premise(man)
-  val r1 = Rule.in(man).out(husband).head(single)
-  val r2 = Rule.in(man).out(single).head(husband)
+  val r0 = Fact(man)
+  val r1 = Rule.pos(man).neg(husband).head(single)
+  val r2 = Rule.pos(man).neg(single).head(husband)
 
   val program = Program(r0, r1, r2)
 

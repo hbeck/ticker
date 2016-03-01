@@ -15,8 +15,8 @@ trait MultipleModelsBehavior {
   val a = Atom("a")
   val b = Atom("b")
 
-  val j1 = Rule.out(a).head(b)
-  val j2 = Rule.out(b).head(a)
+  val j1 = Rule.neg(a).head(b)
+  val j2 = Rule.neg(b).head(a)
 
   def multipleModels(evaluation: Evaluation) = {
 

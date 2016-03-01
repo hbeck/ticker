@@ -16,13 +16,13 @@ trait TweetyBehavior {
   val F_not = Atom("nicht_fliegen_koennen")
   val N_cont = ContradictionAtom("widerspruch")
 
-  val j0 = Rule.in(P).head(F_not)
-  val j1 = Rule.in(P).head(V)
-  val j2 = Rule.in(V).out(P).head(F)
-  val j3 = Rule.in(F, F_not).head(N_cont)
-  val j4 = Premise(V)
+  val j0 = Rule.pos(P).head(F_not)
+  val j1 = Rule.pos(P).head(V)
+  val j2 = Rule.pos(V).neg(P).head(F)
+  val j3 = Rule.pos(F, F_not).head(N_cont)
+  val j4 = Fact(V)
 
-  val j5 = Premise(P)
+  val j5 = Fact(P)
 
   val program = Program(j0, j1, j2, j3, j4)
 

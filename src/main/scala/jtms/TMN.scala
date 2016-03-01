@@ -68,7 +68,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   def findSJ(M: List[Atom], idx: Int): Option[Rule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
-    val rules = Jn(n).filter(j => j.I.subsetOf(MSub) && j.O.intersect(M.toSet).isEmpty)
+    val rules = Jn(n).filter(j => j.pos.subsetOf(MSub) && j.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
@@ -185,12 +185,12 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
     // TODO: Ordering + Selection?
     // (we pick currently only the first O)
-    val n_star = selectAtom(n_a.O).get
+    val n_star = selectAtom(n_a.neg).get
 
     val j_cont = Jn(assumptions.map(_.head))
 
-    val I_cont = j_cont.flatMap(_.I)
-    val O_cont = j_cont.flatMap(_.O) - n_star;
+    val I_cont = j_cont.flatMap(_.pos)
+    val O_cont = j_cont.flatMap(_.neg) - n_star;
 
     val rule = new RuleFromBacktracking(I_cont, O_cont, n_star)
 
@@ -222,7 +222,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
   def MaxAssumptions(n: Atom): Set[Rule] = {
 
-    def asAssumption(assumption: Atom) = SJ(assumption).filterNot(_.O.isEmpty)
+    def asAssumption(assumption: Atom) = SJ(assumption).filterNot(_.neg.isEmpty)
 
     if (Ncont.contains(n)) {
       val assumptionsOfN = AntTrans(n).map(asAssumption).filter(_.isDefined).map(_.get)
@@ -256,18 +256,18 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
   def findSpoiler(j: Rule): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = selectAtom(j.I.filter(status(_) == out))
+      val opt = selectAtom(j.pos.filter(status(_) == out))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.O.filter(status(_) == in))
+        return selectAtom(j.neg.filter(status(_) == in))
       }
     } else {
-      val opt = selectAtom(j.O.filter(status(_) == in))
+      val opt = selectAtom(j.neg.filter(status(_) == in))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.I.filter(status(_) == out))
+        return selectAtom(j.pos.filter(status(_) == out))
       }
     }
   }
@@ -314,7 +314,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
         val aCons = ACons(a)
         if (aCons.isEmpty) {
           setIn(j.get)
-          j.get.O.filter(status(_) == unknown).foreach(status(_) = out)
+          j.get.neg.filter(status(_) == unknown).foreach(status(_) = out)
           chooseAssignments(unknownCons(a))
         } else {
           for (m <- (aCons + a)) {
@@ -326,7 +326,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
         //all jn are unfounded invalid. in particular, for every j in jn, some atom in j.I is unknown
         status(a) = out
         for (h <- jn) {
-          val m = selectAtom(h.I.filter(status(_) == unknown))
+          val m = selectAtom(h.pos.filter(status(_) == unknown))
           // TODO: this might be needed because of the non existing ordering
           // We usually can expect to always have a rule (if ordering is correct)
           m.foreach(status(_) = out)
@@ -358,15 +358,15 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   }
 
   def foundedValid(r: Rule): Boolean = {
-    r.I.forall(status(_) == in) && r.O.forall(status(_) == out)
+    r.pos.forall(status(_) == in) && r.neg.forall(status(_) == out)
   }
 
   def foundedInvalid(r: Rule): Boolean = {
-    r.I.exists(status(_) == out) || r.O.exists(status(_) == in)
+    r.pos.exists(status(_) == out) || r.neg.exists(status(_) == in)
   }
 
   def unfoundedValid(r: Rule): Boolean = {
-    r.I.forall(status(_) == in) && !r.O.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
+    r.pos.forall(status(_) == in) && !r.neg.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
