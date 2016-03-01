@@ -23,6 +23,11 @@ trait JTMS_21Behavior extends JTMSSpec {
     it should "contain A,C,D,F,E" in {
       val model = evaluation(p)
 
+      // this is not a founded/sounded model!
+      // a and c are supporting each other
+      // -> do a check on the final model
+      // -> we need do do DDB with all variants
+      // --> if there is no model with any possible enumeration -> fail
       if (evaluation.isInstanceOf[Asp])
         pending
       assert(model contains SingleModel(Set(a, c, d, f, e)))
