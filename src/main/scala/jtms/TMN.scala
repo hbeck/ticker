@@ -58,8 +58,12 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     true
   }
 
-  def getModel() = {
-    status.filter(_._2 == in).map(_._1).toSet
+  def getModel(): Option[SingleModel] = {
+    val inAtoms = status.filter(_._2 == in)
+    if (inAtoms.nonEmpty)
+      return Some(SingleModel(inAtoms.keys.toSet))
+
+    None
   }
 
   /** takes atoms at list M index idx and tries to find a valid rule
@@ -166,11 +170,15 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   }
 
   def checkForDDB() = {
-    val model = getModel()
+    val model = getModel
 
-    for (n <- model) {
-      if (Ncont.contains(n) && status(n) == in)
-        DDB(n)
+
+    model match {
+      case Some(SingleModel(nodes)) => nodes.foreach(n => {
+        if (Ncont.contains(n) && status(n) == in)
+          DDB(n)
+      })
+      case None =>
     }
   }
 

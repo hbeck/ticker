@@ -12,10 +12,7 @@ class jTmn extends Evaluation {
 
     val model = tmn.getModel()
 
-    if (model.nonEmpty)
-      return Some(SingleModel(model))
-
-    return None
+    model
   }
 
 }

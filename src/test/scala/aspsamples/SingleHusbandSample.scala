@@ -29,7 +29,6 @@ single :- man, not husband.
 husband :- man, not single.
    */
 
-
     it should "include the model man, single" in {
       assert(evaluation(program).get contains Set(man, single))
     }
