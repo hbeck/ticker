@@ -3,6 +3,7 @@ package jtms.tmn.examples
 import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
+import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**
@@ -11,7 +12,7 @@ import org.scalatest.FlatSpec
 trait JTMS_21Behavior extends JTMSSpec {
   this: FlatSpec =>
 
-  val j7 = Constraint.pos(b).neg(c)
+  val j7: Rule = Constraint.pos(b).neg(c)
 
   def p = {
     val p = program + j7
@@ -36,5 +37,12 @@ trait JTMS_21Behavior extends JTMSSpec {
 
 class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateBothImplementations {
   "The example 21" should behave like theSame(example21)
+  "The model" should "not be founded" in {
+    val tmn = TMN(program)
 
+    tmn.add(j7)
+    pendingUntilFixed {
+      assert(tmn.isFounded(tmn.getModel.get.model) == false)
+    }
+  }
 }
