@@ -20,17 +20,17 @@ object TMN {
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
+class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SJ: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
+  val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
   for (a <- N) {
     init(a)
   }
-  for (j <- J) {
+  for (j <- rules) {
     for (m <- j.body) {
       Cons(m) += j.head
     }
@@ -40,14 +40,14 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     if (!status.isDefinedAt(a)) status(a) = out
     if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
     if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SJ.isDefinedAt(a)) SJ(a) = None
+    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
   }
 
   /** @return true if M is admissible **/
   def set(M: Set[Atom]): Boolean = {
     val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val j: Option[Rule] = findSJ(m, i)
+      val j: Option[Rule] = findSuppRule(m, i)
       if (j.isEmpty) {
         return false
       }
@@ -73,7 +73,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
       val suppWithAtom = atoms.filter(atom => SuppTrans(atom) contains atom)
 
       if (suppWithAtom.nonEmpty) {
-        return suppWithAtom.forall(atom => Jn(AConsTrans(atom)).forall(_.neg.nonEmpty))
+        return suppWithAtom.forall(atom => suppRules(AConsTrans(atom)).forall(_.neg.nonEmpty))
       }
 
       return true
@@ -85,44 +85,42 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSJ(M: List[Atom], idx: Int): Option[Rule] = {
+  def findSuppRule(M: List[Atom], idx: Int): Option[Rule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
-    val rules = Jn(n).filter(j => j.pos.subsetOf(MSub) && j.neg.intersect(M.toSet).isEmpty)
+    val rules = rulesWithHead(n).filter(j => j.pos.subsetOf(MSub) && j.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
   //TMS update algorithm
-  def add(j: Rule): Set[Atom] = {
+  def add(rule: Rule): Set[Atom] = {
 
-    val head = j.head //alias
+    val head = rule.head //alias
 
-    //update structure
-    J += j
-    for (m <- j.body) {
-      Cons(m) += head
-    }
+    rules += rule
+    rule.body.foreach(Cons(_) += head)
 
     init(head)
 
     //if conclusion was already drawn, we are done
-    if (status(head) == in) {
+    if (status(head) == in || isInvalid) {
       return scala.collection.immutable.Set()
     }
-
-    //otherwise, we are done, if the new rules is not valid in M, i.e.,
-    //head does not need to be concluded
-    val spoiler: Option[Atom] = findSpoiler(j)
-    if (spoiler.isDefined) {
-      Supp(head) += spoiler.get
-      return scala.collection.immutable.Set()
+    def isInvalid(): Boolean = {
+      //TODO (HB) isValid vs (un)foundedInvalid later
+      val spoiler: Option[Atom] = findSpoiler(rule)
+      if (spoiler.isDefined) {
+        Supp(head) += spoiler.get
+        return true
+      }
+      false
     }
 
+    //we now know that the rule is valid in M
     if (ACons(head).isEmpty) {
       //then we can treat head independently
-      setIn(j)
-      checkForDDB
-      // TODO (CF): Missing to add head to M (M = M + head)?
+      setIn(rule)
+      checkForDDB //TODO (HB): how come this step is necessary, if rule.head is independent?
       return scala.collection.immutable.Set()
     }
 
@@ -131,17 +129,16 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     update(L)
   }
 
-  def update(L: Set[Atom]): Set[Atom] = {
+  def update(atoms: Set[Atom]): Set[Atom] = {
 
-    def stateOfAtoms() = L.map(n => (n, status(n))).toList
+    def stateOfAtoms() = atoms.map(a => (a, status(a))).toList
 
     val oldState = stateOfAtoms
 
-    setUnknown(L)
 
-    setConsequences(L)
-
-    chooseAssignments(L)
+    atoms.foreach(setUnknown)
+    atoms.foreach(setConsequences)
+    atoms.foreach(chooseAssignments)
 
     checkForDDB
 
@@ -156,16 +153,16 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
     val head = rule.head
 
-    val rulesFromBacktracking = J.filter(_.isInstanceOf[RuleFromBacktracking])
+    val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
 
     var L = AffectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
 
-    def removeRule(j: Rule) = {
-      for (m <- j.body) {
-        Cons(m) -= j.head
+    def removeRule(rule: Rule) = {
+      for (m <- rule.body) {
+        Cons(m) -= rule.head
       }
 
-      J -= j
+      rules -= rule
     }
 
     removeRule(rule)
@@ -173,11 +170,11 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     rulesFromBacktracking.foreach(removeRule)
 
     // if no other rule exists containing the atom - remove it completely
-    if (!J.exists(_.atoms.contains(head))) {
+    if (!rules.exists(_.atoms.contains(head))) {
       N -= head
       status.remove(head)
       Supp.remove(head)
-      SJ.remove(head)
+      SuppRule.remove(head)
       Cons.remove(head)
       L -= head
     }
@@ -191,7 +188,7 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
     model match {
       case Some(SingleModel(nodes)) => nodes.foreach(n => {
-        if (Ncont.contains(n) && status(n) == in)
+        if (Ncontr.contains(n) && status(n) == in)
           DDB(n)
       })
       case None =>
@@ -211,25 +208,25 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     // (we pick currently only the first O)
     val n_star = selectAtom(n_a.neg).get
 
-    val j_cont = Jn(assumptions.map(_.head))
+    val r_contr = suppRules(assumptions.map(_.head))
 
-    val I_cont = j_cont.flatMap(_.pos)
-    val O_cont = j_cont.flatMap(_.neg) - n_star;
+    val pos_contr = r_contr.flatMap(_.pos)
+    val neg_contr = r_contr.flatMap(_.neg) - n_star;
 
-    val rule = new RuleFromBacktracking(I_cont, O_cont, n_star)
+    val rule = new RuleFromBacktracking(pos_contr, neg_contr, n_star)
 
     add(rule)
   }
 
-  def Jn(atoms: Set[Atom]) = {
-    SJ.filterKeys(atoms.contains(_))
+  def suppRules(atoms: Set[Atom]) = {
+    SuppRule.filterKeys(atoms.contains(_))
       .values
       .filter(_.isDefined)
       .map(_.get)
       .toSet
   }
 
-  def Jn(n: Atom) = J.filter(_.head == n)
+  def rulesWithHead(h: Atom) = rules.filter(_.head == h)
 
   //ACons(n) = {x ∈ Cons(n) | n ∈ Supp(x)}
   def ACons(n: Atom): Set[Atom] = Cons(n).filter(Supp(_).contains(n))
@@ -248,12 +245,12 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
 
   def AffectedAtoms(a: Atom) = AConsTrans(a) + a
 
-  def MaxAssumptions(n: Atom): Set[Rule] = {
+  def MaxAssumptions(a: Atom): Set[Rule] = {
 
-    def asAssumption(assumption: Atom) = SJ(assumption).filterNot(_.neg.isEmpty)
+    def asAssumption(assumption: Atom) = SuppRule(assumption).filterNot(_.neg.isEmpty)
 
-    if (Ncont.contains(n)) {
-      val assumptionsOfN = AntTrans(n).map(asAssumption).filter(_.isDefined).map(_.get)
+    if (Ncontr.contains(a)) {
+      val assumptionsOfN = AntTrans(a).map(asAssumption).filter(_.isDefined).map(_.get)
 
       val assumptions = assumptionsOfN
         .filter(a => {
@@ -270,32 +267,32 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     Set()
   }
 
-  def setIn(j: Rule) = {
-    status(j.head) = in
-    Supp(j.head) = j.body
-    SJ(j.head) = Option(j)
+  def setIn(rule: Rule) = {
+    status(rule.head) = in
+    Supp(rule.head) = rule.body
+    SuppRule(rule.head) = Option(rule)
   }
 
   def setOut(n: Atom) = {
     status(n) = out
-    Supp(n) = Jn(n).map(findSpoiler(_).get)
-    SJ(n) = None
+    Supp(n) = rulesWithHead(n).map(findSpoiler(_).get)
+    SuppRule(n) = None
   }
 
-  def findSpoiler(j: Rule): Option[Atom] = {
+  def findSpoiler(rule: Rule): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = selectAtom(j.pos.filter(status(_) == out))
+      val opt = selectAtom(rule.pos.filter(status(_) == out))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.neg.filter(status(_) == in))
+        return selectAtom(rule.neg.filter(status(_) == in))
       }
     } else {
-      val opt = selectAtom(j.neg.filter(status(_) == in))
+      val opt = selectAtom(rule.neg.filter(status(_) == in))
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(j.pos.filter(status(_) == out))
+        return selectAtom(rule.pos.filter(status(_) == out))
       }
     }
   }
@@ -303,69 +300,55 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   def setUnknown(atom: Atom): Unit = {
     status(atom) = unknown
     Supp(atom) = Set()
-    SJ(atom) = None
-  }
-
-  def setUnknown(L: Set[Atom]): Unit = L.foreach(setUnknown(_))
-
-  def setConsequences(L: Set[Atom]): Unit = {
-    for (n <- L) {
-      setConsequences(n)
-    }
+    SuppRule(atom) = None
   }
 
   def setConsequences(a: Atom): Unit = {
     if (status(a) == unknown) {
-      val jn = Jn(a)
-      val j: Option[Rule] = selectRule(jn.filter(foundedValid))
-      if (j.isDefined) {
-        setIn(j.get)
-        setConsequences(unknownCons(a))
-      } else if (jn.forall(foundedInvalid)) {
+      val rn = rulesWithHead(a)
+      val rule: Option[Rule] = selectRule(rn.filter(foundedValid))
+      if (rule.isDefined) {
+        setIn(rule.get)
+        unknownCons(a).foreach(setConsequences)
+      } else if (rn.forall(foundedInvalid)) {
         setOut(a)
-        setConsequences(unknownCons(a))
+        unknownCons(a).foreach(setConsequences)
       }
-    }
-  }
-
-  def chooseAssignments(L: Set[Atom]): Unit = {
-    for (n <- L) {
-      chooseAssignments(n)
     }
   }
 
   def chooseAssignments(a: Atom): Unit = {
     if (status(a) == unknown) {
-      val jn = Jn(a)
-      val j: Option[Rule] = selectRule(jn.filter(unfoundedValid))
-      if (j.isDefined) {
+      val rules = rulesWithHead(a)
+      val rule: Option[Rule] = selectRule(rules.filter(unfoundedValid))
+      if (rule.isDefined) {
         val aCons = ACons(a)
         if (aCons.isEmpty) {
-          setIn(j.get)
-          j.get.neg.filter(status(_) == unknown).foreach(status(_) = out)
-          chooseAssignments(unknownCons(a))
+          setIn(rule.get)
+          rule.get.neg.filter(status(_) == unknown).foreach(status(_) = out)
+          unknownCons(a).foreach(chooseAssignments)
         } else {
-          for (m <- (aCons + a)) {
-            status(m) = unknown
-            chooseAssignments(m)
+          for (x <- (aCons + a)) {
+            status(x) = unknown
+            chooseAssignments(x)
           }
         }
       } else {
-        //all jn are unfounded invalid. in particular, for every j in jn, some atom in j.I is unknown
+        //all rules are unfounded invalid. in particular, for every rule in rules, some atom in rule.pos is unknown
         status(a) = out
-        for (h <- jn) {
-          val m = selectAtom(h.pos.filter(status(_) == unknown))
+        for (h <- rules) {
+          val x = selectAtom(h.pos.filter(status(_) == unknown))
           // TODO: this might be needed because of the non existing ordering
           // We usually can expect to always have a rule (if ordering is correct)
-          m.foreach(status(_) = out)
+          x.foreach(status(_) = out)
         }
         setOut(a)
-        chooseAssignments(unknownCons(a))
+        unknownCons(a).foreach(chooseAssignments)
       }
     }
   }
 
-  def Ncont = N.filter(_.isInstanceOf[ContradictionAtom])
+  def Ncontr = N.filter(_.isInstanceOf[ContradictionAtom])
 
   def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
 
@@ -385,16 +368,16 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
     Some(rules.head)
   }
 
-  def foundedValid(r: Rule): Boolean = {
-    r.pos.forall(status(_) == in) && r.neg.forall(status(_) == out)
+  def foundedValid(rule: Rule): Boolean = {
+    rule.pos.forall(status(_) == in) && rule.neg.forall(status(_) == out)
   }
 
-  def foundedInvalid(r: Rule): Boolean = {
-    r.pos.exists(status(_) == out) || r.neg.exists(status(_) == in)
+  def foundedInvalid(rule: Rule): Boolean = {
+    rule.pos.exists(status(_) == out) || rule.neg.exists(status(_) == in)
   }
 
-  def unfoundedValid(r: Rule): Boolean = {
-    r.pos.forall(status(_) == in) && !r.neg.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
+  def unfoundedValid(rule: Rule): Boolean = {
+    rule.pos.forall(status(_) == in) && !rule.neg.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {

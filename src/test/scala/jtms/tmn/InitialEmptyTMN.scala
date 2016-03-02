@@ -20,7 +20,7 @@ class InitialEmptyTMN extends FlatSpec {
 
   "An empty TMN" should "have no rules and no status values set" in {
     val empty = EmptyTMN
-    assert(empty.J.size == 0)
+    assert(empty.rules.size == 0)
     assert(empty.status.size == 0)
   }
 
@@ -33,7 +33,7 @@ class InitialEmptyTMN extends FlatSpec {
   }
 
   it should "contain one rule" in {
-    assert(tmn.J.size == 1)
+    assert(tmn.rules.size == 1)
   }
 
   it should "have no consequences and no support" in {
@@ -49,6 +49,6 @@ class InitialEmptyTMN extends FlatSpec {
   it should "also contain just one rule" in {
     tmn.add(assumptionA)
 
-    assert(tmn.J.size == 1)
+    assert(tmn.rules.size == 1)
   }
 }

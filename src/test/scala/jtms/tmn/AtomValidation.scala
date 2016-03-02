@@ -34,7 +34,7 @@ trait AtomValidation {
     def Rules(rules: Rule*) = {
       val ruleSet = rules.toSet
       it should "have the rules" + ruleSet in {
-        assert(tmn.Jn(atom) == ruleSet)
+        assert(tmn.rulesWithHead(atom) == ruleSet)
       }
     }
 
@@ -47,7 +47,7 @@ trait AtomValidation {
         text = "have no supporting rules";
 
       it should text in {
-        assert(tmn.SJ(atom) == j)
+        assert(tmn.SuppRule(atom) == j)
       }
     }
 

@@ -28,12 +28,12 @@ class Deletion extends FlatSpec {
     assert(tmn.N.isEmpty)
     assert(tmn.status.isEmpty)
 
-    assert(tmn.J.isEmpty)
+    assert(tmn.rules.isEmpty)
     assert(tmn.getModel == None)
 
     assert(tmn.Cons.isEmpty)
     assert(tmn.Supp.isEmpty)
-    assert(tmn.SJ.isEmpty)
+    assert(tmn.SuppRule.isEmpty)
   }
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
@@ -54,10 +54,10 @@ class Deletion extends FlatSpec {
     // assert
     assert(tmn.getModel.isEmpty)
 
-    assert(tmn.J == Set(j0))
+    assert(tmn.rules == Set(j0))
     assert(tmn.Supp(A).isEmpty)
-    assert(tmn.SJ(A) == None)
-    assert(tmn.SJ(B) == None)
+    assert(tmn.SuppRule(A) == None)
+    assert(tmn.SuppRule(B) == None)
     assert(tmn.Cons(A) == Set(B))
     assert(tmn.N == Set(A, B))
     assert(tmn.status.keys == Set(A, B))
@@ -81,9 +81,9 @@ class Deletion extends FlatSpec {
     // assert
     assert(tmn.getModel.get == Set(A))
 
-    assert(tmn.J == Set(j1))
+    assert(tmn.rules == Set(j1))
     assert(tmn.Supp(A) == Set())
-    assert(tmn.SJ(A) == Some(j1))
+    assert(tmn.SuppRule(A) == Some(j1))
     assert(tmn.Cons(A) == Set())
 
     assert(tmn.N == Set(A))
@@ -107,10 +107,10 @@ class Deletion extends FlatSpec {
 
     assert(tmn.getModel.get == Set(A))
 
-    assume(tmn.J == Set(j1, j2))
+    assume(tmn.rules == Set(j1, j2))
     assert(tmn.Supp(C) == Set(B))
     assert(tmn.Cons(A) == Set())
-    assert(tmn.SJ(C) == None)
+    assert(tmn.SuppRule(C) == None)
 
     assert(tmn.N == Set(A, B, C))
     assert(tmn.status.keys == Set(A, B, C))
@@ -130,7 +130,7 @@ class Deletion extends FlatSpec {
     tmn.add(j3)
 
     assume(tmn.getModel.get == Set(A, B, C))
-    assume(tmn.SJ(C) == Some(j2))
+    assume(tmn.SuppRule(C) == Some(j2))
     assume(tmn.Supp(C) == Set(B))
     assume(tmn.Cons(A) == Set(B, C))
     assume(tmn.Cons(B) == Set(C))
@@ -138,9 +138,9 @@ class Deletion extends FlatSpec {
     tmn.remove(j0)
 
     assert(tmn.getModel.get == Set(A, C))
-    assert(tmn.J == Set(j1, j2, j3), "the SJ for C should change")
+    assert(tmn.rules == Set(j1, j2, j3), "the SJ for C should change")
     info("the SJ for C should change")
-    assert(tmn.SJ(C) == Some(j3))
+    assert(tmn.SuppRule(C) == Some(j3))
     info("the Supp for C should change")
     assert(tmn.Supp(C) == Set(A))
     info("the Cons for A should change")
