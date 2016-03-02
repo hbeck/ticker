@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import asp.Asp
 import aspsamples.EvaluateBothImplementations
-import core.{SingleModel, Evaluation, Rule, ContradictionAtom}
+import core._
 import org.scalatest.FlatSpec
 
 /**
@@ -10,9 +10,8 @@ import org.scalatest.FlatSpec
   */
 trait JTMS_21Behavior extends JTMSSpec {
   this: FlatSpec =>
-  val N_cont = ContradictionAtom("n_cont")
 
-  val j7 = Rule.pos(b).neg(c).head(N_cont)
+  val j7 = Constraint.pos(b).neg(c)
 
   def p = {
     val p = program + j7

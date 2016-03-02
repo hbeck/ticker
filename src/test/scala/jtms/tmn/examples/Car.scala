@@ -17,11 +17,9 @@ trait CarBehavior {
   val I = Atom("ignition_broken")
   val C = Atom("carb_broken")
 
-  val N_cont = ContradictionAtom("contradiction")
-
   val j0 = Rule.pos(S_not).neg(D).head(G_not);
   val j1 = Rule.pos(S_not, G).head(D)
-  val j2 = Rule.pos(G, G_not).head(N_cont)
+  val j2 = Constraint.pos(G, G_not)
   val j3 = Rule.pos(I).head(D)
   val j4 = Rule.pos(C).head(D)
 

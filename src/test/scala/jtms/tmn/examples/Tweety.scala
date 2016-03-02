@@ -14,12 +14,11 @@ trait TweetyBehavior {
   val P = Atom("pinguin_sein")
   val F = Atom("fliegen_koennen")
   val F_not = Atom("nicht_fliegen_koennen")
-  val N_cont = ContradictionAtom("widerspruch")
 
   val j0 = Rule.pos(P).head(F_not)
   val j1 = Rule.pos(P).head(V)
   val j2 = Rule.pos(V).neg(P).head(F)
-  val j3 = Rule.pos(F, F_not).head(N_cont)
+  val j3 = Constraint.pos(F, F_not)
   val j4 = Fact(V)
 
   val j5 = Fact(P)

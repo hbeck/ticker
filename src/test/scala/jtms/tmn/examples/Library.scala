@@ -23,19 +23,19 @@ trait LibraryBehavior {
   val N = Atom("nachschlagewerk")
   val A_not = Atom("nicht_ausleihbar")
   val H = Atom("im_Handapperart_einer_Veranstaltung")
-  val N_cont = ContradictionAtom("widerspruch")
+
 
   val j1 = Fact(V)
   val j2 = Rule.pos(V).neg(F, G).head(P)
   val j3 = Rule.pos(F).head(P_not)
   val j4 = Rule.pos(G).head(P_not)
   val j5 = Rule.pos(P).neg(H, N).head(A)
-  val j6 = Rule.pos(P, P_not).head(N_cont)
+  val j6 = Constraint.pos(P, P_not)
   val j7 = Rule.pos(N).head(A_not)
   val j8 = Rule.pos(H).head(A_not)
-  val j9 = Rule.pos(A, A_not).head(N_cont)
+  val j9 = Constraint.pos(A, A_not)
 
-  val jExclusionA = Rule.pos(A).head(N_cont)
+  val jExclusionA: Rule = Constraint.pos(A)
 
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
@@ -45,7 +45,7 @@ trait LibraryBehavior {
       assert(evaluation(program) contains SingleModel(Set(V, P, A)))
     }
     it should "be V,H,P,A_not" in {
-      info("With the premise H the model")
+      info("With the fact H the model")
       val p = program + Fact(H)
 
       val model = evaluation(p)
@@ -54,35 +54,35 @@ trait LibraryBehavior {
     }
 
     it should "be A_not,H,P, V" in {
-      info("With a contradiction node for A the model" )
+      info("With a constraint for A the model")
       val p = program + jExclusionA
 
       val model = evaluation(p)
 
-      if(evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[Asp]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains SingleModel(Set(A_not, H, P, V)))
     }
 
-    it should "also return the same model when using just a single contradiction node" in {
-      val p = program + Rule.pos(A).head(N_cont)
+    it should "also return the same model when using just a single constraint" in {
+      val p = program + Constraint.pos(A)
 
       val model = evaluation(p)
 
-      if(evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[Asp]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains SingleModel(Set(A_not, H, P, V)))
     }
 
     it should "be P_not,F,V" in {
-      info("With a contradiction node for P the model")
-      val p = program + Rule.pos(P).head(N_cont)
+      info("With a constraint for P the model")
+      val p = program + Constraint.pos(P)
 
       val model = evaluation(p)
 
-      if(evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[Asp]) pending
 
       info("F is currently chosen 'by random'")
       assert(model contains SingleModel(Set(P_not, F, V)))
@@ -119,7 +119,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.SuppTrans(V, F, G)
     validator.Ant(V, F, G)
     validator.AntTrans(V, F, G)
-    validator.Cons(A, N_cont)
+    validator.Cons(A, Falsum)
     validator.ACons(A)
     validator.AConsTrans(A)
   }
@@ -132,7 +132,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.SuppTrans(P, H, N, V, F, G)
     validator.Ant(P, H, N)
     validator.AntTrans(P, H, N, V, F, G)
-    validator.Cons(N_cont)
+    validator.Cons(Falsum)
     validator.ACons()
     validator.AConsTrans()
   }
@@ -147,7 +147,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.AntTrans()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
-    validator.AConsTrans(P, A, P_not, N_cont)
+    validator.AConsTrans(P, A, P_not, Falsum)
   }
   "Atom G" must behave like atomValidation(Tmn, G) { validator =>
     validator.state(out)
@@ -159,7 +159,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.AntTrans()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
-    validator.AConsTrans(P, A, P_not, N_cont)
+    validator.AConsTrans(P, A, P_not, Falsum)
   }
 
 
@@ -173,7 +173,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.AntTrans()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
-    validator.AConsTrans(A, A_not, N_cont)
+    validator.AConsTrans(A, A_not, Falsum)
   }
   "Atom N" must behave like atomValidation(Tmn, N) { validator =>
     validator.state(out)
@@ -185,7 +185,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.AntTrans()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
-    validator.AConsTrans(A, A_not, N_cont)
+    validator.AConsTrans(A, A_not, Falsum)
   }
 
   "Atom P_not" must behave like atomValidation(Tmn, P_not) { validator =>
@@ -196,9 +196,9 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.SuppTrans(F, G)
     validator.Ant()
     validator.AntTrans()
-    validator.Cons(N_cont)
-    validator.ACons(N_cont)
-    validator.AConsTrans(N_cont)
+    validator.Cons(Falsum)
+    validator.ACons(Falsum)
+    validator.AConsTrans(Falsum)
   }
 
   "Atom A_not" must behave like atomValidation(Tmn, A_not) { validator =>
@@ -209,12 +209,12 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.SuppTrans(H, N)
     validator.Ant()
     validator.AntTrans()
-    validator.Cons(N_cont)
-    validator.ACons(N_cont)
-    validator.AConsTrans(N_cont)
+    validator.Cons(Falsum)
+    validator.ACons(Falsum)
+    validator.AConsTrans(Falsum)
   }
 
-  "Atom N_cont" must behave like atomValidation(Tmn, N_cont) { validator =>
+  "Atom N_cont" must behave like atomValidation(Tmn, Falsum) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j6, j9)

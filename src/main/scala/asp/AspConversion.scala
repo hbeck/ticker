@@ -1,6 +1,6 @@
 package asp
 
-import core.{ContradictionAtom, Atom, Program, Rule}
+import core._
 
 /**
   * Created by FM on 22.02.16.
@@ -36,7 +36,7 @@ object AspConversion {
     if (!atom.caption.matches("^[a-zA-Z0-9_]*$"))
       throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
 
-    if(atom.isInstanceOf[ContradictionAtom])
+    if(atom == Falsum || atom.isInstanceOf[ContradictionAtom])
       return ""
 
     atom.caption

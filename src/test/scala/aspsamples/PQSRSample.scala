@@ -15,8 +15,6 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
   val s = Atom("s")
   val r = Atom("r")
 
-  val cont = ContradictionAtom("cont")
-
   val program = Program(
     Rule.pos(q).neg(s).head(p),
     Rule.pos(p).neg(q, s).head(r),
@@ -40,7 +38,7 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
   }
 
   def withKillClause(evaluation: Evaluation) = {
-    val p = program + Rule.pos(q).neg(r).head(cont)
+    val p = program + Constraint.pos(q).neg(r)
 
     it should "generate only one model" in {
       val model = evaluation(p)

@@ -188,7 +188,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     model match {
       case Some(SingleModel(nodes)) => nodes.foreach(n => {
-        if (Ncontr.contains(n) && status(n) == in)
+        if (n == Falsum || Ncontr.contains(n) && status(n) == in)
           DDB(n)
       })
       case None =>
@@ -249,7 +249,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     def asAssumption(assumption: Atom) = SuppRule(assumption).filterNot(_.neg.isEmpty)
 
-    if (Ncontr.contains(a)) {
+    if (a == Falsum || Ncontr.contains(a)) {
       val assumptionsOfN = AntTrans(a).map(asAssumption).filter(_.isDefined).map(_.get)
 
       val assumptions = assumptionsOfN

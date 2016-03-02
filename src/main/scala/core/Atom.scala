@@ -14,3 +14,7 @@ object Atom {
 case class UserDefinedAtom(caption: String) extends Atom
 
 case class ContradictionAtom(caption: String) extends Atom
+
+object Falsum extends Atom {
+  override def caption: String = "falsum"
+}

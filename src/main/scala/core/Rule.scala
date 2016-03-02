@@ -8,8 +8,24 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
   def head(head: Atom) = new UserDefinedRule(bodyPos, bodyNeg, head)
 }
 
+object ConstraintBuilder {
+  implicit def toRule(builder: ConstraintBuilder): Rule = new UserDefinedRule(builder.bodyPos, builder.bodyNeg, Falsum)
+}
+
+class ConstraintBuilder(val bodyPos: Set[Atom] = Set(),val bodyNeg: Set[Atom] = Set()) {
+  def pos(atoms: Atom*) = new ConstraintBuilder(bodyPos ++ atoms, bodyNeg)
+
+  def neg(atoms: Atom*) = new ConstraintBuilder(bodyPos, bodyNeg ++ atoms)
+}
+
 object Fact {
   def apply(head: Atom) = Rule.fact(head)
+}
+
+object Constraint {
+  def pos(atoms: Atom*) = new ConstraintBuilder(atoms.toSet)
+
+  def neg(atoms: Atom*) = new ConstraintBuilder(Set(), atoms.toSet)
 }
 
 object Rule {
