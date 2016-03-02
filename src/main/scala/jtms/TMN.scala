@@ -1,5 +1,6 @@
 package jtms
 
+import core.EvaluationResult.Model
 import core._
 
 import scala.annotation.tailrec
@@ -64,6 +65,21 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
       return Some(SingleModel(inAtoms.keys.toSet))
 
     None
+  }
+
+  def isFounded(atoms: Model): Boolean = {
+    if (atoms.forall(status(_) == in)) {
+
+      val suppWithAtom = atoms.filter(atom => SuppTrans(atom) contains atom)
+
+      if (suppWithAtom.nonEmpty) {
+        return suppWithAtom.forall(atom => Jn(AConsTrans(atom)).forall(_.neg.nonEmpty))
+      }
+
+      return true
+    }
+
+    return false
   }
 
   /** takes atoms at list M index idx and tries to find a valid rule
@@ -206,7 +222,11 @@ class TMN(var N: collection.immutable.Set[Atom], var J: Set[Rule] = Set()) {
   }
 
   def Jn(atoms: Set[Atom]) = {
-    SJ.filterKeys(atoms.contains(_)).values.map(_.get).toSet
+    SJ.filterKeys(atoms.contains(_))
+      .values
+      .filter(_.isDefined)
+      .map(_.get)
+      .toSet
   }
 
   def Jn(n: Atom) = J.filter(_.head == n)
