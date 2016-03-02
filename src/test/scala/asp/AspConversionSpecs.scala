@@ -46,8 +46,8 @@ class AspConversionSpecs extends FlatSpec {
     assert(AspConversion(j) == AspExpression("a :- b, not c."))
   }
 
-  "A rule with a ContradictionNode" should "be transformed into an integrety contraint ':- a, not c.'" in{
-    val r = Rule.pos(a).neg(c).head(new ContradictionAtom("cont"))
+  "A rule with a ContradictionNode" should "be transformed into an integrity constraint ':- a, not c.'" in{
+    val r = Constraint.pos(a).neg(c)
 
     assert(AspConversion(r) == AspExpression(":- a, not c."))
   }

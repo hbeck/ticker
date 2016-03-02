@@ -3,18 +3,16 @@ package core
 /**
   * Created by hb on 12/22/15.
   */
-sealed trait Atom {
+sealed trait Atom
+
+object Falsum extends Atom
+
+sealed trait AtomWithName extends Atom{
   def caption: String
 }
 
 object Atom {
-  def apply(caption: String): Atom = UserDefinedAtom(caption)
+  def apply(caption: String): Atom = NamedAtom(caption)
 }
 
-case class UserDefinedAtom(caption: String) extends Atom
-
-case class ContradictionAtom(caption: String) extends Atom
-
-object Falsum extends Atom {
-  override def caption: String = "falsum"
-}
+case class NamedAtom(caption: String) extends AtomWithName

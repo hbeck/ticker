@@ -27,18 +27,23 @@ object AspConversion {
   }
 
   def apply(atom: Atom): String = {
-    if (atom.caption.head.isUpper)
-      throw new IllegalArgumentException("Currently only constants are allowed in an ASP expression. In ASP a constant starts with an lower-case character. You provided " + atom)
-
-    if (atom.caption.exists(c => c.isWhitespace))
-      throw new IllegalArgumentException("Constants in ASP cannot contain a whitespace. You provided " + atom)
-
-    if (!atom.caption.matches("^[a-zA-Z0-9_]*$"))
-      throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
-
-    if(atom == Falsum || atom.isInstanceOf[ContradictionAtom])
+    if (atom == Falsum)
       return ""
 
-    atom.caption
+    val atomName = atom match {
+      case NamedAtom(caption) => caption
+      case _ => atom.toString
+    }
+
+    if (atomName.head.isUpper)
+      throw new IllegalArgumentException("Currently only constants are allowed in an ASP expression. In ASP a constant starts with an lower-case character. You provided " + atom)
+
+    if (atomName.exists(c => c.isWhitespace))
+      throw new IllegalArgumentException("Constants in ASP cannot contain a whitespace. You provided " + atom)
+
+    if (!atomName.matches("^[a-zA-Z0-9_]*$"))
+      throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
+
+    atomName
   }
 }
