@@ -22,7 +22,7 @@ object TMN {
   */
 class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
-  val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val ConsRules: Map[Atom, Set[Rule]] = new HashMap[Atom, Set[Rule]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
@@ -32,13 +32,13 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   }
   for (j <- rules) {
     for (m <- j.body) {
-      Cons(m) += j.head
+      ConsRules(m) += j
     }
   }
 
   def init(a: Atom) = {
     if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
+    if (!ConsRules.isDefinedAt(a)) ConsRules(a) = Set[Rule]()
     if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
     if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
   }
@@ -98,7 +98,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     val head = rule.head //alias
 
     rules += rule
-    rule.body.foreach(Cons(_) += head)
+    rule.body.foreach(ConsRules(_) += rule)
 
     init(head)
 
@@ -159,7 +159,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     def removeRule(rule: Rule) = {
       for (m <- rule.body) {
-        Cons(m) -= rule.head
+        ConsRules(m) -= rule
       }
 
       rules -= rule
@@ -175,7 +175,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
       status.remove(head)
       Supp.remove(head)
       SuppRule.remove(head)
-      Cons.remove(head)
+      ConsRules.remove(head)
       L -= head
     }
 
@@ -227,6 +227,8 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   }
 
   def rulesWithHead(h: Atom) = rules.filter(_.head == h)
+
+  def Cons(a: Atom) = ConsRules(a).map(_.head).toSet
 
   //ACons(n) = {x ∈ Cons(n) | n ∈ Supp(x)}
   def ACons(n: Atom): Set[Atom] = Cons(n).filter(Supp(_).contains(n))

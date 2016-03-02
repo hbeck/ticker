@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import core.{Rule, Fact, Atom}
+import core.{Program, Rule, Fact, Atom}
 import jtms.tmn.examples._
 import jtms._
 import org.scalatest.FlatSpec
@@ -31,9 +31,24 @@ class Deletion extends FlatSpec {
     assert(tmn.rules.isEmpty)
     assert(tmn.getModel == None)
 
-    assert(tmn.Cons.isEmpty)
+    assert(tmn.ConsRules.isEmpty)
     assert(tmn.Supp.isEmpty)
     assert(tmn.SuppRule.isEmpty)
+  }
+
+  "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have Cons(c) = a " in {
+    val r1 = Rule.pos(C).head(A)
+    val r2 = Rule.pos(C, B).head(A)
+
+    val program = Program(r1, r2)
+
+    val tmn = TMN(program)
+
+    assume(tmn.Cons(C) == Set(A))
+
+    tmn.remove(r1)
+
+    assert(tmn.Cons(C) == Set(A))
   }
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
