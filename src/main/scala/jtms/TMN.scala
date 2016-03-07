@@ -185,37 +185,59 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   def checkForDDB() = {
     val model = getModel
 
-
     model match {
       case Some(SingleModel(nodes)) => nodes.foreach(n => {
         if (n == Falsum && status(n) == in)
-          DDB(n)
+          DDB
       })
       case None =>
     }
   }
 
-  def DDB(a: Atom) = {
-    val assumptions = MaxAssumptions(a)
+  def DDB = {
 
-    if (assumptions.isEmpty)
-      throw new RuntimeException("We have an unsolvable contradiction for atom " + a)
+    ddbForAssumptions(MaxAssumptions(Falsum))
 
-    // TODO: Ordering + Selection?
-    val n_a = selectRule(assumptions).get
+    def ddbForAssumptions(assumptions: Set[Rule]): Unit = {
+      if (assumptions.isEmpty)
+        throw new RuntimeException("We have an unsolvable contradiction")
 
-    // TODO: Ordering + Selection?
-    // (we pick currently only the first O)
-    val n_star = selectAtom(n_a.neg).get
+      // TODO: Ordering + Selection?
+      if (!ddbForNegativeBody(assumptions.head.neg))
+         return ddbForAssumptions(assumptions.tail)
 
-    val r_contr = suppRules(assumptions.map(_.head))
+      def ddbForNegativeBody(n_a_negBody: Set[Atom]): Boolean = {
+        if (n_a_negBody.isEmpty)
+          return false
 
-    val pos_contr = r_contr.flatMap(_.pos)
-    val neg_contr = r_contr.flatMap(_.neg) - n_star;
+        // TODO: Ordering + Selection?
+        // (we pick currently only the first O)
+        if (!ddbForSelectedAtom(n_a_negBody.head)) {
+          return ddbForNegativeBody(n_a_negBody.tail)
+        }
 
-    val rule = new RuleFromBacktracking(pos_contr, neg_contr, n_star)
+        def ddbForSelectedAtom(n_star: Atom): Boolean = {
+          val r_contr = suppRules(assumptions.map(_.head))
 
-    add(rule)
+          val pos_contr = r_contr.flatMap(_.pos)
+          val neg_contr = r_contr.flatMap(_.neg) - n_star
+
+          val rule = new RuleFromBacktracking(pos_contr, neg_contr, n_star)
+
+          //Facts are not allowed as the result of a Backtracking operation!
+          if (rule.body.isEmpty) {
+            return false
+          }
+
+          add(rule)
+
+          val model = getModel()
+          model.isDefined && isFounded(model.get.model)
+        }
+
+        true
+      }
+    }
   }
 
   def suppRules(atoms: Set[Atom]) = {
