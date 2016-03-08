@@ -4,6 +4,7 @@ import core.EvaluationResult.Model
 import core._
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 import scala.collection.mutable.{HashMap, Map}
 
 object TMN {
@@ -23,9 +24,13 @@ object TMN {
 class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   val ConsRules: Map[Atom, Set[Rule]] = new HashMap[Atom, Set[Rule]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
+
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
+
+  val SupportForAtom: mutable.Map[Atom, Support] = new HashMap[Atom, Support]
+
+  def SuppRule(atom: Atom) = SupportForAtom(atom).rule
+  def Supp(atom: Atom) = SupportForAtom(atom).forStatus(status(atom)).map(_.atom)
 
   for (a <- N) {
     init(a)
@@ -39,8 +44,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   def init(a: Atom) = {
     if (!status.isDefinedAt(a)) status(a) = out
     if (!ConsRules.isDefinedAt(a)) ConsRules(a) = Set[Rule]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
+    if (!SupportForAtom.isDefinedAt(a)) SupportForAtom(a) = Support(a)
   }
 
   /** @return true if M is admissible **/
@@ -110,7 +114,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
       //TODO (HB) isValid vs (un)foundedInvalid later
       val spoiler: Option[Atom] = findSpoiler(rule)
       if (spoiler.isDefined) {
-        Supp(head) += spoiler.get
+        SupportForAtom(head).statusOut(Set(Label(spoiler.get, status(spoiler.get))))
         return true
       }
       false
@@ -173,8 +177,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     if (!rules.exists(_.atoms.contains(head))) {
       N -= head
       status.remove(head)
-      Supp.remove(head)
-      SuppRule.remove(head)
+      SupportForAtom.remove(head)
       ConsRules.remove(head)
       L -= head
     }
@@ -204,7 +207,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
       // TODO: Ordering + Selection?
       if (!ddbForNegativeBody(assumptions.head.neg))
-         return ddbForAssumptions(assumptions.tail)
+        return ddbForAssumptions(assumptions.tail)
 
       def ddbForNegativeBody(n_a_negBody: Set[Atom]): Boolean = {
         if (n_a_negBody.isEmpty)
@@ -241,10 +244,10 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   }
 
   def suppRules(atoms: Set[Atom]) = {
-    SuppRule.filterKeys(atoms.contains(_))
+    SupportForAtom.filterKeys(atoms.contains(_))
       .values
-      .filter(_.isDefined)
-      .map(_.get)
+      .filter(_.rule.isDefined)
+      .map(_.rule.get)
       .toSet
   }
 
@@ -293,14 +296,15 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
-    Supp(rule.head) = rule.body
-    SuppRule(rule.head) = Option(rule)
+    SupportForAtom(rule.head).statusIn(rule)
   }
 
   def setOut(n: Atom) = {
     status(n) = out
-    Supp(n) = rulesWithHead(n).map(findSpoiler(_).get)
-    SuppRule(n) = None
+    SupportForAtom(n).statusOut(rulesWithHead(n)
+      .map(findSpoiler(_).get)
+      .map(atom => Label(atom, status(atom)))
+    )
   }
 
   def findSpoiler(rule: Rule): Option[Atom] = {
@@ -323,8 +327,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   def setUnknown(atom: Atom): Unit = {
     status(atom) = unknown
-    Supp(atom) = Set()
-    SuppRule(atom) = None
+    SupportForAtom(atom) = Support(atom)
   }
 
   def setConsequences(a: Atom): Unit = {

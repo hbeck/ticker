@@ -32,8 +32,7 @@ class Deletion extends FlatSpec {
     assert(tmn.getModel == None)
 
     assert(tmn.ConsRules.isEmpty)
-    assert(tmn.Supp.isEmpty)
-    assert(tmn.SuppRule.isEmpty)
+    assert(tmn.SupportForAtom.isEmpty)
   }
 
   "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have Cons(c) = a " in {
