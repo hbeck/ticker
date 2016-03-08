@@ -203,7 +203,7 @@ class TMN() {
     add(rule)
   }
 
-  def suppRules(atoms: Set[Atom]) = { //TODO (HB) recheck naming
+  def suppRules(atoms: Set[Atom]) = {
     SuppRule.filterKeys(atoms.contains(_)).values.map(_.get).toSet
   }
 
