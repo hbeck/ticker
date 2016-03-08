@@ -20,7 +20,7 @@ object TMN {
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
+class TMN(var N: collection.immutable.Set[Atom], var rules: List[Rule] = List()) {
 
   val ConsRules: Map[Atom, Set[Rule]] = new HashMap[Atom, Set[Rule]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -97,7 +97,10 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     val head = rule.head //alias
 
-    rules += rule
+    if (rules.contains(rule))
+      return Set()
+
+    rules = rules.:+(rule)
     rule.body.foreach(ConsRules(_) += rule)
 
     init(head)
@@ -162,7 +165,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
         ConsRules(m) -= rule
       }
 
-      rules -= rule
+      rules = rules diff List(rule)
     }
 
     removeRule(rule)
@@ -204,7 +207,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
       // TODO: Ordering + Selection?
       if (!ddbForNegativeBody(assumptions.head.neg))
-         return ddbForAssumptions(assumptions.tail)
+        return ddbForAssumptions(assumptions.tail)
 
       def ddbForNegativeBody(n_a_negBody: Set[Atom]): Boolean = {
         if (n_a_negBody.isEmpty)
@@ -299,7 +302,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   def setOut(n: Atom) = {
     status(n) = out
-    Supp(n) = rulesWithHead(n).map(findSpoiler(_).get)
+    Supp(n) = rulesWithHead(n).map(findSpoiler(_).get).toSet
     SuppRule(n) = None
   }
 
@@ -382,7 +385,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     Some(atoms.head)
   }
 
-  def selectRule(rules: Set[Rule]): Option[Rule] = {
+  def selectRule(rules: List[Rule]): Option[Rule] = {
     if (rules.isEmpty)
       return None
 

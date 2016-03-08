@@ -20,29 +20,25 @@ trait JTMS_21Behavior extends JTMSSpec {
   }
 
   def example21(evaluation: Evaluation): Unit = {
-    it should "contain A,C,D,F,E" in {
-      val model = evaluation(p)
+    it should "not generate a model" in {
+      intercept[RuntimeException]{
+        val model = evaluation(p)
+        assert(model == None)
+      }
+
 
       // this is not a founded/sounded model!
       // a and c are supporting each other
       // -> do a check on the final model
       // -> we need do do DDB with all variants
       // --> if there is no model with any possible enumeration -> fail
-      if (evaluation.isInstanceOf[Asp])
-        pending
-      assert(model contains SingleModel(Set(a, c, d, f, e)))
+
+
     }
   }
 }
 
 class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateBothImplementations {
   "The example 21" should behave like theSame(example21)
-  "The model" should "not be founded" in {
-    val tmn = TMN(program)
 
-    tmn.add(j7)
-    pendingUntilFixed {
-      assert(tmn.isFounded(tmn.getModel.get.model) == false)
-    }
-  }
 }
