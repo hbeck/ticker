@@ -26,6 +26,7 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
     it should "generate the model s" in {
       val model = evaluation(program)
 
+      //TODO (HB): question about containment
       assert(model.get.contains(Set(s)))
     }
     it should "generate the model p,q" in {
