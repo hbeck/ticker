@@ -21,7 +21,6 @@ object TMN {
   */
 case class TMN() {
 
-  //var atoms: Set[Atom]= Set()
   var rules: Set[Rule]= Set()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -30,7 +29,6 @@ case class TMN() {
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def registerAtom(a: Atom): Unit = {
-    //atoms += a
     if (!status.isDefinedAt(a)) status(a) = out
     if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
     if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
@@ -55,12 +53,10 @@ case class TMN() {
       return collection.immutable.Set()
     }
 
-    //Updating of beliefs required
-    //(rule is valid, head needs to be concluded)
-    val affected = AConsTrans(rule.head) //TODO vs ACons
+    //Updating of beliefs required (rule is valid, head needs to be concluded)
+    val affected = AConsTrans(rule.head)
 
-    if (affected.isEmpty) {
-      //then we can treat head independently
+    if (affected.isEmpty) { //then we can treat head independently
       setIn(rule)
       checkForDDB //needed if rule.head is a contradiction node
       return collection.immutable.Set(rule.head)
@@ -113,7 +109,6 @@ case class TMN() {
 
   def AConsTrans(n: Atom) = trans(ACons, n)
 
-  //TODO
   def setIn(rule: Rule) = {
     status(rule.head) = in
     Supp(rule.head) = Set() ++ rule.body
@@ -145,6 +140,8 @@ case class TMN() {
       }
     }
   }
+
+  def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
 
   def determineAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
@@ -183,7 +180,7 @@ case class TMN() {
           fixIn(rule)
           unknownCons(a) foreach fixAndPropagateStatus
         } else {
-          for (x <- (affected + a)) {
+          for (x <- (affected + a)) { //TODO why not AConsTrans here?
             setUnknown(x)
             fixAndPropagateStatus(x)
           }
@@ -214,7 +211,44 @@ case class TMN() {
     setOut(a)
   }
 
-  def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
+  def fixAndPropagateStatus2(a: Atom): Unit = {
+    if (status(a) != unknown)
+      return
+
+    if (fixValidation(a) || fixInvalidation(a)) {
+      unknownCons(a) foreach fixAndPropagateStatus
+    } else {
+      for (c <- (ACons(a) + a)) {
+        setUnknown(c)
+        fixAndPropagateStatus(c)
+      }
+    }
+  }
+
+  def fixValidation(a: Atom): Boolean = {
+    rulesWithHead(a) find unfoundedValid match {
+      case Some(rule) => {
+        if (ACons(a).isEmpty) { fixIn(rule); true }
+        else { false }
+      }
+      case None => false
+    }
+  }
+
+  def fixInvalidation(a: Atom): Boolean = {
+    rulesWithHead(a) find unfoundedValid match {
+      case Some(rule) => false
+      case None => {
+        //for every rule in rules, some atom in rule.pos is unknown.
+        //must set (common) rule head out. to justify this, must create a support first, i.e.,
+        //for every rule take a positive atom that is unknown and set it to false
+        fixOut(a)
+        unknownCons(a) foreach fixAndPropagateStatus
+        true
+      }
+    }
+
+  }
 
   def foundedValid(rule: Rule): Boolean = {
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
