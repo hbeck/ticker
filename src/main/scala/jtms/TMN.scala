@@ -41,7 +41,6 @@ case class TMN() {
 
   //TODO (HB) case 'None'
   def getModel() = {
-    //status.filter(_._2 == in).map(_._1).toSet
     status.filter(_._2 == in).keys.toSet
   }
 
@@ -57,7 +56,7 @@ case class TMN() {
     }
 
     //else: rule is valid, head needs to be concluded
-    val affected = AConsTrans(rule.head)
+    val affected = AConsTrans(rule.head) //TODO vs ACons
 
     if (affected.isEmpty) {
       //then we can treat head independently
@@ -77,8 +76,8 @@ case class TMN() {
     val oldState = stateOfAtoms
 
     atoms foreach setUnknown //TODO (HB) really set all unknown?
-    atoms foreach setConsequences
-    atoms foreach chooseAssignments
+    atoms foreach determineAndPropagateStatus
+    atoms foreach chooseAndPropagateStatus
 
     checkForDDB
 
@@ -113,8 +112,6 @@ case class TMN() {
   def AConsTrans(n: Atom) = trans(ACons, n)
 
   def SuppTrans(n: Atom) = trans(Supp, n)
-
-
 
   //TODO
   def setIn(rule: Rule) = {
@@ -153,23 +150,13 @@ case class TMN() {
     }
   }
 
-  def setConsequences(a: Atom): Unit = {
+  def determineAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
     if (validation(a) || invalidation(a)) {
-        unknownCons(a).foreach(setConsequences)
+        unknownCons(a) foreach determineAndPropagateStatus
     }
-//      val rn = rulesWithHead(a)
-//      val rule: Option[Rule] = selectRule(rn.filter(foundedValid)) //TODO (HB) vs find - rel to order
-//      if (rule.isDefined) {
-//        setIn(rule.get)
-//        unknownCons(a).foreach(setConsequences)
-//      } else if (rn.forall(foundedInvalid)) {
-//        setOut(a)
-//        unknownCons(a).foreach(setConsequences)
-//      }
-
   }
 
   def validation(a: Atom): Boolean = {
@@ -189,35 +176,56 @@ case class TMN() {
     false
   }
 
-  def chooseAssignments(a: Atom): Unit = {
-    if (status(a) == unknown) {
-      val rules = rulesWithHead(a)
-      val rule: Option[Rule] = selectRule(rules.filter(unfoundedValid))
-      if (rule.isDefined) {
-        val aCons = ACons(a)
-        if (aCons.isEmpty) {
-          setIn(rule.get)
-          rule.get.neg.filter(status(_) == unknown).foreach(status(_) = out)
-          unknownCons(a).foreach(chooseAssignments)
-        } else {
-          for (x <- (aCons + a)) {
-            status(x) = unknown
-            chooseAssignments(x)
-          }
-        }
-      } else {
-        //all rules are unfounded invalid. in particular, for every rule in rules, some atom in rule.I is unknown
-        status(a) = out
-        for (h <- rules) {
-          val x = selectAtom(h.pos.filter(status(_) == unknown))
-          // TODO: this might be needed because of the non existing ordering
-          // We usually can expect to always have a rule (if ordering is correct)
-          x.foreach(status(_) = out)
-        }
-        setOut(a)
-        unknownCons(a).foreach(chooseAssignments)
-      }
+  /*
+  def choiceValidation(a: Atom): Boolean = {
+    val rule: Option[Rule] = selectRule(rulesWithHead(a).filter(unfoundedValid)) //TODO (HB) vs find - rel to order
+    if (rule.isEmpty)
+      return false
+
+    val affected = ACons(a) //TODO vs AConsTrans
+    if (affected.isEmpty) { //TODO why is that the criterion?
+      rule.get.neg filter (status(_) == unknown) foreach setOut //vs. (status(_) = out) which is more efficient
+      setIn(rule.get)
     }
+    //else keep a unknown, along with affected
+
+    true
+  }
+  */
+
+  def chooseAndPropagateStatus(a: Atom): Unit = {
+    if (status(a) != unknown)
+      return
+
+    val rules = rulesWithHead(a)
+    val rule: Option[Rule] = selectRule(rules.filter(unfoundedValid))
+    if (rule.isDefined) {
+      val affected = ACons(a)
+      if (affected.isEmpty) {
+        rule.get.neg filter (status(_) == unknown) foreach setOut //vs (status(_) = out) which is more efficient
+        setIn(rule.get)
+        //TODO HB why?:
+        unknownCons(a) foreach chooseAndPropagateStatus
+      } else {
+        //TODO HB why?:
+        for (x <- (affected + a)) {
+          setUnknown(x)
+          chooseAndPropagateStatus(x)
+        }
+      }
+    } else {
+      //all rules are unfounded invalid. in particular, for every rule in rules, some atom in rule.I is unknown
+      status(a) = out
+      for (h <- rules) {
+        val x = selectAtom(h.pos filter (status(_) == unknown))
+        // TODO: this might be needed because of the non existing ordering
+        // We usually can expect to always have a rule (if ordering is correct)
+        x foreach (status(_) = out)
+      }
+      setOut(a)
+      unknownCons(a) foreach chooseAndPropagateStatus
+    }
+
   }
 
   def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
@@ -239,15 +247,15 @@ case class TMN() {
   }
 
   def foundedValid(rule: Rule): Boolean = {
-    rule.pos.forall(status(_) == in) && rule.neg.forall(status(_) == out)
+    (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
   }
 
   def foundedInvalid(rule: Rule): Boolean = {
-    rule.pos.exists(status(_) == out) || rule.neg.exists(status(_) == in)
+    (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
   }
 
   def unfoundedValid(rule: Rule): Boolean = {
-    rule.pos.forall(status(_) == in) && !rule.neg.exists(status(_) == in) //&& j.O.exists(status(_)==unknown)
+    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
