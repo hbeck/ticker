@@ -53,15 +53,9 @@ case class TMN() {
       return collection.immutable.Set()
     }
 
-    //Updating of beliefs required (rule is valid, head needs to be concluded)
+    //Updating of belief, i.e.,
+    //rule head and the transitive affected consequences
     val affected = AConsTrans(rule.head)
-
-    if (affected.isEmpty) { //then we can treat head independently
-      setIn(rule)
-      checkForDDB //needed if rule.head is a contradiction node
-      return collection.immutable.Set(rule.head)
-    }
-
     update(affected + rule.head)
 
   }
