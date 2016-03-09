@@ -55,7 +55,7 @@ case class TMN() {
       return collection.immutable.Set()
     }
 
-    //Updating beliefs required
+    //Updating of beliefs required
     //(rule is valid, head needs to be concluded)
     val affected = AConsTrans(rule.head) //TODO vs ACons
 
@@ -78,7 +78,7 @@ case class TMN() {
 
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach chooseAndPropagateStatus // Relaxing circularities
+    atoms foreach fixAndPropagateStatus // Relaxing circularities
 
     checkForDDB
 
@@ -86,13 +86,14 @@ case class TMN() {
     (oldState diff newState) map (_._1) toSet
   }
 
-  def isInvalid(rule: Rule): Boolean = {
-    val spoiler = findSpoiler(rule)
-    if (spoiler.isDefined) {
-      Supp(rule.head) += spoiler.get
-      return true
+  def isInvalid(rule: Rule): Boolean = { //TODO
+    findSpoiler(rule) match {
+      case Some(spoiler) => {
+        Supp(rule.head) += spoiler
+        return true
+      }
+      case None => return false
     }
-    false
   }
 
   def checkForDDB() = {
@@ -135,18 +136,14 @@ case class TMN() {
 
   def findSpoiler(rule: Rule): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = rule.pos find (status(_) == out)
-      if (opt.isDefined) {
-        return opt
-      } else {
-        return rule.neg find (status(_) == in)
+      rule.pos find (status(_) == out) match {
+        case None => rule.neg find (status(_) == in)
+        case opt => opt
       }
     } else {
-      val opt = rule.neg find (status(_) == in)
-      if (opt.isDefined) {
-        return opt
-      } else {
-        return rule.pos find (status(_) == out)
+      rule.neg find (status(_) == in) match {
+        case None => rule.pos find (status(_) == out)
+        case opt => opt
       }
     }
   }
@@ -161,69 +158,62 @@ case class TMN() {
   }
 
   def validation(a: Atom): Boolean = {
-    val rule = rulesWithHead(a) find foundedValid //TODO (HB) vs find - rel to order
-    if (rule.isDefined) {
-      setIn(rule.get)
-      return true
+    rulesWithHead(a) find foundedValid match {
+      case Some(rule) => { setIn(rule); true }
+      case None => false
     }
-    false
   }
 
   def invalidation(a: Atom): Boolean = {
-    if (rulesWithHead(a).forall(foundedInvalid)) {
+    if (rulesWithHead(a) forall foundedInvalid) {
       setOut(a)
       return true
     }
     false
   }
 
-  /*
-  def choiceValidation(a: Atom): Boolean = {
-    val rule: Option[Rule] = selectRule(rulesWithHead(a).filter(unfoundedValid)) //TODO (HB) vs find - rel to order
-    if (rule.isEmpty)
-      return false
-
-    val affected = ACons(a) //TODO vs AConsTrans
-    if (affected.isEmpty) { //TODO why is that the criterion?
-      rule.get.neg filter (status(_) == unknown) foreach setOut //vs. (status(_) = out) which is more efficient
-      setIn(rule.get)
-    }
-    //else keep a unknown, along with affected
-
-    true
-  }
-  */
-
-  def chooseAndPropagateStatus(a: Atom): Unit = {
+  def fixAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
     val rules = rulesWithHead(a)
-    val rule = rules find unfoundedValid
-    if (rule.isDefined) {
-      val affected = ACons(a)
-      if (affected.isEmpty) {
-        rule.get.neg filter (status(_) == unknown) foreach setOut
-        setIn(rule.get)
-        unknownCons(a) foreach chooseAndPropagateStatus
-      } else {
-        for (x <- (affected + a)) {
-          setUnknown(x)
-          chooseAndPropagateStatus(x)
+
+    rules find unfoundedValid match {
+      case Some(rule) => {
+        val affected = ACons(a)
+        if (affected.isEmpty) {
+          fixIn(rule)
+          unknownCons(a) foreach fixAndPropagateStatus
+        } else {
+          for (x <- (affected + a)) {
+            setUnknown(x)
+            fixAndPropagateStatus(x)
+          }
+          //vs TODO (HB) - which is right?
+//          (affected + a) foreach setUnknown
+//          (affected + a) foreach fixAndPropagateStatus
         }
       }
-    } else {
-      //all rules are unfounded invalid. for every rule in rules, some atom in rule.pos is unknown.
-      //must set (common) rule head out. to justify this, must create a support first, i.e.,
-      //for every rule take a positive atom that is unknown and set it to false
-      val unknownPosAtoms = rules map { r => (r.pos find (status(_)==unknown)).get }
-      unknownPosAtoms foreach setOut
-      //
-      setOut(a)
-
-      unknownCons(a) foreach chooseAndPropagateStatus
+      case None => {
+        //all rules are unfounded invalid. for every rule in rules, some atom in rule.pos is unknown.
+        //must set (common) rule head out. to justify this, must create a support first, i.e.,
+        //for every rule take a positive atom that is unknown and set it to false
+        fixOut(a)
+        unknownCons(a) foreach fixAndPropagateStatus
+      }
     }
+  }
 
+  def fixIn(unfoundedValidRule: Rule) = {
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut
+    setIn(unfoundedValidRule)
+  }
+
+  def fixOut(a: Atom) = {
+    val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
+    unknownPosAtoms foreach setOut
+    //
+    setOut(a)
   }
 
   def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
