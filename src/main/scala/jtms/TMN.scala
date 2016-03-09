@@ -55,14 +55,15 @@ case class TMN() {
       return collection.immutable.Set()
     }
 
-    //else: rule is valid, head needs to be concluded
+    //Updating beliefs required
+    //(rule is valid, head needs to be concluded)
     val affected = AConsTrans(rule.head) //TODO vs ACons
 
     if (affected.isEmpty) {
       //then we can treat head independently
       setIn(rule)
       checkForDDB //needed if rule.head is a contradiction node
-      return collection.immutable.Set()
+      return collection.immutable.Set(rule.head)
     }
 
     update(affected + rule.head)
@@ -75,9 +76,9 @@ case class TMN() {
 
     val oldState = stateOfAtoms
 
-    atoms foreach setUnknown //TODO (HB) really set all unknown?
-    atoms foreach determineAndPropagateStatus
-    atoms foreach chooseAndPropagateStatus
+    atoms foreach setUnknown //Marking the nodes
+    atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
+    atoms foreach chooseAndPropagateStatus // Relaxing circularities
 
     checkForDDB
 
@@ -86,7 +87,7 @@ case class TMN() {
   }
 
   def isInvalid(rule: Rule): Boolean = {
-    val spoiler: Option[Atom] = findSpoiler(rule)
+    val spoiler = findSpoiler(rule)
     if (spoiler.isDefined) {
       Supp(rule.head) += spoiler.get
       return true
@@ -134,18 +135,18 @@ case class TMN() {
 
   def findSpoiler(rule: Rule): Option[Atom] = {
     if (math.random < 0.5) {
-      val opt = selectAtom(rule.pos filter (status(_) == out))
+      val opt = rule.pos find (status(_) == out)
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(rule.neg filter (status(_) == in))
+        return rule.neg find (status(_) == in)
       }
     } else {
-      val opt = selectAtom(rule.neg filter (status(_) == in))
+      val opt = rule.neg find (status(_) == in)
       if (opt.isDefined) {
         return opt
       } else {
-        return selectAtom(rule.pos filter (status(_) == out))
+        return rule.pos find (status(_) == out)
       }
     }
   }
@@ -160,7 +161,7 @@ case class TMN() {
   }
 
   def validation(a: Atom): Boolean = {
-    val rule: Option[Rule] = selectRule(rulesWithHead(a).filter(foundedValid)) //TODO (HB) vs find - rel to order
+    val rule = rulesWithHead(a) find foundedValid //TODO (HB) vs find - rel to order
     if (rule.isDefined) {
       setIn(rule.get)
       return true
@@ -198,53 +199,34 @@ case class TMN() {
       return
 
     val rules = rulesWithHead(a)
-    val rule: Option[Rule] = selectRule(rules.filter(unfoundedValid))
+    val rule = rules find unfoundedValid
     if (rule.isDefined) {
       val affected = ACons(a)
       if (affected.isEmpty) {
-        rule.get.neg filter (status(_) == unknown) foreach setOut //vs (status(_) = out) which is more efficient
+        rule.get.neg filter (status(_) == unknown) foreach setOut
         setIn(rule.get)
-        //TODO HB why?:
         unknownCons(a) foreach chooseAndPropagateStatus
       } else {
-        //TODO HB why?:
         for (x <- (affected + a)) {
           setUnknown(x)
           chooseAndPropagateStatus(x)
         }
       }
     } else {
-      //all rules are unfounded invalid. in particular, for every rule in rules, some atom in rule.I is unknown
-      status(a) = out
-      for (h <- rules) {
-        val x = selectAtom(h.pos filter (status(_) == unknown))
-        // TODO: this might be needed because of the non existing ordering
-        // We usually can expect to always have a rule (if ordering is correct)
-        x foreach (status(_) = out)
-      }
+      //all rules are unfounded invalid. for every rule in rules, some atom in rule.pos is unknown.
+      //must set (common) rule head out. to justify this, must create a support first, i.e.,
+      //for every rule take a positive atom that is unknown and set it to false
+      val unknownPosAtoms = rules map { r => (r.pos find (status(_)==unknown)).get }
+      unknownPosAtoms foreach setOut
+      //
       setOut(a)
+
       unknownCons(a) foreach chooseAndPropagateStatus
     }
 
   }
 
   def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
-
-  def selectAtom(atoms: collection.immutable.Set[Atom]): Option[Atom] = {
-    if (atoms.isEmpty)
-      return None
-
-    //TODO what about the ordering?
-    Some(atoms.head)
-  }
-
-  def selectRule(rules: collection.mutable.Set[Rule]): Option[Rule] = {
-    if (rules.isEmpty)
-      return None
-
-    //TODO what about the ordering?
-    Some(rules.head)
-  }
 
   def foundedValid(rule: Rule): Boolean = {
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
@@ -392,4 +374,21 @@ case class TMN() {
   }
 
   def AntTrans(a: Atom) = trans(Ant, a)
+
+  def selectAtom(atoms: collection.immutable.Set[Atom]): Option[Atom] = {
+    if (atoms.isEmpty)
+      return None
+
+    //TODO what about the ordering?
+    Some(atoms.head)
+  }
+
+  def selectRule(rules: collection.mutable.Set[Rule]): Option[Rule] = {
+    if (rules.isEmpty)
+      return None
+
+    //TODO what about the ordering?
+    Some(rules.head)
+  }
+
 }
