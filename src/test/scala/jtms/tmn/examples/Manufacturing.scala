@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Program, Rule, Premise, Atom}
+import core.{Program, Rule, Fact, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -18,7 +18,7 @@ class Manufacturing extends FlatSpec {
   val j0 = Rule.pos(C).neg(B).head(A1)
   val j1 = Rule.pos(C, B).head(A2)
   val j2 = Rule.pos(L1).head(B)
-  val j3 = Rule.premise(C)
+  val j3 = Rule.fact(C)
 
   val program = Program(j0, j1, j2, j3)
 
@@ -37,7 +37,7 @@ class Manufacturing extends FlatSpec {
   "When there are supply problems with A1" should "mark as troubles and use resource A2" in {
     val tmn = Tmn
 
-    tmn.add(Premise(L1))
+    tmn.add(Fact(L1))
 
     assert(tmn.getModel() == Set(C, L1, B, A2))
   }

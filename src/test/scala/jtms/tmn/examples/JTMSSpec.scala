@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Program, Rule, Premise, Atom}
+import core.{Program, Rule, Fact, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -21,7 +21,7 @@ class JTMSSpec extends FlatSpec {
   val j3 = Rule.pos(A).head(C)
   val j4a = Rule.pos(B).head(D)
   val j4b = Rule.pos(C).head(D)
-  val j5 = Premise(E)
+  val j5 = Fact(E)
   val j6 = Rule.pos(C, E).head(F)
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)

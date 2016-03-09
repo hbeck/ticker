@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import core.{Premise, Rule, UserDefinedAtom, Atom}
+import core.{Fact, Rule, UserDefinedAtom, Atom}
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -10,7 +10,7 @@ import org.scalatest.FlatSpec
 class TMNSpec extends FlatSpec {
   def Assumption(node: String): Rule = Assumption(UserDefinedAtom(node))
 
-  def Assumption(node: Atom): Rule = Premise(node)
+  def Assumption(node: Atom): Rule = Fact(node)
 
   def EmptyTMN = new TMN()
 }

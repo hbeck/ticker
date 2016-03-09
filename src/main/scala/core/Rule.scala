@@ -8,8 +8,8 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
   def head(head: Atom) = new UserDefinedRule(bodyPos, bodyNeg, head)
 }
 
-object Premise {
-  def apply(head: Atom) = Rule.premise(head)
+object Fact {
+  def apply(head: Atom) = Rule.fact(head)
 }
 
 object Rule {
@@ -17,7 +17,7 @@ object Rule {
 
   def neg(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
 
-  def premise(head: Atom) = new UserDefinedRule(Set(), Set(), head)
+  def fact(head: Atom) = new UserDefinedRule(Set(), Set(), head)
 }
 
 sealed trait Rule {
@@ -32,6 +32,21 @@ sealed trait Rule {
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule
+case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
+  override def toString = {
+    val sb = new StringBuilder()
+    sb.append(head)
+    if (!pos.isEmpty && !neg.isEmpty) {
+      sb.append(" :-")
+      for (a <- pos) {
+        sb.append(a).append(", ")
+      }
+      for (a <- neg) {
+        sb.append("not ").append(a).append(", ")
+      }
+    }
+    sb.substring(0,sb.length-1).toString
+  }
+}
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule

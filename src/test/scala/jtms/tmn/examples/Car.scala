@@ -24,10 +24,10 @@ class Car extends FlatSpec {
   val j3 = Rule.pos(I).head(D)
   val j4 = Rule.pos(C).head(D)
 
-  val notStarting = Premise(S_not)
-  val enoughGas = Premise(G)
-  val notEnoughGas = Premise(G_not)
-  val brokenIgnition = Premise(C)
+  val notStarting = Fact(S_not)
+  val enoughGas = Fact(G)
+  val notEnoughGas = Fact(G_not)
+  val brokenIgnition = Fact(C)
 
   val program = Program(j0, j1, j2, j3, j4)
 

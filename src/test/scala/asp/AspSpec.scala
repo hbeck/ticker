@@ -1,6 +1,6 @@
 package asp
 
-import core.{Rule, Premise, Atom, Program}
+import core.{Rule, Fact, Atom, Program}
 import aspsamples.SingleHusbandSample
 import org.scalatest.{FlatSpec}
 
@@ -21,7 +21,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing only a premise A" can "be executed an converted to one single model containing A" in {
-    val program = Program(Premise(a))
+    val program = Program(Fact(a))
 
     val asp = Asp(program)
 
@@ -30,7 +30,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing a premise and a rule" should "return only the premise" in {
-    val program = Program(Premise(a), Rule.pos(b).head(c))
+    val program = Program(Fact(a), Rule.pos(b).head(c))
 
     val asp = Asp(program)
 
@@ -38,7 +38,7 @@ class AspSpec extends FlatSpec {
     assert(asp.head.size == 1)
   }
   it should "return two nodes" in {
-    val program = Program(Premise(a), Rule.pos(a).head(b))
+    val program = Program(Fact(a), Rule.pos(a).head(b))
 
     val asp = Asp(program)
 

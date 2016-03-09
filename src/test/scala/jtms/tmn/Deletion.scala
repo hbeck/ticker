@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import core.{Rule, Premise, Atom}
+import core.{Rule, Fact, Atom}
 import jtms.tmn.examples.{Library, Tweety, JTMS_5, JMTS_21}
 import jtms._
 import org.scalatest.FlatSpec
@@ -15,7 +15,7 @@ class Deletion extends FlatSpec {
   val C = Atom("C")
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
-    val j0 = Premise(A)
+    val j0 = Fact(A)
 
     val tmn = TMN()//Set(A))
     tmn.add(j0)
@@ -39,7 +39,7 @@ class Deletion extends FlatSpec {
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
     val j0 = Rule.pos(A).head(B)
-    val j1 = Premise(A)
+    val j1 = Fact(A)
 
     val tmn = TMN() //Set(A, B))
 
@@ -66,7 +66,7 @@ class Deletion extends FlatSpec {
   it should "have the Model A after deletion of a rule" in {
     // arrange
     val j0 = Rule.pos(A).head(B)
-    val j1 = Premise(A)
+    val j1 = Fact(A)
 
     val tmn = TMN() //Set(A, B))
 
@@ -92,7 +92,7 @@ class Deletion extends FlatSpec {
 
   "A TMN with three atoms" should "have only Model A after deleting a rule" in {
     val j0 = Rule.pos(A).head(B)
-    val j1 = Premise(A)
+    val j1 = Fact(A)
     val j2 = Rule.pos(B).head(C)
 
     val tmn = TMN() //Set(A, B, C))
@@ -118,7 +118,7 @@ class Deletion extends FlatSpec {
 
   "A TMN with three atoms and a redundant rule" should "have Model A,C after deleting a rule supporting B" in {
     val j0 = Rule.pos(A).head(B)
-    val j1 = Premise(A)
+    val j1 = Fact(A)
     val j2 = Rule.pos(B).head(C)
     val j3 = Rule.pos(A).head(C)
 

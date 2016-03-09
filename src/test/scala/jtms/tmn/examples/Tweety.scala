@@ -19,9 +19,9 @@ class Tweety extends FlatSpec {
   val j1 = Rule.pos(P).head(V)
   val j2 = Rule.pos(V).neg(P).head(F)
   val j3 = Rule.pos(F, F_not).head(N_cont)
-  val j4 = Premise(V)
+  val j4 = Fact(V)
 
-  val j5 = Premise(P)
+  val j5 = Fact(P)
 
   val program = Program(j0, j1, j2, j3, j4)
 

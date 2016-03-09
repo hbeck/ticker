@@ -1,6 +1,6 @@
 package asp
 
-import core.{Program, Rule, Premise, Atom}
+import core.{Program, Rule, Fact, Atom}
 import org.scalatest.FlatSpec
 
 /**
@@ -13,7 +13,7 @@ class AspConversionSpecs extends FlatSpec {
   val C = Atom("C")
 
   "A premise A" should "be transformed into the expression 'A.'" in {
-    val premise = Premise(A)
+    val premise = Fact(A)
 
     assert(AspConversion(premise) == AspExpression("A."))
   }
@@ -53,7 +53,7 @@ class AspConversionSpecs extends FlatSpec {
   }
 
   "A program containing one rule" should "return one expression" in {
-    val p = Program(Premise(A))
+    val p = Program(Fact(A))
 
     assert(AspConversion(p).size == 1)
   }

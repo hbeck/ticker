@@ -207,7 +207,6 @@ case class TMN() {
   def fixOut(a: Atom) = {
     val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
     unknownPosAtoms foreach setOut
-    //
     setOut(a)
   }
 

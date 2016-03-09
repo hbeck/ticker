@@ -21,7 +21,7 @@ class Library extends FlatSpec with AtomValidation {
   val H = Atom("im Handapperart einer Veranstaltung")
   val N_cont = ContradictionAtom("Widerspruch")
 
-  val j1 = Premise(V)
+  val j1 = Fact(V)
   val j2 = Rule.pos(V).neg(F, G).head(P)
   val j3 = Rule.pos(F).head(P_not)
   val j4 = Rule.pos(G).head(P_not)
@@ -176,7 +176,7 @@ class Library extends FlatSpec with AtomValidation {
 
   "With the premise H the model" should "be V,H,P,A_not" in {
     val tmn = Tmn
-    tmn.add(Premise(H))
+    tmn.add(Fact(H))
 
     val model = tmn.getModel()
 

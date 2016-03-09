@@ -5,6 +5,7 @@ package core
   */
 sealed trait Atom {
   def caption: String
+  override def toString = caption
 }
 
 object Atom {

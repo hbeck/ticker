@@ -17,9 +17,9 @@ trait SingleHusbandBehavior {
   val single = Atom("single")
   val husband = Atom("husband")
 
-  val r0 = Premise(man)
-  val r1 = Rule.pos(man).neg(husband).head(single)
-  val r2 = Rule.pos(man).neg(single).head(husband)
+  val r0 = Fact(man)
+  val r1 = Rule.pos(man).neg(husband).head(single) //single :- man, not husband
+  val r2 = Rule.pos(man).neg(single).head(husband) //husband :- man, not single
 
   val program = Program(r0, r1, r2)
 
@@ -30,16 +30,15 @@ single :- man, not husband.
 husband :- man, not single.
    */
 
-
     it should "include the model man, single" in {
       assert(evaluation(program) contains Set(man, single))
     }
 
-    it should "include man, husband" in {
-      if (evaluation.isInstanceOf[jTmn])
-        pending
-      assert(evaluation(program) contains Set(man, husband))
-    }
+//    it should "include man, husband" in {
+//      //if (evaluation.isInstanceOf[jTmn])
+//        //pending
+//      assert(evaluation(program) contains Set(man, husband))
+//    }
   }
 }
 
