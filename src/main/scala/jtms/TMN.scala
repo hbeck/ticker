@@ -41,7 +41,7 @@ case class TMN() {
 
   //TODO (HB) case 'None'
   def getModel() = {
-    status.filter(_._2 == in).keys.toSet
+    (status filter(_._2 == in) keys).toSet
   }
 
   //TMS update algorithm
@@ -106,14 +106,12 @@ case class TMN() {
 
   def Ncontr = atoms filter (_.isInstanceOf[ContradictionAtom])
 
-  def rulesWithHead(h: Atom) = rules.filter(_.head == h)
+  def rulesWithHead(h: Atom) = rules filter (_.head == h)
 
   //ACons(n) = {x ∈ Cons(n) | n ∈ Supp(x)}
-  def ACons(n: Atom): Set[Atom] = Cons(n).filter(Supp(_).contains(n))
+  def ACons(n: Atom): Set[Atom] = Cons(n) filter (Supp(_).contains(n))
 
   def AConsTrans(n: Atom) = trans(ACons, n)
-
-  def SuppTrans(n: Atom) = trans(Supp, n)
 
   //TODO
   def setIn(rule: Rule) = {
@@ -380,5 +378,7 @@ case class TMN() {
     //TODO what about the ordering?
     Some(rules.head)
   }
+
+  def SuppTrans(n: Atom) = trans(Supp, n)
 
 }
