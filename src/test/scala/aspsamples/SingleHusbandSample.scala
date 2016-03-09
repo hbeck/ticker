@@ -1,8 +1,8 @@
 package aspsamples
 
-import asp.{ClingoWrapper, Asp}
+import asp.Asp
 import core._
-import jtms.{jTmn, TMN}
+import jtms.jTmn
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps

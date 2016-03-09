@@ -49,7 +49,7 @@ case class TMN() {
     rule.atoms foreach registerAtom
     rule.body foreach (Cons(_) += rule.head)
 
-    if (conclusionDrawnAlready(rule) || ignoreInvalid(rule)) {
+    if (noUpdateNeeded(rule)) {
       return collection.immutable.Set()
     }
 
@@ -66,9 +66,9 @@ case class TMN() {
 
   }
 
-  def conclusionDrawnAlready(rule: Rule) = status(rule.head) == in
-
-  def ignoreInvalid(rule: Rule): Boolean = {
+  def noUpdateNeeded(rule: Rule): Boolean = {
+    if (status.head == in) return true
+    //ignore invalid rule:
     findSpoiler(rule) match {
       case Some(spoiler) => { Supp(rule.head) += spoiler; true }
       case None => false

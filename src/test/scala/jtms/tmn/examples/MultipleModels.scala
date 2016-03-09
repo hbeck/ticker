@@ -24,7 +24,7 @@ class MultipleModels  extends  FlatSpec{
     tmn.add(j2)
 
     assert(tmn.getModel() == Set(B))
-    pending
+    //pending
   }
 
   "When adding j2 before j1 the valid model" should "be A" in{
@@ -34,6 +34,6 @@ class MultipleModels  extends  FlatSpec{
     tmn.add(j1)
 
     assert(tmn.getModel() == Set(A))
-    pending
+    //pending
   }
 }
