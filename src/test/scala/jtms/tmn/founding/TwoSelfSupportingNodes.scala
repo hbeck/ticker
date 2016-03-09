@@ -1,6 +1,7 @@
 package jtms.tmn.founding
 
-import core.{Fact, Program, Rule, Atom}
+//import core.{Fact, Program, Rule, Atom}
+import core.{Program, Rule, Atom}
 import jtms.TMN
 import org.scalatest.FlatSpec
 
@@ -20,14 +21,15 @@ class TwoSelfSupportingNodes extends FlatSpec {
 
 
   "A program containing only two self supporting nodes" should "have no model" in {
+    println(tmn.getModel)
     assert(tmn.getModel == None)
   }
 
-  it should "not mark the model a, b as founded" in {
-    assert(tmn.isFounded(Set(a, b)) == false)
-  }
-  it should "mark the empty model as founded" in {
-    assert(tmn.isFounded(Set()))
-  }
+//  it should "not mark the model a, b as founded" in {
+//    assert(tmn.isFounded(Set(a, b)) == false)
+//  }
+//  it should "mark the empty model as founded" in {
+//    assert(tmn.isFounded(Set()))
+//  }
 
 }

@@ -64,6 +64,7 @@ case class TMN() {
     true
   }
 
+  //TODO (HB) case 'None'
   def getModel() = {
     //status.filter(_._2 == in).map(_._1).toSet
     status.filter(_._2 == in).keys.toSet
