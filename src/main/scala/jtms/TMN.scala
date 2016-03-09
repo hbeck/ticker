@@ -49,7 +49,7 @@ case class TMN() {
     rule.atoms foreach registerAtom
     rule.body foreach (Cons(_) += rule.head)
 
-    if (status(rule.head) == in || isInvalid(rule)) {
+    if (conclusionDrawnAlready(rule) || ignoreInvalid(rule)) {
       return collection.immutable.Set()
     }
 
@@ -64,6 +64,15 @@ case class TMN() {
 
     update(affected + rule.head)
 
+  }
+
+  def conclusionDrawnAlready(rule: Rule) = status(rule.head) == in
+
+  def ignoreInvalid(rule: Rule): Boolean = {
+    findSpoiler(rule) match {
+      case Some(spoiler) => { Supp(rule.head) += spoiler; true }
+      case None => false
+    }
   }
 
   def update(atoms: Set[Atom]): collection.immutable.Set[Atom] = {
@@ -84,11 +93,8 @@ case class TMN() {
 
   def isInvalid(rule: Rule): Boolean = { //TODO
     findSpoiler(rule) match {
-      case Some(spoiler) => {
-        Supp(rule.head) += spoiler
-        return true
-      }
-      case None => return false
+      case Some(spoiler) => { Supp(rule.head) += spoiler; true }
+      case None => false
     }
   }
 
@@ -222,6 +228,7 @@ case class TMN() {
         setUnknown(c)
         fixAndPropagateStatus(c)
       }
+      //TODO (HB) shouldn't it be setUnknown for all, then fix.. for all?
     }
   }
 
@@ -239,15 +246,14 @@ case class TMN() {
     rulesWithHead(a) find unfoundedValid match {
       case Some(rule) => false
       case None => {
-        //for every rule in rules, some atom in rule.pos is unknown.
-        //must set (common) rule head out. to justify this, must create a support first, i.e.,
-        //for every rule take a positive atom that is unknown and set it to false
+        //must set atom out. to justify this, must create a support first, i.e.,
+        //for every rule take a positive atom that is unknown and set it to false.
+        //(ever rule r with a in the head has some atom in r.pos that is unknown)
         fixOut(a)
         unknownCons(a) foreach fixAndPropagateStatus
         true
       }
     }
-
   }
 
   def foundedValid(rule: Rule): Boolean = {
