@@ -17,7 +17,7 @@ class Deletion extends FlatSpec {
   "A model with only one rule" should "have no rules and atoms after deletion" in {
     val j0 = Premise(A)
 
-    val tmn = TMN(Set(A))
+    val tmn = TMN()//Set(A))
     tmn.add(j0)
 
     assume(tmn.getModel() == Set(A))
@@ -41,7 +41,7 @@ class Deletion extends FlatSpec {
     val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
 
-    val tmn = TMN(Set(A, B))
+    val tmn = TMN() //Set(A, B))
 
     tmn.add(j0)
     tmn.add(j1)
@@ -68,7 +68,7 @@ class Deletion extends FlatSpec {
     val j0 = Rule.pos(A).head(B)
     val j1 = Premise(A)
 
-    val tmn = TMN(Set(A, B))
+    val tmn = TMN() //Set(A, B))
 
     tmn.add(j0)
     tmn.add(j1)
@@ -95,7 +95,7 @@ class Deletion extends FlatSpec {
     val j1 = Premise(A)
     val j2 = Rule.pos(B).head(C)
 
-    val tmn = TMN(Set(A, B, C))
+    val tmn = TMN() //Set(A, B, C))
 
     tmn.add(j0)
     tmn.add(j1)
@@ -122,7 +122,7 @@ class Deletion extends FlatSpec {
     val j2 = Rule.pos(B).head(C)
     val j3 = Rule.pos(A).head(C)
 
-    val tmn = TMN(Set(A, B, C))
+    val tmn = TMN() //Set(A, B, C))
 
     tmn.add(j0)
     tmn.add(j1)

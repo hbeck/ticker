@@ -13,7 +13,7 @@ class JMTS_21 extends JTMSSpec {
   def JTMS_DDB = {
     val tmn = JTMS
 
-    tmn.atoms +=  N_cont
+    //tmn.atoms +=  N_cont
 
     tmn.add(j7)
 

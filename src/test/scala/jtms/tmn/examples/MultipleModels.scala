@@ -15,7 +15,7 @@ class MultipleModels  extends  FlatSpec{
   val j1 = Rule.neg(A).head(B)
   val j2 = Rule.neg(B).head(A)
 
-  def TMN0 = TMN(Set(A,B))
+  def TMN0 = TMN() //Set(A,B))
 
   "When adding j1 before j2 the valid model" should "be B" in{
     val tmn = TMN0

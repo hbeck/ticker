@@ -10,26 +10,26 @@ object TMN {
   def apply(P: Program) = {
     val tmn = new TMN()
 
-    P.atoms.foreach(tmn.add)
+    //P.atoms.foreach(tmn.add)
     P.rules.foreach(tmn.add) //TODO (HB) think about order
 
     tmn
   }
 
-  def apply(atoms: collection.immutable.Set[Atom]) = {
-    val tmn = new TMN()
-    atoms.foreach(tmn.add)
-    tmn
-  }
+//  def apply(atoms: collection.immutable.Set[Atom]) = {
+//    val tmn = new TMN()
+//    atoms.foreach(tmn.add)
+//    tmn
+//  }
 }
 
 /**
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN() {
+case class TMN() {
 
-  var atoms: Set[Atom]= Set()
+  //var atoms: Set[Atom]= Set()
   var rules: Set[Rule]= Set()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -37,17 +37,15 @@ class TMN() {
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
-  def add(a: Atom): Unit = {
-    atoms += a
-    init(a)
-  }
-
-  def init(a: Atom) = {
+  def registerAtom(a: Atom): Unit = {
+    //atoms += a
     if (!status.isDefinedAt(a)) status(a) = out
     if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
     if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
     if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
   }
+
+  def atoms() = Cons.keySet
 
   /** @return true if M is admissible **/
   //TODO (HB) review need of method
@@ -68,7 +66,7 @@ class TMN() {
 
   def getModel() = {
     //status.filter(_._2 == in).map(_._1).toSet
-    status.filter(_._2 == in).keys.toSet //TODO (HB) review (in prtcl: .keySet doesnt work)
+    status.filter(_._2 == in).keys.toSet
   }
 
   /** takes atoms at list M index idx and tries to find a valid rule
@@ -84,39 +82,26 @@ class TMN() {
   //TMS update algorithm
   def add(rule: Rule): collection.immutable.Set[Atom] = {
 
-    val head = rule.head //alias
-
-    add(head) //TODO (HB) prev called "init" - why not needed for body?
-
     rules += rule
+    rule.atoms.foreach(registerAtom)
     rule.body.foreach(Cons(_) += rule.head)
 
-    //if conclusion was already drawn, we are done
-    if (status(head) == in || isInvalid) {
+    if (status(rule.head) == in || isInvalid(rule)) {
       return collection.immutable.Set()
     }
 
-    def isInvalid(): Boolean = { //TODO (HB) isValid vs (un)foundedInvalid later
-      val spoiler: Option[Atom] = findSpoiler(rule)
-      if (spoiler.isDefined) {
-        Supp(head) += spoiler.get
-        return true
-      }
-      false
-    }
+    //else: rule is valid, head needs to be concluded
+    val affected = AConsTrans(rule.head)
 
-    //we now know that the rule is valid in M
-    if (ACons(head).isEmpty) {
+    if (affected.isEmpty) {
       //then we can treat head independently
       setIn(rule)
-      checkForDDB //TODO (HB): how come this step is necessary, if rule.head is independent?
-      // TODO (CF): Missing to add head to M (M = M + head)?
+      checkForDDB //needed if rule.head is a contradiction node
       return collection.immutable.Set()
     }
 
-    val L = AffectedAtoms(head)
+    update(affected + rule.head)
 
-    update(L)
   }
 
   def update(atoms: Set[Atom]): collection.immutable.Set[Atom] = {
@@ -138,37 +123,13 @@ class TMN() {
     diffState.map(_._1).toSet
   }
 
-  def remove(rule: Rule) = {
-
-    val head = rule.head
-
-    val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
-
-    var L = AffectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => AffectedAtoms(x.head))
-
-    def removeRule(rule: Rule) = {
-      for (m <- rule.body) {
-        Cons(m) -= rule.head //TODO (HB) not necessarily
-      }
-
-      rules -= rule
+  def isInvalid(rule: Rule): Boolean = {
+    val spoiler: Option[Atom] = findSpoiler(rule)
+    if (spoiler.isDefined) {
+      Supp(rule.head) += spoiler.get
+      return true
     }
-
-    removeRule(rule)
-
-    rulesFromBacktracking.foreach(removeRule)
-
-    // if no other rule exists containing the atom - remove it completely
-    if (!rules.exists(_.atoms.contains(head))) {
-      atoms -= head
-      status.remove(head)
-      Supp.remove(head)
-      SuppRule.remove(head)
-      Cons.remove(head)
-      L -= head
-    }
-
-    this.update(L)
+    false
   }
 
   def checkForDDB() = {
@@ -224,8 +185,6 @@ class TMN() {
 
   def AntTrans(a: Atom) = trans(Ant, a)
 
-  def AffectedAtoms(a: Atom) = AConsTrans(a) + a
-
   def MaxAssumptions(a: Atom): Set[Rule] = {
 
     def asAssumption(assumption: Atom) = SuppRule(assumption).filterNot(_.neg.isEmpty)
@@ -248,9 +207,10 @@ class TMN() {
     Set()
   }
 
+  //TODO
   def setIn(rule: Rule) = {
     status(rule.head) = in
-    Supp(rule.head) = Set() ++ rule.body //TODO
+    Supp(rule.head) = Set() ++ rule.body
     SuppRule(rule.head) = Option(rule)
   }
 
@@ -373,6 +333,41 @@ class TMN() {
       return s
     }
     trans(f)(nextSet)
+  }
+
+  def remove(rule: Rule) = {
+
+    val head = rule.head
+
+    val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
+
+    def affectedAtoms(a: Atom) = AConsTrans(a) + a
+
+    var L = affectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => affectedAtoms(x.head))
+
+    def removeRule(rule: Rule) = {
+      for (m <- rule.body) {
+        Cons(m) -= rule.head //TODO (HB) not necessarily
+      }
+
+      rules -= rule
+    }
+
+    removeRule(rule)
+
+    rulesFromBacktracking.foreach(removeRule)
+
+    // if no other rule exists containing the atom - remove it completely
+    if (!rules.exists(_.atoms.contains(head))) {
+      //atoms -= head
+      status.remove(head)
+      Supp.remove(head)
+      SuppRule.remove(head)
+      Cons.remove(head)
+      L -= head
+    }
+
+    this.update(L)
   }
 
 }
