@@ -260,7 +260,7 @@ case class TMN() {
   def suppRules(atoms: Set[Atom]) = {
     SuppRule.filterKeys(atoms.contains(_)).values.map(_.get).toSet
   }
-  
+
 
   def remove(rule: Rule) = {
 

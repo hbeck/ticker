@@ -10,11 +10,11 @@ class ClingoWrapperSpecs extends FlatSpec {
   "The clingo wrapper" can "be initialized by parsing the clingo version" in {
     val clingo = ClingoWrapper()
 
-    assert(clingo.clingoVersion == "4.5.3")
+    assert(clingo.clingoVersion == "4.5.4")
   }
 
   it can "parse the clingo version string" in {
-    assert(ClingoWrapper.parseVersion("clingo version 4.5.3") == "4.5.3")
+    assert(ClingoWrapper.parseVersion("clingo version 4.5.4") == "4.5.4")
   }
 
   it should "throw on non matching version" in {
