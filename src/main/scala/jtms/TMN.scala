@@ -38,12 +38,10 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   //TODO (HB) case 'None'
-  def getModel() = {
-    (status filter(_._2 == in) keys).toSet
-  }
+  def getModel() = (status.keys filter (status(_) == in)).toSet
 
   //TMS update algorithm
-  def add(rule: Rule): collection.immutable.Set[Atom] = {
+  def add(rule: Rule): collection.immutable.Set[Atom] = { //TODO (hb) combination of returned sets after DDB
 
     register(rule)
 
@@ -97,19 +95,17 @@ case class TMN() {
   }
 
   def checkForDDB() = {
-    val model = getModel()
-    for (a <- model) {
-      if ((Ncontr contains a) && status(a) == in)
-        DDB(a)
+    val cAts = getModel() filter (_.isInstanceOf[ContradictionAtom])
+    for (c <- cAts) {
+      if (status(c) == in) //only guaranteed for first one
+        DDB(c)
     }
   }
 
-  def Ncontr = atoms filter (_.isInstanceOf[ContradictionAtom])
-
   def rulesWithHead(h: Atom) = rules filter (_.head == h)
 
-  //ACons(n) = {x ∈ Cons(n) | n ∈ Supp(x)}
-  def ACons(n: Atom): Set[Atom] = Cons(n) filter (Supp(_).contains(n))
+  //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
+  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
 
   def AConsTrans(n: Atom) = trans(ACons, n)
 
@@ -235,6 +231,7 @@ case class TMN() {
   }
 
   def DDB(a: Atom) = {
+
     val assumptions = MaxAssumptions(a)
 
     if (assumptions.isEmpty)
@@ -261,7 +258,7 @@ case class TMN() {
 
     def asAssumption(assumption: Atom) = SuppRule(assumption).filterNot(_.neg.isEmpty)
 
-    if (Ncontr.contains(a)) {
+    if (a.isInstanceOf[ContradictionAtom]) {
       val assumptionsOfN = AntTrans(a).map(asAssumption).filter(_.isDefined).map(_.get)
 
       val assumptions = assumptionsOfN
