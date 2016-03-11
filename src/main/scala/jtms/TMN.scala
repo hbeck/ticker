@@ -21,11 +21,21 @@ object TMN {
   * Created by hb on 12/22/15.
   */
 class TMN(var N: collection.immutable.Set[Atom], var rules: List[Rule] = List()) {
+  type Label = (Atom, Status)
 
   val ConsRules: Map[Atom, Set[Rule]] = new HashMap[Atom, Set[Rule]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
+
+  def Supp(atom: Atom, status: Status): Set[Label] = Supp((atom, status))
+
+  def Supp(label: Label): Set[Label] = {
+    if (status(label._1) != label._2)
+      return Set()
+
+    return Supp(label._1).map(a => (a, status(a)))
+  }
 
   for (a <- N) {
     init(a)
