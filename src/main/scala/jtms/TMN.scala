@@ -45,11 +45,9 @@ case class TMN() {
   //TMS update algorithm
   def add(rule: Rule): collection.immutable.Set[Atom] = {
 
-    rules += rule
-    rule.atoms foreach registerAtom
-    rule.body foreach (Cons(_) += rule.head)
+    register(rule)
 
-    if (noUpdateNeeded(rule)) {
+    if (noStatusUpdate(rule)) {
       return collection.immutable.Set()
     }
 
@@ -60,7 +58,13 @@ case class TMN() {
 
   }
 
-  def noUpdateNeeded(rule: Rule): Boolean = {
+  def register(rule: Rule): Unit = {
+    rules += rule
+    rule.atoms foreach registerAtom
+    rule.body foreach (Cons(_) += rule.head)
+  }
+
+  def noStatusUpdate(rule: Rule): Boolean = {
     if (status.head == in) return true
     //ignore invalid rule:
     findSpoiler(rule) match {
@@ -141,7 +145,7 @@ case class TMN() {
     }
   }
 
-  def unknownCons(a: Atom) = Cons(a).filter(status(_) == unknown)
+  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
 
   def determineAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
