@@ -175,50 +175,7 @@ case class TMN() {
     if (status(a) != unknown)
       return
 
-    val rules = rulesWithHead(a)
-
-    rules find unfoundedValid match {
-      case Some(rule) => {
-        val affected = ACons(a)
-        if (affected.isEmpty) {
-          fixIn(rule)
-          unknownCons(a) foreach fixAndPropagateStatus
-        } else {
-          for (x <- (affected + a)) { //TODO why not AConsTrans here?
-            setUnknown(x)
-            fixAndPropagateStatus(x)
-          }
-          //vs TODO (HB) - which is right?
-//          (affected + a) foreach setUnknown
-//          (affected + a) foreach fixAndPropagateStatus
-        }
-      }
-      case None => {
-        //all rules are unfounded invalid. for every rule in rules, some atom in rule.pos is unknown.
-        //must set (common) rule head out. to justify this, must create a support first, i.e.,
-        //for every rule take a positive atom that is unknown and set it to false
-        fixOut(a)
-        unknownCons(a) foreach fixAndPropagateStatus
-      }
-    }
-  }
-
-  def fixIn(unfoundedValidRule: Rule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut
-    setIn(unfoundedValidRule)
-  }
-
-  def fixOut(a: Atom) = {
-    val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
-    unknownPosAtoms foreach setOut
-    setOut(a)
-  }
-
-  def fixAndPropagateStatus2(a: Atom): Unit = {
-    if (status(a) != unknown)
-      return
-
-    if (fixValidation(a) || fixInvalidation(a)) {
+    if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
       for (c <- (ACons(a) + a)) {
@@ -229,28 +186,26 @@ case class TMN() {
     }
   }
 
-  def fixValidation(a: Atom): Boolean = {
+  def fix(a: Atom): Boolean = {
     rulesWithHead(a) find unfoundedValid match {
       case Some(rule) => {
-        if (ACons(a).isEmpty) { fixIn(rule); true }
-        else { false }
+        if (ACons(a).isEmpty) fixIn(rule)
+        else return false
       }
-      case None => false
+      case None => fixOut(a)
     }
+    true
   }
 
-  def fixInvalidation(a: Atom): Boolean = {
-    rulesWithHead(a) find unfoundedValid match {
-      case Some(rule) => false
-      case None => {
-        //must set atom out. to justify this, must create a support first, i.e.,
-        //for every rule take a positive atom that is unknown and set it to false.
-        //(ever rule r with a in the head has some atom in r.pos that is unknown)
-        fixOut(a)
-        unknownCons(a) foreach fixAndPropagateStatus
-        true
-      }
-    }
+  def fixIn(unfoundedValidRule: Rule) = {
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
+    setIn(unfoundedValidRule)
+  }
+
+  def fixOut(a: Atom) = {
+    val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
+    unknownPosAtoms foreach setOut
+    setOut(a)
   }
 
   def foundedValid(rule: Rule): Boolean = {
