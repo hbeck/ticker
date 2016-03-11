@@ -17,7 +17,7 @@ trait TweetyBehavior {
 
   val j0 = Rule.pos(P).head(F_not)
   val j1 = Rule.pos(P).head(V)
-  val j2 = Rule.pos(V).neg(P).head(F)
+  val j2 = Rule.pos(V).neg(F_not).head(F)
   val j3 = Constraint.pos(F, F_not)
   val j4 = Fact(V)
 

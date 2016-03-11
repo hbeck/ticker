@@ -21,16 +21,28 @@ object TMN {
   * truth maintenance network
   * Created by hb on 12/22/15.
   */
-class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
+class TMN(var N: collection.immutable.Set[Atom], var rules: List[Rule] = List()) {
+  type Label = (Atom, Status)
 
   val ConsRules: Map[Atom, Set[Rule]] = new HashMap[Atom, Set[Rule]]
 
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
+//<<<<<<< HEAD
   val SupportForAtom: mutable.Map[Atom, Support] = new HashMap[Atom, Support]
-
+//
   def SuppRule(atom: Atom) = SupportForAtom(atom).rule
   def Supp(atom: Atom) = SupportForAtom(atom).forStatus(status(atom)).map(_.atom)
+//=======
+  def Supp(atom: Atom, status: Status): Set[Label] = SuppL((atom, status))
+
+  def SuppL(label: Label): Set[Label] = {
+    if (status(label._1) != label._2)
+      return Set()
+
+    return Supp(label._1).map(a => (a, status(a)))
+  }
+//>>>>>>> 6c45274fd71244944cedb68eb4513aa93c846810
 
   for (a <- N) {
     init(a)
@@ -74,11 +86,12 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
   def isFounded(atoms: Model): Boolean = {
     if (atoms.forall(status(_) == in)) {
 
-      val suppWithAtom = atoms.filter(atom => SuppTrans(atom) contains atom)
-
-      if (suppWithAtom.nonEmpty) {
-        return suppWithAtom.forall(atom => suppRules(AConsTrans(atom)).forall(_.neg.nonEmpty))
-      }
+      //TODO
+//      val suppWithAtom = atoms.filter(atom => SuppTrans(atom) contains atom)
+//
+//      if (suppWithAtom.nonEmpty) {
+//        return suppWithAtom.forall(atom => suppRules(AConsTrans(atom)).forall(_.neg.nonEmpty))
+//      }
 
       return true
     }
@@ -101,7 +114,10 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
     val head = rule.head //alias
 
-    rules += rule
+    if (rules.contains(rule))
+      return Set()
+
+    rules = rules.:+(rule)
     rule.body.foreach(ConsRules(_) += rule)
 
     init(head)
@@ -166,7 +182,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
         ConsRules(m) -= rule
       }
 
-      rules -= rule
+      rules = rules diff List(rule)
     }
 
     removeRule(rule)
@@ -301,10 +317,16 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
 
   def setOut(n: Atom) = {
     status(n) = out
-    SupportForAtom(n).statusOut(rulesWithHead(n)
-      .map(findSpoiler(_).get)
-      .map(atom => Label(atom, status(atom)))
-    )
+//<<<<<<< HEAD
+    // TODO
+//    SupportForAtom(n).statusOut(rulesWithHead(n)
+//      .map(findSpoiler(_).get)
+//      .map(atom => Label(atom, status(atom)))
+//    )
+//=======
+//    SuppL(n) = rulesWithHead(n).map(findSpoiler(_).get).toSet
+//    SuppRule(n) = None
+//>>>>>>> 6c45274fd71244944cedb68eb4513aa93c846810
   }
 
   def findSpoiler(rule: Rule): Option[Atom] = {
@@ -385,7 +407,7 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: Set[Rule] = Set()) {
     Some(atoms.head)
   }
 
-  def selectRule(rules: Set[Rule]): Option[Rule] = {
+  def selectRule(rules: List[Rule]): Option[Rule] = {
     if (rules.isEmpty)
       return None
 

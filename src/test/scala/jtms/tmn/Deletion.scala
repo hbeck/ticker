@@ -68,7 +68,7 @@ class Deletion extends FlatSpec {
     // assert
     assert(tmn.getModel.isEmpty)
 
-    assert(tmn.rules == Set(j0))
+    assert(tmn.rules == List(j0))
     assert(tmn.Supp(A).isEmpty)
     assert(tmn.SuppRule(A) == None)
     assert(tmn.SuppRule(B) == None)
@@ -95,7 +95,7 @@ class Deletion extends FlatSpec {
     // assert
     assert(tmn.getModel.get == Set(A))
 
-    assert(tmn.rules == Set(j1))
+    assert(tmn.rules == List(j1))
     assert(tmn.Supp(A) == Set())
     assert(tmn.SuppRule(A) == Some(j1))
     assert(tmn.Cons(A) == Set())
@@ -121,7 +121,7 @@ class Deletion extends FlatSpec {
 
     assert(tmn.getModel.get == Set(A))
 
-    assume(tmn.rules == Set(j1, j2))
+    assume(tmn.rules.toSet == Set(j1, j2))
     assert(tmn.Supp(C) == Set(B))
     assert(tmn.Cons(A) == Set())
     assert(tmn.SuppRule(C) == None)
@@ -152,7 +152,7 @@ class Deletion extends FlatSpec {
     tmn.remove(j0)
 
     assert(tmn.getModel.get == Set(A, C))
-    assert(tmn.rules == Set(j1, j2, j3), "the SJ for C should change")
+    assert(tmn.rules.toSet == Set(j1, j2, j3), "the SJ for C should change")
     info("the SJ for C should change")
     assert(tmn.SuppRule(C) == Some(j3))
     info("the Supp for C should change")

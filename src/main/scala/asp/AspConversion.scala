@@ -8,7 +8,7 @@ import core._
 object AspConversion {
 
   def apply(program: Program): Set[AspExpression] = {
-    program.rules.map(apply)
+    program.rules.map(apply).toSet
   }
 
   def apply(rule: Rule): AspExpression = {
