@@ -50,3 +50,9 @@ case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends R
 }
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule
+
+object RuleFromBacktracking {
+  def apply (pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): RuleFromBacktracking = {
+    RuleFromBacktracking(pos.toSet,neg.toSet,head)
+  }
+}

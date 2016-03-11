@@ -21,7 +21,7 @@ object TMN {
   */
 case class TMN() {
 
-  var rules: Set[Rule]= Set()
+  var rules: Set[Rule]= Set() //TODO (hb) use list later
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]] //TODO pos vs neg
@@ -41,12 +41,12 @@ case class TMN() {
   def getModel() = (status.keys filter (status(_) == in)).toSet
 
   //TMS update algorithm
-  def add(rule: Rule): collection.immutable.Set[Atom] = { //TODO (hb) combination of returned sets after DDB
+  def add(rule: Rule): Option[collection.immutable.Set[Atom]] = { //TODO (hb) combination of returned sets after DDB
 
     register(rule)
 
     if (noStatusUpdate(rule)) {
-      return collection.immutable.Set()
+      return Some(collection.immutable.Set())
     }
 
     //Updating of belief, i.e.,
@@ -71,7 +71,7 @@ case class TMN() {
     }
   }
 
-  def update(atoms: Set[Atom]): collection.immutable.Set[Atom] = {
+  def update(atoms: Set[Atom]): Option[collection.immutable.Set[Atom]] = {
 
     def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
@@ -84,7 +84,10 @@ case class TMN() {
     checkForDDB
 
     val newState = stateOfAtoms
-    (oldState diff newState) map (_._1) toSet
+
+    val result = (oldState diff newState) map (_._1) toSet
+
+    Some(result)
   }
 
   def isInvalid(rule: Rule): Boolean = { //TODO
@@ -112,7 +115,7 @@ case class TMN() {
   def setIn(rule: Rule) = {
     status(rule.head) = in
     Supp(rule.head) = Set() ++ rule.body
-    SuppRule(rule.head) = Option(rule)
+    SuppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
@@ -230,55 +233,34 @@ case class TMN() {
     trans(f)(nextSet)
   }
 
-  def DDB(a: Atom) = {
+  def DDB(a: Atom): Option[scala.collection.immutable.Set[Atom]] = {
 
-    val assumptions = MaxAssumptions(a)
+    val asms = AntTrans(a) filter isAssumption
+    val maxAssumptions = asms filter { x =>
+      ! ((asms - x) exists (AntTrans(_) contains x))
+    }
 
-    if (assumptions.isEmpty)
-      throw new RuntimeException("We have an unsolvable contradiction for atom " + a)
+    if (maxAssumptions.isEmpty)
+      return None
 
-    // TODO: Ordering + Selection?
-    val n_a = selectRule(assumptions).get
+    val n = SuppRule(maxAssumptions.head).get.neg.head
 
-    // TODO: Ordering + Selection?
-    // (we pick currently only the first O)
-    val n_star = selectAtom(n_a.neg).get
+    val suppRules = maxAssumptions map (SuppRule(_).get)
+    val pos = suppRules flatMap (_.pos)
+    val neg = (suppRules flatMap (_.neg)) - n
+    val rule = RuleFromBacktracking(pos,neg,n)
 
-    val r_contr = suppRules(assumptions.map(_.head))
-
-    val pos_contr = r_contr.flatMap(_.pos)
-    val neg_contr = r_contr.flatMap(_.neg) - n_star;
-
-    val rule = new RuleFromBacktracking(pos_contr, neg_contr, n_star)
+    assert(foundedValid(rule))
 
     add(rule)
   }
 
-  def MaxAssumptions(a: Atom): Set[Rule] = {
-
-    def asAssumption(assumption: Atom) = SuppRule(assumption).filterNot(_.neg.isEmpty)
-
-    if (a.isInstanceOf[ContradictionAtom]) {
-      val assumptionsOfN = AntTrans(a).map(asAssumption).filter(_.isDefined).map(_.get)
-
-      val assumptions = assumptionsOfN
-        .filter(a => {
-          val otherAssumptions = assumptionsOfN - a
-
-          val allOtherAssumptions = otherAssumptions.flatMap(x => AntTrans(x.head))
-
-          !allOtherAssumptions.contains(a.head)
-        })
-
-      return assumptions
-    }
-
-    Set()
-  }
+  def isAssumption(a: Atom) = status(a) == in && !SuppRule(a).get.neg.isEmpty
 
   def suppRules(atoms: Set[Atom]) = {
     SuppRule.filterKeys(atoms.contains(_)).values.map(_.get).toSet
   }
+  
 
   def remove(rule: Rule) = {
 

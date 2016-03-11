@@ -9,7 +9,7 @@ class JTMS_5 extends JTMSSpec {
 
   val j0 = Fact(A)
 
-  var diff: Set[Atom] = Set();
+  var diff: Option[Set[Atom]] = Some(Set())
   val tmn = {
     val tmn = JTMS
     tmn.set(Set(E, B, D))
