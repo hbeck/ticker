@@ -17,7 +17,19 @@ object Rule {
 
   def neg(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
 
-  def fact(head: Atom) = new UserDefinedRule(Set(), Set(), head)
+  def fact(head: Atom) = UserDefinedRule(Set(), Set(), head)
+
+  def apply(head: Atom, pos:Set[Atom], neg: Set[Atom]) = UserDefinedRule(pos,neg,head)
+  def apply(head: Atom) = UserDefinedRule(Set(),Set(),head)
+  def apply(head: Atom, pos: Atom) = UserDefinedRule(Set(pos),Set(),head)
+  def apply(head: Atom, pos: Atom*) = UserDefinedRule(pos.toSet,Set(),head)
+  def apply(head: Atom, pos: Set[Atom]) = UserDefinedRule(pos,Set(),head)
+
+//  def apply(head: Atom, pos: Option[Set[Atom]], neg: Option[Set[Atom]]) = {
+//    val p = pos match { case Some(set) => set; case None => Set[Atom]() }
+//    val n = neg match { case Some(set) => set; case None => Set[Atom]() }
+//    apply(head,p,n)
+//  }
 }
 
 sealed trait Rule {
@@ -32,6 +44,7 @@ sealed trait Rule {
 /**
   * Created by hb on 12/22/15.
   */
+//TODO (hb) following order is better: (head, pos, neg)
 case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
   override def toString = {
     val sb = new StringBuilder()

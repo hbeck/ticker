@@ -10,6 +10,7 @@ class JTMS_5 extends JTMSSpec {
   val j0 = Fact(A)
 
   var diff: Option[Set[Atom]] = Some(Set())
+
   val tmn = {
     val tmn = JTMS
     tmn.set(Set(E, B, D))
@@ -21,6 +22,6 @@ class JTMS_5 extends JTMSSpec {
     assert(tmn.getModel() == Set(A, C, D, E, F))
   }
   it should "have state changes in A,B,C,F" in {
-    assert(diff == Set(A, B, C, F))
+    assert(diff == Some(Set(A, B, C, F)))
   }
 }
