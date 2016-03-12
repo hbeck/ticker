@@ -11,39 +11,36 @@ class TwoNegationNodes extends FlatSpec {
   val a = Atom("a")
   val b = Atom("b")
 
-  val r1 = Rule.neg(a).head(b)
-  val r2 = Rule.neg(b).head(a)
+  val none = Set[Atom]()
 
-  val program = Program(r1, r2)
+  val ra = Rule(a,none,Set(b))
+  val rb = Rule(b,none,Set(a))
+
+  val program = Program(ra, rb)
 
   def tmn = TMN(program)
 
   val modelA = {
     val t = tmn
-
     t.set(Set(a))
-
     t
   }
 
   val modelB = {
     val t = tmn
-
     t.set(Set(b))
-
     t
   }
 
   "Two supporting, negative atoms" should "have the valid model a" in {
-    //assert(modelA.getModel.get == Set(a))
     assert(modelA.getModel == Set(a))
   }
 
   it should "have the valid model b" in {
-    //assert(modelB.getModel.get == Set(b))
     assert(modelB.getModel == Set(b))
   }
 
+  //TODO (hb) foundedness check on a given list ordering of atoms
 //  "The model a" should "be founded" in {
 //    assert(modelA.isFounded(modelA.getModel.get.model))
 //  }

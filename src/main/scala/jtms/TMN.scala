@@ -262,6 +262,8 @@ case class TMN() {
   }
 
 
+  //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
+  //in particular: Rule: List of pos/neg body atoms
   def remove(rule: Rule) = {
 
     val head = rule.head
