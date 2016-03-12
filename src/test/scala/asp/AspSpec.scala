@@ -48,7 +48,7 @@ class AspSpec extends FlatSpec {
 
   "A program with two models" can "be executed and converted back into both models" in {
     val example = new SingleHusbandSample()
-    val asp = Asp(example.program)
+    val asp = Asp(example.pHusbandFirst)
 
     assert(asp.size == 2)
     assert(asp contains Set(example.man, example.husband))

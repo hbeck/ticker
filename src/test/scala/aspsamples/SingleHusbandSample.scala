@@ -18,27 +18,28 @@ trait SingleHusbandBehavior {
   val husband = Atom("husband")
 
   val r0 = Fact(man)
-  val r1 = Rule.pos(man).neg(husband).head(single) //single :- man, not husband
-  val r2 = Rule.pos(man).neg(single).head(husband) //husband :- man, not single
+  val r1 = Rule(single,Set(man),Set(husband)) //single :- man, not husband
+  val r2 = Rule(husband,Set(man),Set(single)) //husband :- man, not single
 
-  val program = Program(r0, r1, r2)
+  val pSingleFirst = Program(r0, r1, r2)
+  val pHusbandFirst = Program(r0, r2, r1)
 
   def singleHusband(evaluation: => Evaluation) {
+
     /*
-  man.
-single :- man, not husband.
-husband :- man, not single.
+        man.
+        single :- man, not husband.
+        husband :- man, not single.
    */
 
     it should "include the model man, single" in {
-      assert(evaluation(program) contains Set(man, single))
+      assert(evaluation(pSingleFirst) contains Set(man, single))
     }
 
-//    it should "include man, husband" in {
-//      //if (evaluation.isInstanceOf[jTmn])
-//        //pending
-//      assert(evaluation(program) contains Set(man, husband))
-//    }
+    it should "include the model man, husband" in {
+      assert(evaluation(pHusbandFirst) contains Set(man, husband))
+    }
+
   }
 }
 
