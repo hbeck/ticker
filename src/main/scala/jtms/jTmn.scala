@@ -10,7 +10,7 @@ class jTmn extends Evaluation {
   def apply(program: Program) = {
     val tmn = TMN(program)
 
-    val singleModel = tmn.getModel()
+    val singleModel = tmn.model().get
 
     Set(singleModel)
   }

@@ -31,7 +31,7 @@ class Manufacturing extends FlatSpec {
   "When manufacturing without troubles" should "use resource A1" in {
     val tmn = Tmn
 
-    assert(tmn.getModel() == Set(C, A1))
+    assert(tmn.model().get == Set(C, A1))
   }
 
   "When there are supply problems with A1" should "mark as troubles and use resource A2" in {
@@ -39,7 +39,7 @@ class Manufacturing extends FlatSpec {
 
     tmn.add(Fact(L1))
 
-    assert(tmn.getModel() == Set(C, L1, B, A2))
+    assert(tmn.model().get == Set(C, L1, B, A2))
   }
 
 }

@@ -37,8 +37,14 @@ case class TMN() {
 
   def atoms() = Cons.keySet
 
-  //TODO (HB) case 'None'
-  def getModel() = (status.keys filter (status(_) == in)).toSet
+  def model(): Option[scala.collection.immutable.Set[Atom]] = {
+    if (!consistent) return None
+    val atoms = status.keys filter (status(_) == in)
+    Some(atoms.toSet)
+  }
+
+  //TODO hb
+  def consistent = true
 
   //TMS update algorithm
   def add(rule: Rule): Option[collection.immutable.Set[Atom]] = { //TODO (hb) combination of returned sets after DDB
@@ -98,7 +104,11 @@ case class TMN() {
   }
 
   def checkForDDB() = {
-    val cAts = getModel() filter (_.isInstanceOf[ContradictionAtom])
+    val m:scala.collection.immutable.Set[Atom] = model() match {
+      case None => throw new RuntimeException("inconsistent state")
+      case Some(m) => m
+    }
+    val cAts = m filter (_.isInstanceOf[ContradictionAtom])
     for (c <- cAts) {
       if (status(c) == in) //only guaranteed for first one
         DDB(c)

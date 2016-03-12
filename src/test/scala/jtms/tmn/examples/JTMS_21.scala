@@ -25,10 +25,10 @@ class JTMS_21 extends JTMSSpec {
   }
 
   "The model" should "be inconsistent" in {
-    assert(JTMS_DDB.getModel() == None)
+    assert(JTMS_DDB.model() == None)
   }
 
   "The model" should "contain A,C,D,F,E" in {
-    assert(JTMS_DDB_addA.getModel() == Set(A, C, D, F, E))
+    assert(JTMS_DDB_addA.model().get == Set(A, C, D, F, E))
   }
 }

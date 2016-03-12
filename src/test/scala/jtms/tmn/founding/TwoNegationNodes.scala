@@ -33,11 +33,11 @@ class TwoNegationNodes extends FlatSpec {
   }
 
   "Two supporting, negative atoms" should "have the valid model a" in {
-    assert(modelA.getModel == Set(a))
+    assert(modelA.model.get == Set(a))
   }
 
   it should "have the valid model b" in {
-    assert(modelB.getModel == Set(b))
+    assert(modelB.model.get == Set(b))
   }
 
   //TODO (hb) foundedness check on a given list ordering of atoms

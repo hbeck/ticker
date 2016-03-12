@@ -42,7 +42,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   "The valid model" should "be V, P, A" in {
-    assert(Tmn.getModel() == Set(V, P, A))
+    assert(Tmn.model().get == Set(V, P, A))
   }
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
@@ -178,7 +178,7 @@ class Library extends FlatSpec with AtomValidation {
     val tmn = Tmn
     tmn.add(Fact(H))
 
-    val model = tmn.getModel()
+    val model = tmn.model().get
 
     assert(model == Set(V, H, P, A_not))
   }
@@ -188,7 +188,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(jExclusionA)
 
-    val model = tmn.getModel()
+    val model = tmn.model().get
     info("H is currently chosen 'by random'")
     assert(model == Set(A_not, H, P, V))
   }
@@ -198,7 +198,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(Rule.pos(A).head(N_cont))
 
-    val model = tmn.getModel()
+    val model = tmn.model().get
     info("H is currently chosen 'by random'")
     assert(model == Set(A_not, H, P, V))
   }
@@ -208,7 +208,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(Rule.pos(P).head(N_cont))
 
-    val model = tmn.getModel()
+    val model = tmn.model().get
     info("F is currently chosen 'by random'")
     assert(model == Set(P_not, F, V))
   }
