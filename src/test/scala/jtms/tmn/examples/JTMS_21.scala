@@ -18,7 +18,17 @@ class JTMS_21 extends JTMSSpec {
     tmn
   }
 
+  def JTMS_DDB_addA = {
+    val tmn = JTMS_DDB
+    tmn.add(Rule(A))
+    tmn
+  }
+
+  "The model" should "be inconsistent" in {
+    assert(JTMS_DDB.getModel() == None)
+  }
+
   "The model" should "contain A,C,D,F,E" in {
-    assert(JTMS_DDB.getModel() == Set(A, C, D, F, E))
+    assert(JTMS_DDB_addA.getModel() == Set(A, C, D, F, E))
   }
 }

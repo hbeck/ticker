@@ -49,7 +49,7 @@ case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends R
     val sb = new StringBuilder()
     sb.append(head)
     if (!pos.isEmpty && !neg.isEmpty) {
-      sb.append(" :-")
+      sb.append(" :- ")
       for (a <- pos) {
         sb.append(a).append(", ")
       }
@@ -57,7 +57,7 @@ case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends R
         sb.append("not ").append(a).append(", ")
       }
     }
-    sb.substring(0,sb.length-1).toString
+    sb.substring(0,sb.length-1)
   }
 }
 
