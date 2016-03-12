@@ -11,32 +11,28 @@ class Tweety extends FlatSpec {
 
   val V = Atom("Vogel sein")
   val P = Atom("Pinguin sein")
-  val F = Atom("Fliegen können")
-  val F_not = Atom("nicht fliegen können")
-  val N_cont = ContradictionAtom("Widerspruch")
+  val F = Atom("Fliegen koennen")
+  val F_not = Atom("nicht fliegen koennen")
+  val N_contr = ContradictionAtom("Widerspruch")
 
-  val j0 = Rule.pos(P).head(F_not)
-  val j1 = Rule.pos(P).head(V)
-  val j2 = Rule.pos(V).neg(P).head(F)
-  val j3 = Rule.pos(F, F_not).head(N_cont)
+  val j0 = Rule(F_not,P)
+  val j1 = Rule(V,P)
+  val j2 = Rule(F,Set(V),Set(P))
+  val j3 = Rule(N_contr,Set(F, F_not))
   val j4 = Fact(V)
 
   val j5 = Fact(P)
 
   val program = Program(j0, j1, j2, j3, j4)
 
-  def Tmn = {
-    val tmn = TMN(program)
-
-    tmn
-  }
+  def TweetyTMN = TMN(program)
 
   "The initial model" should "contain only V and F" in {
-    assert(Tmn.getModel() == Set(V, F))
+    assert(TweetyTMN.getModel() == Set(V, F))
   }
 
   "Adding a new Premise P" should "result in a new Model containing V, P and F_not" in {
-    val tmn = Tmn
+    val tmn = TweetyTMN
 
     tmn.add(j5)
 

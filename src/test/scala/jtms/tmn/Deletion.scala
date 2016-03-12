@@ -165,7 +165,7 @@ class Deletion extends FlatSpec {
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
     // arrange
     val setup = new Tweety
-    val tmn = setup.Tmn
+    val tmn = setup.TweetyTMN
 
     tmn.add(setup.j5)
 

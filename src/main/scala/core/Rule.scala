@@ -22,7 +22,6 @@ object Rule {
   def apply(head: Atom, pos:Set[Atom], neg: Set[Atom]) = UserDefinedRule(pos,neg,head)
   def apply(head: Atom) = UserDefinedRule(Set(),Set(),head)
   def apply(head: Atom, pos: Atom) = UserDefinedRule(Set(pos),Set(),head)
-  def apply(head: Atom, pos: Atom*) = UserDefinedRule(pos.toSet,Set(),head)
   def apply(head: Atom, pos: Set[Atom]) = UserDefinedRule(pos,Set(),head)
 
 //  def apply(head: Atom, pos: Option[Set[Atom]], neg: Option[Set[Atom]]) = {
