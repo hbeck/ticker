@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core.{Rule, Fact, Atom}
-import jtms.tmn.examples.{Library, Tweety, JTMS_5, JMTS_21}
+import jtms.tmn.examples.{Library, Tweety, JTMS_5, JTMS_21}
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -180,7 +180,7 @@ class Deletion extends FlatSpec {
 
   "Removing a rule from a TMN where backtracking occurred" should "result in the original model" in {
     // arrange
-    val setup = new JMTS_21
+    val setup = new JTMS_21
     val tmn = setup.JTMS_DDB
 
     assume(tmn.getModel() == Set(setup.A, setup.C, setup.D, setup.F, setup.E))

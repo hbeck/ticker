@@ -29,8 +29,6 @@ class JTMSSpec extends FlatSpec {
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 
   def JTMS = {
-    val tmn = TMN(program)
-
-    tmn
+    TMN(program)
   }
 }

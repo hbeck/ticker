@@ -5,15 +5,13 @@ import core.{Rule, ContradictionAtom}
 /**
   * Created by FM on 11.02.16.
   */
-class JMTS_21 extends JTMSSpec {
-  val N_cont = ContradictionAtom("N_cont")
+class JTMS_21 extends JTMSSpec {
+  val N_contr = ContradictionAtom("N_contr")
 
-  val j7 = Rule.pos(B).neg(C).head(N_cont)
+  val j7 = Rule(N_contr,Set(B),Set(C))
 
   def JTMS_DDB = {
     val tmn = JTMS
-
-    //tmn.atoms +=  N_cont
 
     tmn.add(j7)
 
