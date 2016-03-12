@@ -15,41 +15,44 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
   val s = Atom("s")
   val r = Atom("r")
 
-  val program = Program(
-    Rule.pos(q).neg(s).head(p),
-    Rule.pos(p).neg(q, s).head(r),
-    Rule.neg(q).head(s),
-    Rule.neg(s).head(q)
+  val none = Set[Atom]()
+
+  val programSFirst = Program(
+    Rule(p,Set(q),Set(s)),
+    Rule(r,Set(p),Set(q,s)),
+    Rule(s,none,Set(q)), //s
+    Rule(q,none,Set(s)) //q
+  )
+
+  val programQFirst = Program(
+    Rule(p,Set(q),Set(s)),
+    Rule(r,Set(p),Set(q,s)),
+    Rule(q,none,Set(s)), //q
+    Rule(s,none,Set(q)) //s
   )
 
   def generateTwoModels(evaluation: Evaluation) = {
     it should "generate the model s" in {
-      val model = evaluation(program)
-
-      //assert(model.get.contains(Set(s)))
-      assert(model.contains(Set(s)))
+      val model = evaluation(programSFirst)
+      assert(model contains Set(s))
     }
     it should "generate the model p,q" in {
-      val model = evaluation(program)
-
-//      if (model.get.isInstanceOf[SingleModel])
-//        pending
-//      assert(model.get.contains(Set(p, q)))
-      //TODO assert(model.contains(Set(p, q)))
+      val model = evaluation(programQFirst)
+      assert(model contains Set(p,q))
     }
   }
 
-//  def withKillClause(evaluation: Evaluation) = {
-//    val p = program + Constraint.pos(q).neg(r)
-//
-//    it should "generate only one model" in {
-//      val model = evaluation(p)
-//
-//      assert(model contains SingleModel(Set(s)))
-//    }
-//  }
+  def withKillClause(evaluation: Evaluation) = {
+    val c = ContradictionAtom("c")
+    val p = programSFirst + Rule(c,Set(q),Set(r))
+
+    it should "generate only one model" in {
+      val model = evaluation(p)
+      assert(model contains Set(s))
+    }
+  }
 
   "Two models" should behave like theSame(generateTwoModels)
 
-  //"With a kill clause" should behave like theSame(withKillClause)
+  "With a kill clause" should behave like theSame(withKillClause)
 }
