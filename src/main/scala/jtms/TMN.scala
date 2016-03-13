@@ -110,8 +110,9 @@ case class TMN() {
     }
     val cAts = m filter (_.isInstanceOf[ContradictionAtom])
     for (c <- cAts) {
-      if (status(c) == in) //only guaranteed for first one
-        DDB(c)
+      if (status(c) == in) { //only guaranteed for first one
+        DDB(c) //TODO (hb) i) combination of results for all cAts? what if ii) None occurs?
+      }
     }
   }
 
@@ -265,7 +266,7 @@ case class TMN() {
     add(rule)
   }
 
-  def isAssumption(a: Atom) = status(a) == in && !SuppRule(a).get.neg.isEmpty
+  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
 
   def suppRules(atoms: Set[Atom]) = {
     SuppRule.filterKeys(atoms.contains(_)).values.map(_.get).toSet
