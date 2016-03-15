@@ -3,7 +3,7 @@ package jtms.tmn.founding
 import core.{Rule, Program, Fact, Atom}
 import jtms.TMN.Label
 import jtms.{Status, out, in, TMN}
-import jtms.graph.TmnGraph
+import jtms.graph.{DependencyGraph}
 
 import scala.collection
 import scalax.collection.GraphEdge.DiEdge
@@ -24,7 +24,7 @@ class GraphSpec extends FlatSpec {
   val b = Atom("b")
 
   def factGraph = {
-    TmnGraph(TMN(Program(Fact(a))))
+    DependencyGraph(TMN(Program(Fact(a))))
   }
 
   "A program with only one fact" should "generate a Graph containing the atom" in {
@@ -37,7 +37,7 @@ class GraphSpec extends FlatSpec {
   def oneRulePosGraph = {
     val program = Program(Fact(a), Rule.pos(a).head(b))
 
-    TmnGraph(TMN(program))
+    DependencyGraph(TMN(program))
   }
 
   "The graph for a program with one fact and one rule" should "contain two nodes" in {
@@ -63,7 +63,7 @@ class GraphSpec extends FlatSpec {
       Rule.neg(a).head(b)
     )
 
-    TmnGraph(TMN(program))
+    DependencyGraph(TMN(program))
   }
 
   "A program with the rule b :- a" should "contain the labels (a, out), (b, in)" in {
@@ -79,7 +79,7 @@ class GraphSpec extends FlatSpec {
       Rule.pos(b).head(a)
     )
 
-    TmnGraph(TMN(program))
+    DependencyGraph(TMN(program))
   }
 
   "A program with a positive cycle" should "contain only atoms with status out" in {
@@ -108,7 +108,7 @@ class GraphSpec extends FlatSpec {
       Rule.neg(b).head(a)
     )
 
-    TmnGraph(TMN(program))
+    DependencyGraph(TMN(program))
   }
 
   "A program with a negative cycle" should "contain one in and one out atom" in {

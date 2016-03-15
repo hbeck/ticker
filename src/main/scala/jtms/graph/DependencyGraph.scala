@@ -13,12 +13,12 @@ import scalax.collection.immutable.Graph
 /**
   * Created by FM on 11.03.16.
   */
-object TmnGraph {
-  def apply(tmn: TMN) = new TmnGraph(tmn)
+object DependencyGraph {
+  def apply(tmn: TMN) = new DependencyGraph(tmn)
 
 }
 
-class TmnGraph(tmn: TMN) {
+class DependencyGraph(tmn: TMN) {
 
   def forSupport = {
     scalax.collection.immutable.Graph.from(tmn.Supp.keys, tmn.Supp.flatMap(s => s._2.map(DiEdge(s._1, _))))
@@ -31,7 +31,6 @@ class TmnGraph(tmn: TMN) {
   }
 }
 
-//.filter(_._2 == in)
 class LabelGraph(val graph: Graph[Label, DiEdge]) {
   def nodes = graph.nodes
 
@@ -41,7 +40,9 @@ class LabelGraph(val graph: Graph[Label, DiEdge]) {
 
   def findCycle = graph.findCycle
 
-  def findPositiveCycle(atom: Atom) = {
-    (graph get(atom, in)).withSubgraph(nodes = _._2 == in).findCycle(_.withKind(DepthFirst))
+  def findPositiveCycle(atom: Atom) = graph find(atom, in) match {
+    case Some(node) => node.withSubgraph(nodes = _._2 == in).findCycle(_.withKind(DepthFirst))
+    case None => None
   }
+
 }
