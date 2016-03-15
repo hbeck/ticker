@@ -3,6 +3,7 @@ package jtms
 import core.EvaluationResult.Model
 import core._
 import jtms.TMN.Label
+import jtms.graph.DependencyGraph
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -84,16 +85,12 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: List[Rule] = List())
     None
   }
 
-  def isFounded(atoms: Model): Boolean = {
-    if (atoms.forall(status(_) == in)) {
+  def isFounded(potentialModel: Model): Boolean = {
+    if (potentialModel.forall(status(_) == in)) {
 
-      val suppWithAtom = atoms.filter(atom => SuppTrans(atom) contains atom)
+      val graph = DependencyGraph(this).forLabel
 
-      if (suppWithAtom.nonEmpty) {
-        return suppWithAtom.forall(atom => suppRules(AConsTrans(atom)).forall(_.neg.nonEmpty))
-      }
-
-      return true
+      return potentialModel.forall(graph.findPositiveCycle(_) == None)
     }
 
     return false
@@ -251,8 +248,13 @@ class TMN(var N: collection.immutable.Set[Atom], var rules: List[Rule] = List())
 
           add(rule)
 
-          val model = getModel()
-          model.isDefined && isFounded(model.get.model)
+          val model = getModel
+          if (!model.isDefined && isFounded(model.get.model)) {
+            remove(rule)
+            return false
+          }
+
+          true
         }
 
         true
