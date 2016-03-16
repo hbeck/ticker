@@ -190,7 +190,7 @@ class Library extends FlatSpec with AtomValidation {
 
     val model = tmn.getModel().get
     info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V))
+    assert(model == Set(A_not, H, P, V)) //TODO (hb) model seems to be correct, but just the other one - verify this
   }
 
   it should "also return the same model when using just a single contradiction node" in {
@@ -200,7 +200,7 @@ class Library extends FlatSpec with AtomValidation {
 
     val model = tmn.getModel().get
     info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V))
+    assert(model == Set(A_not, H, P, V)) //TODO (hb) model seems to be correct, but just the other one - verify this
   }
 
   "With a contradiction node for P the model" should "be P_not,F,V" in {

@@ -20,6 +20,19 @@ class Consistency extends FunSuite {
 
   val none = Set[Atom]()
 
+  test("a :- not b. b :- not a. n :- a.") {
+    val tmn = TMN()
+    tmn.add(Rule(a,none,Set(b)))
+    tmn.add(Rule(b,none,Set(a))) //-> {a}
+
+    var model = tmn.getModel.get
+    assert(model == Set(a))
+
+    tmn.add(Rule(n,a))
+    model = tmn.getModel.get
+    assert(model == Set(b))
+  }
+
   test("a") {
     val tmn = TMN()
     var model = tmn.getModel.get
@@ -58,7 +71,7 @@ class Consistency extends FunSuite {
     assert(model contains b)
   }
 
-  test("b :- not a. :- b, not c.") {
+  test("b :- not a. :- b, not c.") { //JTMS_21 base case
     val tmn = TMN()
 
     tmn.add(Rule(b,none,Set(a)))

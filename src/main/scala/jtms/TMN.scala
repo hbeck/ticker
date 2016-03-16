@@ -252,7 +252,7 @@ case class TMN() {
     if (maxAssumptions.isEmpty)
       return false //contradiction cannot be solved
 
-    findBacktrackingRule(maxAssumptions) match {
+    findBacktrackingRule2(maxAssumptions) match {
       case Some(rule) => { add(rule); return true }
       case None => return false
     }
@@ -275,26 +275,34 @@ case class TMN() {
 
   def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
-    val suppRules = (maxAssumptions map (SuppRule(_).get)).toSet
-    var rule:Option[RuleFromBacktracking] = None
-    var candidates = List[Atom]() ++ maxAssumptions
+    //val suppRules = (maxAssumptions map (SuppRule(_).get)).toSet
 
-    while (rule == None && !candidates.isEmpty) {
-      val h = candidates.head
-      candidates = candidates.tail
-      rule = createValidRuleForBacktracking(suppRules, h)
+    var rule:Option[RuleFromBacktracking] = None
+    var assumptionCandidates = List[Atom]() ++ maxAssumptions
+
+    while (rule == None && !assumptionCandidates.isEmpty) {
+      val nA = assumptionCandidates.head
+      val supportingRule = SuppRule(nA).get
+      var nStarCandidates = Set[Atom]() ++ supportingRule.neg
+      val supportingRuleCandidates = (assumptionCandidates map (SuppRule(_).get)).toSet
+      while (rule == None && !nStarCandidates.isEmpty) {
+        val nStar = nStarCandidates.head
+        rule = createValidRuleForBacktracking(supportingRuleCandidates, nStar)
+        nStarCandidates = nStarCandidates.tail
+      }
+      assumptionCandidates = assumptionCandidates.tail
     }
 
     rule
   }
 
-  def createValidRuleForBacktracking(suppRules: collection.immutable.Set[Rule], h: Atom): Option[RuleFromBacktracking] = {
+  def createValidRuleForBacktracking(suppRules: collection.immutable.Set[Rule], nStar: Atom): Option[RuleFromBacktracking] = {
 
     val pos = suppRules flatMap (_.pos)
-    val neg = (suppRules flatMap (_.neg)) - h
+    val neg = (suppRules flatMap (_.neg)) - nStar
 
-    if (pos.isEmpty && neg.isEmpty) return None
-    val rule = RuleFromBacktracking(pos,neg,h)
+    //if (pos.isEmpty && neg.isEmpty) return None //TODO (hb) avoid facts ~> JTMS_21
+    val rule = RuleFromBacktracking(pos,neg,nStar)
 
     if (this.rules contains rule) return None //TODO (hb)
 
