@@ -1,9 +1,7 @@
 package jtms.tmn.examples
 
-import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
-import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**
@@ -21,13 +19,13 @@ trait JTMS_21Behavior extends JTMSSpec {
 
   def example21(evaluation: Evaluation): Unit = {
     it should "not generate a model" in {
-      intercept[RuntimeException]{
+//      intercept[RuntimeException]{
         val model = evaluation(p)
         assert(model == None)
-      }
+//      }
 
 
-      // this is not a founded/sounded model!
+      // this is not a founded/sound model!
       // a and c are supporting each other
       // -> do a check on the final model
       // -> we need do do DDB with all variants
