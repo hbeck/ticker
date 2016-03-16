@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Program, Rule, Fact, Atom}
+import core._
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -17,6 +17,16 @@ class JTMSSpec extends FlatSpec {
   val f = Atom("f")
 
   val none = Set[Atom]()
+  //    val j1 = a :- PosBuilderAtom(c), NegBuilderAtom(d), PosBuilderAtom(e)
+  //  val j1 = a :- c and d and not(e) and not(f)
+  //, Not(d), e)
+  val j1 = Rule.pos(c).head(a)
+  val j2 = Rule.neg(a).head(b)
+  val j3 = Rule.pos(a).head(c)
+  val j4a = Rule.pos(b).head(d)
+  val j4b = Rule.pos(c).head(d)
+  val j5 = Fact(e)
+  val j6 = Rule.pos(c, e).head(f)
 
   val j1 = Rule(a, c)
   val j2 = Rule(b, none, Set(a))
@@ -28,8 +38,26 @@ class JTMSSpec extends FlatSpec {
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 
+  val program2 = ProgramBuilder(j2)(j3)(j4a)
+  val program3 = ProgramBuilder rule j1 rule j2
+  //    .rule(j3)
+  //  j4a
+  //  j4b
+  //  j5
+  //  j6)
+
+  val program4 = ProgramBuilder
+    .rule(a :- c and d and not(e) and not(f))
+    .rule(:- ( d) and not( e) )
+  //    .rule(j3)
+  //  j4a
+  //  j4b
+  //  j5
+  //  j6)
+
+
   def JTMS = {
-    val tmn = TMN(program)
+    val tmn = TMN(program3.toProgram)
 
     tmn
   }

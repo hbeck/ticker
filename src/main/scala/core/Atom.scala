@@ -3,15 +3,14 @@ package core
 /**
   * Created by hb on 12/22/15.
   */
-sealed trait Atom { // TODO (hb) should extend rule
-  def caption: String
-  override def toString = caption
-}
+sealed trait Atom
+
+object Falsum extends Atom
 
 object Atom {
-  def apply(caption: String): Atom = UserDefinedAtom(caption)
+  def apply(caption: String): Atom = NamedAtom(caption)
+
+  implicit def headAtomToBuilder(atom: Atom) = new BuilderHead(atom)
 }
 
-case class UserDefinedAtom(caption: String) extends Atom
-
-case class ContradictionAtom(caption: String) extends Atom //TODO (HB)
+case class NamedAtom(caption: String) extends Atom
