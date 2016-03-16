@@ -24,11 +24,6 @@ object Rule {
   def apply(head: Atom, pos: Atom) = UserDefinedRule(Set(pos),Set(),head)
   def apply(head: Atom, pos: Set[Atom]) = UserDefinedRule(pos,Set(),head)
 
-//  def apply(head: Atom, pos: Option[Set[Atom]], neg: Option[Set[Atom]]) = {
-//    val p = pos match { case Some(set) => set; case None => Set[Atom]() }
-//    val n = neg match { case Some(set) => set; case None => Set[Atom]() }
-//    apply(head,p,n)
-//  }
 }
 
 sealed trait Rule {

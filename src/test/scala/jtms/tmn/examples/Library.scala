@@ -22,16 +22,16 @@ class Library extends FlatSpec with AtomValidation {
   val N_cont = ContradictionAtom("Widerspruch")
 
   val j1 = Fact(V)
-  val j2 = Rule.pos(V).neg(F, G).head(P)
-  val j3 = Rule.pos(F).head(P_not)
-  val j4 = Rule.pos(G).head(P_not)
-  val j5 = Rule.pos(P).neg(H, N).head(A)
-  val j6 = Rule.pos(P, P_not).head(N_cont)
-  val j7 = Rule.pos(N).head(A_not)
-  val j8 = Rule.pos(H).head(A_not)
-  val j9 = Rule.pos(A, A_not).head(N_cont)
+  val j2 = Rule(P,Set(V),Set(F, G))
+  val j3 = Rule(P_not,F)
+  val j4 = Rule(P_not,G)
+  val j5 = Rule(A,Set(P),Set(H, N))
+  val j6 = Rule(N_cont,Set(P, P_not))
+  val j7 = Rule(A_not,N)
+  val j8 = Rule(A_not,H)
+  val j9 = Rule(N_cont,Set(A, A_not))
 
-  val jExclusionA = Rule.pos(A).head(N_cont)
+  val jExclusionA = Rule(N_cont,A)
 
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
@@ -188,20 +188,23 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(jExclusionA)
 
-    val model = tmn.getModel().get
+    val model = tmn.getModel()
     info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V)) //TODO (hb) model seems to be correct, but just the other one - verify this
+    //assert(model == Set(A_not, H, P, V)) //TODO (CF) review this. as I see, program + jExclusion is unsatisfiable
+    assert(model == None)
   }
 
-  it should "also return the same model when using just a single contradiction node" in {
-    val tmn = Tmn
-
-    tmn.add(Rule.pos(A).head(N_cont))
-
-    val model = tmn.getModel().get
-    info("H is currently chosen 'by random'")
-    assert(model == Set(A_not, H, P, V)) //TODO (hb) model seems to be correct, but just the other one - verify this
-  }
+  //TODO (CF): this is the same test case, right?
+//  it should "also return the same model when using just a single contradiction node" in {
+//    val tmn = Tmn
+//
+//    tmn.add(Rule.pos(A).head(N_cont))
+//
+//    val model = tmn.getModel()
+//    info("H is currently chosen 'by random'")
+//    //assert(model == Set(A_not, H, P, V))
+//    assert(model == None)
+//  }
 
   "With a contradiction node for P the model" should "be P_not,F,V" in {
     val tmn = Tmn

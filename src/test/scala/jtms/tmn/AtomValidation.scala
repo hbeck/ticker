@@ -34,7 +34,7 @@ trait AtomValidation {
     def Rules(rules: Rule*) = {
       val ruleSet = rules.toSet
       it should "have the rules" + ruleSet in {
-        assert(tmn.rulesWithHead(atom) == ruleSet)
+        assert(tmn.rulesWithHead(atom).toSet == ruleSet)
       }
     }
 

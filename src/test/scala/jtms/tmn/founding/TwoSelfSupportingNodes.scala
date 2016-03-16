@@ -1,6 +1,7 @@
 package jtms.tmn.founding
 
 //import core.{Fact, Program, Rule, Atom}
+import common.sets.minus
 import core.{Program, Rule, Atom}
 import jtms.{out, TMN}
 import org.scalatest.FlatSpec
@@ -12,29 +13,33 @@ class TwoSelfSupportingNodes extends FlatSpec {
   val a = Atom("a")
   val b = Atom("b")
 
-  val r1 = Rule(b,a)
-  val r2 = Rule(a,b)
-
-  val program = Program(r1, r2)
+  val b_if_a = Rule(b,a)
+  val a_if_b = Rule(a,b)
 
   //stepwise:
 
   val tmn0 = TMN()
 
-  val addedR1: Option[Set[Atom]] = tmn0.add(r1)
-  assert(tmn0.status(a) == out)
-  assert(tmn0.status(b) == out)
-  assert(addedR1.get.isEmpty)
-  assert(tmn0.getModel.get==Set[Atom]())
+  val m1 = tmn0.getModel().get
+  tmn0.add(b_if_a)
+  val m2 = tmn0.getModel().get
+  val addedR1 = minus(m2,m1)
 
-  val addedR2: Option[Set[Atom]] = tmn0.add(r2)
   assert(tmn0.status(a) == out)
   assert(tmn0.status(b) == out)
-  assert(addedR2.get.isEmpty)
-  assert(tmn0.getModel.get==Set[Atom]())
+  assert(m1.isEmpty)
+  assert(addedR1.isEmpty)
+
+  tmn0.add(a_if_b)
+  val m3 = tmn0.getModel().get
+  val addedR2 = minus(m3,m2)
+  assert(tmn0.status(a) == out)
+  assert(tmn0.status(b) == out)
+  assert(m3.isEmpty)
+  assert(addedR2.isEmpty)
 
   //all at once:
-
+  val program = Program(b_if_a, a_if_b)
   val tmn = TMN(program)
 
   "A program containing only two self supporting nodes" should "have no model" in {

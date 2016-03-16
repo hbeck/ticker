@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
-import core.{Fact, Atom}
+import common.sets.symmdiff
+import core.{Atom, Fact}
 
 /**
   * Created by FM on 06.02.16.
@@ -9,12 +10,15 @@ class JTMS_5 extends JTMSSpec {
 
   val j0 = Fact(A)
 
-  var diff: Option[Set[Atom]] = Some(Set())
+  var diff: Set[Atom] = Set()
 
   val tmn = {
     val tmn = JTMS
     tmn.set(Set(E, B, D))
-    diff = tmn.add(j0)
+    val m1 = tmn.getModel().get
+    tmn.add(j0)
+    val m2 = tmn.getModel().get
+    diff = symmdiff(m1,m2)
     tmn
   }
 
@@ -22,6 +26,6 @@ class JTMS_5 extends JTMSSpec {
     assert(tmn.getModel().get == Set(A, C, D, E, F))
   }
   it should "have state changes in A,B,C,F" in {
-    assert(diff == Some(Set(A, B, C, F)))
+    assert(diff == Set(A, B, C, F))
   }
 }

@@ -21,7 +21,7 @@ object TMN {
   */
 case class TMN() {
 
-  var rules: Set[Rule]= Set() //TODO (hb) use list later
+  var rules: List[Rule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]] //TODO pos vs neg
@@ -45,34 +45,23 @@ case class TMN() {
     Some(atoms.toSet)
   }
 
-  def inAtoms() = (status.keys filter (status(_) == in)).toSet
+  def inAtoms() = status.keys filter (status(_) == in)
 
   //TMS update algorithm
-  //TODO (hb): add should return the new (optional) Model, not the diff
-  def add(rule: Rule): Option[collection.immutable.Set[Atom]] = {
-
+  def add(rule: Rule): Unit = {
     register(rule)
-
-    if (noStatusUpdate(rule)) {
-      return Some(collection.immutable.Set())
-    }
-
-    val diff = updateBeliefs(repercussions(rule.head) + rule.head) //TODO diff raus
-
-    if (diff exists contradictionAtom) return None
-    else return Some(diff)
-
+    if (status(rule.head) == in || invalid(rule)) return
+    updateBeliefs(repercussions(rule.head) + rule.head)
   }
 
   def register(rule: Rule): Unit = {
-    rules += rule
+    if (rules contains rule) return //list representation!
+    rules = rules :+ rule
     rule.atoms foreach registerAtom
     rule.body foreach (Cons(_) += rule.head)
   }
 
-  def noStatusUpdate(rule: Rule): Boolean = {
-    if (status(rule.head) == in) return true
-    //ignore invalid rule:
+  def invalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
       case Some(spoiler) => { Supp(rule.head) += spoiler; true }
       case None => false
@@ -117,7 +106,7 @@ case class TMN() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    Supp(a) = rulesWithHead(a) map (findSpoiler(_).get)
+    Supp(a) = Set() ++ (rulesWithHead(a) map (findSpoiler(_).get))
     SuppRule(a) = None
   }
 
@@ -232,9 +221,6 @@ case class TMN() {
 
   //return if methods leaves without contradiction
   def tryEnsureConsistency(): Unit = {
-    (inAtoms() filter contradictionAtom) foreach { c =>
-
-    }
     for (c <- inAtoms() filter contradictionAtom) {
       if (!DDB(c)) return
     }
@@ -344,7 +330,7 @@ case class TMN() {
         Cons(m) -= rule.head //TODO (HB) not necessarily
       }
 
-      rules -= rule
+      rules = rules filter (_ != rule)
     }
 
     removeRule(rule)
@@ -393,7 +379,7 @@ case class TMN() {
     selectRule(rules)
   }
 
-  def selectRule(rules: collection.mutable.Set[Rule]): Option[Rule] = {
+  def selectRule(rules: List[Rule]): Option[Rule] = {
     if (rules.isEmpty)
       return None
     Some(rules.head)
