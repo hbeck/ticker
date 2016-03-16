@@ -48,6 +48,7 @@ case class TMN() {
   def inAtoms() = (status.keys filter (status(_) == in)).toSet
 
   //TMS update algorithm
+  //TODO (hb): add should return the new (optional) Model, not the diff
   def add(rule: Rule): Option[collection.immutable.Set[Atom]] = {
 
     register(rule)
@@ -78,25 +79,6 @@ case class TMN() {
     }
   }
 
-//  def updateBeliefs(atoms: Set[Atom]): Option[collection.immutable.Set[Atom]] = {
-//
-//    def stateOfAtoms() = atoms map (a => (a, status(a))) toList
-//
-//    val oldState = stateOfAtoms
-//
-//    atoms foreach setUnknown //Marking the nodes
-//    atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-//    atoms foreach fixAndPropagateStatus // Relaxing circularities
-//
-//    if (!tryEnsureConsistency) return None
-//
-//    val newState = stateOfAtoms
-//    val result = (oldState diff newState) map (_._1) toSet
-//
-//    Some(result)
-//
-//  }
-
   def updateBeliefs(atoms: Set[Atom]): collection.immutable.Set[Atom] = stateDiff {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
@@ -104,19 +86,14 @@ case class TMN() {
     tryEnsureConsistency
   }
 
-  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
-
   def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
-
     val oldState = stateOfAtoms
-
     expression()
-
     val newState = stateOfAtoms
-    val result = (oldState diff newState) map (_._1) toSet
-
-    result
+    (oldState diff newState) map (_._1) toSet
   }
+
+  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
   def isInvalid(rule: Rule): Boolean = { //TODO
     findSpoiler(rule) match {
