@@ -20,11 +20,13 @@ class Consistency extends FunSuite {
 
   val none = Set[Atom]()
 
-  //base case for next (no ddb here)
   test("a") {
     val tmn = TMN()
+    var model = tmn.getModel.get
+    assert(model.isEmpty)
+
     tmn.add(Rule(a))
-    val model = tmn.getModel.get
+    model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains a)
   }
@@ -56,6 +58,17 @@ class Consistency extends FunSuite {
     assert(model contains b)
   }
 
+  test("b :- not a. :- b, not c.") {
+    val tmn = TMN()
+
+    tmn.add(Rule(b,none,Set(a)))
+    assert(tmn.getModel.get.size==1)
+    assert(tmn.getModel.get contains b)
+
+    tmn.add(Rule(n,Set(b),Set(c)))
+    assert(tmn.getModel == None)
+  }
+
   test("a :- c. c :- a. b :- not a. :- b, not c.") {
     val tmn = TMN()
     tmn.add(Rule(a,c))
@@ -85,6 +98,35 @@ class Consistency extends FunSuite {
     val tmn = TMN()
     tmn.add(Rule(a))
     tmn.add(Rule(n,a))
+    assert(tmn.getModel == None)
+  }
+
+  //consistent: 'inactive' odd loop
+  test("a. a :- not a.") {
+    val tmnFactFirst = TMN()
+    tmnFactFirst.add(Rule(a))
+    tmnFactFirst.add(Rule(a,Set(),Set(a)))
+    assert(tmnFactFirst.getModel.get == Set(a))
+
+    val tmnRuleFirst = TMN()
+    tmnRuleFirst.add(Rule(a,Set(),Set(a)))
+    tmnRuleFirst.add(Rule(a))
+    assert(tmnRuleFirst.getModel.get == Set(a))
+  }
+
+  //inconsistent: direct odd loop
+  test("a :- not a.") {
+    val tmn = TMN()
+    tmn.add(Rule(a,Set(),Set(a)))
+    assert(tmn.getModel == None)
+  }
+
+  //inconsistent: indirect odd loop
+  test("a :- b. b :- c. c :- not a.") {
+    val tmn = TMN()
+    tmn.add(Rule(a,b))
+    tmn.add(Rule(b,c))
+    tmn.add(Rule(c,none,Set(a)))
     assert(tmn.getModel == None)
   }
 

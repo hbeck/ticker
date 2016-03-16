@@ -39,13 +39,13 @@ case class TMN() {
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
-    if (atoms exists (_.isInstanceOf[ContradictionAtom])) {
+    if (atoms exists contradictionAtom) {
       return None
     }
     Some(atoms.toSet)
   }
 
-  private def inAtoms() = (status.keys filter (status(_) == in)).toSet
+  def inAtoms() = (status.keys filter (status(_) == in)).toSet
 
   //TMS update algorithm
   def add(rule: Rule): Option[collection.immutable.Set[Atom]] = {
