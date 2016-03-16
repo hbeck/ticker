@@ -75,8 +75,7 @@ class Consistency extends FunSuite {
     val tmn = TMN()
 
     tmn.add(Rule(b,none,Set(a)))
-    assert(tmn.getModel.get.size==1)
-    assert(tmn.getModel.get contains b)
+    assert(tmn.getModel.get == Set(b))
 
     tmn.add(Rule(n,Set(b),Set(c)))
     assert(tmn.getModel == None)
