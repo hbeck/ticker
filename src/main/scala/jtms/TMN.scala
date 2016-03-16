@@ -56,7 +56,7 @@ case class TMN() {
       return Some(collection.immutable.Set())
     }
 
-    updateBeliefs(repercussions(rule.head) + rule.head)
+    updateBeliefs2(repercussions(rule.head) + rule.head)
   }
 
   def register(rule: Rule): Unit = {
@@ -84,7 +84,33 @@ case class TMN() {
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities
 
-    if (!ensureConsistency) return None
+    if (!tryEnsureConsistency) return None
+
+    val newState = stateOfAtoms
+    val result = (oldState diff newState) map (_._1) toSet
+
+    Some(result)
+
+  }
+
+  def updateBeliefs2(atoms: Set[Atom]): Option[collection.immutable.Set[Atom]] = {
+    stateDiff {
+      atoms foreach setUnknown //Marking the nodes
+      atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
+      atoms foreach fixAndPropagateStatus // Relaxing circularities
+      tryEnsureConsistency
+    }
+  }
+
+  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
+
+  def stateDiff(evaluation: => () => Boolean): Option[collection.immutable.Set[Atom]] = {
+
+    val oldState = stateOfAtoms
+
+    evaluation()
+
+    if (inAtoms exists contradictionAtom) return None
 
     val newState = stateOfAtoms
     val result = (oldState diff newState) map (_._1) toSet
@@ -101,13 +127,14 @@ case class TMN() {
   }
 
   //return false if methods leaves without contradiction
-  def ensureConsistency(): Boolean = {
-    val contradictionAtoms = inAtoms() filter (_.isInstanceOf[ContradictionAtom])
-    for (c <- contradictionAtoms) {
+  def tryEnsureConsistency(): Boolean = {
+    for (c <- inAtoms() filter contradictionAtom) {
       if (!DDB(c)) return false
     }
     return true
   }
+
+  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
   def rulesWithHead(h: Atom) = rules filter (_.head == h)
 
