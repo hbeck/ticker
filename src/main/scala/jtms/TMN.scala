@@ -37,14 +37,15 @@ case class TMN() {
 
   def atoms() = Cons.keySet
 
-  def model(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (!consistent) return None
-    val atoms = status.keys filter (status(_) == in)
-    Some(atoms.toSet)
+  def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    val atoms = inAtoms()
+    atoms find (_.isInstanceOf[ContradictionAtom]) match {
+      case None => Some(atoms.toSet)
+      case _ => None
+    }
   }
 
-  //TODO hb
-  def consistent = true
+  private def inAtoms() = (status.keys filter (status(_) == in)).toSet
 
   //TMS update algorithm
   def add(rule: Rule): Option[collection.immutable.Set[Atom]] = { //TODO (hb) combination of returned sets after DDB
@@ -56,10 +57,9 @@ case class TMN() {
     }
 
     //Updating of belief, i.e.,
-    //rule head and the transitive affected consequences
-    val affected = AConsTrans(rule.head)
-    update(affected + rule.head)
-
+    //rule head and its repercussions
+    val rep = repercussions(rule.head)
+    update(rep + rule.head)
   }
 
   def register(rule: Rule): Unit = {
@@ -87,7 +87,7 @@ case class TMN() {
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities
 
-    checkForDDB
+    if (!checkForDDB) return None
 
     val newState = stateOfAtoms
 
@@ -103,17 +103,16 @@ case class TMN() {
     }
   }
 
-  def checkForDDB() = {
-    val m:scala.collection.immutable.Set[Atom] = model() match {
-      case None => throw new RuntimeException("inconsistent state")
-      case Some(m) => m
-    }
-    val cAts = m filter (_.isInstanceOf[ContradictionAtom])
+  //return false if methods leaves without contradiction
+  def checkForDDB(): Boolean = { //Option[scala.collection.immutable.Set[Atom]] = {
+    val model = inAtoms()
+    val cAts = model filter (_.isInstanceOf[ContradictionAtom])
     for (c <- cAts) {
       if (status(c) == in) { //only guaranteed for first one
-        DDB(c) //TODO (hb) i) combination of results for all cAts? what if ii) None occurs?
+        if (!DDB(c)) return false //TODO (hb) combination for others!?
       }
     }
+    return true
   }
 
   def rulesWithHead(h: Atom) = rules filter (_.head == h)
@@ -121,7 +120,7 @@ case class TMN() {
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
 
-  def AConsTrans(n: Atom) = trans(ACons, n)
+  def repercussions(n: Atom) = trans(ACons, n)
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -244,27 +243,70 @@ case class TMN() {
     trans(f)(nextSet)
   }
 
-  def DDB(a: Atom): Option[scala.collection.immutable.Set[Atom]] = {
+  //return true if method leaves without contradiction
+  def DDB(c: Atom): Boolean = { //Option[scala.collection.immutable.Set[Atom]] = {
 
-    val asms = AntTrans(a) filter isAssumption
-    val maxAssumptions = asms filter { x =>
-      ! ((asms - x) exists (AntTrans(_) contains x))
+    val asms = foundations(c) filter isAssumption
+    val maxAssumptions = asms filter { a =>
+      ! ((asms - a) exists (b => foundations(b) contains a))
     }
 
     if (maxAssumptions.isEmpty)
-      return None
+      return false //contradiction cannot be solved
 
-    val n = SuppRule(maxAssumptions.head).get.neg.head
+    val rule:Option[RuleFromBacktracking] = findBacktrackingRule(maxAssumptions)
 
-    val suppRules = maxAssumptions map (SuppRule(_).get)
+    if (rule == None) return false
+
+    add(rule.get)
+
+    return true
+  }
+
+  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+    val suppRules = (maxAssumptions map (SuppRule(_).get)).toSet
+    var rule:Option[RuleFromBacktracking] = None
+    var candidates = List[Atom]() ++ maxAssumptions
+
+    while (rule == None && !candidates.isEmpty) {
+      val h = candidates.head
+      candidates = candidates.tail
+      rule = createValidRuleForBacktracking(suppRules, h)
+    }
+
+    rule
+
+    //    val n = SuppRule(maxAssumptions.head).get.neg.head
+    //
+    //    val suppRules = maxAssumptions map (SuppRule(_).get)
+    //    val pos = suppRules flatMap (_.pos)
+    //    val neg = (suppRules flatMap (_.neg)) - n
+    //    val rule = RuleFromBacktracking(pos,neg,n)
+
+    //    assert(foundedValid(rule.get))
+  }
+
+  def createValidRuleForBacktracking(suppRules: collection.immutable.Set[Rule], h: Atom): Option[RuleFromBacktracking] = {
+
     val pos = suppRules flatMap (_.pos)
-    val neg = (suppRules flatMap (_.neg)) - n
-    val rule = RuleFromBacktracking(pos,neg,n)
+    val neg = (suppRules flatMap (_.neg)) - h
+
+    if (pos.isEmpty && neg.isEmpty) return None
+    val rule = RuleFromBacktracking(pos,neg,h)
+
+    if (this.rules contains rule) return None //TODO (hb)
 
     assert(foundedValid(rule))
 
-    add(rule)
+    Some(rule)
   }
+
+  def antecedents(a: Atom): Set[Atom] = {
+    if (status(a) == in) return Supp(a)
+    Set()
+  }
+
+  def foundations(a: Atom) = trans(antecedents, a)
 
   def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
 
@@ -281,7 +323,7 @@ case class TMN() {
 
     val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
 
-    def affectedAtoms(a: Atom) = AConsTrans(a) + a
+    def affectedAtoms(a: Atom) = repercussions(a) + a
 
     var L = affectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => affectedAtoms(x.head))
 
@@ -339,13 +381,6 @@ case class TMN() {
     val rules = rulesWithHead(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
-
-  def Ant(n: Atom): Set[Atom] = {
-    if (status(n) == in) return Supp(n)
-    Set()
-  }
-
-  def AntTrans(a: Atom) = trans(Ant, a)
 
   def selectAtom(atoms: collection.immutable.Set[Atom]): Option[Atom] = {
     if (atoms.isEmpty)

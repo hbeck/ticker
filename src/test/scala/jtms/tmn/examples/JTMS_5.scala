@@ -19,7 +19,7 @@ class JTMS_5 extends JTMSSpec {
   }
 
   "The new model" should "be A,C,D,E,F" in {
-    assert(tmn.model().get == Set(A, C, D, E, F))
+    assert(tmn.getModel().get == Set(A, C, D, E, F))
   }
   it should "have state changes in A,B,C,F" in {
     assert(diff == Some(Set(A, B, C, F)))

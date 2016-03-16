@@ -42,7 +42,7 @@ class Library extends FlatSpec with AtomValidation {
   }
 
   "The valid model" should "be V, P, A" in {
-    assert(Tmn.model().get == Set(V, P, A))
+    assert(Tmn.getModel().get == Set(V, P, A))
   }
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
@@ -51,8 +51,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(Some(j1))
     validator.Supp()
     validator.SuppTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(P)
     validator.ACons(P)
     validator.AConsTrans(P, A)
@@ -64,8 +64,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(Some(j2))
     validator.Supp(V, F, G)
     validator.SuppTrans(V, F, G)
-    validator.Ant(V, F, G)
-    validator.AntTrans(V, F, G)
+    validator.antecedents(V, F, G)
+    validator.foundations(V, F, G)
     validator.Cons(A, N_cont)
     validator.ACons(A)
     validator.AConsTrans(A)
@@ -77,8 +77,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(Some(j5))
     validator.Supp(P, H, N)
     validator.SuppTrans(P, H, N, V, F, G)
-    validator.Ant(P, H, N)
-    validator.AntTrans(P, H, N, V, F, G)
+    validator.antecedents(P, H, N)
+    validator.foundations(P, H, N, V, F, G)
     validator.Cons(N_cont)
     validator.ACons()
     validator.AConsTrans()
@@ -90,8 +90,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
     validator.AConsTrans(P, A, P_not, N_cont)
@@ -102,8 +102,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
     validator.AConsTrans(P, A, P_not, N_cont)
@@ -116,8 +116,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
     validator.AConsTrans(A, A_not, N_cont)
@@ -128,8 +128,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.SJ(None)
     validator.Supp()
     validator.SuppTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
     validator.AConsTrans(A, A_not, N_cont)
@@ -141,8 +141,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.Rules(j3, j4)
     validator.Supp(F, G)
     validator.SuppTrans(F, G)
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(N_cont)
     validator.ACons(N_cont)
     validator.AConsTrans(N_cont)
@@ -154,8 +154,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.Rules(j8, j7)
     validator.Supp(H, N)
     validator.SuppTrans(H, N)
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons(N_cont)
     validator.ACons(N_cont)
     validator.AConsTrans(N_cont)
@@ -167,8 +167,8 @@ class Library extends FlatSpec with AtomValidation {
     validator.Rules(j6, j9)
     validator.Supp(P_not, A_not)
     validator.SuppTrans(P_not, A_not, F, G, H, N)
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()
@@ -178,7 +178,7 @@ class Library extends FlatSpec with AtomValidation {
     val tmn = Tmn
     tmn.add(Fact(H))
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
 
     assert(model == Set(V, H, P, A_not))
   }
@@ -188,7 +188,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(jExclusionA)
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
     info("H is currently chosen 'by random'")
     assert(model == Set(A_not, H, P, V))
   }
@@ -198,7 +198,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(Rule.pos(A).head(N_cont))
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
     info("H is currently chosen 'by random'")
     assert(model == Set(A_not, H, P, V))
   }
@@ -208,7 +208,7 @@ class Library extends FlatSpec with AtomValidation {
 
     tmn.add(Rule.pos(P).head(N_cont))
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
     info("F is currently chosen 'by random'")
     assert(model == Set(P_not, F, V))
   }

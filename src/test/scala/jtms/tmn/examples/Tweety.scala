@@ -28,7 +28,7 @@ class Tweety extends FlatSpec {
   def TweetyTMN = TMN(program)
 
   "The initial model" should "contain only V and F" in {
-    assert(TweetyTMN.model().get == Set(V, F))
+    assert(TweetyTMN.getModel().get == Set(V, F))
   }
 
   "Adding a new Premise P" should "result in a new Model containing V, P and F_not" in {
@@ -36,6 +36,6 @@ class Tweety extends FlatSpec {
 
     tmn.add(j5)
 
-    assert(tmn.model().get == Set(V, P, F_not))
+    assert(tmn.getModel().get == Set(V, P, F_not))
   }
 }

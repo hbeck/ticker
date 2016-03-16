@@ -23,8 +23,8 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons(B, C)
     validator.ACons(B, C)
     validator.AConsTrans(B, C, D, A, F)
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
   }
 
   "Atom B" must behave like atomValidation(tmn, B) { validator =>
@@ -36,8 +36,8 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons(D)
     validator.ACons(D)
     validator.AConsTrans(D)
-    validator.Ant(A)
-    validator.AntTrans(A)
+    validator.antecedents(A)
+    validator.foundations(A)
   }
 
   "Atom C" must behave like atomValidation(tmn, C) { validator =>
@@ -49,8 +49,8 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons(A, D, F)
     validator.ACons(A, F)
     validator.AConsTrans(A, F, B, C, D)
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
   }
 
   "Atom D" must behave like atomValidation(tmn, D) { validator =>
@@ -62,8 +62,8 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()
-    validator.Ant(B)
-    validator.AntTrans(B, A)
+    validator.antecedents(B)
+    validator.foundations(B, A)
   }
 
   "Atom E" must behave like atomValidation(tmn, E) { validator =>
@@ -75,8 +75,8 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons(F)
     validator.ACons()
     validator.AConsTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
   }
 
   "Atom F" must behave like atomValidation(tmn, F) { validator =>
@@ -88,7 +88,7 @@ class JTMS_4 extends JTMSSpec with AtomValidation {
     validator.Cons()
     validator.ACons()
     validator.AConsTrans()
-    validator.Ant()
-    validator.AntTrans()
+    validator.antecedents()
+    validator.foundations()
   }
 }

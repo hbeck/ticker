@@ -38,6 +38,21 @@ sealed trait Rule {
 
   val body = pos union neg
   val atoms = body + head
+
+  def ==(other: Rule): Boolean = {
+    if (this.head != other.head) return false
+    if (this.pos != other.pos) return false
+    if (this.neg != other.neg) return false
+    true
+  }
+
+  override def equals(other: Any): Boolean = {
+    if (!other.isInstanceOf[Rule]) {
+      return false
+    }
+    val r = other.asInstanceOf[Rule]
+    return this == r
+  }
 }
 
 /**
@@ -45,20 +60,20 @@ sealed trait Rule {
   */
 //TODO (hb) following order is better: (head, pos, neg)
 case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
-  override def toString = {
-    val sb = new StringBuilder()
-    sb.append(head)
-    if (!pos.isEmpty && !neg.isEmpty) {
-      sb.append(" :- ")
-      for (a <- pos) {
-        sb.append(a).append(", ")
-      }
-      for (a <- neg) {
-        sb.append("not ").append(a).append(", ")
-      }
-    }
-    sb.substring(0,sb.length-1)
-  }
+//  override def toString = {
+//    val sb = new StringBuilder()
+//    sb.append(head)
+//    if (!pos.isEmpty && !neg.isEmpty) {
+//      sb.append(" :- ")
+//      for (a <- pos) {
+//        sb.append(a).append(", ")
+//      }
+//      for (a <- neg) {
+//        sb.append("not ").append(a).append(", ")
+//      }
+//    }
+//    sb.substring(0,sb.length-1)
+//  }
 }
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule

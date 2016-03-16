@@ -25,21 +25,21 @@ class TwoSelfSupportingNodes extends FlatSpec {
   assert(tmn0.status(a) == out)
   assert(tmn0.status(b) == out)
   assert(addedR1.get.isEmpty)
-  assert(tmn0.model.get==Set[Atom]())
+  assert(tmn0.getModel.get==Set[Atom]())
 
   val addedR2: Option[Set[Atom]] = tmn0.add(r2)
   assert(tmn0.status(a) == out)
   assert(tmn0.status(b) == out)
   assert(addedR2.get.isEmpty)
-  assert(tmn0.model.get==Set[Atom]())
+  assert(tmn0.getModel.get==Set[Atom]())
 
   //all at once:
 
   val tmn = TMN(program)
 
   "A program containing only two self supporting nodes" should "have no model" in {
-    println(tmn.model.get)
-    assert(tmn.model.get == Set[Atom]())
+    println(tmn.getModel.get)
+    assert(tmn.getModel.get == Set[Atom]())
   }
 
   //TODO (hb): use isFounded on specific list

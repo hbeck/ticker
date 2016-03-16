@@ -23,7 +23,7 @@ class MultipleModels extends FlatSpec{
     tmn.add(rB)
     tmn.add(rA)
 
-    assert(tmn.model().get == Set(B))
+    assert(tmn.getModel().get == Set(B))
   }
 
   "When adding rA before rB the valid model" should "be A" in {
@@ -32,7 +32,7 @@ class MultipleModels extends FlatSpec{
     tmn.add(rA)
     tmn.add(rB)
 
-    assert(tmn.model().get == Set(A))
+    assert(tmn.getModel().get == Set(A))
 
   }
 }

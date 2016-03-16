@@ -43,7 +43,7 @@ class Car extends FlatSpec {
     tmn.add(notStarting)
     tmn.add(notEnoughGas)
 
-    val model = tmn.model()
+    val model = tmn.getModel()
 
     assert(model.contains(D) == false)
   }
@@ -54,7 +54,7 @@ class Car extends FlatSpec {
     tmn.add(notStarting)
     tmn.add(enoughGas)
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
 
     assert(model.contains(D))
   }
@@ -64,7 +64,7 @@ class Car extends FlatSpec {
 
     tmn.add(notStarting)
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
 
     assert(model.contains(G_not))
   }
@@ -75,7 +75,7 @@ class Car extends FlatSpec {
     tmn.add(notStarting)
     tmn.add(brokenIgnition)
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
 
     assert(model.contains(D))
   }
@@ -87,7 +87,7 @@ class Car extends FlatSpec {
     tmn.add(enoughGas)
     tmn.add(brokenIgnition)
 
-    val model = tmn.model().get
+    val model = tmn.getModel().get
 
     assert(model.contains(D))
   }
