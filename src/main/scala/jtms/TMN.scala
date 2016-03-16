@@ -56,7 +56,10 @@ case class TMN() {
       return Some(collection.immutable.Set())
     }
 
-    updateBeliefs(repercussions(rule.head) + rule.head)
+    val diff = updateBeliefs(repercussions(rule.head) + rule.head)
+
+    if (diff exists contradictionAtom) return None
+    else return Some(diff)
 
   }
 
@@ -94,7 +97,7 @@ case class TMN() {
 //
 //  }
 
-  def updateBeliefs(atoms: Set[Atom]): Option[collection.immutable.Set[Atom]] = stateDiff {
+  def updateBeliefs(atoms: Set[Atom]): collection.immutable.Set[Atom] = stateDiff {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities
@@ -103,19 +106,16 @@ case class TMN() {
 
   def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
-  def stateDiff(expression: => () => Unit): Option[collection.immutable.Set[Atom]] = {
+  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
 
     val oldState = stateOfAtoms
 
     expression()
 
-    if (inAtoms exists contradictionAtom) return None
-
     val newState = stateOfAtoms
     val result = (oldState diff newState) map (_._1) toSet
 
-    Some(result)
-
+    result
   }
 
   def isInvalid(rule: Rule): Boolean = { //TODO
@@ -124,15 +124,6 @@ case class TMN() {
       case None => false
     }
   }
-
-  //return if methods leaves without contradiction
-  def tryEnsureConsistency(): Unit = {
-    for (c <- inAtoms() filter contradictionAtom) {
-      if (!DDB(c)) return
-    }
-  }
-
-  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
   def rulesWithHead(h: Atom) = rules filter (_.head == h)
 
@@ -261,6 +252,15 @@ case class TMN() {
     }
     trans(f)(nextSet)
   }
+
+  //return if methods leaves without contradiction
+  def tryEnsureConsistency(): Unit = {
+    for (c <- inAtoms() filter contradictionAtom) {
+      if (!DDB(c)) return
+    }
+  }
+
+  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
   //return true if method leaves with status(c) != in
   def DDB(c: Atom): Boolean = {
