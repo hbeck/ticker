@@ -71,7 +71,7 @@ case class TMN() {
   }
 
   def noStatusUpdate(rule: Rule): Boolean = {
-    if (status.head == in) return true
+    if (status(rule.head) == in) return true
     //ignore invalid rule:
     findSpoiler(rule) match {
       case Some(spoiler) => { Supp(rule.head) += spoiler; true }
@@ -400,6 +400,6 @@ case class TMN() {
     Some(rules.head)
   }
 
-  def SuppTrans(n: Atom) = trans(Supp, n)
+  def ancestors(n: Atom) = trans(Supp, n)
 
 }

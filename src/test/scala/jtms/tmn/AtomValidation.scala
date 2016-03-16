@@ -59,7 +59,7 @@ trait AtomValidation {
 
     def SuppTrans(atoms: Atom*) = {
       it should "have Supp*  " + atoms.toSet in {
-        assert(tmn.SuppTrans(atom) == atoms.toSet)
+        assert(tmn.ancestors(atom) == atoms.toSet)
       }
     }
 
