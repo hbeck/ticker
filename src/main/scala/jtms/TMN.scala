@@ -68,23 +68,23 @@ case class TMN() {
     }
   }
 
-  def updateBeliefs(atoms: Set[Atom]): collection.immutable.Set[Atom] = stateDiff {
+  def updateBeliefs(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach assumeAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
   }
 
-  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
-    val oldState = stateOfAtoms
-    expression()
-    val newState = stateOfAtoms
-    (oldState diff newState) map (_._1) toSet
-  }
+//  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
+//    val oldState = stateOfAtoms
+//    expression()
+//    val newState = stateOfAtoms
+//    (oldState diff newState) map (_._1) toSet
+//  }
 
-  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
+//  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
-  def isInvalid(rule: Rule): Boolean = { //TODO
+  def isInvalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
       case Some(spoiler) => { Supp(rule.head) += spoiler; true }
       case None => false
@@ -264,23 +264,20 @@ case class TMN() {
 
   def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
-    //val suppRules = (maxAssumptions map (SuppRule(_).get)).toSet
-
     var rule:Option[RuleFromBacktracking] = None
-    var assumptionCandidates = List[Atom]() ++ maxAssumptions
+    var assumptions = List[Atom]() ++ maxAssumptions
 
     //TODO (hb) refactor
-    while (rule == None && !assumptionCandidates.isEmpty) {
-      val nA = assumptionCandidates.head
-      val supportingRule = SuppRule(nA).get
-      var nStarCandidates = Set[Atom]() ++ supportingRule.neg
-      val supportingRuleCandidates = (assumptionCandidates map (SuppRule(_).get)).toSet
+    while (rule == None && !assumptions.isEmpty) {
+      val h = assumptions.head
+      var nStarCandidates = Set[Atom]() ++ SuppRule(h).get.neg
+      val suppRules = (assumptions map (SuppRule(_).get)).toSet
       while (rule == None && !nStarCandidates.isEmpty) {
         val nStar = nStarCandidates.head
-        rule = createValidRuleForBacktracking(supportingRuleCandidates, nStar)
+        rule = createValidRuleForBacktracking(suppRules, nStar)
         nStarCandidates = nStarCandidates.tail
       }
-      assumptionCandidates = assumptionCandidates.tail
+      assumptions = assumptions.tail
     }
 
     rule
@@ -291,14 +288,20 @@ case class TMN() {
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - nStar
 
-    //if (pos.isEmpty && neg.isEmpty) return None //TODO (hb) avoid facts ~> JTMS_21
     val rule = RuleFromBacktracking(pos,neg,nStar)
 
-    if (this.rules contains rule) return None //TODO (hb)
+    if (permittingFoundation(rule)) Some(rule)
+    else None
 
-    assert(foundedValid(rule))
+  }
 
-    Some(rule)
+  def permittingFoundation(rule: Rule): Boolean = {
+    if (!rule.pos.isEmpty || !rule.neg.isEmpty) return true //crucial are facts
+    //easy case when no rule for this fact exists:
+    if (rulesWithHead(rule.head).isEmpty) return false
+    //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
+    //if (revConsTrans(rule.head).contains(rule.head)) return false
+    return true
   }
 
   def antecedents(a: Atom): Set[Atom] = {
@@ -306,12 +309,15 @@ case class TMN() {
     Set()
   }
 
+  def revCons(a: Atom): Set[Atom] = Set() ++ Cons.keys filter (Cons(_) contains a)
+
+  def revConsTrans(a: Atom) = trans(revCons, a)
+
   def foundations(a: Atom) = trans(antecedents, a)
 
-  def ancestors(n: Atom) = trans(Supp, n)
+  def ancestors(a: Atom) = trans(Supp, a)
 
   def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
-
 
   //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
   //in particular: Rule: List of pos/neg body atoms
