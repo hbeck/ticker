@@ -57,7 +57,7 @@ case class TMN() {
       return Some(collection.immutable.Set())
     }
 
-    val diff = updateBeliefs(repercussions(rule.head) + rule.head)
+    val diff = updateBeliefs(repercussions(rule.head) + rule.head) //TODO diff raus
 
     if (diff exists contradictionAtom) return None
     else return Some(diff)
@@ -82,7 +82,7 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom]): collection.immutable.Set[Atom] = stateDiff {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus // Relaxing circularities
+    atoms foreach assumeAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
   }
 
@@ -167,38 +167,38 @@ case class TMN() {
     false
   }
 
-  def fixAndPropagateStatus(a: Atom): Unit = {
+  def assumeAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
-    if (fix(a)) {
-      unknownCons(a) foreach fixAndPropagateStatus
+    if (assume(a)) {
+      unknownCons(a) foreach assumeAndPropagateStatus
     } else {
       for (c <- (ACons(a) + a)) {
         setUnknown(c)
-        fixAndPropagateStatus(c)
+        assumeAndPropagateStatus(c)
       }
       //TODO (HB) shouldn't it be setUnknown for all, then fix.. for all?
     }
   }
 
-  def fix(a: Atom): Boolean = {
+  def assume(a: Atom): Boolean = {
     rulesWithHead(a) find unfoundedValid match {
       case Some(rule) => {
-        if (ACons(a).isEmpty) fixIn(rule)
+        if (ACons(a).isEmpty) assumeIn(rule)
         else return false
       }
-      case None => fixOut(a)
+      case None => assumeOut(a)
     }
     true
   }
 
-  def fixIn(unfoundedValidRule: Rule) = {
+  def assumeIn(unfoundedValidRule: Rule) = {
     unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
     setIn(unfoundedValidRule)
   }
 
-  def fixOut(a: Atom) = {
+  def assumeOut(a: Atom) = {
     val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
     unknownPosAtoms foreach setOut
     setOut(a)
@@ -232,6 +232,9 @@ case class TMN() {
 
   //return if methods leaves without contradiction
   def tryEnsureConsistency(): Unit = {
+    (inAtoms() filter contradictionAtom) foreach { c =>
+
+    }
     for (c <- inAtoms() filter contradictionAtom) {
       if (!DDB(c)) return
     }
@@ -280,6 +283,7 @@ case class TMN() {
     var rule:Option[RuleFromBacktracking] = None
     var assumptionCandidates = List[Atom]() ++ maxAssumptions
 
+    //TODO (hb) refactor
     while (rule == None && !assumptionCandidates.isEmpty) {
       val nA = assumptionCandidates.head
       val supportingRule = SuppRule(nA).get
@@ -318,11 +322,9 @@ case class TMN() {
 
   def foundations(a: Atom) = trans(antecedents, a)
 
-  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
+  def ancestors(n: Atom) = trans(Supp, n)
 
-//  def suppRules(atoms: Set[Atom]) = {
-//    SuppRule.filterKeys(atoms.contains(_)).values.map(_.get).toSet
-//  }
+  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
 
 
   //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
@@ -362,10 +364,9 @@ case class TMN() {
     this.updateBeliefs(L)
   }
 
-  // ----------------- stuff below might not be needed ----------------
+  // ----------------- test stuff or stuff that might not be needed ----------------
 
   /** @return true if M is admissible **/
-  //TODO (HB) review need of method
   def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
   val m = M.toList
     for (i <- 0 to M.size - 1) {
@@ -392,22 +393,10 @@ case class TMN() {
     selectRule(rules)
   }
 
-  def selectAtom(atoms: collection.immutable.Set[Atom]): Option[Atom] = {
-    if (atoms.isEmpty)
-      return None
-
-    //TODO what about the ordering?
-    Some(atoms.head)
-  }
-
   def selectRule(rules: collection.mutable.Set[Rule]): Option[Rule] = {
     if (rules.isEmpty)
       return None
-
-    //TODO what about the ordering?
     Some(rules.head)
   }
-
-  def ancestors(n: Atom) = trans(Supp, n)
 
 }
