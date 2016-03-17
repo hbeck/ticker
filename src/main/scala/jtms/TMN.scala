@@ -38,10 +38,10 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    if (status.keys exists (status(_) == unknown)) return None //TODO
+
     val atoms = inAtoms()
-    if (atoms exists contradictionAtom) {
-      return None
-    }
+    if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
 
@@ -73,6 +73,16 @@ case class TMN() {
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach assumeAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
+    //ensureFoundation
+  }
+
+  def ensureFoundation(): Unit = {
+    for (h <- Supp.keys filter (k => status(k) == in && SuppRule(k) == None)) {
+      if (!validation(h)) {
+        setUnknown(h)
+        return
+      }
+    }
   }
 
 //  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
@@ -241,7 +251,7 @@ case class TMN() {
     if (maxAssumptions.isEmpty)
       return false //contradiction cannot be solved
 
-    findBacktrackingRule2(maxAssumptions) match {
+    findBacktrackingRule(maxAssumptions) match {
       case Some(rule) => { add(rule); return true }
       case None => return false
     }
@@ -301,7 +311,8 @@ case class TMN() {
     if (rulesWithHead(rule.head).isEmpty) return false
     //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
     //if (revConsTrans(rule.head).contains(rule.head)) return false
-    return true
+    //status(rule.head) = in
+    return false
   }
 
   def antecedents(a: Atom): Set[Atom] = {
