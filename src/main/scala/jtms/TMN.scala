@@ -24,7 +24,7 @@ case class TMN() {
   var rules: List[Rule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]] //TODO pos vs neg
+  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
@@ -38,8 +38,6 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (status.keys exists (status(_) == unknown)) return None //TODO
-
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
@@ -71,28 +69,9 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach assumeAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
-    //ensureFoundation
   }
-
-  def ensureFoundation(): Unit = {
-    for (h <- Supp.keys filter (k => status(k) == in && SuppRule(k) == None)) {
-      if (!validation(h)) {
-        setUnknown(h)
-        return
-      }
-    }
-  }
-
-//  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
-//    val oldState = stateOfAtoms
-//    expression()
-//    val newState = stateOfAtoms
-//    (oldState diff newState) map (_._1) toSet
-//  }
-
-//  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
   def isInvalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
@@ -107,6 +86,19 @@ case class TMN() {
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
 
   def repercussions(n: Atom) = trans(ACons, n)
+
+  def antecedents(a: Atom): Set[Atom] = {
+    if (status(a) == in) return Supp(a)
+    Set()
+  }
+
+  def foundations(a: Atom) = trans(antecedents, a)
+
+  def ancestors(a: Atom) = trans(Supp, a)
+
+  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
+
+  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -140,8 +132,6 @@ case class TMN() {
     }
   }
 
-  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
-
   def determineAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
@@ -166,38 +156,38 @@ case class TMN() {
     false
   }
 
-  def assumeAndPropagateStatus(a: Atom): Unit = {
+  def fixAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
-    if (assume(a)) {
-      unknownCons(a) foreach assumeAndPropagateStatus
+    if (fix(a)) {
+      unknownCons(a) foreach fixAndPropagateStatus
     } else {
       for (c <- (ACons(a) + a)) {
         setUnknown(c)
-        assumeAndPropagateStatus(c)
+        fixAndPropagateStatus(c)
       }
       //TODO (HB) shouldn't it be setUnknown for all, then fix.. for all?
     }
   }
 
-  def assume(a: Atom): Boolean = {
+  def fix(a: Atom): Boolean = {
     rulesWithHead(a) find unfoundedValid match {
       case Some(rule) => {
-        if (ACons(a).isEmpty) assumeIn(rule)
+        if (ACons(a).isEmpty) fixIn(rule)
         else return false
       }
-      case None => assumeOut(a)
+      case None => fixOut(a)
     }
     true
   }
 
-  def assumeIn(unfoundedValidRule: Rule) = {
+  def fixIn(unfoundedValidRule: Rule) = {
     unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
     setIn(unfoundedValidRule)
   }
 
-  def assumeOut(a: Atom) = {
+  def fixOut(a: Atom) = {
     val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
     unknownPosAtoms foreach setOut
     setOut(a)
@@ -229,7 +219,7 @@ case class TMN() {
     trans(f)(nextSet)
   }
 
-  //return if methods leaves without contradiction
+  //return immediately if called DDB method leaves without resolving a contradiction
   def tryEnsureConsistency(): Unit = {
     for (c <- inAtoms() filter contradictionAtom) {
       if (!DDB(c)) return
@@ -258,7 +248,7 @@ case class TMN() {
 
   }
 
-  //book chapter
+  //book chapter variant
   def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
     val n = SuppRule(maxAssumptions.head).get.neg.head
 
@@ -272,11 +262,15 @@ case class TMN() {
     Some(rule)
   }
 
+  /* ----------------------- in progres ... ------------------------------------- */
+
+  //towards a working variant ...
   def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
     var rule:Option[RuleFromBacktracking] = None
     var assumptions = List[Atom]() ++ maxAssumptions
 
+    //try all variants (instead of greedy pick of book chapter)
     //TODO (hb) refactor
     while (rule == None && !assumptions.isEmpty) {
       val h = assumptions.head
@@ -311,24 +305,17 @@ case class TMN() {
     if (rulesWithHead(rule.head).isEmpty) return false
     //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
     //if (revConsTrans(rule.head).contains(rule.head)) return false
-    //status(rule.head) = in
     return false
-  }
-
-  def antecedents(a: Atom): Set[Atom] = {
-    if (status(a) == in) return Supp(a)
-    Set()
   }
 
   def revCons(a: Atom): Set[Atom] = Set() ++ Cons.keys filter (Cons(_) contains a)
 
   def revConsTrans(a: Atom) = trans(revCons, a)
 
-  def foundations(a: Atom) = trans(antecedents, a)
 
-  def ancestors(a: Atom) = trans(Supp, a)
 
-  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
+
+  /* ---------------------------------- future stuff ------------------------------------- */
 
   //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
   //in particular: Rule: List of pos/neg body atoms
