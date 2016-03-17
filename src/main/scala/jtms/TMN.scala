@@ -73,26 +73,8 @@ case class TMN() {
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach assumeAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
-    //ensureFoundation
+    //TODO ensureFoundation
   }
-
-  def ensureFoundation(): Unit = {
-    for (h <- Supp.keys filter (k => status(k) == in && SuppRule(k) == None)) {
-      if (!validation(h)) {
-        setUnknown(h)
-        return
-      }
-    }
-  }
-
-//  def stateDiff(expression: => () => Unit): collection.immutable.Set[Atom] = {
-//    val oldState = stateOfAtoms
-//    expression()
-//    val newState = stateOfAtoms
-//    (oldState diff newState) map (_._1) toSet
-//  }
-
-//  def stateOfAtoms() = atoms map (a => (a, status(a))) toList
 
   def isInvalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
