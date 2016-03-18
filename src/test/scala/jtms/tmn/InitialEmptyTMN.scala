@@ -1,7 +1,9 @@
 package jtms.tmn
 
-import jtms.in
-import org.scalatest.{BeforeAndAfter}
+import core._
+import jtms.{TMN, in}
+import org.scalatest.{FlatSpec, BeforeAndAfter}
+import scala.language.implicitConversions
 
 /**
   * Created by FM on 05.02.16.
@@ -46,6 +48,6 @@ class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
   it should "also contain just one rule" in {
     tmn.add(assumptionA)
 
-    assert(tmn.rules.size ==1)
+    assert(tmn.rules.size == 1)
   }
 }

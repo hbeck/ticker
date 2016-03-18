@@ -1,9 +1,7 @@
 package jtms.tmn.founding
 
-//import core.{Fact, Program, Rule, Atom}
-import common.sets.minus
-import core.{Program, Rule, Atom}
-import jtms.{out, TMN}
+import core.{Fact, Program, Rule, Atom}
+import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**

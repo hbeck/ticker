@@ -1,5 +1,7 @@
 package jtms.tmn.examples
 
+import asp.Asp
+import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
 import jtms.tmn.AtomValidation
@@ -8,42 +10,93 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 11.02.16.
   */
-class Library extends FlatSpec with AtomValidation {
 
-  val V = Atom("verfügbar")
+trait LibraryBehavior {
+  this: FlatSpec =>
+
+  val V = Atom("verfuegbar")
   val G = Atom("gestohlen")
-  val P = Atom("am angegebenen Platz vorhanden")
-  val F = Atom("falsch einsortiert")
-  val P_not = Atom("nicht am angegebenen Platz vorhanden")
+  val P = Atom("am_angegebenen_Platz_vorhanden")
+  val F = Atom("falsch_einsortiert")
+  val P_not = Atom("nicht_am_angegebenen_Platz_vorhanden")
   val A = Atom("ausleihbar")
-  val N = Atom("Nachschlagewerk")
-  val A_not = Atom("nicht ausleihbar")
-  val H = Atom("im Handapperart einer Veranstaltung")
-  val N_cont = ContradictionAtom("Widerspruch")
+  val N = Atom("nachschlagewerk")
+  val A_not = Atom("nicht_ausleihbar")
+  val H = Atom("im_Handapperart_einer_Veranstaltung")
+
 
   val j1 = Fact(V)
-  val j2 = Rule(P,Set(V),Set(F, G))
-  val j3 = Rule(P_not,F)
-  val j4 = Rule(P_not,G)
-  val j5 = Rule(A,Set(P),Set(H, N))
-  val j6 = Rule(N_cont,Set(P, P_not))
-  val j7 = Rule(A_not,N)
-  val j8 = Rule(A_not,H)
-  val j9 = Rule(N_cont,Set(A, A_not))
+  val j2 = Rule.pos(V).neg(F, G).head(P)
+  val j3 = Rule.pos(F).head(P_not)
+  val j4 = Rule.pos(G).head(P_not)
+  val j5 = Rule.pos(P).neg(H, N).head(A)
+  val j6 = Constraint.pos(P, P_not)
+  val j7 = Rule.pos(N).head(A_not)
+  val j8 = Rule.pos(H).head(A_not)
+  val j9 = Constraint.pos(A, A_not)
 
-  val jExclusionA = Rule(N_cont,A)
+  val jExclusionA: Rule = Constraint.pos(A)
 
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
-  def Tmn = {
-    val tmn = TMN(program)
+  def library(evaluation: Evaluation) = {
+    it should "be V, P, A" in {
+      info("The valid model")
+      assert(evaluation(program) contains SingleModel(Set(V, P, A)))
+    }
+    it should "be V,H,P,A_not" in {
+      info("With the fact H the model")
+      val p = program + Fact(H)
 
-    tmn
-  }
+      val model = evaluation(p)
 
-  "The valid model" should "be V, P, A" in {
-    assert(Tmn.getModel().get == Set(V, P, A))
+      assert(model contains SingleModel(Set(V, H, P, A_not)))
+    }
+
+    it should "be A_not,H,P, V" in {
+      info("With a constraint for A the model")
+      val p = program + jExclusionA
+
+      val model = evaluation(p)
+
+      if (evaluation.isInstanceOf[Asp]) pending
+
+      info("H is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(A_not, H, P, V)))
+    }
+
+    it should "also return the same model when using just a single constraint" in {
+      val p = program + Constraint.pos(A)
+
+      val model = evaluation(p)
+
+      if (evaluation.isInstanceOf[Asp]) pending
+
+      info("H is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(A_not, H, P, V)))
+    }
+
+    it should "be P_not,F,V" in {
+      info("With a constraint for P the model")
+      val p = program + Constraint.pos(P)
+
+      val model = evaluation(p)
+
+      if (evaluation.isInstanceOf[Asp]) pending
+
+      info("F is currently chosen 'by random'")
+      assert(model contains SingleModel(Set(P_not, F, V)))
+    }
   }
+}
+
+class Library extends FlatSpec with LibraryBehavior with EvaluateBothImplementations {
+  "The Library Sample" should behave like theSame(library)
+}
+
+class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
+
+  def Tmn = TMN(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)
@@ -94,7 +147,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.foundations()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
-    validator.AConsTrans(P, A, P_not, N_cont)
+    validator.AConsTrans(P, A, P_not, Falsum)
   }
   "Atom G" must behave like atomValidation(Tmn, G) { validator =>
     validator.state(out)
@@ -106,7 +159,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.foundations()
     validator.Cons(P, P_not)
     validator.ACons(P, P_not)
-    validator.AConsTrans(P, A, P_not, N_cont)
+    validator.AConsTrans(P, A, P_not, Falsum)
   }
 
 
@@ -120,7 +173,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.foundations()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
-    validator.AConsTrans(A, A_not, N_cont)
+    validator.AConsTrans(A, A_not, Falsum)
   }
   "Atom N" must behave like atomValidation(Tmn, N) { validator =>
     validator.state(out)
@@ -132,7 +185,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.foundations()
     validator.Cons(A, A_not)
     validator.ACons(A, A_not)
-    validator.AConsTrans(A, A_not, N_cont)
+    validator.AConsTrans(A, A_not, Falsum)
   }
 
   "Atom P_not" must behave like atomValidation(Tmn, P_not) { validator =>
@@ -161,7 +214,7 @@ class Library extends FlatSpec with AtomValidation {
     validator.AConsTrans(N_cont)
   }
 
-  "Atom N_cont" must behave like atomValidation(Tmn, N_cont) { validator =>
+  "Atom N_cont" must behave like atomValidation(Tmn, Falsum) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j6, j9)

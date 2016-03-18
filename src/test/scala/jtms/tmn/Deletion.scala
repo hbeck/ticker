@@ -1,7 +1,7 @@
 package jtms.tmn
 
-import core.{Rule, Fact, Atom}
-import jtms.tmn.examples.{Library, Tweety, JTMS_5, JTMS_21}
+import core.{Program, Rule, Fact, Atom}
+import jtms.tmn.examples._
 import jtms._
 import org.scalatest.FlatSpec
 
@@ -20,7 +20,7 @@ class Deletion extends FlatSpec {
     val tmn = TMN()//Set(A))
     tmn.add(j0)
 
-    assume(tmn.getModel().get == Set(A))
+    assume(tmn.getModel.get == Set(A))
     assume(tmn.status(A) == in)
 
     tmn.remove(j0)
@@ -29,11 +29,25 @@ class Deletion extends FlatSpec {
     assert(tmn.status.isEmpty)
 
     assert(tmn.rules.isEmpty)
-    assert(tmn.getModel().get == Set())
+    assert(tmn.getModel == None)
 
     assert(tmn.Cons.isEmpty)
     assert(tmn.Supp.isEmpty)
-    assert(tmn.SuppRule.isEmpty)
+  }
+
+  "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have Cons(c) = a " in {
+    val r1 = Rule.pos(C).head(A)
+    val r2 = Rule.pos(C, B).head(A)
+
+    val program = Program(r1, r2)
+
+    val tmn = TMN(program)
+
+    assume(tmn.Cons(C) == Set(A))
+
+    tmn.remove(r1)
+
+    assert(tmn.Cons(C) == Set(A))
   }
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
@@ -46,20 +60,20 @@ class Deletion extends FlatSpec {
     tmn.add(j0)
     tmn.add(j1)
 
-    assume(tmn.getModel().get == Set(A, B))
+    assume(tmn.getModel.get == Set(A, B))
 
     // act
     tmn.remove(j1)
 
     // assert
-    assert(tmn.getModel().get.isEmpty)
+    assert(tmn.getModel.isEmpty)
 
-    assert(tmn.rules == Set(j0))
+    assert(tmn.rules == List(j0))
     assert(tmn.Supp(A).isEmpty)
     assert(tmn.SuppRule(A) == None)
     assert(tmn.SuppRule(B) == None)
     assert(tmn.Cons(A) == Set(B))
-    assert(tmn.atoms == Set(A, B))
+    assert(tmn.N == Set(A, B))
     assert(tmn.status.keys == Set(A, B))
   }
 
@@ -68,25 +82,25 @@ class Deletion extends FlatSpec {
     val j0 = Rule.pos(A).head(B)
     val j1 = Fact(A)
 
-    val tmn = TMN() //Set(A, B))
+    val tmn = new TMN(Set(A, B))
 
     tmn.add(j0)
     tmn.add(j1)
 
-    assume(tmn.getModel().get == Set(A, B))
+    assume(tmn.getModel.get == Set(A, B))
 
     // act
     tmn.remove(j0)
 
     // assert
-    assert(tmn.getModel().get == Set(A))
+    assert(tmn.getModel.get == Set(A))
 
-    assert(tmn.rules == Set(j1))
+    assert(tmn.rules == List(j1))
     assert(tmn.Supp(A) == Set())
     assert(tmn.SuppRule(A) == Some(j1))
     assert(tmn.Cons(A) == Set())
 
-    assert(tmn.atoms == Set(A))
+    assert(tmn.N == Set(A))
     assert(tmn.status.keys == Set(A))
   }
 
@@ -101,13 +115,13 @@ class Deletion extends FlatSpec {
     tmn.add(j1)
     tmn.add(j2)
 
-    assume(tmn.getModel().get == Set(A, B, C))
+    assume(tmn.getModel.get == Set(A, B, C))
 
     tmn.remove(j0)
 
-    assert(tmn.getModel().get == Set(A))
+    assert(tmn.getModel.get == Set(A))
 
-    assume(tmn.rules == Set(j1, j2))
+    assume(tmn.rules.toSet == Set(j1, j2))
     assert(tmn.Supp(C) == Set(B))
     assert(tmn.Cons(A) == Set())
     assert(tmn.SuppRule(C) == None)
@@ -129,7 +143,7 @@ class Deletion extends FlatSpec {
     tmn.add(j2)
     tmn.add(j3)
 
-    assume(tmn.getModel().get == Set(A, B, C))
+    assume(tmn.getModel.get == Set(A, B, C))
     assume(tmn.SuppRule(C) == Some(j2))
     assume(tmn.Supp(C) == Set(B))
     assume(tmn.Cons(A) == Set(B, C))
@@ -137,8 +151,8 @@ class Deletion extends FlatSpec {
 
     tmn.remove(j0)
 
-    assert(tmn.getModel().get == Set(A, C))
-    assert(tmn.rules == Set(j1, j2, j3), "the SJ for C should change")
+    assert(tmn.getModel.get == Set(A, C))
+    assert(tmn.rules.toSet == Set(j1, j2, j3), "the SJ for C should change")
     info("the SJ for C should change")
     assert(tmn.SuppRule(C) == Some(j3))
     info("the Supp for C should change")
@@ -153,58 +167,62 @@ class Deletion extends FlatSpec {
     val setup = new JTMS_5
     val tmn = setup.tmn
 
-    assume(tmn.getModel().get == Set(setup.A, setup.C, setup.D, setup.E, setup.F))
+    assume(tmn.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
 
     // act
     tmn.remove(setup.j0)
 
     // assert
-    assert(tmn.getModel().get == Set(setup.E, setup.B, setup.D))
+    assert(tmn.getModel.get == Set(setup.e, setup.b, setup.d))
   }
 
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
     // arrange
+    class Tweety extends FlatSpec with TweetyBehavior
+
     val setup = new Tweety
-    val tmn = setup.TweetyTMN
+
+    val tmn = TMN(setup.program)
 
     tmn.add(setup.j5)
 
-    assume(tmn.getModel().get == Set(setup.F_not, setup.V, setup.P))
+    assume(tmn.getModel.get == Set(setup.F_not, setup.V, setup.P))
 
     // act
     tmn.remove(setup.j5)
 
     // assert
-    assert(tmn.getModel().get == Set(setup.V, setup.F))
+    assert(tmn.getModel.get == Set(setup.V, setup.F))
   }
 
   "Removing a rule from a TMN where backtracking occurred" should "result in the original model" in {
     // arrange
-    val setup = new JTMS_21
-    val tmn = setup.JTMS_DDB
+    class JMTS_21 extends JTMSSpec with JTMS_21Behavior
+    val setup = new JMTS_21
+    val tmn = TMN(setup.p)
 
-    assume(tmn.getModel().get == Set(setup.A, setup.C, setup.D, setup.F, setup.E))
+    assume(tmn.getModel.get == Set(setup.a, setup.c, setup.d, setup.f, setup.e))
 
     // act
     tmn.remove(setup.j7)
 
     // assert
-    assert(tmn.getModel().get == setup.JTMS.getModel().get)
-    assert(tmn.getModel().get == Set(setup.E, setup.B, setup.D))
+    assert(tmn.getModel == setup.JTMS.getModel())
+    assert(tmn.getModel.get == Set(setup.e, setup.b, setup.d))
   }
 
   "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {
-    val setup = new Library
+    val setup = new LibraryAtomValidation
     val tmn = setup.Tmn
 
     tmn.add(setup.jExclusionA)
 
-    assume(tmn.getModel().get == Set(setup.A_not, setup.H, setup.P, setup.V))
+    assume(tmn.getModel.get == Set(setup.A_not, setup.H, setup.P, setup.V))
 
     // act
     tmn.remove(setup.jExclusionA)
 
     // assert
-    assert(tmn.getModel().get == Set(setup.A, setup.P, setup.V))
+    assert(tmn.getModel.get == Set(setup.A, setup.P, setup.V))
   }
 }

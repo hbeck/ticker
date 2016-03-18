@@ -1,38 +1,50 @@
 package jtms.tmn.examples
 
-import core.{Rule, Atom}
+import asp.Asp
+import aspsamples.EvaluateBothImplementations
+import core._
 import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 12.02.16.
   */
-class MultipleModels extends FlatSpec{
+trait MultipleModelsBehavior {
+  this: FlatSpec =>
 
-  val A = Atom("A")
-  val B = Atom("B")
+  val a = Atom("a")
+  val b = Atom("b")
 
-  val none = Set[Atom]()
+  val j1 = Rule.neg(a).head(b)
+  val j2 = Rule.neg(b).head(a)
 
-  val rB = Rule(B,none,Set(A))
-  val rA = Rule(A,none,Set(B))
+  def multipleModels(evaluation: Evaluation) = {
 
-  "When adding rB before rA the valid model" should "be B" in {
-    val tmn = TMN()
+    it should "be B" in {
+      info("When adding j1 before j2 the valid model")
+      val model = evaluation(Program(j1, j2))
 
-    tmn.add(rB)
-    tmn.add(rA)
+      if (evaluation.isInstanceOf[Asp])
+        assert(model contains MultipleModels(Set(Set(b), Set(a))))
+      else {
+        assert(model contains SingleModel(Set(b)))
+        pending
+      }
+    }
 
-    assert(tmn.getModel().get == Set(B))
+    it should "be A" in {
+      info("When adding j2 before j1 the valid model")
+      val model = evaluation(Program(j2, j1))
+      if (evaluation.isInstanceOf[Asp])
+        assert(model contains MultipleModels(Set(Set(b), Set(a))))
+      else {
+        assert(model contains SingleModel(Set(a)))
+        pending
+      }
+    }
   }
+}
 
-  "When adding rA before rB the valid model" should "be A" in {
-    val tmn = TMN()
-
-    tmn.add(rA)
-    tmn.add(rB)
-
-    assert(tmn.getModel().get == Set(A))
-
-  }
+class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateBothImplementations {
+  "Multiple Models" should behave like theSame(multipleModels)
 }

@@ -1,19 +1,21 @@
 package jtms.tmn.examples
 
-import core.{Program, Rule, Fact, Atom}
+import aspsamples.EvaluateBothImplementations
+import core._
 import jtms._
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-class Manufacturing extends FlatSpec {
+trait ManufacturingBehavior {
+  this: FlatSpec =>
 
-  val C = Atom("Product")
+  val C = Atom("product")
   val B = Atom("troubles")
-  val A1 = Atom("Resource 1")
-  val A2 = Atom("Resource 2")
-  val L1 = Atom("supply problems A1")
+  val A1 = Atom("resource_1")
+  val A2 = Atom("resource_2")
+  val L1 = Atom("supply_problems_A1")
 
   val j0 = Rule.pos(C).neg(B).head(A1)
   val j1 = Rule.pos(C, B).head(A2)
@@ -22,24 +24,26 @@ class Manufacturing extends FlatSpec {
 
   val program = Program(j0, j1, j2, j3)
 
-  def Tmn = {
-    val tmn = TMN(program)
+  def manufacturing(evaluation: Evaluation) = {
+    it should "use resource A1" in {
+      info("When manufacturing without troubles")
+      val model = evaluation(program)
 
-    tmn
+      assert(model contains SingleModel(Set(C, A1)))
+    }
+
+    it should "mark as troubles and use resource A2" in {
+      info("When there are supply problems with A1")
+      val p = program + Fact(L1)
+
+      val model = evaluation(p)
+
+      assert(model contains SingleModel(Set(C, L1, B, A2)))
+    }
   }
 
-  "When manufacturing without troubles" should "use resource A1" in {
-    val tmn = Tmn
+}
 
-    assert(tmn.getModel().get == Set(C, A1))
-  }
-
-  "When there are supply problems with A1" should "mark as troubles and use resource A2" in {
-    val tmn = Tmn
-
-    tmn.add(Fact(L1))
-
-    assert(tmn.getModel().get == Set(C, L1, B, A2))
-  }
-
+class Manufacturing extends FlatSpec with ManufacturingBehavior with EvaluateBothImplementations {
+  "The Manufacturing sample" should behave like theSame(manufacturing)
 }
