@@ -372,6 +372,10 @@ case class TMN() {
     true
   }
 
+  def isFounded(atoms:scala.collection.immutable.Set[Atom])={
+    false
+  }
+
 
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
