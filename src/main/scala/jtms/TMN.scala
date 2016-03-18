@@ -39,8 +39,6 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (status.keys exists (status(_) == unknown)) return None //TODO
-
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
