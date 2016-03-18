@@ -1,5 +1,6 @@
 package aspsamples
 
+import asp.Asp
 import core._
 import jtms.{jTmn, TMN}
 import org.scalatest.FlatSpec

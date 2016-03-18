@@ -20,7 +20,7 @@ class Deletion extends FlatSpec {
     val tmn = new TMN()
     tmn.add(j0)
 
-    assume(tmn.getModel == Set(A))
+    assume(tmn.getModel == Some(Set(A)))
     assume(tmn.status(A) == in)
 
     tmn.remove(j0)

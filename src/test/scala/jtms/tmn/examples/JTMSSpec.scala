@@ -18,13 +18,13 @@ class JTMSSpec extends FlatSpec {
 
   val none = Set[Atom]()
 
-  val j1 = Rule(A,C)
-  val j2 = Rule(B,none,Set(A))
-  val j3 = Rule(C,A)
-  val j4a = Rule(D,B)
-  val j4b = Rule(D,C)
-  val j5 = Rule(E)
-  val j6 = Rule(F,Set(C, E))
+  val j1 = Rule(a, c)
+  val j2 = Rule(b, none, Set(a))
+  val j3 = Rule(c, a)
+  val j4a = Rule(d, b)
+  val j4b = Rule(d, c)
+  val j5 = Rule(e)
+  val j6 = Rule(f, Set(c, e))
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 

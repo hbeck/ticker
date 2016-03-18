@@ -11,24 +11,26 @@ class TwoNegationNodes extends FlatSpec {
   val a = Atom("a")
   val b = Atom("b")
 
-  val none = Set[Atom]()
+  val r1 = Rule.neg(a).head(b)
+  val r2 = Rule.neg(b).head(a)
 
-  val ra = Rule(a,none,Set(b))
-  val rb = Rule(b,none,Set(a))
-
-  val program = Program(ra, rb)
+  val program = Program(r1, r2)
 
   def tmn = TMN(program)
 
   val modelA = {
     val t = tmn
+
     t.set(Set(a))
+
     t
   }
 
   val modelB = {
     val t = tmn
+
     t.set(Set(b))
+
     t
   }
 
