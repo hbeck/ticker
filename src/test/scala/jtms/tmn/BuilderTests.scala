@@ -8,20 +8,24 @@ import org.scalatest.FlatSpec
   */
 class BuilderTests extends FlatSpec {
 
-//  def bar(atoms: List[Atom]) = {
-//    atoms match {
-//
-//    }
-//  }
+  //  def bar(atoms: List[Atom]) = {
+  //    atoms match {
+  //
+  //    }
+  //  }
 
   "foo" should "work" in {
-    val atoms = List(Atom("0"), Atom("a"), Atom("b"), Atom("c"), Atom("d"), Atom("e"), Atom("f"), Atom("g"))
-    var program = bar(atoms)
+    //List.range()
+
+    //        val atoms = List(Atom("0"), Atom("a"), Atom("b"), Atom("c"), Atom("d"), Atom("e"), Atom("f"), Atom("g"))
+    val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
+    //    val program = bar(atoms.take( 10).toList)
+    val program = bar(atoms)
     assert(program.size == 6)
   }
 
-  val bar: PartialFunction[List[Atom], Set[Rule]] = {
-    case a :: b :: c :: d :: e :: f :: nil => Set(
+  val bar: PartialFunction[Seq[Atom], Set[Rule]] = {
+    case a #:: b #:: c #:: d #:: e #:: f #:: atoms => Set(
       Rule.fact(a),
       Rule.fact(b),
       Rule.fact(c),

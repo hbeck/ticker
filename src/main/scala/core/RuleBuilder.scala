@@ -65,9 +65,11 @@ class Builder(head: Atom) {
 }
 
 object :- {
-  def apply(atom: Atom) = new BuilderHead(Falsum) :- PosBuilderAtom(atom)
+  //  def apply(atom: Atom) = new BuilderHead(Falsum) :- PosBuilderAtom(atom)
 
-  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
+  def apply(item:BuilderItem)= new BuilderHead(Falsum) :- item
+
+  //  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
 }
 
 class BuilderHead(head: Atom) {
@@ -134,7 +136,7 @@ class ProgramBuilder(rules: Set[Rule]) {
 }
 
 object AtomProgramBuilder {
-  def foo(function: Function[Atom,Set[Rule]])={
+  def foo(function: Function[Atom, Set[Rule]]) = {
 
   }
 }
