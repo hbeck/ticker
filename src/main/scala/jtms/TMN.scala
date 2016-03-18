@@ -7,7 +7,7 @@ import scala.collection.mutable.{HashMap, Map, Set}
 
 object TMN {
 
-  def apply(P: Program) = {
+  def apply(P: Program): TMN = {
     val tmn = new TMN()
     P.rules foreach tmn.add
     tmn
@@ -59,29 +59,16 @@ case class TMN() {
     rule.body foreach (Cons(_) += rule.head)
   }
 
-  def invalid(rule: Rule): Boolean = {
-    findSpoiler(rule) match {
-      case Some(spoiler) => {
-        Supp(rule.head) += spoiler; true
-      }
-      case None => false
-    }
+  def invalid(rule: Rule) = findSpoiler(rule) match {
+    case Some(spoiler) => Supp(rule.head) += spoiler; true
+    case None => false
   }
 
-  def updateBeliefs(atoms: Set[Atom]): Unit = {
+  def updateBeliefs(atoms: Set[Atom]) = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
-  }
-
-  def isInvalid(rule: Rule): Boolean = {
-    findSpoiler(rule) match {
-      case Some(spoiler) => {
-        Supp(rule.head) += spoiler; true
-      }
-      case None => false
-    }
   }
 
   def justifications(h: Atom) = rules filter (_.head == h)
@@ -116,7 +103,7 @@ case class TMN() {
     SuppRule(a) = None
   }
 
-  def setUnknown(atom: Atom): Unit = {
+  def setUnknown(atom: Atom) = {
     status(atom) = unknown
     Supp(atom) = Set()
     SuppRule(atom) = None
@@ -140,14 +127,13 @@ case class TMN() {
     if (status(a) != unknown)
       return
 
-    if (validation(a) || invalidation(a)) {
-        unknownCons(a) foreach determineAndPropagateStatus
-    }
+    if (validation(a) || invalidation(a))
+      unknownCons(a) foreach determineAndPropagateStatus
   }
 
   def validation(a: Atom): Boolean = {
     justifications(a) find foundedValid match {
-      case Some(rule) => { setIn(rule); true }
+      case Some(rule) => setIn(rule); true
       case None => false
     }
   }
@@ -175,10 +161,9 @@ case class TMN() {
 
   def fix(a: Atom): Boolean = {
     justifications(a) find unfoundedValid match {
-      case Some(rule) => {
+      case Some(rule) =>
         if (ACons(a).isEmpty) fixIn(rule)
         else return false
-      }
       case None => fixOut(a)
     }
     true
@@ -195,17 +180,14 @@ case class TMN() {
     setOut(a)
   }
 
-  def foundedValid(rule: Rule): Boolean = {
+  def foundedValid(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
-  }
 
-  def foundedInvalid(rule: Rule): Boolean = {
+  def foundedInvalid(rule: Rule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
-  }
 
-  def unfoundedValid(rule: Rule): Boolean = {
+  def unfoundedValid(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
-  }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
     trans(f)(f(t))
@@ -252,6 +234,7 @@ case class TMN() {
 
   //book chapter variant
   def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+
     val culprit = maxAssumptions.head
     val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
 
