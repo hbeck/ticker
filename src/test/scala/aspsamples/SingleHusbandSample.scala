@@ -2,7 +2,7 @@ package aspsamples
 
 import asp.Asp
 import core._
-import jtms.jTmn
+import jtms.{jTmn, TMN}
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps

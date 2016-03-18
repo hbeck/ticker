@@ -8,7 +8,7 @@ import core.{Rule, ContradictionAtom}
 class JTMS_21 extends JTMSSpec {
   val N_contr = ContradictionAtom("N_contr")
 
-  val j7 = Rule(N_contr,Set(B),Set(C))
+  val j7 = Rule(N_contr, Set(b), Set(c))
 
   def JTMS_DDB = {
     val tmn = JTMS
@@ -20,7 +20,7 @@ class JTMS_21 extends JTMSSpec {
 
   def JTMS_DDB_addA = {
     val tmn = JTMS_DDB
-    tmn.add(Rule(A))
+    tmn.add(Rule(a))
     tmn
   }
 
@@ -29,6 +29,6 @@ class JTMS_21 extends JTMSSpec {
   }
 
   "The model" should "contain A,C,D,F,E" in {
-    assert(JTMS_DDB_addA.getModel().get == Set(A, C, D, F, E))
+    assert(JTMS_DDB_addA.getModel().get == Set(a, c, d, f, e))
   }
 }

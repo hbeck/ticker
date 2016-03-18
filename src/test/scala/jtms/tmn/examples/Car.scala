@@ -1,26 +1,26 @@
 package jtms.tmn.examples
 
+import aspsamples.EvaluateBothImplementations
 import core._
-import jtms._
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-class Car extends FlatSpec {
+trait CarBehavior {
+  this: FlatSpec =>
 
-  val S_not = Atom("car is not starting")
-  val G_not = Atom("not enough gas")
-  val G = Atom("enough gas")
+  val S_not = Atom("car_is_not_starting")
+  val G_not = Atom("not_enough_gas")
+  val G = Atom("enough_gas")
   val D = Atom("defect")
-  val I = Atom("ignition broken")
-  val C = Atom("carb broken")
-
-  val N_cont = ContradictionAtom("contradiction")
+  val I = Atom("ignition_broken")
+  val C = Atom("carb_broken")
+  val Falsum = new ContradictionAtom("f")
 
   val j0 = Rule.pos(S_not).neg(D).head(G_not);
   val j1 = Rule.pos(S_not, G).head(D)
-  val j2 = Rule.pos(G, G_not).head(N_cont)
+  val j2 = Rule.pos(G, G_not).head(Falsum)
   val j3 = Rule.pos(I).head(D)
   val j4 = Rule.pos(C).head(D)
 
@@ -31,64 +31,55 @@ class Car extends FlatSpec {
 
   val program = Program(j0, j1, j2, j3, j4)
 
-  def Tmn = {
-    val t = TMN(program)
+  def theCar(evaluation: Evaluation): Unit = {
+    it should "not result in a defect" in {
+      info("When the car is not starting and there is not enough gas")
+      val p = program + notStarting + notEnoughGas
 
-    t
-  }
+      val model = evaluation(p)
 
-  "When the car is not starting and there is not enough gas" should "not result in a defect" in {
-    val tmn = Tmn
+      assert(model.contains( Set(D)) == false)
+    }
 
-    tmn.add(notStarting)
-    tmn.add(notEnoughGas)
+    it should "result in a defect" in {
+      info("When the car is not starting and there is enough gas")
+      val p = program + notStarting + enoughGas
 
-    val model = tmn.getModel()
+      val model = evaluation(p)
 
-    assert(model.contains(D) == false)
-  }
+      assert(model.head.contains(D))
+    }
 
-  "When the car is not starting and there is enough gas" should "result in a defect" in {
-    val tmn = Tmn
+    it should "result in not enough gas" in {
+      info("When the car is not starting and there is no gas information")
+      val p = program + notStarting
 
-    tmn.add(notStarting)
-    tmn.add(enoughGas)
+      val model = evaluation(p)
 
-    val model = tmn.getModel().get
+      assert(model.head.contains(G_not))
+    }
 
-    assert(model.contains(D))
-  }
+    it should "result in a defect because of the ignition" in {
+      info("When the car is not starting and there is a broken ignition")
+      val p = program + notStarting + brokenIgnition
 
-  "When the car is not starting and there is no gas information" should "result in not enough gas" in {
-    val tmn = Tmn
+      val model = evaluation(p)
 
-    tmn.add(notStarting)
+      assert(model.head.contains(D))
+    }
 
-    val model = tmn.getModel().get
+    it should "result in a defect because of the ign" in {
+      info("When the car is not starting and there is a broken ignition and enough gas")
+      val p = program + notStarting + enoughGas + brokenIgnition
 
-    assert(model.contains(G_not))
-  }
+      val model = evaluation(p)
 
-  "When the car is not starting and there is a broken ignition" should "result in a defect" in {
-    val tmn = Tmn
-
-    tmn.add(notStarting)
-    tmn.add(brokenIgnition)
-
-    val model = tmn.getModel().get
-
-    assert(model.contains(D))
-  }
-
-  "When the car is not starting and there is a broken ignition and enogh gas" should "result in a defect" in {
-    val tmn = Tmn
-
-    tmn.add(notStarting)
-    tmn.add(enoughGas)
-    tmn.add(brokenIgnition)
-
-    val model = tmn.getModel().get
-
-    assert(model.contains(D))
+      assert(model.head.contains(D))
+    }
   }
 }
+
+class Car extends FlatSpec with CarBehavior with EvaluateBothImplementations{
+  "The car sample" should behave like theSame(theCar)
+}
+
