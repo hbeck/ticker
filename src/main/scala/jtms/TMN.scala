@@ -250,49 +250,49 @@ case class TMN() {
 
   /* ----------------------- in progress ... ------------------------------------- */
 
-  //towards a working variant ...
-  def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-
-    var rule: Option[RuleFromBacktracking] = None
-    var assumptions = List[Atom]() ++ maxAssumptions
-
-    //try all variants (instead of greedy pick of book chapter)
-    //TODO (hb) refactor
-    while (rule == None && !assumptions.isEmpty) {
-      val h = assumptions.head
-      var nStarCandidates = Set[Atom]() ++ SuppRule(h).get.neg
-      val suppRules = (assumptions map (SuppRule(_).get)).toSet
-      while (rule == None && !nStarCandidates.isEmpty) {
-        val nStar = nStarCandidates.head
-        rule = createValidRuleForBacktracking(suppRules, nStar)
-        nStarCandidates = nStarCandidates.tail
-      }
-      assumptions = assumptions.tail
-    }
-
-    rule
-  }
-
-  def createValidRuleForBacktracking(suppRules: collection.immutable.Set[Rule], nStar: Atom): Option[RuleFromBacktracking] = {
-
-    val pos = suppRules flatMap (_.pos)
-    val neg = (suppRules flatMap (_.neg)) - nStar
-
-    val rule = RuleFromBacktracking(pos, neg, nStar)
-
-    if (permittingFoundation(rule)) Some(rule)
-    else None
-
-  }
-
-  def permittingFoundation(rule: Rule): Boolean = {
-    if (!rule.pos.isEmpty || !rule.neg.isEmpty) return true //crucial are facts
-    //easy case when no rule for this fact exists:
-    if (justifications(rule.head).isEmpty) return false
-    //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
-    //if (revConsTrans(rule.head).contains(rule.head)) return false
-    return false
-  }
+//  //towards a working variant ...
+//  def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+//
+//    var rule: Option[RuleFromBacktracking] = None
+//    var assumptions = List[Atom]() ++ maxAssumptions
+//
+//    //try all variants (instead of greedy pick of book chapter)
+//    //TODO (hb) refactor
+//    while (rule == None && !assumptions.isEmpty) {
+//      val h = assumptions.head
+//      var nStarCandidates = Set[Atom]() ++ SuppRule(h).get.neg
+//      val suppRules = (assumptions map (SuppRule(_).get)).toSet
+//      while (rule == None && !nStarCandidates.isEmpty) {
+//        val nStar = nStarCandidates.head
+//        rule = createValidRuleForBacktracking(suppRules, nStar)
+//        nStarCandidates = nStarCandidates.tail
+//      }
+//      assumptions = assumptions.tail
+//    }
+//
+//    rule
+//  }
+//
+//  def createValidRuleForBacktracking(suppRules: collection.immutable.Set[Rule], nStar: Atom): Option[RuleFromBacktracking] = {
+//
+//    val pos = suppRules flatMap (_.pos)
+//    val neg = (suppRules flatMap (_.neg)) - nStar
+//
+//    val rule = RuleFromBacktracking(pos, neg, nStar)
+//
+//    if (permittingFoundation(rule)) Some(rule)
+//    else None
+//
+//  }
+//
+//  def permittingFoundation(rule: Rule): Boolean = {
+//    if (!rule.pos.isEmpty || !rule.neg.isEmpty) return true //crucial are facts
+//    //easy case when no rule for this fact exists:
+//    if (justifications(rule.head).isEmpty) return false
+//    //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
+//    //if (revConsTrans(rule.head).contains(rule.head)) return false
+//    return false
+//  }
 
   def revCons(a: Atom): Set[Atom] = Set() ++ Cons.keys filter (Cons(_) contains a)
 
