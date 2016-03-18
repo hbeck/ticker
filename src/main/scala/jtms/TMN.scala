@@ -85,7 +85,7 @@ case class TMN() {
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
 
-  def repercussions(n: Atom) = trans(ACons, n)
+  def repercussions(a: Atom) = trans(ACons, a)
 
   def antecedents(a: Atom): Set[Atom] = {
     if (status(a) == in) return Supp(a)
@@ -189,7 +189,7 @@ case class TMN() {
 
   def fixOut(a: Atom) = {
     val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
-    unknownPosAtoms foreach setOut
+    unknownPosAtoms foreach setOut //create foundation
     setOut(a)
   }
 
