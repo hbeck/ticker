@@ -1,8 +1,8 @@
 package jtms.tmn
 
-import core.{Atom, Rule}
+import core.{Rule, Atom}
 import jtms.{Status, TMN}
-import org.scalatest.FlatSpec
+import org.scalatest.{GivenWhenThen, FlatSpec}
 
 /**
   * Created by FM on 11.02.16.
@@ -57,20 +57,20 @@ trait AtomValidation {
       }
     }
 
-    def SuppTrans(atoms: Atom*) = {
-      it should "have Supp*  " + atoms.toSet in {
+    def Ancestors(atoms: Atom*) = {
+      it should "have Ancestors  " + atoms.toSet in {
         assert(tmn.ancestors(atom) == atoms.toSet)
       }
     }
 
-    def antecedents(atoms: Atom*) = {
-      it should "have Antecendents " + atoms.toSet in {
+    def Antecedents(atoms: Atom*) = {
+      it should "have Antecedents " + atoms.toSet in {
         assert(tmn.antecedents(atom) == atoms.toSet)
       }
     }
 
-    def foundations(atoms: Atom*) = {
-      it should "have foundations " + atoms.toSet in {
+    def Foundations(atoms: Atom*) = {
+      it should "have Foundations* " + atoms.toSet in {
         assert(tmn.foundations(atom) == atoms.toSet)
       }
     }
@@ -87,8 +87,8 @@ trait AtomValidation {
       }
     }
 
-    def AConsTrans(atoms: Atom*) = {
-      it should "have ACons* " + atoms.toSet in {
+    def Repercussions(atoms: Atom*) = {
+      it should "have repercussions* " + atoms.toSet in {
         assert(tmn.repercussions(atom) == atoms.toSet)
       }
     }

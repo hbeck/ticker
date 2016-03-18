@@ -15,7 +15,7 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
   val s = Atom("s")
   val r = Atom("r")
 
-  val none = Set[Atom]()
+  val Falsum = new ContradictionAtom("n")
 
   val programSFirst = Program(
     Rule(p,Set(q),Set(s)),
@@ -48,6 +48,7 @@ class PQSRSample extends FlatSpec with EvaluateBothImplementations {
 
     it should "generate only one model" in {
       val model = evaluation(p)
+
       assert(model contains Set(s))
     }
   }

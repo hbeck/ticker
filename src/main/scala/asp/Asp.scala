@@ -1,7 +1,7 @@
 package asp
 
-import core.Evaluation.Model
-import core.{Evaluation, Atom, Program}
+import core.EvaluationResult.Model
+import core._
 
 /**
   * Created by FM on 25.02.16.
@@ -13,6 +13,7 @@ object Asp {
 
     asp(program)
   }
+
   def apply() = new Asp(ClingoWrapper())
 }
 

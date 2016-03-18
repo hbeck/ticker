@@ -24,7 +24,8 @@ case class TMN() {
   var rules: List[Rule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]] //TODO pos vs neg
+  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  //TODO pos vs neg
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
@@ -63,7 +64,9 @@ case class TMN() {
 
   def invalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
-      case Some(spoiler) => { Supp(rule.head) += spoiler; true }
+      case Some(spoiler) => {
+        Supp(rule.head) += spoiler; true
+      }
       case None => false
     }
   }
@@ -78,7 +81,9 @@ case class TMN() {
 
   def isInvalid(rule: Rule): Boolean = {
     findSpoiler(rule) match {
-      case Some(spoiler) => { Supp(rule.head) += spoiler; true }
+      case Some(spoiler) => {
+        Supp(rule.head) += spoiler; true
+      }
       case None => false
     }
   }
@@ -247,7 +252,7 @@ case class TMN() {
     val suppRules = maxAssumptions map (SuppRule(_).get)
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - n
-    val rule = RuleFromBacktracking(pos,neg,n)
+    val rule = RuleFromBacktracking(pos, neg, n)
 
     assert(foundedValid(rule))
 
@@ -256,7 +261,7 @@ case class TMN() {
 
   def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
-    var rule:Option[RuleFromBacktracking] = None
+    var rule: Option[RuleFromBacktracking] = None
     var assumptions = List[Atom]() ++ maxAssumptions
 
     //TODO (hb) refactor
@@ -280,7 +285,7 @@ case class TMN() {
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - nStar
 
-    val rule = RuleFromBacktracking(pos,neg,nStar)
+    val rule = RuleFromBacktracking(pos, neg, nStar)
 
     if (permittingFoundation(rule)) Some(rule)
     else None

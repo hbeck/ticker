@@ -12,6 +12,9 @@ class AspConversionSpecs extends FlatSpec {
   val b = Atom("b")
   val c = Atom("c")
 
+
+  val Falsum = new ContradictionAtom("n")
+
   "A premise A" should "be transformed into the expression 'a.'" in {
     val premise = Fact(a)
 
@@ -47,7 +50,7 @@ class AspConversionSpecs extends FlatSpec {
   }
 
   "A rule with a ContradictionNode" should "be transformed into an integrity constraint ':- a, not c.'" in{
-    val r = Constraint.pos(a).neg(c)
+    val r = Rule.pos(a).neg(c).head(Falsum)
 
     assert(AspConversion(r) == AspExpression(":- a, not c."))
   }

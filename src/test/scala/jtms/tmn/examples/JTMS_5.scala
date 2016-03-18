@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
 import core.{Fact, Atom}
+import common.sets.symmdiff
 
 /**
   * Created by FM on 06.02.16.
@@ -12,7 +13,7 @@ class JTMS_5 extends JTMSSpec {
   var diff: Set[Atom] = Set();
   val tmn = {
     val tmn = JTMS
-    tmn.set(Set(E, B, D))
+    tmn.set(Set(e, b, d))
     val m1 = tmn.getModel().get
     tmn.add(j0)
     val m2 = tmn.getModel().get

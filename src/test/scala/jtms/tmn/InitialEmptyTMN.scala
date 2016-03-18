@@ -8,13 +8,15 @@ import scala.language.implicitConversions
 /**
   * Created by FM on 05.02.16.
   */
-class InitialEmptyTMN extends TMNSpec with BeforeAndAfter {
+class InitialEmptyTMN extends FlatSpec {
 
-  val assumptionA = Assumption("A")
-  val tmn = EmptyTMN
+  val assumptionA = Fact(Atom("A"))
+  val program = Program(assumptionA)
 
-  before {
-    tmn.add(assumptionA)
+  val EmptyTMN = TMN(Program())
+
+  val tmn = {
+    TMN(program)
   }
 
   "An empty TMN" should "have no rules and no status values set" in {

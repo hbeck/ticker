@@ -23,21 +23,20 @@ object ClingoWrapper {
     matches.get.group("version")
   }
 
-  def apply() = {
-    val versionProcess = Process("clingo --version")
+  def apply(executable: String = "clingo") = {
+    val versionProcess = Process(executable :: List("--version"))
 
     val versionOutput = versionProcess.!!
 
     val clingoVersion = parseVersion(versionOutput)
 
-    new ClingoWrapper(Process("clingo --verbose=0 --models=0"), clingoVersion)
+    new ClingoWrapper(Process(executable, List("--verbose=0", "--models=0")), clingoVersion)
   }
 }
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
 
-  def run(expressions: Seq[AspExpression]): String = run(expressions.mkString(System.lineSeparator))
-
+  def run(expressions: Set[AspExpression]): String = run(expressions.mkString(System.lineSeparator))
 
   def run(program: String): String = {
 
@@ -79,12 +78,11 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
 
 
       val models = lines.init.map(line => line.split(' ').toSet)
-
-      return Some(models.toSet)
+      // An (satisfiable) but empty model is not a result for us
+      if (models.nonEmpty)
+        return Some(models.toSet)
     }
 
     None
   }
-
-
 }

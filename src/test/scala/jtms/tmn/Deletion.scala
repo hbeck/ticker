@@ -17,10 +17,10 @@ class Deletion extends FlatSpec {
   "A model with only one rule" should "have no rules and atoms after deletion" in {
     val j0 = Fact(A)
 
-    val tmn = TMN()//Set(A))
+    val tmn = new TMN()
     tmn.add(j0)
 
-    assume(tmn.getModel.get == Set(A))
+    assume(tmn.getModel == Set(A))
     assume(tmn.status(A) == in)
 
     tmn.remove(j0)
@@ -55,7 +55,7 @@ class Deletion extends FlatSpec {
     val j0 = Rule.pos(A).head(B)
     val j1 = Fact(A)
 
-    val tmn = TMN() //Set(A, B))
+    val tmn = new TMN()
 
     tmn.add(j0)
     tmn.add(j1)
@@ -73,7 +73,7 @@ class Deletion extends FlatSpec {
     assert(tmn.SuppRule(A) == None)
     assert(tmn.SuppRule(B) == None)
     assert(tmn.Cons(A) == Set(B))
-    assert(tmn.N == Set(A, B))
+    assert(tmn.atoms == Set(A, B))
     assert(tmn.status.keys == Set(A, B))
   }
 
@@ -82,7 +82,7 @@ class Deletion extends FlatSpec {
     val j0 = Rule.pos(A).head(B)
     val j1 = Fact(A)
 
-    val tmn = new TMN(Set(A, B))
+    val tmn = new TMN()
 
     tmn.add(j0)
     tmn.add(j1)
@@ -100,7 +100,7 @@ class Deletion extends FlatSpec {
     assert(tmn.SuppRule(A) == Some(j1))
     assert(tmn.Cons(A) == Set())
 
-    assert(tmn.N == Set(A))
+    assert(tmn.atoms == Set(A))
     assert(tmn.status.keys == Set(A))
   }
 
@@ -109,7 +109,7 @@ class Deletion extends FlatSpec {
     val j1 = Fact(A)
     val j2 = Rule.pos(B).head(C)
 
-    val tmn = TMN() //Set(A, B, C))
+    val tmn = new TMN()
 
     tmn.add(j0)
     tmn.add(j1)
@@ -126,7 +126,7 @@ class Deletion extends FlatSpec {
     assert(tmn.Cons(A) == Set())
     assert(tmn.SuppRule(C) == None)
 
-    assert(tmn.atoms == Set(A, B, C))
+    assert(tmn.atoms== Set(A, B, C))
     assert(tmn.status.keys == Set(A, B, C))
   }
 
@@ -136,7 +136,7 @@ class Deletion extends FlatSpec {
     val j2 = Rule.pos(B).head(C)
     val j3 = Rule.pos(A).head(C)
 
-    val tmn = TMN() //Set(A, B, C))
+    val tmn = new TMN()
 
     tmn.add(j0)
     tmn.add(j1)

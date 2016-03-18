@@ -16,10 +16,11 @@ trait CarBehavior {
   val D = Atom("defect")
   val I = Atom("ignition_broken")
   val C = Atom("carb_broken")
+  val Falsum = new ContradictionAtom("f")
 
   val j0 = Rule.pos(S_not).neg(D).head(G_not);
   val j1 = Rule.pos(S_not, G).head(D)
-  val j2 = Constraint.pos(G, G_not)
+  val j2 = Rule.pos(G, G_not).head(Falsum)
   val j3 = Rule.pos(I).head(D)
   val j4 = Rule.pos(C).head(D)
 
@@ -37,7 +38,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.get.contains(D) == false)
+      assert(model.contains( Set(D)) == false)
     }
 
     it should "result in a defect" in {
@@ -46,7 +47,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.get.contains(D))
+      assert(model.head.contains(D))
     }
 
     it should "result in not enough gas" in {
@@ -55,7 +56,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.get.contains(G_not))
+      assert(model.head.contains(G_not))
     }
 
     it should "result in a defect because of the ignition" in {
@@ -64,7 +65,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.get.contains(D))
+      assert(model.head.contains(D))
     }
 
     it should "result in a defect because of the ign" in {
@@ -73,7 +74,7 @@ trait CarBehavior {
 
       val model = evaluation(p)
 
-      assert(model.get.contains(D))
+      assert(model.head.contains(D))
     }
   }
 }

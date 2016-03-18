@@ -29,7 +29,7 @@ trait ManufacturingBehavior {
       info("When manufacturing without troubles")
       val model = evaluation(program)
 
-      assert(model contains SingleModel(Set(C, A1)))
+      assert(model contains Set(C, A1))
     }
 
     it should "mark as troubles and use resource A2" in {
@@ -38,7 +38,7 @@ trait ManufacturingBehavior {
 
       val model = evaluation(p)
 
-      assert(model contains SingleModel(Set(C, L1, B, A2)))
+      assert(model contains Set(C, L1, B, A2))
     }
   }
 

@@ -25,9 +25,9 @@ trait MultipleModelsBehavior {
       val model = evaluation(Program(j1, j2))
 
       if (evaluation.isInstanceOf[Asp])
-        assert(model contains MultipleModels(Set(Set(b), Set(a))))
+        assert(model == Set(Set(b), Set(a)))
       else {
-        assert(model contains SingleModel(Set(b)))
+        assert(model contains Set(b))
         pending
       }
     }
@@ -36,9 +36,9 @@ trait MultipleModelsBehavior {
       info("When adding j2 before j1 the valid model")
       val model = evaluation(Program(j2, j1))
       if (evaluation.isInstanceOf[Asp])
-        assert(model contains MultipleModels(Set(Set(b), Set(a))))
+        assert(model == Set(Set(b), Set(a)))
       else {
-        assert(model contains SingleModel(Set(a)))
+        assert(model contains Set(a))
         pending
       }
     }
