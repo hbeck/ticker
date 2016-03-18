@@ -84,7 +84,7 @@ case class TMN() {
     }
   }
 
-  def rulesWithHead(h: Atom) = rules filter (_.head == h)
+  def justifications(h: Atom) = rules filter (_.head == h)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
@@ -112,7 +112,7 @@ case class TMN() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    Supp(a) = Set() ++ (rulesWithHead(a) map (findSpoiler(_).get))
+    Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     SuppRule(a) = None
   }
 
@@ -146,14 +146,14 @@ case class TMN() {
   }
 
   def validation(a: Atom): Boolean = {
-    rulesWithHead(a) find foundedValid match {
+    justifications(a) find foundedValid match {
       case Some(rule) => { setIn(rule); true }
       case None => false
     }
   }
 
   def invalidation(a: Atom): Boolean = {
-    if (rulesWithHead(a) forall foundedInvalid) {
+    if (justifications(a) forall foundedInvalid) {
       setOut(a)
       return true
     }
@@ -167,16 +167,14 @@ case class TMN() {
     if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
-      for (c <- (ACons(a) + a)) {
-        setUnknown(c)
-        fixAndPropagateStatus(c)
-      }
-      //TODO (HB) shouldn't it be setUnknown for all, then fix.. for all?
+      val affected = ACons(a) + a
+      affected foreach setUnknown
+      affected foreach fixAndPropagateStatus
     }
   }
 
   def fix(a: Atom): Boolean = {
-    rulesWithHead(a) find unfoundedValid match {
+    justifications(a) find unfoundedValid match {
       case Some(rule) => {
         if (ACons(a).isEmpty) fixIn(rule)
         else return false
@@ -192,7 +190,7 @@ case class TMN() {
   }
 
   def fixOut(a: Atom) = {
-    val unknownPosAtoms = rulesWithHead(a) map { r => (r.pos find (status(_)==unknown)).get }
+    val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
     unknownPosAtoms foreach setOut //create foundation
     setOut(a)
   }
@@ -254,7 +252,8 @@ case class TMN() {
 
   //book chapter variant
   def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-    val n = SuppRule(maxAssumptions.head).get.neg.head
+    val culprit = maxAssumptions.head
+    val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
 
     val suppRules = maxAssumptions map (SuppRule(_).get)
     val pos = suppRules flatMap (_.pos)
@@ -266,7 +265,7 @@ case class TMN() {
     Some(rule)
   }
 
-  /* ----------------------- in progres ... ------------------------------------- */
+  /* ----------------------- in progress ... ------------------------------------- */
 
   //towards a working variant ...
   def findBacktrackingRule2(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
@@ -306,7 +305,7 @@ case class TMN() {
   def permittingFoundation(rule: Rule): Boolean = {
     if (!rule.pos.isEmpty || !rule.neg.isEmpty) return true //crucial are facts
     //easy case when no rule for this fact exists:
-    if (rulesWithHead(rule.head).isEmpty) return false
+    if (justifications(rule.head).isEmpty) return false
     //TODO hard cases; the rule above does not work in general (e.g. the case a:- not b. b:- not a. :- a.)
     //if (revConsTrans(rule.head).contains(rule.head)) return false
     return false
@@ -387,7 +386,7 @@ case class TMN() {
   def findSuppRule(M: List[Atom], idx: Int): Option[Rule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
-    val rules = rulesWithHead(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
+    val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
