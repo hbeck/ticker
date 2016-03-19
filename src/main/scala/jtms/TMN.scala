@@ -28,6 +28,13 @@ case class TMN() {
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
+  def reset(): Unit = {
+    Cons.keys foreach (Cons(_)=Set[Atom]())
+    Supp.keys foreach (Supp(_)=Set[Atom]())
+    SuppRule.keys foreach (SuppRule(_)=None)
+    status.keys foreach (status(_)=out)
+  }
+
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -65,14 +72,35 @@ case class TMN() {
   def inAtoms() = status.keys filter (status(_) == in)
 
   //var loop: Boolean = false
+  def add(rule: Rule): Unit = {
+    add(rule,true)
+  }
+
+  var lastAddedRule: Option[Rule] = None
 
   //TMS update algorithm
-  def add(rule: Rule): Unit = {
+  def add(rule: Rule, replayAllowed: Boolean): Unit = {
     //loop = false
+    var replay = false
+    if (replayAllowed && getModel()==None) { //replay until previous
+      replay = true
+      rules = rules.takeWhile(_ != lastAddedRule.get)
+      reset()
+      for (r <- rules) {
+        add(r,false)
+      }
+    }
+
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
     updateBeliefs(atoms)
+
+    if (replay) {
+      add(lastAddedRule.get, false)
+    }
+
+    lastAddedRule = Some(rule)
   }
 
   def register(rule: Rule): Unit = {
@@ -97,9 +125,12 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom]) = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus //Relax Circularities
+    recursiveFix()
+    //val sortedAtoms = (List[Atom]() ++ atoms).sortWith((a1,a2) => contradictionAtom(a1))
+    //sortedAtoms foreach fixAndPropagateStatus //Relax Circularities
     tryEnsureConsistency
   }
+
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
@@ -198,6 +229,21 @@ case class TMN() {
     false
   }
 
+  def recursiveFix(): Unit = {
+    val unknownAtoms = atoms() filter (status(_) == unknown)
+    if (unknownAtoms.isEmpty)
+      return
+
+    val sortedAtoms = (List[Atom]() ++ unknownAtoms).sortWith((a1,a2) => contradictionAtom(a1))
+    val a = sortedAtoms.head
+    if (!fix(a)) {
+      val affected = ACons(a) + a
+      affected foreach setUnknown
+    }
+
+    recursiveFix()
+  }
+
   def fixAndPropagateStatus(a: Atom): Unit = {
     if (status(a) != unknown) // || loop)
       return
@@ -291,7 +337,7 @@ case class TMN() {
       return false //contradiction cannot be solved
 
     findBacktrackingRule3(c,maxAssumptions) match {
-      case Some(rule) => { add(rule); return true }
+      case Some(rule) => { add(rule,false); return true }
       case None => return false
     }
 

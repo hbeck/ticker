@@ -12,7 +12,7 @@ class Consistency extends FunSuite {
   val a = Atom("a")
   val b = Atom("b")
   val c = Atom("c")
-//  val d = Atom("d")
+  val d = Atom("d")
 //  val e = Atom("e")
 //  val f = Atom("f")
 
@@ -138,7 +138,7 @@ class Consistency extends FunSuite {
 
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
-    /* TODO
+
     val tmnFactFirst = TMN()
     tmnFactFirst.add(Rule(a))
     tmnFactFirst.add(Rule(a,Set(),Set(a)))
@@ -147,26 +147,72 @@ class Consistency extends FunSuite {
     val tmnRuleFirst = TMN()
     tmnRuleFirst.add(Rule(a,Set(),Set(a)))
     tmnRuleFirst.add(Rule(a))
-    assert(tmnRuleFirst.getModel.get == Set(a)) */
+    assert(tmnRuleFirst.getModel.get == Set(a))
   }
 
   //inconsistent: direct odd loop
-  test("a :- not a.") {
-    /* TODO
-    val tmn = TMN()
-    tmn.add(Rule(a,Set(),Set(a)))
-    assert(tmn.getModel == None)
-    */
-  }
+//  test("a :- not a.") {
+//
+//    val tmn = TMN()
+//    tmn.add(Rule(a,Set(),Set(a)))
+//    assert(tmn.getModel == None)
+//
+//  }
 
   //inconsistent: indirect odd loop
-  test("a :- b. b :- c. c :- not a.") {
-    /* TODO
-    val tmn = TMN()
-    tmn.add(Rule(a,b))
-    tmn.add(Rule(b,c))
-    tmn.add(Rule(c,none,Set(a)))
-    assert(tmn.getModel == None) */
+//  test("a :- b. b :- c. c :- not a.") {
+//
+//    for (i <- 1 to times) {
+//      val tmn = TMN()
+//      tmn.add(Rule(a, b))
+//      tmn.add(Rule(b, c))
+//      tmn.add(Rule(c, none, Set(a)))
+//      assert(tmn.getModel == None)
+//
+//      tmn.add(Rule(c))
+//      assert(tmn.getModel.get == Set[Atom](a, b, c))
+//    }
+//  }
+
+  //inconsistent: indirect odd loop
+//  test("a :- b. b :- c. c :- d. d :- not a.") {
+//
+//    for (i <- 1 to times) {
+//      val tmn = TMN()
+//      tmn.add(Rule(a, b))
+//      tmn.add(Rule(b, c))
+//      tmn.add(Rule(c, d))
+//      tmn.add(Rule(d, none, Set(a)))
+//      assert(tmn.getModel == None)
+//
+//      tmn.add(Rule(d))
+//      assert(tmn.getModel.get == Set[Atom](a, b, c, d))
+//    }
+//  }
+
+  test("a :- b. b :- not c. c :- not a.") {
+
+    val tmn1 = TMN()
+    tmn1.add(Rule(a,b))
+    tmn1.add(Rule(b,none,Set(c)))
+    assert(tmn1.getModel.get == Set(a,b))
+
+    tmn1.add(Rule(c,none,Set(a)))
+    assert(tmn1.getModel.get == Set(a,b))
+
+    //other insertion order of last two
+    val tmn2 = TMN()
+    tmn2.add(Rule(a,b)) //a :- b
+    tmn2.add(Rule(c,none,Set(a))) //c :- not a
+    assert(tmn2.getModel.get == Set(c)) //{c}
+
+    tmn2.add(Rule(b,none,Set(c))) // b :- not c
+    assert(tmn2.getModel.get == Set(c)) //{c} (or {a,b})
+
+    tmn2.add(Rule(n,c)) //:- c
+    //force other
+    assert(tmn2.getModel.get == Set(a,b))
+
   }
 
 }
