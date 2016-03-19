@@ -187,7 +187,8 @@ case class TMN() {
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
   def unfoundedValid(rule: Rule) =
-    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
+    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
+  //&& (rule.neg exists (status(_) == unknown))
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
     trans(f)(f(t))
