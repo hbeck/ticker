@@ -20,18 +20,7 @@ class Consistency extends FunSuite {
 
   val none = Set[Atom]()
 
-  test("a :- not b. b :- not a. n :- a.") {
-    val tmn = TMN()
-    tmn.add(Rule(a,none,Set(b)))
-    tmn.add(Rule(b,none,Set(a))) //-> {a}
-
-    var model = tmn.getModel.get
-    assert(model == Set(a))
-
-    tmn.add(Rule(n,a))
-    model = tmn.getModel.get
-    assert(model == Set(b))
-  }
+  val times = 100
 
   test("a") {
     val tmn = TMN()
@@ -45,6 +34,7 @@ class Consistency extends FunSuite {
   }
 
   test("a :- not b. then b.") {
+
     val tmn = TMN()
     tmn.add(Rule(a,none,Set(b)))
     var model = tmn.getModel.get
@@ -55,33 +45,80 @@ class Consistency extends FunSuite {
     model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains b)
+
+  }
+
+  test("a :- not b. b :- not a. n :- a.") {
+
+    for (i <- 1 to times) {
+      val tmn = TMN()
+      tmn.add(Rule(a, none, Set(b)))
+      tmn.add(Rule(b, none, Set(a))) //-> {a}
+
+      var model = tmn.getModel.get
+      assert(model == Set(a))
+
+      tmn.add(Rule(n, a))
+      model = tmn.getModel.get
+      assert(model == Set(b))
+    }
   }
 
   test("b :- not a. :- b, not c.") { //JTMS_21 base case
-    val tmn = TMN()
+    for (i <- 1 to times) {
+      val tmn = TMN()
 
-    tmn.add(Rule(b,none,Set(a)))
-    assert(tmn.getModel.get == Set(b))
+      tmn.add(Rule(b, none, Set(a)))
+      assert(tmn.getModel.get == Set(b))
 
-    tmn.add(Rule(n,Set(b),Set(c)))
-    assert(tmn.getModel == None)
+      tmn.add(Rule(n, Set(b), Set(c)))
+      assert(tmn.getModel == None)
+    }
   }
 
   test("a :- c. c :- a. b :- not a. :- b, not c.") {
-    val tmn = TMN()
-    tmn.add(Rule(a,c))
+    for (i <- 1 to times) {
+      val tmn = TMN()
+      tmn.add(Rule(a, c))
 
-    assert(tmn.getModel.get.isEmpty)
+      assert(tmn.getModel.get.isEmpty)
 
-    tmn.add(Rule(c,a))
-    assert(tmn.getModel.get.isEmpty)
+      tmn.add(Rule(c, a))
+      assert(tmn.getModel.get.isEmpty)
 
-    tmn.add(Rule(b,none,Set(a)))
-    assert(tmn.getModel.get.size==1)
-    assert(tmn.getModel.get contains b)
+      tmn.add(Rule(b, none, Set(a)))
+      assert(tmn.getModel.get.size == 1)
+      assert(tmn.getModel.get contains b)
 
-    tmn.add(Rule(n,Set(b),Set(c)))
-    assert(tmn.getModel == None)
+      tmn.add(Rule(n, Set(b), Set(c)))
+      assert(tmn.getModel == None)
+    }
+  }
+
+  test("a :- c. c :- a. b :- not a. :- b, not c. add a before and after constraint.") {
+    //for (i <- 1 to times) {
+      val tmnBefore = TMN()
+      tmnBefore.add(Rule(a, c)) //{}
+      tmnBefore.add(Rule(c, a)) //{}
+      tmnBefore.add(Rule(b, none, Set(a))) //{b}
+      //
+      tmnBefore.add(Rule(a,none,none)) //{a,c}
+      assert(tmnBefore.getModel.get == Set[Atom](a,c))
+      tmnBefore.add(Rule(n, Set(b), Set(c))) //{a,c}
+      assert(tmnBefore.getModel.get == Set[Atom](a,c))
+
+
+      val tmnAfter = TMN()
+      tmnAfter.add(Rule(a, c)) //{}
+      tmnAfter.add(Rule(c, a)) //{}
+      tmnAfter.add(Rule(b, none, Set(a))) //{b}
+      //
+      tmnAfter.add(Rule(n, Set(b), Set(c))) //None
+      assert(tmnAfter.getModel == None)
+      tmnAfter.add(Rule(a,none,none)) //{a,c}
+      assert(tmnAfter.getModel.get == Set[Atom](a,c))
+
+    //}
   }
 
   //inconsistent

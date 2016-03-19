@@ -28,19 +28,38 @@ case class TMN() {
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
-  def registerAtom(a: Atom): Unit = {
-    if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
-  }
-
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    if (loop) return None
+    if (someNoneFactHasNoSupport) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
+  }
+
+  def someNoneFactHasNoSupport(): Boolean = {
+    val heads = (rules map (_.head)).toSet
+    val factHeads = (rules filter (r => r.pos.isEmpty && r.neg.isEmpty)) map (_.head)
+    val intensional = heads -- factHeads
+    //intensional exists (Supp(_).isEmpty)
+    val unsupported: Predef.Set[Atom] = intensional filter (Supp(_).isEmpty)
+    for (x <- unsupported) {
+      if (status(x) == in) {
+        justifications(x) find foundedValid match {
+          case Some(r) => setIn(r)
+          case None => return true
+        }
+      } else if (status(x) == out) {
+        justifications(x) find foundedInvalid match {
+          case Some(r) => setOut(x,false)
+          case None => return true
+        }
+      } else {
+        throw new RuntimeException("outsch")
+      }
+    }
+    return false
   }
 
   def inAtoms() = status.keys filter (status(_) == in)
@@ -48,7 +67,10 @@ case class TMN() {
   //TMS update algorithm
   def add(rule: Rule): Unit = add(rule,true)
 
+  var loop: Boolean = false
+
   def add(rule: Rule, withDDB: Boolean): Unit = {
+    loop = false
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     updateBeliefs(repercussions(rule.head) + rule.head,withDDB)
@@ -61,6 +83,13 @@ case class TMN() {
     rule.body foreach (Cons(_) += rule.head)
   }
 
+  def registerAtom(a: Atom): Unit = {
+    if (!status.isDefinedAt(a)) status(a) = out
+    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
+    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
+    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
+  }
+
   def invalid(rule: Rule) = findSpoiler(rule,false) match {
     case Some(spoiler) => Supp(rule.head) += spoiler; true
     case None => false
@@ -69,7 +98,7 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom], withDDB: Boolean) = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    atoms foreach fixAndPropagateStatus
     if (withDDB) tryEnsureConsistency
   }
 
@@ -101,7 +130,9 @@ case class TMN() {
 
   def setOut(a: Atom, allowUnknown: Boolean) = {
     status(a) = out
-    Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_,allowUnknown).get))
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_,allowUnknown))
+    Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_,allowUnknown).get))
     SuppRule(a) = None
   }
 
@@ -169,7 +200,7 @@ case class TMN() {
   }
 
   def fixAndPropagateStatus(a: Atom): Unit = {
-    if (status(a) != unknown)
+    if (status(a) != unknown || loop)
       return
 
     if (fix(a)) {
@@ -182,11 +213,15 @@ case class TMN() {
   }
 
   def fix(a: Atom): Boolean = {
+    if (loop) return false
+
     justifications(a) find unfoundedValid match {
       case Some(rule) => {
         val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will not i.g. be set
-        if (anc contains a)
-          throw new RuntimeException("here we are!")
+        if (anc contains a) {
+          loop = true
+          return false
+        }
 
         if (ACons(a).isEmpty) fixIn(rule)
         else return false
@@ -197,7 +232,7 @@ case class TMN() {
   }
 
   def fixIn(unfoundedValidRule: Rule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach (setOut(_,true)) //create foundation
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach (setOut(_,true)) //create foundation //TODO diff
     //unfoundedValidRule.neg foreach (status(_) = out) //support not set
     setIn(unfoundedValidRule)
   }
@@ -285,24 +320,50 @@ case class TMN() {
 
     //val noGood = new ContradictionAtom(""+System.currentTimeMillis()) //TODO (hb) store and potentially retrieve
 
-    //val E = Predef.Set[Atom]()
+    val E = Predef.Set[Atom]()
 
     //val ngr = new RuleFromBacktracking(E ++ maxAssumptions + c,E,noGood)
     //add(ngr,false)
 
-    val culprit = maxAssumptions.head
-    val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
+    var rule: Option[RuleFromBacktracking] = None
+    var assumptions = Set[Atom]() ++ maxAssumptions
 
-    val suppRules = maxAssumptions map (SuppRule(_).get)
-    val pos = (suppRules flatMap (_.pos)) + c
+    val pos = E ++ maxAssumptions + c
+
+    while (rule == None && !assumptions.isEmpty) {
+      val culprit = maxAssumptions.head
+      assumptions = assumptions-culprit
+      val sr = SuppRule(culprit).get
+      var negCands = Set[Atom]() ++ sr.neg
+      while (rule == None && !negCands.isEmpty) {
+        val n = negCands.head
+        negCands = negCands - n
+        val neg = sr.neg - n
+        val r = RuleFromBacktracking(pos,neg,n)
+        if (!(rules contains r)) {
+          rule = Some(r)
+        }
+      }
+    }
+
+    rule
+
+//    val culprit = maxAssumptions.head
+//    val sr = SuppRule(culprit).get
+//    val n = sr.neg.head //(all .neg have status out at this point)
+
+    //val suppRules = maxAssumptions map (SuppRule(_).get)
+    //val pos = (suppRules flatMap (_.pos)) + c
     //val pos = E ++ maxAssumptions + noGood
-    val neg = (suppRules flatMap (_.neg)) - n
+    //val pos = E ++ maxAssumptions + c
+    //val neg = (suppRules flatMap (_.neg)) - n
     //val neg = SuppRule(culprit).get.neg - n
-    val rule = RuleFromBacktracking(pos, neg, n)
+    //val neg = sr.neg - n
+    //val rule = RuleFromBacktracking(pos, neg, n) //TODO
 
-    assert(foundedValid(rule))
-
-    Some(rule)
+//    assert(foundedValid(rule))
+//
+//    Some(rule)
   }
 
   /* ----------------------- in progress ... ------------------------------------- */

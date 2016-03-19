@@ -55,6 +55,7 @@ sealed trait Rule {
   */
 //TODO (hb) following order is better: (head, pos, neg)
 case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
+  override def toString = head + " <- " + (if (pos.isEmpty) "" else pos) + (if (neg.isEmpty) "" else ", not "+neg)
 //  override def toString = {
 //    val sb = new StringBuilder()
 //    sb.append(head)
@@ -71,7 +72,9 @@ case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends R
 //  }
 }
 
-case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule
+case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
+  override def toString = head + " <-- " + (if (pos.isEmpty) "" else pos) + (if (neg.isEmpty) "" else ", not "+neg)
+}
 
 object RuleFromBacktracking {
   def apply (pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): RuleFromBacktracking = {
