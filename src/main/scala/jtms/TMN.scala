@@ -28,13 +28,6 @@ case class TMN() {
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
-  def registerAtom(a: Atom): Unit = {
-    if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
-  }
-
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -57,6 +50,13 @@ case class TMN() {
     rules = rules :+ rule
     rule.atoms foreach registerAtom
     rule.body foreach (Cons(_) += rule.head)
+  }
+
+  def registerAtom(a: Atom): Unit = {
+    if (!status.isDefinedAt(a)) status(a) = out
+    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
+    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
+    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
   }
 
   def invalid(rule: Rule) = findSpoiler(rule) match {
