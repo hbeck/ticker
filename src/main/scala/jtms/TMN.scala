@@ -31,10 +31,35 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    //if (someNoneFactHasNoSupport) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
+
+//  def someNoneFactHasNoSupport(): Boolean = {
+//    val heads = (rules map (_.head)).toSet
+//    val factHeads = (rules filter (r => r.pos.isEmpty && r.neg.isEmpty)) map (_.head)
+//    val intensional = heads -- factHeads
+//    //intensional exists (Supp(_).isEmpty)
+//    val unsupported: Predef.Set[Atom] = intensional filter (Supp(_).isEmpty)
+//    for (x <- unsupported) {
+//      if (status(x) == in) {
+//        justifications(x) find foundedValid match {
+//          case Some(r) => setIn(r)
+//          case None => return true
+//        }
+//      } else if (status(x) == out) {
+//        justifications(x) find foundedInvalid match {
+//          case Some(r) => setOut(x)
+//          case None => return true
+//        }
+//      } else {
+//        throw new RuntimeException("outsch")
+//      }
+//    }
+//    return false
+//  }
 
   def inAtoms() = status.keys filter (status(_) == in)
 
@@ -42,7 +67,8 @@ case class TMN() {
   def add(rule: Rule): Unit = {
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
-    updateBeliefs(repercussions(rule.head) + rule.head)
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
   }
 
   def register(rule: Rule): Unit = {
@@ -99,7 +125,9 @@ case class TMN() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     SuppRule(a) = None
   }
 
@@ -175,7 +203,9 @@ case class TMN() {
   }
 
   def fixOut(a: Atom) = {
-    val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //create foundation
     setOut(a)
   }
@@ -226,11 +256,46 @@ case class TMN() {
     if (maxAssumptions.isEmpty)
       return false //contradiction cannot be solved
 
-    findBacktrackingRule(maxAssumptions) match {
+    findBacktrackingRule3(c,maxAssumptions) match {
       case Some(rule) => { add(rule); return true }
       case None => return false
     }
 
+  }
+
+  def findBacktrackingRule3(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+
+    val E = Predef.Set[Atom]()
+
+    var rule: Option[RuleFromBacktracking] = None
+    var assumptions = Set[Atom]() ++ maxAssumptions
+
+    val pos = E ++ maxAssumptions + c
+
+    var countOuter = 0
+    var countInner = 0
+
+    while (rule == None && !assumptions.isEmpty && countOuter >= 0) {
+      countOuter += 1
+      if (countOuter >= 2) println("outer: "+countOuter)
+      val culprit = maxAssumptions.head
+      assumptions = assumptions-culprit
+      val sr = SuppRule(culprit).get
+      var negCands = Set[Atom]() ++ sr.neg
+      while (rule == None && !negCands.isEmpty && countInner >= 0) {
+        countInner += 1
+        if (countInner >= 2) println("inner: "+countInner)
+        val n = negCands.head
+        negCands = negCands - n
+        val neg = sr.neg - n
+        val r = RuleFromBacktracking(pos,neg,n)
+        if (!(rules contains r)) {
+          rule = Some(r)
+        }
+      }
+    }
+
+    rule
   }
 
   //book chapter variant
