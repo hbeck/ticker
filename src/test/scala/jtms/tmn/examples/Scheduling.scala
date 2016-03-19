@@ -25,18 +25,19 @@ class Scheduling extends FlatSpec {
     Rule(Room813, Set(), Set(Room801))
   )
 
-
   "The model" should "be Time1000, Room813" in {
     val tmn = TMN(program)
 
     assert(tmn.getModel.get == Set(Time1000, Room813))
   }
+
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
     val tmn = TMN(
       program + Rule(contradiction, Set(Time1000, Room813), Set())
     )
 
-    assert(tmn.getModel.get == Set(NotTime1000, Room813))
+    //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //TODO that's not a stable model!
+    assert(tmn.getModel == None)
   }
 
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
@@ -46,6 +47,7 @@ class Scheduling extends FlatSpec {
         Rule(contradiction, Set(NotTime1000), Set())
     )
 
-    assert(tmn.getModel.get == Set(Time1000, Room801))
+    //assert(tmn.getModel.get == Set(Time1000, Room801)) //TODO that's not a stable model!
+    assert(tmn.getModel == None)
   }
 }
