@@ -31,7 +31,7 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (loop) return None
+    //if (loop) return None
     if (someNoneFactHasNoSupport) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
@@ -64,11 +64,11 @@ case class TMN() {
 
   def inAtoms() = status.keys filter (status(_) == in)
 
-  var loop: Boolean = false
+  //var loop: Boolean = false
 
   //TMS update algorithm
   def add(rule: Rule): Unit = {
-    loop = false
+    //loop = false
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
@@ -199,7 +199,7 @@ case class TMN() {
   }
 
   def fixAndPropagateStatus(a: Atom): Unit = {
-    if (status(a) != unknown || loop)
+    if (status(a) != unknown) // || loop)
       return
 
     if (fix(a)) {
@@ -212,15 +212,15 @@ case class TMN() {
   }
 
   def fix(a: Atom): Boolean = {
-    if (loop) return false
+    //if (loop) return false
 
     justifications(a) find unfoundedValid match {
       case Some(rule) => {
-        val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will in general not be set
-        if (anc contains a) {
-          loop = true
-          return false
-        }
+//        val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will in general not be set
+//        if (anc contains a) {
+//          loop = true
+//          return false
+//        }
 
         if (ACons(a).isEmpty) fixIn(rule)
         else return false
