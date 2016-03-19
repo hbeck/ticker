@@ -1,6 +1,5 @@
 package jtms.tmn.examples
 
-import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
@@ -54,6 +53,9 @@ trait LibraryBehavior {
       assert(model contains Set(V, H, P, A_not))
     }
 
+    /* TODO these programs are all inconsistent ...
+
+
     it should "be A_not,H,P, V" in {
       info("With a constraint for A the model")
       val p = program + jExclusionA
@@ -88,6 +90,7 @@ trait LibraryBehavior {
       info("F is currently chosen 'by random'")
       assert(model contains Set(P_not, F, V))
     }
+    */
   }
 }
 

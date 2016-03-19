@@ -3,7 +3,6 @@ package jtms.tmn.examples
 import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
-import jtms.TMN
 import org.scalatest.FlatSpec
 
 /**
@@ -28,7 +27,7 @@ trait MultipleModelsBehavior {
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(b))
-        pending
+        //pending
       }
     }
 
@@ -39,7 +38,7 @@ trait MultipleModelsBehavior {
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(a))
-        pending
+        //pending
       }
     }
   }

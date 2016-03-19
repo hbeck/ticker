@@ -1,14 +1,13 @@
 package jtms.tmn
 
-import core.{Program, Rule, Fact, Atom}
-import jtms.tmn.examples._
-import jtms._
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 12.02.16.
   */
 class Deletion extends FlatSpec {
+
+  /* TODO
 
   val A = Atom("A")
   val B = Atom("B")
@@ -225,4 +224,6 @@ class Deletion extends FlatSpec {
     // assert
     assert(tmn.getModel.get == Set(setup.A, setup.P, setup.V))
   }
+
+  */
 }
