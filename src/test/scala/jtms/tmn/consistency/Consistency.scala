@@ -96,7 +96,7 @@ class Consistency extends FunSuite {
   }
 
   test("a :- c. c :- a. b :- not a. :- b, not c. add a before and after constraint.") {
-    //for (i <- 1 to times) {
+    for (i <- 1 to times) {
       val tmnBefore = TMN()
       tmnBefore.add(Rule(a, c)) //{}
       tmnBefore.add(Rule(c, a)) //{}
@@ -118,7 +118,7 @@ class Consistency extends FunSuite {
       tmnAfter.add(Rule(a,none,none)) //{a,c}
       assert(tmnAfter.getModel.get == Set[Atom](a,c))
 
-    //}
+    }
   }
 
   //inconsistent

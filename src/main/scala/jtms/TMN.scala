@@ -64,16 +64,15 @@ case class TMN() {
 
   def inAtoms() = status.keys filter (status(_) == in)
 
-  //TMS update algorithm
-  def add(rule: Rule): Unit = add(rule,true)
-
   var loop: Boolean = false
 
-  def add(rule: Rule, withDDB: Boolean): Unit = {
+  //TMS update algorithm
+  def add(rule: Rule): Unit = {
     loop = false
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
-    updateBeliefs(repercussions(rule.head) + rule.head,withDDB)
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
   }
 
   def register(rule: Rule): Unit = {
@@ -95,11 +94,11 @@ case class TMN() {
     case None => false
   }
 
-  def updateBeliefs(atoms: Set[Atom], withDDB: Boolean) = {
+  def updateBeliefs(atoms: Set[Atom]) = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus
-    if (withDDB) tryEnsureConsistency
+    atoms foreach fixAndPropagateStatus //Relax Circularities
+    tryEnsureConsistency
   }
 
   def justifications(h: Atom) = rules filter (_.head == h)
@@ -217,7 +216,7 @@ case class TMN() {
 
     justifications(a) find unfoundedValid match {
       case Some(rule) => {
-        val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will not i.g. be set
+        val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will in general not be set
         if (anc contains a) {
           loop = true
           return false
@@ -232,8 +231,7 @@ case class TMN() {
   }
 
   def fixIn(unfoundedValidRule: Rule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach (setOut(_,true)) //create foundation //TODO diff
-    //unfoundedValidRule.neg foreach (status(_) = out) //support not set
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach (setOut(_,false)) //create foundation
     setIn(unfoundedValidRule)
   }
 
@@ -241,9 +239,8 @@ case class TMN() {
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach (setOut(_,false)) //create foundation
-    //status(a) = out //support not set
 //    val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-//    unknownPosAtoms foreach setOut //create foundation
+//    unknownPosAtoms foreach (setOut(_,false)) //create foundation
     setOut(a,false)
   }
 
@@ -318,27 +315,33 @@ case class TMN() {
 
   def findBacktrackingRule3(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
-    //val noGood = new ContradictionAtom(""+System.currentTimeMillis()) //TODO (hb) store and potentially retrieve
-
     val E = Predef.Set[Atom]()
-
-    //val ngr = new RuleFromBacktracking(E ++ maxAssumptions + c,E,noGood)
-    //add(ngr,false)
 
     var rule: Option[RuleFromBacktracking] = None
     var assumptions = Set[Atom]() ++ maxAssumptions
 
     val pos = E ++ maxAssumptions + c
 
-    while (rule == None && !assumptions.isEmpty) {
+    var countOuter = 0
+    var countInner = 0
+
+    while (rule == None && !assumptions.isEmpty && countOuter == 0) {
+      countOuter += 1
       val culprit = maxAssumptions.head
       assumptions = assumptions-culprit
       val sr = SuppRule(culprit).get
       var negCands = Set[Atom]() ++ sr.neg
-      while (rule == None && !negCands.isEmpty) {
+      while (rule == None && !negCands.isEmpty && countInner == 0) {
+        countInner += 1
         val n = negCands.head
         negCands = negCands - n
         val neg = sr.neg - n
+
+        //beierle:
+//        val suppRules = maxAssumptions map (SuppRule(_).get)
+//        val pos2 = (suppRules flatMap (_.pos)) + c
+//        val neg2 = (suppRules flatMap (_.neg)) - n
+
         val r = RuleFromBacktracking(pos,neg,n)
         if (!(rules contains r)) {
           rule = Some(r)
@@ -455,7 +458,7 @@ case class TMN() {
       L -= head
     }
 
-    this.updateBeliefs(L,true)
+    this.updateBeliefs(L)
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------

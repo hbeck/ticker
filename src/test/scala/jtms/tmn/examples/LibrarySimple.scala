@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Atom, ContradictionAtom, Rule}
+import core._
 import jtms.TMN
 import org.scalatest.FunSuite
 
@@ -9,164 +9,44 @@ import org.scalatest.FunSuite
   */
 class LibrarySimple extends FunSuite {
 
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-//  val d = Atom("d")
-//  val e = Atom("e")
-//  val f = Atom("f")
+  val V = Atom("verfuegbar")
+  val G = Atom("gestohlen")
+  val P = Atom("am_angegebenen_Platz_vorhanden")
+  val F = Atom("falsch_einsortiert")
+  val P_not = Atom("nicht_am_angegebenen_Platz_vorhanden")
+  val A = Atom("ausleihbar")
+  val N = Atom("nachschlagewerk")
+  val A_not = Atom("nicht_ausleihbar")
+  val H = Atom("im_Handapperart_einer_Veranstaltung")
 
-  val n = ContradictionAtom("n")
+  val Falsum = new ContradictionAtom("f")
 
-  val none = Set[Atom]()
+  val j1 = Fact(V)
+  val j2 = Rule.pos(V).neg(F, G).head(P)
+  val j3 = Rule.pos(F).head(P_not)
+  val j4 = Rule.pos(G).head(P_not)
+  val j5 = Rule.pos(P).neg(H, N).head(A)
+  val j6 = Rule.pos(P, P_not).head(Falsum)
+  val j7 = Rule.pos(N).head(A_not)
+  val j8 = Rule.pos(H).head(A_not)
+  val j9 = Rule.pos(A, A_not).head(Falsum)
 
-  val times = 100
+  val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
-  test("a") {
-    val tmn = TMN()
-    var model = tmn.getModel.get
-    assert(model.isEmpty)
-
-    tmn.add(Rule(a))
-    model = tmn.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
+  test("1") {
+    assert(TMN(program).getModel.get == Set(V, P, A))
   }
 
-  test("a :- not b. then b.") {
-
-    val tmn = TMN()
-    tmn.add(Rule(a,none,Set(b)))
-    var model = tmn.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
-
-    tmn.add(Rule(b,none,none))
-    model = tmn.getModel.get
-    assert(model.size == 1)
-    assert(model contains b)
-
+  test("2") {
+    assert(TMN(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
-  test("a :- not b. b :- not a. n :- a.") {
-
-    for (i <- 1 to times) {
-      val tmn = TMN()
-      tmn.add(Rule(a, none, Set(b)))
-      tmn.add(Rule(b, none, Set(a))) //-> {a}
-
-      var model = tmn.getModel.get
-      assert(model == Set(a))
-
-      tmn.add(Rule(n, a))
-      model = tmn.getModel.get
-      assert(model == Set(b))
-    }
+  test("3") {
+    assert(TMN(program + Rule(Falsum,Set(A))).getModel == None)
   }
 
-  test("b :- not a. :- b, not c.") { //JTMS_21 base case
-    for (i <- 1 to times) {
-      val tmn = TMN()
-
-      tmn.add(Rule(b, none, Set(a)))
-      assert(tmn.getModel.get == Set(b))
-
-      tmn.add(Rule(n, Set(b), Set(c)))
-      assert(tmn.getModel == None)
-    }
-  }
-
-  test("a :- c. c :- a. b :- not a. :- b, not c.") {
-    for (i <- 1 to times) {
-      val tmn = TMN()
-      tmn.add(Rule(a, c))
-
-      assert(tmn.getModel.get.isEmpty)
-
-      tmn.add(Rule(c, a))
-      assert(tmn.getModel.get.isEmpty)
-
-      tmn.add(Rule(b, none, Set(a)))
-      assert(tmn.getModel.get.size == 1)
-      assert(tmn.getModel.get contains b)
-
-      tmn.add(Rule(n, Set(b), Set(c)))
-      assert(tmn.getModel == None)
-    }
-  }
-
-  test("a :- c. c :- a. b :- not a. :- b, not c. add a before and after constraint.") {
-    //for (i <- 1 to times) {
-      val tmnBefore = TMN()
-      tmnBefore.add(Rule(a, c)) //{}
-      tmnBefore.add(Rule(c, a)) //{}
-      tmnBefore.add(Rule(b, none, Set(a))) //{b}
-      //
-      tmnBefore.add(Rule(a,none,none)) //{a,c}
-      assert(tmnBefore.getModel.get == Set[Atom](a,c))
-      tmnBefore.add(Rule(n, Set(b), Set(c))) //{a,c}
-      assert(tmnBefore.getModel.get == Set[Atom](a,c))
-
-
-      val tmnAfter = TMN()
-      tmnAfter.add(Rule(a, c)) //{}
-      tmnAfter.add(Rule(c, a)) //{}
-      tmnAfter.add(Rule(b, none, Set(a))) //{b}
-      //
-      tmnAfter.add(Rule(n, Set(b), Set(c))) //None
-      assert(tmnAfter.getModel == None)
-      tmnAfter.add(Rule(a,none,none)) //{a,c}
-      assert(tmnAfter.getModel.get == Set[Atom](a,c))
-
-    //}
-  }
-
-  //inconsistent
-  test(":- not a") {
-    val tmn = TMN()
-    tmn.add(Rule(n,none,Set(a)))
-    assert(tmn.getModel == None)
-  }
-
-  //inconsistent
-  test("a. :- a.") {
-    val tmn = TMN()
-    tmn.add(Rule(a))
-    tmn.add(Rule(n,a))
-    assert(tmn.getModel == None)
-  }
-
-  //consistent: 'inactive' odd loop
-  test("a. a :- not a.") {
-    /* TODO
-    val tmnFactFirst = TMN()
-    tmnFactFirst.add(Rule(a))
-    tmnFactFirst.add(Rule(a,Set(),Set(a)))
-    assert(tmnFactFirst.getModel.get == Set(a))
-
-    val tmnRuleFirst = TMN()
-    tmnRuleFirst.add(Rule(a,Set(),Set(a)))
-    tmnRuleFirst.add(Rule(a))
-    assert(tmnRuleFirst.getModel.get == Set(a)) */
-  }
-
-  //inconsistent: direct odd loop
-  test("a :- not a.") {
-    /* TODO
-    val tmn = TMN()
-    tmn.add(Rule(a,Set(),Set(a)))
-    assert(tmn.getModel == None)
-    */
-  }
-
-  //inconsistent: indirect odd loop
-  test("a :- b. b :- c. c :- not a.") {
-    /* TODO
-    val tmn = TMN()
-    tmn.add(Rule(a,b))
-    tmn.add(Rule(b,c))
-    tmn.add(Rule(c,none,Set(a)))
-    assert(tmn.getModel == None) */
+  test("4") {
+    assert(TMN(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

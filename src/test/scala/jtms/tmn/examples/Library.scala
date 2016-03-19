@@ -1,6 +1,5 @@
 package jtms.tmn.examples
 
-import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
 import jtms._
@@ -54,40 +53,46 @@ trait LibraryBehavior {
       assert(model contains Set(V, H, P, A_not))
     }
 
-    it should "be A_not,H,P, V" in {
-      info("With a constraint for A the model")
-      val p = program + jExclusionA
 
-      val model = evaluation(p)
+//    //it should "be A_not,H,P, V" in {
+//    it should "not have a model" in {
+//      info("With a constraint for A the model")
+//      val p = program + jExclusionA
+//
+//      val model = evaluation(p)
+//
+//      //TODO no model! using more simple test
+//
+//      //if (evaluation.isInstanceOf[Asp]) pending
+//
+////      info("H is currently chosen 'by random'")
+////      assert(model contains Set(A_not, H, P, V)) //TODO that's not a stable model
+//    }
 
-      if (evaluation.isInstanceOf[Asp]) pending
+    //TODO why the same test again?
+//    it should "also return the same model when using just a single constraint" in {
+//      val p = program + Rule.pos(A).head(Falsum)
+//
+//      val model = evaluation(p)
+//
+//      if (evaluation.isInstanceOf[Asp]) pending
+//
+//      info("H is currently chosen 'by random'")
+//      assert(model contains Set(A_not, H, P, V))
+//    }
 
-      info("H is currently chosen 'by random'")
-      assert(model contains Set(A_not, H, P, V))
-    }
-
-    it should "also return the same model when using just a single constraint" in {
-      val p = program + Rule.pos(A).head(Falsum)
-
-      val model = evaluation(p)
-
-      if (evaluation.isInstanceOf[Asp]) pending
-
-      info("H is currently chosen 'by random'")
-      assert(model contains Set(A_not, H, P, V))
-    }
-
-    it should "be P_not,F,V" in {
-      info("With a constraint for P the model")
-      val p = program + Rule.pos(P).head(Falsum)
-
-      val model = evaluation(p)
-
-      if (evaluation.isInstanceOf[Asp]) pending
-
-      info("F is currently chosen 'by random'")
-      assert(model contains Set(P_not, F, V))
-    }
+    //TODO not stable model
+//    it should "be P_not,F,V" in {
+//      info("With a constraint for P the model")
+//      val p = program + Rule.pos(P).head(Falsum)
+//
+//      val model = evaluation(p)
+//
+//      if (evaluation.isInstanceOf[Asp]) pending
+//
+//      info("F is currently chosen 'by random'")
+//      assert(model contains Set(P_not, F, V))
+//    }
   }
 }
 
