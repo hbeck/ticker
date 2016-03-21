@@ -32,6 +32,7 @@ case class TMN() {
 
   val fixInOwn = false
   val fixOutOwn = false
+  val singleFix = true
 
   //var loop: Boolean = false
   var consistent: Boolean = true
@@ -79,7 +80,12 @@ case class TMN() {
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
-    updateBeliefs2(atoms)
+    if (singleFix) {
+      updateBeliefs2(atoms)
+    } else {
+      updateBeliefs(atoms)
+    }
+
   }
 
   def register(rule: Rule): Unit = {
@@ -111,9 +117,9 @@ case class TMN() {
   def updateBeliefs2(atoms: Set[Atom]): Boolean = {
     atoms foreach setUnknown //Marking the nodes
     while (!unknownAtoms.isEmpty) {
-      atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
+      unknownAtoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
       if (!unknownAtoms.isEmpty) {
-        fixAndPropagateStatus(unknownAtoms.head) // Relaxing circularities (might lead to contradictions)
+        fixAndDetermineAndPropagateStatus(unknownAtoms.head) // Relaxing circularities (might lead to contradictions)
       }
     }
     tryEnsureConsistency
