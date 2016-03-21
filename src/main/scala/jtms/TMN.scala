@@ -70,6 +70,8 @@ case class TMN() {
 
   def inAtoms() = status.keys filter (status(_) == in)
 
+  def unknownAtoms() = status.keys filter (status(_) == unknown)
+
   //TMS update algorithm
   def add(rule: Rule): Unit = {
     if (!consistent) return
@@ -77,7 +79,7 @@ case class TMN() {
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
-    updateBeliefs(atoms)
+    updateBeliefs2(atoms)
   }
 
   def register(rule: Rule): Unit = {
@@ -103,6 +105,17 @@ case class TMN() {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    tryEnsureConsistency
+  }
+
+  def updateBeliefs2(atoms: Set[Atom]): Boolean = {
+    atoms foreach setUnknown //Marking the nodes
+    while (!unknownAtoms.isEmpty) {
+      atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
+      if (!unknownAtoms.isEmpty) {
+        fixAndPropagateStatus(unknownAtoms.head) // Relaxing circularities (might lead to contradictions)
+      }
+    }
     tryEnsureConsistency
   }
 
@@ -193,6 +206,15 @@ case class TMN() {
       val affected = ACons(a) + a
       affected foreach setUnknown
       affected foreach fixAndPropagateStatus
+    }
+  }
+
+  def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
+    if (fix(a)) {
+      unknownCons(a) foreach determineAndPropagateStatus
+    } else {
+      val affected = ACons(a) + a
+      affected foreach setUnknown
     }
   }
 

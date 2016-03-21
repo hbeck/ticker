@@ -50,7 +50,7 @@ class Consistency extends FunSuite {
 
   test("a :- not b. b :- not a. n :- a.") {
 
-    for (i <- 1 to times) {
+    //for (i <- 1 to times) {
       val tmn = TMN()
       tmn.add(Rule(a, none, Set(b)))
       tmn.add(Rule(b, none, Set(a))) //-> {a}
@@ -61,7 +61,7 @@ class Consistency extends FunSuite {
       tmn.add(Rule(n, a))
       model = tmn.getModel.get
       assert(model == Set(b))
-    }
+    //}
   }
 
   test("b :- not a. :- b, not c.") { //JTMS_21 base case
