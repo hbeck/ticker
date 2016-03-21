@@ -49,8 +49,7 @@ class Consistency extends FunSuite {
   }
 
   test("P1: a :- not b. b :- not a. n :- a.") {
-
-    //for (i <- 1 to times) {
+    for (i <- 1 to times) {
       val tmn = TMN()
       tmn.add(Rule(a, none, Set(b)))
       tmn.add(Rule(b, none, Set(a))) //-> {a}
@@ -61,27 +60,27 @@ class Consistency extends FunSuite {
       tmn.add(Rule(n, a))
       model = tmn.getModel.get
       assert(model == Set(b))
-    //}
+    }
   }
 
   test("P2: b :- not a. :- b, not c.") { //JTMS_21 base case
-    //for (i <- 1 to times) {
-    val tmn0 = TMN()
+    for (i <- 1 to times) {
+      val tmn0 = TMN()
 
-    tmn0.add(Rule(n, Set(b), Set(c)))
-    assert(tmn0.getModel.get == Set[Atom]())
+      tmn0.add(Rule(n, Set(b), Set(c)))
+      assert(tmn0.getModel.get == Set[Atom]())
 
-    tmn0.add(Rule(b, none, Set(a)))
-    assert(tmn0.getModel == None)
+      tmn0.add(Rule(b, none, Set(a)))
+      assert(tmn0.getModel == None)
 
-    val tmn1 = TMN()
+      val tmn1 = TMN()
 
-    tmn1.add(Rule(b, none, Set(a)))
-    assert(tmn1.getModel.get == Set(b))
+      tmn1.add(Rule(b, none, Set(a)))
+      assert(tmn1.getModel.get == Set(b))
 
-    tmn1.add(Rule(n, Set(b), Set(c)))
-    assert(tmn1.getModel == None)
-    //}
+      tmn1.add(Rule(n, Set(b), Set(c)))
+      assert(tmn1.getModel == None)
+    }
   }
 
   test("P3: a :- c. c :- a. b :- not a. :- b, not c.") {

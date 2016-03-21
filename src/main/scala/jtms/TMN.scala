@@ -30,9 +30,12 @@ case class TMN() {
 
   def atoms() = Cons.keySet
 
-  val fixInOwn = false
-  val fixOutOwn = false
-  val singleFix = true
+  val fixInOwn = true
+  val fixOutOwn = true
+  val singleFix = false
+  //if !singleFix, decide:
+  val sortBeforeFix = false //TODO consistency with flag true for P3, P4, not with false
+  //fixContrFirst = fixInOwn && fixOutOwn && !singleFix && sortBeforeFix
 
   //var loop: Boolean = false
   var consistent: Boolean = true
@@ -110,7 +113,11 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom]): Boolean = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    val ats = sortBeforeFix match {
+        case true => (List[Atom]() ++ atoms) sortWith ((a1, a2) => contradictionAtom(a1))
+        case false => atoms
+      }
+    ats foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
   }
 
@@ -128,7 +135,13 @@ case class TMN() {
   def justifications(h: Atom) = rules filter (_.head == h)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_).contains(a))
+  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
+
+  def DCons(a: Atom): Set[Atom] = Cons(a) filter (d => (status(d) != unknown) && (justifications(d) exists unknownBodyAtomOtherThan(a)))
+
+  def ContradictedDCons(a: Atom): Set[Atom] = DCons(a) filter (d => (status(d) == out) && (justifications(d) exists foundedValid))
+
+  def unknownBodyAtomOtherThan(a: Atom)(r: Rule) = !((r.pos ++ r.neg - a) exists (status(_) == unknown))
 
   def repercussions(a: Atom) = trans(ACons, a)
 
@@ -189,7 +202,11 @@ case class TMN() {
 
   def validation(a: Atom): Boolean = {
     justifications(a) find foundedValid match {
-      case Some(rule) => setIn(rule); true
+      case Some(rule) => {
+        setIn(rule)
+        ContradictedDCons(a) foreach setUnknown
+        true
+      }
       case None => false
     }
   }
@@ -233,12 +250,17 @@ case class TMN() {
 //          //TODO
 //        } else {
           //if (looping(rule)) return false
-          if (ACons(a).isEmpty) fixIn(rule)
+          if (ACons(a).isEmpty) {
+            fixIn(rule)
+            //ContradictedDCons(a) foreach setUnknown
+          }
           else return false
 //        }
       }
-
-      case None => fixOut(a)
+      case None => {
+        fixOut(a)
+        ContradictedDCons(a) foreach setUnknown
+      }
     }
     true
   }
