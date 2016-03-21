@@ -190,7 +190,7 @@ class Consistency extends FunSuite {
 //    }
 //  }
 
-  test("a :- b. b :- not c. c :- not a.") {
+  test("a :- b. b :- not c. c :- not a. :- c.") {
 
     val tmn1 = TMN()
     tmn1.add(Rule(a,b))
@@ -198,6 +198,10 @@ class Consistency extends FunSuite {
     assert(tmn1.getModel.get == Set(a,b))
 
     tmn1.add(Rule(c,none,Set(a)))
+    assert(tmn1.getModel.get == Set(a,b))
+
+    tmn1.add(Rule(n,c)) //:- c
+    //force other
     assert(tmn1.getModel.get == Set(a,b))
 
     //other insertion order of last two
