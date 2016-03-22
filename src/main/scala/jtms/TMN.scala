@@ -137,11 +137,22 @@ case class TMN() {
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
 
-  def DCons(a: Atom): Set[Atom] = Cons(a) filter (d => (status(d) != unknown) && (justifications(d) exists unknownBodyAtomOtherThan(a)))
+  //def DCons(a: Atom): Set[Atom] = Cons(a) filter (d => (status(d) != unknown) && (justifications(d) exists noUnknownBodyAtomOtherThan(a)))
 
-  def ContradictedDCons(a: Atom): Set[Atom] = DCons(a) filter (d => (status(d) == out) && (justifications(d) exists foundedValid))
+  def ContradictedCons(a: Atom): Set[Atom] = Cons(a) filter (d => (status(d) == out) && (justifications(d) exists foundedValid))
+//  def ContradictedCons(a: Atom): Set[Atom] = {
+//    val cons = Cons(a)
+//    val outCons = cons filter (status(_) == out)
+//    var s = Set[Atom]()
+//    for (c <- outCons) {
+//      if (justifications(c) exists foundedValid) {
+//        s += c
+//      }
+//    }
+//    s
+//  }
 
-  def unknownBodyAtomOtherThan(a: Atom)(r: Rule) = !((r.pos ++ r.neg - a) exists (status(_) == unknown))
+  def noUnknownBodyAtomOtherThan(a: Atom)(r: Rule) = !((r.pos ++ r.neg - a) exists (status(_) == unknown))
 
   def repercussions(a: Atom) = trans(ACons, a)
 
@@ -162,6 +173,7 @@ case class TMN() {
     status(rule.head) = in
     Supp(rule.head) = Set() ++ rule.body
     SuppRule(rule.head) = Some(rule)
+    ContradictedCons(rule.head) foreach setUnknown
   }
 
   def setOut(a: Atom) = {
@@ -170,6 +182,7 @@ case class TMN() {
     Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
     //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     SuppRule(a) = None
+    ContradictedCons(a) foreach setUnknown
   }
 
   def setUnknown(atom: Atom) = {
@@ -204,7 +217,6 @@ case class TMN() {
     justifications(a) find foundedValid match {
       case Some(rule) => {
         setIn(rule)
-        ContradictedDCons(a) foreach setUnknown
         true
       }
       case None => false
@@ -250,17 +262,11 @@ case class TMN() {
 //          //TODO
 //        } else {
           //if (looping(rule)) return false
-          if (ACons(a).isEmpty) {
-            fixIn(rule)
-            //ContradictedDCons(a) foreach setUnknown
-          }
+          if (ACons(a).isEmpty) fixIn(rule)
           else return false
 //        }
       }
-      case None => {
-        fixOut(a)
-        ContradictedDCons(a) foreach setUnknown
-      }
+      case None => fixOut(a)
     }
     true
   }
