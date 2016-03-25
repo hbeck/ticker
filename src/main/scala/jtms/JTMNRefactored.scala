@@ -178,15 +178,6 @@ case class JTMNRefactored() {
     }
   }
 
-  def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
-    if (fix(a)) {
-      unknownCons(a) foreach determineAndPropagateStatus
-    } else {
-      val affected = ACons(a) + a
-      affected foreach setUnknown
-    }
-  }
-
   def fix(a: Atom): Boolean = {
     justifications(a) find unfoundedValid match {
       case Some(rule) => {

@@ -28,7 +28,7 @@ case class AnswerUpdateNetwork() {
   object UpdateStrategyDoyle extends UpdateStrategy
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
   //
 
@@ -113,7 +113,6 @@ case class AnswerUpdateNetwork() {
     updateStrategy match {
       case `UpdateStrategyDoyle` => updateDoyle(atoms)
       case `UpdateStrategyStepwise` => updateStepwise(atoms)
-      case _ =>
     }
   }
 
@@ -125,8 +124,18 @@ case class AnswerUpdateNetwork() {
   }
 
   def updateStepwise(atoms: Set[Atom]): Boolean = {
-    return false //TODO
+    atoms foreach setUnknown //Marking the nodes
+    while (hasUnknown) {
+      unknownAtoms foreach determineAndPropagateStatus
+      val optAtom = atoms find (status(_) == unknown)
+      if (optAtom.isDefined) {
+        fixAndDetermineAndPropagateStatus(optAtom.get)
+      }
+    }
+    tryEnsureConsistency
   }
+
+  def hasUnknown = atoms() exists (status(_) == unknown)
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -183,6 +192,15 @@ case class AnswerUpdateNetwork() {
       return true
     }
     false
+  }
+
+  def determineStep() {
+    val opt: Option[Atom] = atoms() find (status(_) == unknown)
+    if (opt.isEmpty) return
+
+    val atom = opt.get
+    determineAndPropagateStatus(atom)
+    determineStep()
   }
 
   def fixAndPropagateStatus(a: Atom): Unit = {
