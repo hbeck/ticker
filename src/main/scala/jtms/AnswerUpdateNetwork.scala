@@ -305,7 +305,7 @@ case class AnswerUpdateNetwork() {
     val n = sr.neg.head //(all .neg have status out at this point)
 
     val suppRules = maxAssumptions map (SuppRule(_).get)
-    val pos = (suppRules flatMap (_.pos))
+    val pos = (suppRules flatMap (_.pos)) - culprit + c
     val neg = (suppRules flatMap (_.neg)) - n
     val rule = RuleFromBacktracking(pos, neg, n)
 

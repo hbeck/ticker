@@ -78,7 +78,7 @@ class ASPConsistency extends FunSuite {
   }
 
   test("P2: b :- not a.  n :- b, not c.") { //JTMS_21 base case
-    for (i <- 1 to times) {
+    //for (i <- 1 to times) {
       val net0 = AnswerUpdateNetwork()
 
       net0.add(Rule(n, Set(b), Set(c)))
@@ -94,7 +94,7 @@ class ASPConsistency extends FunSuite {
 
       net1.add(Rule(n, Set(b), Set(c)))
       assert(net1.getModel == None)
-    }
+    //}
   }
 
   test("P3: a :- c.  c :- a.  b :- not a.  n :- b, not c.") {
