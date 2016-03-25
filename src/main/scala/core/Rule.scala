@@ -48,6 +48,19 @@ sealed trait Rule {
     val r = other.asInstanceOf[Rule]
     return this == r
   }
+
+  override def toString = {
+    val sb = new StringBuilder
+    sb.append(head).append(" <- ")
+    if (!pos.isEmpty) {
+      sb.append(pos)
+    }
+    if (!neg.isEmpty) {
+      if (!pos.isEmpty) sb.append(", ")
+      sb.append("not ").append(neg)
+    }
+    sb.toString
+  }
 }
 
 /**
@@ -73,7 +86,9 @@ case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends R
 }
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
-  override def toString = head + " <-- " + (if (pos.isEmpty) "" else pos) + (if (neg.isEmpty) "" else ", not "+neg)
+  override def toString = {
+    super.toString.replaceAll("<-","<--")
+  }
 }
 
 object RuleFromBacktracking {

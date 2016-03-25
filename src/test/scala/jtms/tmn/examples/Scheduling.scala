@@ -32,9 +32,8 @@ class Scheduling extends FlatSpec {
   }
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
-    val tmn = TMN(
-      program + Rule(contradiction, Set(Time1000, Room813), Set())
-    )
+    val tmn = TMN(program)
+    tmn.add(Rule(contradiction, Set(Time1000, Room813), Set()))
 
     //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //TODO that's not a stable model!
     assert(tmn.getModel == None)
