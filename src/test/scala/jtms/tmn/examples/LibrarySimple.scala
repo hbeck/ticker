@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import core._
-import jtms.TMN
+import jtms.TMNRefactored
 import org.scalatest.FunSuite
 
 /**
@@ -34,19 +34,19 @@ class LibrarySimple extends FunSuite {
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   test("1") {
-    assert(TMN(program).getModel.get == Set(V, P, A))
+    assert(TMNRefactored(program).getModel.get == Set(V, P, A))
   }
 
   test("2") {
-    assert(TMN(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
+    assert(TMNRefactored(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
   test("3") {
-    assert(TMN(program + Rule(Falsum,Set(A))).getModel == None)
+    assert(TMNRefactored(program + Rule(Falsum,Set(A))).getModel == None)
   }
 
   test("4") {
-    assert(TMN(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
+    assert(TMNRefactored(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

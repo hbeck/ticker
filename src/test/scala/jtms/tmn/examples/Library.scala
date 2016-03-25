@@ -100,7 +100,7 @@ class Library extends FlatSpec with LibraryBehavior with EvaluateBothImplementat
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = TMN(program)
+  def Tmn = TMNRefactored(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)

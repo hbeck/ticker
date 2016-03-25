@@ -1,7 +1,7 @@
 package jtms.tmn.consistency
 
 import core.{Atom, ContradictionAtom, Rule}
-import jtms.TMN
+import jtms.TMNRefactored
 import org.scalatest.FunSuite
 
 /**
@@ -23,7 +23,7 @@ class Consistency extends FunSuite {
   val times = 100
 
   test("a") {
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     var model = tmn.getModel.get
     assert(model.isEmpty)
 
@@ -35,7 +35,7 @@ class Consistency extends FunSuite {
 
   test("a :- not b. then b.") {
 
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     tmn.add(Rule(a,none,Set(b)))
     var model = tmn.getModel.get
     assert(model.size == 1)
@@ -50,7 +50,7 @@ class Consistency extends FunSuite {
 
   test("a :- not b. b :- not a.  b.") {
 
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     tmn.add(Rule(a,none,Set(b)))
     tmn.add(Rule(b,none,Set(a)))
     var model = tmn.getModel.get
@@ -64,7 +64,7 @@ class Consistency extends FunSuite {
 
   test("P1: a :- not b.  b :- not a.  n :- a.") {
     for (i <- 1 to times) {
-      val tmn = TMN()
+      val tmn = TMNRefactored()
       tmn.add(Rule(a, none, Set(b)))
       tmn.add(Rule(b, none, Set(a))) //-> {a}
 
@@ -79,7 +79,7 @@ class Consistency extends FunSuite {
 
   test("P2: b :- not a.  n :- b, not c.") { //JTMS_21 base case
     for (i <- 1 to times) {
-      val tmn0 = TMN()
+      val tmn0 = TMNRefactored()
 
       tmn0.add(Rule(n, Set(b), Set(c)))
       assert(tmn0.getModel.get == Set[Atom]())
@@ -87,7 +87,7 @@ class Consistency extends FunSuite {
       tmn0.add(Rule(b, none, Set(a)))
       assert(tmn0.getModel == None)
 
-      val tmn1 = TMN()
+      val tmn1 = TMNRefactored()
 
       tmn1.add(Rule(b, none, Set(a)))
       assert(tmn1.getModel.get == Set(b))
@@ -99,7 +99,7 @@ class Consistency extends FunSuite {
 
   test("P3: a :- c.  c :- a.  b :- not a.  n :- b, not c.") {
     for (i <- 1 to times) {
-      val tmn = TMN()
+      val tmn = TMNRefactored()
       tmn.add(Rule(a, c))
 
       assert(tmn.getModel.get.isEmpty)
@@ -118,7 +118,7 @@ class Consistency extends FunSuite {
 
   test("P4:  a :- c.  c :- a.  b :- not a.  n :- b, not c.  a.") {
     for (i <- 1 to times) {
-      val tmnBefore = TMN()
+      val tmnBefore = TMNRefactored()
       tmnBefore.add(Rule(a, c)) //{}
       tmnBefore.add(Rule(c, a)) //{}
       tmnBefore.add(Rule(b, none, Set(a))) //{b}
@@ -129,7 +129,7 @@ class Consistency extends FunSuite {
       assert(tmnBefore.getModel.get == Set[Atom](a,c))
 
 
-      val tmnAfter = TMN()
+      val tmnAfter = TMNRefactored()
       tmnAfter.add(Rule(a, c)) //{}
       tmnAfter.add(Rule(c, a)) //{}
       tmnAfter.add(Rule(b, none, Set(a))) //{b}
@@ -144,14 +144,14 @@ class Consistency extends FunSuite {
 
   //inconsistent
   test(":- not a") {
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     tmn.add(Rule(n,none,Set(a)))
     assert(tmn.getModel == None)
   }
 
   //inconsistent
   test("a. :- a.") {
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     tmn.add(Rule(a))
     tmn.add(Rule(n,a))
     assert(tmn.getModel == None)
@@ -160,12 +160,12 @@ class Consistency extends FunSuite {
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
 
-    val tmnFactFirst = TMN()
+    val tmnFactFirst = TMNRefactored()
     tmnFactFirst.add(Rule(a))
     tmnFactFirst.add(Rule(a,Set(),Set(a)))
     assert(tmnFactFirst.getModel.get == Set(a))
 
-    val tmnRuleFirst = TMN()
+    val tmnRuleFirst = TMNRefactored()
     tmnRuleFirst.add(Rule(a,Set(),Set(a)))
     tmnRuleFirst.add(Rule(a))
     assert(tmnRuleFirst.getModel.get == Set(a))
@@ -213,7 +213,7 @@ class Consistency extends FunSuite {
 
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
-    val tmn1 = TMN()
+    val tmn1 = TMNRefactored()
     tmn1.add(Rule(a,b))
     tmn1.add(Rule(b,none,Set(c)))
     assert(tmn1.getModel.get == Set(a,b))
@@ -226,7 +226,7 @@ class Consistency extends FunSuite {
     assert(tmn1.getModel.get == Set(a,b))
 
     //other insertion order of last two
-    val tmn2 = TMN()
+    val tmn2 = TMNRefactored()
     tmn2.add(Rule(a,b)) //a :- b
     tmn2.add(Rule(c,none,Set(a))) //c :- not a
     assert(tmn2.getModel.get == Set(c)) //{c}
@@ -242,7 +242,7 @@ class Consistency extends FunSuite {
   }
 
   test("elkan p228") {
-    val tmn = TMN()
+    val tmn = TMNRefactored()
     tmn.add(Rule(f,none,Set(a,c)))
     tmn.add(Rule(b,none,Set(a)))
     tmn.add(Rule(a,none,Set(b)))

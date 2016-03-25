@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core.{Rule, Atom}
-import jtms.{Status, TMN}
+import jtms.{Status, TMNRefactored}
 import org.scalatest.{GivenWhenThen, FlatSpec}
 
 /**
@@ -11,7 +11,7 @@ import org.scalatest.{GivenWhenThen, FlatSpec}
 trait AtomValidation {
   this: FlatSpec =>
 
-  def atomValidation(tmn: TMN, n: Atom): ((AtomValidator) => Any) => Any = {
+  def atomValidation(tmn: TMNRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 
     def atomCheckTestCallback(check: (AtomValidator) => Any) = {
@@ -21,7 +21,7 @@ trait AtomValidation {
     return atomCheckTestCallback
   }
 
-  class AtomValidator(tmn: TMN, atom: Atom) {
+  class AtomValidator(tmn: TMNRefactored, atom: Atom) {
 
     info(atom.toString)
 

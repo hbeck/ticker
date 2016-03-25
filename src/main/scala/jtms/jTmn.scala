@@ -8,7 +8,7 @@ import core.{Program, Evaluation}
 class jTmn extends Evaluation {
 
   def apply(program: Program) = {
-    val tmn = TMN(program)
+    val tmn = TMNRefactored(program)
 
     val singleModel = tmn.getModel.get
 

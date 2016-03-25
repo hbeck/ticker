@@ -3,7 +3,7 @@ package jtms.tmn.examples
 import asp.Asp
 import aspsamples.EvaluateBothImplementations
 import core._
-import jtms.TMN
+import jtms.TMNRefactored
 import org.scalatest.FlatSpec
 
 /**

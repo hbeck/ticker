@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import jtms.{TMN, in}
+import jtms.{TMNRefactored, in}
 import org.scalatest.{FlatSpec, BeforeAndAfter}
 import scala.language.implicitConversions
 
@@ -13,10 +13,10 @@ class InitialEmptyTMN extends FlatSpec {
   val assumptionA = Fact(Atom("A"))
   val program = Program(assumptionA)
 
-  val EmptyTMN = TMN(Program())
+  val EmptyTMN = TMNRefactored(Program())
 
   val tmn = {
-    TMN(program)
+    TMNRefactored(program)
   }
 
   "An empty TMN" should "have no rules and no status values set" in {
