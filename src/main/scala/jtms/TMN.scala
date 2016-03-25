@@ -21,6 +21,14 @@ object TMN {
   */
 case class TMN() {
 
+  sealed trait Algorithm
+  object beierleOriginal extends Algorithm
+  object beierleMod extends Algorithm
+
+  val algorithm:Algorithm = beierleOriginal
+
+  //
+
   var rules: List[Rule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -42,6 +50,160 @@ case class TMN() {
 
   //TMS update algorithm
   def add(rule: Rule): Unit = {
+    algorithm match {
+      case `beierleOriginal` => addBeierleOriginal(rule)
+      case `beierleMod` => addBeierleMod(rule)
+    }
+  }
+
+  def addBeierleOriginal(rule: Rule): Unit = {
+    addSteps1to5(rule)
+    //6
+    for (n <- atoms()) {
+      if (contradictionAtom(n) && status(n) == in) {
+        DDBBeierleOriginal(n) //there is no need to continue iteration after first unsolvable contradiction [!]
+      }
+    }
+    //7 would just concern returning the diff (omitted here)
+  }
+
+  def addSteps1to5(rule: Rule): Unit = {
+    //1
+    register(rule)
+    if (status(rule.head) == in) return
+    if (invalid(rule)) return
+    //2
+    if (ACons(rule.head).isEmpty) {
+      setIn(rule)
+      return
+    }
+    //3
+    val L = repercussions(rule.head) + rule.head
+    for (atom <- L) {
+      status(atom) = unknown //vs setUnknown [!]
+    }
+    //4 determine status
+    for (atom <- L) {
+      step4a(atom)
+    }
+    //5 fix (choose) status
+    for (atom <- L) {
+      step5a(atom)
+    }
+  }
+
+  //determine status
+  def step4a(atom: Atom): Unit = {
+    if (status(atom) != unknown)
+      return
+
+    justifications(atom) find foundedValid match {
+      case Some(rule) => {
+        setIn(rule)
+        val unk = Cons(atom) filter (status(_) == unknown)
+        for (u <- unk){
+          step4a(u)
+        }
+      }
+      case None => {
+        if (justifications(atom) forall foundedInvalid) {
+          setOutOriginal(atom)
+          val unk = Cons(atom) filter (status(_) == unknown)
+          for (u <- unk){
+            step4a(u)
+          }
+        }
+      }
+    }
+  }
+
+  //fix (choose) status
+  def step5a(atom: Atom): Unit = {
+    if (status(atom) != unknown)
+      return
+
+    justifications(atom) find unfoundedValid match {
+      case Some(rule) => {
+        if (!ACons(atom).isEmpty) {
+          for (n <- ACons(atom) + atom) {
+            status(n) = unknown //vs setUnknown [!]
+            step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
+          }
+        } else {
+          setIn(rule)
+          for (n <- rule.neg) {
+            if (status(n) == unknown) {
+              status(n) = out //vs setOutOriginal [!]
+            }
+          }
+          val unk = Cons(atom) filter (status(_) == unknown) //* here other variant is chosen. deliberately? [1]
+          for (u <- unk){
+            step5a(u)
+          }
+        }
+      }
+      case None => { //all justifications(atom) are unfounded invalid
+        //do status(atom)=out as part of setOut below
+        for (rule <- justifications(atom)) {
+          val n: Option[Atom] = rule.pos find (status(_) == unknown) //in general, rule.pos might be empty! [!]
+          if (n.isEmpty) {
+            throw new RuntimeException("did not find rule.pos atom with status unknown in rule "+rule+" for atom "+atom)
+          }
+          status(n.get) = out //vs setOut [!]
+        }
+        setOut(atom)
+        val unk = Cons(atom) filter (status(_) == unknown)
+        for (u <- unk){
+          step5a(u)
+        }
+      }
+    }
+  }
+
+  def setOutOriginal(atom: Atom): Unit = {
+    status(atom) = out
+    val maybeAtoms: List[Option[Atom]] = justifications(atom) map (findSpoiler(_))
+    if (maybeAtoms exists (_.isEmpty)) {
+      throw new RuntimeException("could not find spoiler for every SuppRule of atom "+atom)
+    }
+    Supp(atom) = Set() ++ maybeAtoms map (_.get)
+    //SuppRule(a) = None //not set in beierle [!]
+  }
+
+  def DDBBeierleOriginal(n: Atom): Unit = {
+    if (status(n) != in) return
+
+    //1
+    val asms = foundations(n) filter isAssumption
+    val maxAssumptions = asms filter { a =>
+      ! ((asms - a) exists (b => foundations(b) contains a))
+    }
+    if (maxAssumptions.isEmpty)
+      return //contradiction cannot be solved
+
+    //2
+    val na = maxAssumptions.head //culprit
+    val nStar = SuppRule(na).get.neg.head //(all .neg have status out at this point)
+
+    //3
+    val suppRules = maxAssumptions map (SuppRule(_).get) //J_\bot
+    val pos = suppRules flatMap (_.pos) //I_\bot
+    val neg = (suppRules flatMap (_.neg)) - nStar //O_\bot
+    val rule = RuleFromBacktracking(pos, neg, nStar)
+
+    //4
+    addSteps1to5(rule)
+
+    //5
+    if (status(n) == in) {
+      DDBBeierleOriginal(n) //loop? [1]
+    }
+
+  }
+
+  /* ---------------------------------------------------------- */
+
+  def addBeierleMod(rule: Rule): Unit = {
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
