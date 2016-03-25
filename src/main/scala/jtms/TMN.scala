@@ -38,40 +38,13 @@ case class TMN() {
   def atoms() = Cons.keySet
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    //if (loop) return None
-    if (someNoneFactHasNoSupport) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
 
-  def someNoneFactHasNoSupport(): Boolean = {
-    val heads = (rules map (_.head)).toSet
-    val factHeads = (rules filter (r => r.pos.isEmpty && r.neg.isEmpty)) map (_.head)
-    val intensional = heads -- factHeads
-    //intensional exists (Supp(_).isEmpty)
-    val unsupported: Predef.Set[Atom] = intensional filter (Supp(_).isEmpty)
-    for (x <- unsupported) {
-      if (status(x) == in) {
-        justifications(x) find foundedValid match {
-          case Some(r) => setIn(r)
-          case None => return true
-        }
-      } else if (status(x) == out) {
-        justifications(x) find foundedInvalid match {
-          case Some(r) => setOut(x,false)
-          case None => return true
-        }
-      } else {
-        throw new RuntimeException("outsch")
-      }
-    }
-    return false
-  }
-
   def inAtoms() = status.keys filter (status(_) == in)
 
-  //var loop: Boolean = false
   def add(rule: Rule): Unit = {
     add(rule,true)
   }
