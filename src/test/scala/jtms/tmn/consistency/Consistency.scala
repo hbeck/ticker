@@ -14,7 +14,7 @@ class Consistency extends FunSuite {
   val c = Atom("c")
   val d = Atom("d")
 //  val e = Atom("e")
-//  val f = Atom("f")
+  val f = Atom("f")
 
   val n = ContradictionAtom("n")
 
@@ -45,6 +45,20 @@ class Consistency extends FunSuite {
     model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains b)
+
+  }
+
+  test("a :- not b. b :- not a.  b.") {
+
+    val tmn = TMN()
+    tmn.add(Rule(a,none,Set(b)))
+    tmn.add(Rule(b,none,Set(a)))
+    var model = tmn.getModel.get
+    assert(model == Set(a))
+
+    tmn.add(Rule(b,none,none))
+    model = tmn.getModel.get
+    assert(model == Set(b))
 
   }
 
@@ -225,6 +239,17 @@ class Consistency extends FunSuite {
     //force other
     assert(tmn2.getModel.get == Set(a,b))
 
+  }
+
+  test("elkan p228") {
+    val tmn = TMN()
+    tmn.add(Rule(f,none,Set(a,c)))
+    tmn.add(Rule(b,none,Set(a)))
+    tmn.add(Rule(a,none,Set(b)))
+    assert(tmn.getModel.get == Set(b,f))
+
+    tmn.add(Rule(n,f))
+    assert(tmn.getModel.get == Set(a))
   }
 
 }
