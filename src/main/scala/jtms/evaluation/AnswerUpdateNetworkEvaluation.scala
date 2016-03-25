@@ -1,15 +1,15 @@
 package jtms.evaluation
 
 import core.{Evaluation, Program}
-import jtms.AnswerUpdate
+import jtms.{AnswerUpdateNetwork, AnswerUpdateNetwork$}
 
 /**
   * Created by hb on 25.03.16.
   */
-class AnswerUpdateEvaluation extends Evaluation {
+class AnswerUpdateNetworkEvaluation extends Evaluation {
 
   def apply(program: Program) = {
-    val tmn = AnswerUpdate(program)
+    val tmn = AnswerUpdateNetwork(program)
 
     val singleModel = tmn.getModel.get
 

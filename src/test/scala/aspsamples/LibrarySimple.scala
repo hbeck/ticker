@@ -1,7 +1,7 @@
-package jtms.tmn.examples
+package aspsamples
 
 import core._
-import jtms.JTMNRefactored
+import jtms.AnswerUpdateNetwork
 import org.scalatest.FunSuite
 
 /**
@@ -34,19 +34,19 @@ class LibrarySimple extends FunSuite {
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   test("1") {
-    assert(JTMNRefactored(program).getModel.get == Set(V, P, A))
+    assert(AnswerUpdateNetwork(program).getModel.get == Set(V, P, A))
   }
 
   test("2") {
-    assert(JTMNRefactored(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
+    assert(AnswerUpdateNetwork(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
   test("3") {
-    assert(JTMNRefactored(program + Rule(Falsum,Set(A))).getModel == None)
+    assert(AnswerUpdateNetwork(program + Rule(Falsum,Set(A))).getModel == None)
   }
 
   test("4") {
-    assert(JTMNRefactored(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
+    assert(AnswerUpdateNetwork(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

@@ -2,7 +2,7 @@ package aspsamples
 
 import asp.Asp
 import core.Evaluation
-import jtms.evaluation.AnswerUpdateEvaluation
+import jtms.evaluation.AnswerUpdateNetworkEvaluation
 import org.scalatest.FlatSpec
 
 /**
@@ -12,7 +12,7 @@ trait EvaluateASPImplementations {
   this: FlatSpec =>
 
   val asp = Asp()
-  val answerUpdate = new AnswerUpdateEvaluation
+  val answerUpdate = new AnswerUpdateNetworkEvaluation
 
   def theSame(tests: => Evaluation => Unit) = {
     "The ASP implementation" should behave like tests(asp)

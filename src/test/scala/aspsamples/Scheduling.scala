@@ -1,7 +1,7 @@
-package jtms.tmn.examples
+package aspsamples
 
 import core._
-import jtms.JTMNRefactored
+import jtms.AnswerUpdateNetwork
 import org.scalatest.FlatSpec
 
 /**
@@ -26,25 +26,27 @@ class Scheduling extends FlatSpec {
   )
 
   "The model" should "be Time1000, Room813" in {
-    val tmn = JTMNRefactored(program)
+    val tmn = AnswerUpdateNetwork(program)
 
     assert(tmn.getModel.get == Set(Time1000, Room813))
   }
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
-    val tmn = JTMNRefactored(program)
+    val tmn = AnswerUpdateNetwork(program)
     tmn.add(Rule(contradiction, Set(Time1000, Room813), Set()))
 
-    assert(tmn.getModel.get == Set(NotTime1000, Room813)) //diff to ASP, which has None
+    //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //this is the the JTMN result
+    assert(tmn.getModel == None)
   }
 
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
-    val tmn = JTMNRefactored(
+    val tmn = AnswerUpdateNetwork(
       program +
         Rule(contradiction, Set(Time1000, Room813), Set()) +
         Rule(contradiction, Set(NotTime1000), Set())
     )
 
-    assert(tmn.getModel.get == Set(Time1000, Room801)) //diff to ASP, which has None
+    //assert(tmn.getModel.get == Set(Time1000, Room801)) //this is the the JTMN result
+    assert(tmn.getModel == None)
   }
 }

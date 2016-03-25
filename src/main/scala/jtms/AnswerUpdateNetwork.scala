@@ -5,24 +5,24 @@ import core._
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
-object AnswerUpdate {
+object AnswerUpdateNetwork {
 
-  def apply(P: Program): AnswerUpdate = {
-    val tmn = new AnswerUpdate()
-    P.rules foreach tmn.add
-    tmn
+  def apply(P: Program): AnswerUpdateNetwork = {
+    val net = new AnswerUpdateNetwork()
+    P.rules foreach net.add
+    net
   }
 
 }
 
 /**
-  * Answer Update
+  * Answer Update Network
   * based on justification-based truth maintenance network
   *
   *
   * Created by hb on 03/25/16.
   */
-case class AnswerUpdate() {
+case class AnswerUpdateNetwork() {
 
   var rules: List[Rule] = List()
 

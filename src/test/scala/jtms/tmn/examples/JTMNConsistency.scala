@@ -1,4 +1,4 @@
-package jtms.tmn.consistency
+package jtms.tmn.examples
 
 import core.{Atom, ContradictionAtom, Rule}
 import jtms.JTMNRefactored
@@ -7,7 +7,7 @@ import org.scalatest.FunSuite
 /**
   * Created by hb on 12.03.16.
   */
-class Consistency extends FunSuite {
+class JTMNConsistency extends FunSuite {
 
   val a = Atom("a")
   val b = Atom("b")
@@ -85,7 +85,7 @@ class Consistency extends FunSuite {
       assert(tmn0.getModel.get == Set[Atom]())
 
       tmn0.add(Rule(b, none, Set(a)))
-      assert(tmn0.getModel == None)
+      assert(tmn0.getModel.get == Set(a)) //diff to ASP, which has None
 
       val tmn1 = JTMNRefactored()
 
@@ -93,7 +93,7 @@ class Consistency extends FunSuite {
       assert(tmn1.getModel.get == Set(b))
 
       tmn1.add(Rule(n, Set(b), Set(c)))
-      assert(tmn1.getModel == None)
+      assert(tmn1.getModel.get == Set(a)) //diff to ASP, which has None
     }
   }
 
@@ -112,7 +112,7 @@ class Consistency extends FunSuite {
       assert(tmn.getModel.get contains b)
 
       tmn.add(Rule(n, Set(b), Set(c)))
-      assert(tmn.getModel == None)
+      assert(tmn.getModel.get == Set(a,c)) //diff to ASP, which has None
     }
   }
 
@@ -135,7 +135,7 @@ class Consistency extends FunSuite {
       tmnAfter.add(Rule(b, none, Set(a))) //{b}
       //
       tmnAfter.add(Rule(n, Set(b), Set(c))) //None
-      assert(tmnAfter.getModel == None)
+      assert(tmnAfter.getModel.get == Set(a,c)) //diff to ASP, which has none
       tmnAfter.add(Rule(a,none,none)) //{a,c}
       assert(tmnAfter.getModel.get == Set[Atom](a,c))
 
