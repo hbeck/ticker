@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import core._
-import jtms.TMNRefactored
+import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
 /**
@@ -26,13 +26,13 @@ class Scheduling extends FlatSpec {
   )
 
   "The model" should "be Time1000, Room813" in {
-    val tmn = TMNRefactored(program)
+    val tmn = JTMNRefactored(program)
 
     assert(tmn.getModel.get == Set(Time1000, Room813))
   }
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
-    val tmn = TMNRefactored(program)
+    val tmn = JTMNRefactored(program)
     tmn.add(Rule(contradiction, Set(Time1000, Room813), Set()))
 
     //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //TODO that's not a stable model!
@@ -40,7 +40,7 @@ class Scheduling extends FlatSpec {
   }
 
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
-    val tmn = TMNRefactored(
+    val tmn = JTMNRefactored(
       program +
         Rule(contradiction, Set(Time1000, Room813), Set()) +
         Rule(contradiction, Set(NotTime1000), Set())

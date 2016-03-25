@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import aspsamples.EvaluateBothImplementations
+import aspsamples.EvaluateJTMNImplementations
 import core._
 import jtms._
 import jtms.tmn.AtomValidation
@@ -94,13 +94,13 @@ trait LibraryBehavior {
   }
 }
 
-class Library extends FlatSpec with LibraryBehavior with EvaluateBothImplementations {
+class Library extends FlatSpec with LibraryBehavior with EvaluateJTMNImplementations {
   "The Library Sample" should behave like theSame(library)
 }
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = TMNRefactored(program)
+  def Tmn = JTMNRefactored(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)

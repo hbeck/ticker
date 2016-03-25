@@ -2,7 +2,8 @@ package aspsamples
 
 import asp.Asp
 import core._
-import jtms.{jTmn, TMNRefactored}
+import jtms.JTMNRefactored
+import jtms.evaluation.JTMNBeierleEvaluation
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps
@@ -44,7 +45,7 @@ trait SingleHusbandBehavior {
 }
 
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
-  def tmn = new jTmn
+  def tmn = new JTMNBeierleEvaluation
 
   def asp = Asp()
 

@@ -1,9 +1,9 @@
 package jtms.tmn.examples
 
 import asp.Asp
-import aspsamples.EvaluateBothImplementations
+import aspsamples.EvaluateJTMNImplementations
 import core._
-import jtms.TMNRefactored
+import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
 /**
@@ -39,7 +39,7 @@ trait JTMS_21Behavior extends JTMSSpec {
   }
 }
 
-class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateBothImplementations {
+class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateJTMNImplementations {
   "The example 21" should behave like theSame(example21)
 
 }

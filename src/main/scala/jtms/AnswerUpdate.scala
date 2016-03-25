@@ -5,10 +5,10 @@ import core._
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
-object JTMNRefactored {
+object AnswerUpdate {
 
-  def apply(P: Program): JTMNRefactored = {
-    val tmn = new JTMNRefactored()
+  def apply(P: Program): AnswerUpdate = {
+    val tmn = new AnswerUpdate()
     P.rules foreach tmn.add
     tmn
   }
@@ -16,13 +16,13 @@ object JTMNRefactored {
 }
 
 /**
-  * justification-based truth maintenance network
+  * Answer Update
+  * based on justification-based truth maintenance network
   *
-  * based book chapter from Beierle and Kern-Isberner
   *
-  * Created by hb on 12/22/15.
+  * Created by hb on 03/25/16.
   */
-case class JTMNRefactored() {
+case class AnswerUpdate() {
 
   var rules: List[Rule] = List()
 
@@ -74,7 +74,7 @@ case class JTMNRefactored() {
   def unfoundedValid(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
-  //JTMS update algorithm
+  //based on JTMS update algorithm
   def add(rule: Rule): Unit = {
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
@@ -233,7 +233,7 @@ case class JTMNRefactored() {
     true
   }
 
-  //return true if method leaves with status(c) != in
+  //TODO
   def DDB(c: Atom): Boolean = {
 
     if (status(c) != in) return true
@@ -269,6 +269,43 @@ case class JTMNRefactored() {
 
   /* ----------------------- in progress ... ------------------------------------- */
 
+  //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
+  //in particular: Rule: List of pos/neg body atoms
+  def remove(rule: Rule) = {
+
+    val head = rule.head
+
+    val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
+
+    def affectedAtoms(a: Atom) = repercussions(a) + a
+
+    var L = affectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => affectedAtoms(x.head))
+
+    def removeRule(rule: Rule) = {
+      for (m <- rule.body) {
+        Cons(m) -= rule.head //TODO (HB) not necessarily
+      }
+
+      rules = rules filter (_ != rule)
+    }
+
+    removeRule(rule)
+
+    rulesFromBacktracking.foreach(removeRule)
+
+    // if no other rule exists containing the atom - remove it completely
+    if (!rules.exists(_.atoms.contains(head))) {
+      //atoms -= head
+      status.remove(head)
+      Supp.remove(head)
+      SuppRule.remove(head)
+      Cons.remove(head)
+      L -= head
+    }
+
+    this.updateBeliefs(L)
+  }
+
   // ----------------- test stuff or stuff that might not be needed ----------------
 
   /** @return true if M is admissible **/
@@ -286,6 +323,11 @@ case class JTMNRefactored() {
     }
     true
   }
+
+  def isFounded(atoms:scala.collection.immutable.Set[Atom])={
+    false
+  }
+
 
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1

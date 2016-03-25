@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import aspsamples.EvaluateBothImplementations
+import aspsamples.EvaluateJTMNImplementations
 import core._
 import org.scalatest.FlatSpec
 
@@ -79,7 +79,7 @@ trait CarBehavior {
   }
 }
 
-class Car extends FlatSpec with CarBehavior with EvaluateBothImplementations{
+class Car extends FlatSpec with CarBehavior with EvaluateJTMNImplementations{
   "The car sample" should behave like theSame(theCar)
 }
 

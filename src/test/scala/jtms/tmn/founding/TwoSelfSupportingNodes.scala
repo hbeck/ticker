@@ -1,7 +1,7 @@
 package jtms.tmn.founding
 
 import core.{Atom, Program, Rule}
-import jtms.TMNRefactored
+import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
 /**
@@ -16,7 +16,7 @@ class TwoSelfSupportingNodes extends FlatSpec {
 
   val program = Program(r1, r2)
 
-  val tmn = TMNRefactored(program)
+  val tmn = JTMNRefactored(program)
 
 
   "A program containing only two self supporting nodes" should "have no model" in {

@@ -7,8 +7,8 @@ import scala.collection.mutable.{HashMap, Map, Set}
 
 object JTMNBeierle {
 
-  def apply(P: Program): TMNRefactored = {
-    val tmn = new TMNRefactored()
+  def apply(P: Program): JTMNRefactored = {
+    val tmn = new JTMNRefactored()
     P.rules foreach tmn.add
     tmn
   }
