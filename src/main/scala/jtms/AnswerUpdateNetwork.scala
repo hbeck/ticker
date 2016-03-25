@@ -180,7 +180,7 @@ case class AnswerUpdateNetwork() {
     if (validation(a) || invalidation(a))
       unknownCons(a) foreach determineAndPropagateStatus
   }
-
+  
   def validation(a: Atom): Boolean = {
     justifications(a) find foundedValid match {
       case Some(rule) => setIn(rule); true
@@ -236,10 +236,12 @@ case class AnswerUpdateNetwork() {
 
   def fixOut(a: Atom) = {
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //create foundation
-    setOut(a)
+    //val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    //val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
+    //unknownPosAtoms foreach setOut //create foundation
+    //setOut(a)
+    status(a) = out
+    SuppRule(a) = None
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
@@ -290,9 +292,11 @@ case class AnswerUpdateNetwork() {
     val sr = SuppRule(culprit).get
     val n = sr.neg.head //(all .neg have status out at this point)
 
-    val suppRules = maxAssumptions map (SuppRule(_).get)
-    val pos = (suppRules flatMap (_.pos)) - culprit + c
-    val neg = (suppRules flatMap (_.neg)) - n
+    //val suppRules = maxAssumptions map (SuppRule(_).get)
+    //val pos = (suppRules flatMap (_.pos))
+    //val neg = (suppRules flatMap (_.neg)) - n
+    val pos = (maxAssumptions - culprit + c).toSet
+    val neg = (sr.neg - n).toSet
     val rule = RuleFromBacktracking(pos, neg, n)
 
     Some(rule)

@@ -56,7 +56,9 @@ sealed trait Rule {
       sb.append(pos)
     }
     if (!neg.isEmpty) {
-      if (!pos.isEmpty) sb.append(", ")
+      if (!pos.isEmpty) {
+        sb.append(", ")
+      }
       sb.append("not ").append(neg)
     }
     sb.toString
@@ -67,23 +69,7 @@ sealed trait Rule {
   * Created by hb on 12/22/15.
   */
 //TODO (hb) following order is better: (head, pos, neg)
-case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
-  override def toString = head + " <- " + (if (pos.isEmpty) "" else pos) + (if (neg.isEmpty) "" else ", not "+neg)
-//  override def toString = {
-//    val sb = new StringBuilder()
-//    sb.append(head)
-//    if (!pos.isEmpty && !neg.isEmpty) {
-//      sb.append(" :- ")
-//      for (a <- pos) {
-//        sb.append(a).append(", ")
-//      }
-//      for (a <- neg) {
-//        sb.append("not ").append(a).append(", ")
-//      }
-//    }
-//    sb.substring(0,sb.length-1)
-//  }
-}
+case class UserDefinedRule(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
   override def toString = {
