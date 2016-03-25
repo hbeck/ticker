@@ -27,6 +27,7 @@ trait MultipleModelsBehavior {
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(b))
+        //pending
       }
     }
 
@@ -37,6 +38,7 @@ trait MultipleModelsBehavior {
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(a))
+        //pending
       }
     }
   }

@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
   */
 class Deletion extends FlatSpec {
 
-  /*
+  /* TODO
 
   val A = Atom("A")
   val B = Atom("B")
