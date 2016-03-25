@@ -127,14 +127,9 @@ case class AnswerUpdateNetwork() {
     atoms foreach setUnknown
     while (hasUnknown) {
       unknownAtomsList foreach determineAndPropagateStatus
-      val opt = unknownAtomsList.headOption
-      if (opt.isDefined){
-        val atom = opt.get
-        if (contradictionAtom(atom)) {
-          fixOut(atom)
-        } else {
-          fixAndDetermineAndPropagateStatus(atom)
-        }
+      val atom = unknownAtomsList.headOption
+      if (atom.isDefined) {
+        fixAndDetermineAndPropagateStatus(atom.get)
       }
     }
     tryEnsureConsistency
@@ -199,15 +194,6 @@ case class AnswerUpdateNetwork() {
       return true
     }
     false
-  }
-
-  def determineStep() {
-    val opt: Option[Atom] = atoms() find (status(_) == unknown)
-    if (opt.isEmpty) return
-
-    val atom = opt.get
-    determineAndPropagateStatus(atom)
-    determineStep()
   }
 
   def fixAndPropagateStatus(a: Atom): Unit = {
