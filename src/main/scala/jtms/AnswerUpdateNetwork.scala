@@ -124,18 +124,25 @@ case class AnswerUpdateNetwork() {
   }
 
   def updateStepwise(atoms: Set[Atom]): Boolean = {
-    atoms foreach setUnknown //Marking the nodes
+    atoms foreach setUnknown
     while (hasUnknown) {
-      unknownAtoms foreach determineAndPropagateStatus
-      val optAtom = atoms find (status(_) == unknown)
-      if (optAtom.isDefined) {
-        fixAndDetermineAndPropagateStatus(optAtom.get)
+      unknownAtomsList foreach determineAndPropagateStatus
+      val opt = unknownAtomsList.headOption
+      if (opt.isDefined){
+        val atom = opt.get
+        if (contradictionAtom(atom)) {
+          fixOut(atom)
+        } else {
+          fixAndDetermineAndPropagateStatus(atom)
+        }
       }
     }
     tryEnsureConsistency
   }
 
   def hasUnknown = atoms() exists (status(_) == unknown)
+
+  def unknownAtomsList() = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -284,20 +291,21 @@ case class AnswerUpdateNetwork() {
     if (maxAssumptions.isEmpty)
       return false //contradiction cannot be solved
 
-    findBacktrackingRule(maxAssumptions) match {
+    findBacktrackingRule(c, maxAssumptions) match {
       case Some(rule) => { add(rule); return true }
       case None => return false
     }
 
   }
 
-  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+  def findBacktrackingRule(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
     val culprit = maxAssumptions.head
-    val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
+    val sr = SuppRule(culprit).get
+    val n = sr.neg.head //(all .neg have status out at this point)
 
     val suppRules = maxAssumptions map (SuppRule(_).get)
-    val pos = suppRules flatMap (_.pos)
+    val pos = (suppRules flatMap (_.pos))
     val neg = (suppRules flatMap (_.neg)) - n
     val rule = RuleFromBacktracking(pos, neg, n)
 
