@@ -30,37 +30,11 @@ case class TMN() {
 
   def atoms() = Cons.keySet
 
-  trait FixVariant
-  object own extends FixVariant //encapsulated fixIn/Out
-  object beierleFix extends FixVariant //not encapsulated
-  object beierleFixRelaxed extends FixVariant //avoid null pointer on find
-
-  val fixInOutVariant:FixVariant = beierleFix
-
-  trait DDBVariant
-  object beierleDDB extends DDBVariant
-  object beierleDDBMod extends DDBVariant
-  object doyleDDBMod extends DDBVariant
-  object experimentalDDB extends DDBVariant
-
-  val ddbVariant:DDBVariant = beierleDDBMod
-
-  val singleFix = false //recursive determination
-  //if !singleFix, decide:
-  val sortBeforeFix = false //TODO consistency with flag true for P3, P4, not with false
-  //fixContrFirst = fixInOwn && fixOutOwn && !singleFix && sortBeforeFix
-
-  //var loop: Boolean = false
-  var consistent: Boolean = true
-
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (!consistent) return None
-    //if (someNoneFactHasNoSupport) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
-
 
   def inAtoms() = status.keys filter (status(_) == in)
 
@@ -68,15 +42,10 @@ case class TMN() {
 
   //TMS update algorithm
   def add(rule: Rule): Unit = {
-    if (!consistent) return
     register(rule)
     if (status(rule.head) == in || invalid(rule)) return
     val atoms = repercussions(rule.head) + rule.head
-    if (singleFix) {
-      updateBeliefs2(atoms)
-    } else {
-      updateBeliefs(atoms)
-    }
+    updateBeliefs(atoms)
   }
 
   def register(rule: Rule): Unit = {
@@ -101,32 +70,14 @@ case class TMN() {
   def updateBeliefs(atoms: Set[Atom]): Boolean = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    val ats = sortBeforeFix match {
-        case true => (List[Atom]() ++ atoms) sortWith ((a1, a2) => contradictionAtom(a1))
-        case false => atoms
-      }
-    ats foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
   }
-
-  def updateBeliefs2(atoms: Set[Atom]): Boolean = {
-    atoms foreach setUnknown //Marking the nodes
-    while (!unknownAtoms.isEmpty) {
-      unknownAtoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-      if (!unknownAtoms.isEmpty) {
-        fixAndDetermineAndPropagateStatus(unknownAtoms.head) // Relaxing circularities (might lead to contradictions)
-      }
-    }
-    tryEnsureConsistency
-  }
-
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
-
-  def noUnknownBodyAtomOtherThan(a: Atom)(r: Rule) = !((r.pos ++ r.neg - a) exists (status(_) == unknown))
 
   def repercussions(a: Atom) = trans(ACons, a)
 
@@ -147,7 +98,6 @@ case class TMN() {
     status(rule.head) = in
     Supp(rule.head) = Set() ++ rule.body
     SuppRule(rule.head) = Some(rule)
-    //ContradictedCons(rule.head) foreach setUnknown
   }
 
   def setOut(a: Atom) = {
@@ -156,19 +106,12 @@ case class TMN() {
     Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
     //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     SuppRule(a) = None
-    //ContradictedCons(a) foreach setUnknown
   }
 
   def setUnknown(atom: Atom) = {
     status(atom) = unknown
     Supp(atom) = Set()
     SuppRule(atom) = None
-  }
-
-  def stat(a: Atom, s: Status, allowUnknown: Boolean): Boolean = {
-    if (status(a)==s) return true
-    if (allowUnknown && status(a)==unknown) return true
-    false
   }
 
   def findSpoiler(rule: Rule): Option[Atom] = {
@@ -195,10 +138,7 @@ case class TMN() {
 
   def validation(a: Atom): Boolean = {
     justifications(a) find foundedValid match {
-      case Some(rule) => {
-        setIn(rule)
-        true
-      }
+      case Some(rule) => setIn(rule); true
       case None => false
     }
   }
@@ -211,23 +151,8 @@ case class TMN() {
     false
   }
 
-  def recursiveFix(): Unit = {
-    val unknownAtoms = atoms() filter (status(_) == unknown)
-    if (unknownAtoms.isEmpty)
-      return
-
-    val sortedAtoms = (List[Atom]() ++ unknownAtoms).sortWith((a1,a2) => contradictionAtom(a1))
-    val a = sortedAtoms.head
-    if (!fix(a)) {
-      val affected = ACons(a) + a
-      affected foreach setUnknown
-    }
-
-    recursiveFix()
-  }
-
   def fixAndPropagateStatus(a: Atom): Unit = {
-    if (status(a) != unknown) // || loop)
+    if (status(a) != unknown)
       return
 
     if (fix(a)) {
@@ -249,8 +174,6 @@ case class TMN() {
   }
 
   def fix(a: Atom): Boolean = {
-    //if (loop) return false
-
     justifications(a) find unfoundedValid match {
       case Some(rule) => {
           if (ACons(a).isEmpty) fixIn(rule)
@@ -261,70 +184,17 @@ case class TMN() {
     true
   }
 
-  def looping(rule: Rule): Boolean = {
-    val anc = rule.pos flatMap ancestors //cannot simply say ancestors(a) because supp of r.pos supp will in general not be set
-    if (anc contains rule.head) {
-      //loop = true
-      return true
-    }
-    return false
-  }
-
   def fixIn(unfoundedValidRule: Rule) = {
-    fixInOutVariant match {
-      case `own` => {
-        unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
-        setIn(unfoundedValidRule)
-      }
-      case `beierleFix` => beierleFixIn(unfoundedValidRule: Rule)
-      case `beierleFixRelaxed` => beierleFixIn(unfoundedValidRule: Rule) //sic
-    }
-  }
-
-  def beierleFixIn(unfoundedValidRule: Rule): Unit = {
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
     setIn(unfoundedValidRule)
-    for (n <- unfoundedValidRule.neg) {
-      if (status(n) == unknown) {
-        status(n) = out
-      }
-    }
   }
 
   def fixOut(a: Atom) = {
-    fixInOutVariant match {
-      case `own` => {
-        //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-        val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-        val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-        unknownPosAtoms foreach setOut //create foundation
-        setOut(a)
-      }
-      case `beierleFix` => {
-        beierleFixOut(a: Atom)
-      }
-      case `beierleFixRelaxed` => {
-        beierleFixOutRelaxed(a: Atom)
-      }
-    }
-  }
-
-  def beierleFixOut(a: Atom): Unit = {
-    status(a) = out
-    for (rule <- justifications(a)) {
-      val p = (rule.pos find (status(_)==unknown)).get
-      status(p)=out
-    }
-    Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
-  }
-
-  def beierleFixOutRelaxed(a: Atom): Unit = {
-    status(a) = out
-    for (rule <- justifications(a)) {
-      val p = (rule.pos find (status(_)==unknown))
-      if (p.isDefined) status(p.get)=out //relaxed part
-    }
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_)) //relaxed
-    Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined) map (_.get))
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
+    unknownPosAtoms foreach setOut //create foundation
+    setOut(a)
   }
 
   def foundedValid(rule: Rule) =
@@ -373,103 +243,15 @@ case class TMN() {
     if (maxAssumptions.isEmpty)
       return false //contradiction cannot be solved
 
-    val f:((Atom,Set[Atom]) => Option[RuleFromBacktracking]) = ddbVariant match {
-      case `beierleDDB` => findBacktrackingRuleBeierle
-      case `doyleDDBMod` => findBacktrackingRuleDoyleMod
-      case `beierleDDBMod` => findBacktrackingRuleBeierleMod
-      case `experimentalDDB` => findBacktrackingRuleExperimental
-    }
-
-    f(c,maxAssumptions) match {
+    findBacktrackingRule(maxAssumptions) match {
       case Some(rule) => { add(rule); return true }
       case None => return false
     }
 
   }
 
-  //modified book chapter variant
-  def findBacktrackingRuleBeierleMod(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-
-    var rule: Option[RuleFromBacktracking] = None
-    var assumptions = Set[Atom]() ++ maxAssumptions
-    val suppRules = maxAssumptions map (SuppRule(_).get)
-    val pos = (suppRules flatMap (_.pos)) ++ maxAssumptions + c
-    val negBase = suppRules flatMap (_.neg)
-    while (rule == None && !assumptions.isEmpty) {
-      val culprit = assumptions.head
-      assumptions = assumptions-culprit
-      var negAtoms = SuppRule(culprit).get.neg
-      while (rule == None && !negAtoms.isEmpty) {
-        val n = negAtoms.head
-        negAtoms = negAtoms - n
-        val r = RuleFromBacktracking(pos-culprit,negBase-n,n)
-        if (!(rules contains r)) {
-          rule = Some(r)
-        }
-      }
-    }
-    rule
-
-  }
-
-  def findBacktrackingRuleDoyleMod(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-
-    val ng = installNoGoodRule(c,maxAssumptions)
-
-    //val E = Predef.Set[Atom]()
-
-    var rule: Option[RuleFromBacktracking] = None
-    var assumptions = Set[Atom]() ++ maxAssumptions
-
-    //val pos = E ++ maxAssumptions + c
-    val pos = Predef.Set[Atom](ng) ++ maxAssumptions
-    //val pos = E ++ maxAssumptions + c
-
-    var countOuter = 0
-    var countInner = 0
-
-    while (rule == None && !assumptions.isEmpty && countOuter >= 0) {
-      countOuter += 1; if (countOuter >= 2) println("outer: "+countOuter)
-      val culprit = assumptions.head
-      assumptions = assumptions-culprit
-      val sr = SuppRule(culprit).get
-      var negCands = Set[Atom]() ++ sr.neg
-      while (rule == None && !negCands.isEmpty && countInner >= 0) {
-        countInner += 1; if (countInner >= 2) println("inner: "+countInner)
-        val n = negCands.head
-        negCands = negCands - n
-        val neg = (sr.neg filter (status(_) == out)) - n
-        val r = RuleFromBacktracking(pos-culprit,neg,n)
-        if (!(rules contains r)) {
-          rule = Some(r)
-        }
-      }
-    }
-    rule
-  }
-
-  val noGoodRules: Map[(Atom,Set[Atom]), Rule] = new HashMap[(Atom,Set[Atom]), Rule]
-
-  //return no-good itself
-  def installNoGoodRule(c: Atom, maxAssumptions: Set[Atom]): Atom = {
-    val rule = noGoodRules.get((c, maxAssumptions)) match {
-      case Some(r) => r
-      case None => {
-        val pos = Predef.Set[Atom](c) ++ maxAssumptions
-        val neg = Predef.Set[Atom]()
-        val r = new RuleFromBacktracking(pos, neg, new ContradictionAtom("[" + c + ";" + maxAssumptions + "]"))
-        noGoodRules((c, maxAssumptions)) = r
-        register(r)
-        r
-      }
-    }
-    setIn(rule)
-    rule.head
-  }
-
-
-  //book chapter variant; c:Atom currently included for uniformity
-  def findBacktrackingRuleBeierle(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+  //book chapter variant
+  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
     val culprit = maxAssumptions.head
     val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
@@ -480,20 +262,6 @@ case class TMN() {
     val rule = RuleFromBacktracking(pos, neg, n)
 
     assert(foundedValid(rule))
-
-    Some(rule)
-  }
-
-  def findBacktrackingRuleExperimental(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-
-//    val culprit = maxAssumptions.head
-//    val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
-
-    val x = new ContradictionAtom("x"+System.currentTimeMillis())
-
-    val pos = maxAssumptions + c
-    val neg = Set[Atom](x)
-    val rule = RuleFromBacktracking(pos, neg, x)
 
     Some(rule)
   }
