@@ -24,6 +24,14 @@ object AnswerUpdateNetwork {
   */
 case class AnswerUpdateNetwork() {
 
+  sealed trait UpdateStrategy
+  object UpdateStrategyDoyle extends UpdateStrategy
+  object UpdateStrategyStepwise extends UpdateStrategy
+
+  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+
+  //
+
   var rules: List[Rule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -102,10 +110,22 @@ case class AnswerUpdateNetwork() {
   }
 
   def updateBeliefs(atoms: Set[Atom]): Boolean = {
+    updateStrategy match {
+      case `UpdateStrategyDoyle` => updateDoyle(atoms)
+      case `UpdateStrategyStepwise` => updateStepwise(atoms)
+      case _ =>
+    }
+  }
+
+  def updateDoyle(atoms: Set[Atom]): Boolean = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
     tryEnsureConsistency
+  }
+
+  def updateStepwise(atoms: Set[Atom]): Boolean = {
+    return false //TODO
   }
 
   def setIn(rule: Rule) = {
