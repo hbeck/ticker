@@ -39,7 +39,10 @@ case class AnswerUpdateNetwork() {
   val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
+  var consistent: Boolean = true
+
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    if (!consistent) return None
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
@@ -125,19 +128,23 @@ case class AnswerUpdateNetwork() {
 
   def updateStepwise(atoms: Set[Atom]): Boolean = {
     atoms foreach setUnknown
-    while (hasUnknown) {
+    while (hasUnknown && consistent) {
       unknownAtomsList foreach determineAndPropagateStatus
       val atom = unknownAtomsList.headOption
       if (atom.isDefined) {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
     }
-    tryEnsureConsistency
+    if (consistent) {
+      tryEnsureConsistency
+    } else {
+      return false
+    }
   }
 
-  def hasUnknown = atoms() exists (status(_) == unknown)
+  def hasUnknown = atoms exists (status(_) == unknown)
 
-  def unknownAtomsList() = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
+  def unknownAtomsList = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -180,7 +187,7 @@ case class AnswerUpdateNetwork() {
     if (validation(a) || invalidation(a))
       unknownCons(a) foreach determineAndPropagateStatus
   }
-  
+
   def validation(a: Atom): Boolean = {
     justifications(a) find foundedValid match {
       case Some(rule) => setIn(rule); true
@@ -211,6 +218,7 @@ case class AnswerUpdateNetwork() {
 
   def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
     if (fix(a)) {
+      if (!consistent) return
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
       val affected = ACons(a) + a
@@ -242,6 +250,39 @@ case class AnswerUpdateNetwork() {
     //setOut(a)
     status(a) = out
     SuppRule(a) = None
+    checkBackwardOut(a)
+  }
+
+  def checkBackwardOut(a: Atom): Unit =  {
+    val justs = justifications(a)
+    if (justs.size != 1) return
+    val rule = justs.head
+    rule.pos filter (status(_) == unknown) foreach (status(_) = in)
+    rule.neg filter (status(_) == unknown) foreach (status(_) = out)
+    for (atom <- atoms) {
+      if (needCheckBackwardOut(atom)) {
+        checkBackwardOut(atom)
+      }
+      if (!consistent) return
+    }
+  }
+
+  def needCheckBackwardOut(atom: Atom): Boolean = {
+    if (status(atom)!=out) return false
+
+    val rules = justifications(atom)
+    if (rules.size != 1) return false
+
+    val rule = rules.head
+
+    if (foundedInvalid(rule)) return false
+
+    if (foundedValid(rule)) {
+      consistent = false
+      return false
+    }
+
+    return true
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {

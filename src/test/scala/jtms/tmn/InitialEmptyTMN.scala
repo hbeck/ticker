@@ -38,8 +38,8 @@ class InitialEmptyTMN extends FlatSpec {
   }
 
   it should "have no consequences and no support" in {
-    assert(tmn.Cons(assumptionA.head).size == 0)
-    assert(tmn.Supp(assumptionA.head).size == 0)
+    assert(tmn.cons(assumptionA.head).size == 0)
+    assert(tmn.supp(assumptionA.head).size == 0)
   }
 
   "An TMN with the same assumptions applied two times" should "still contain one status" in {

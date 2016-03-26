@@ -26,9 +26,9 @@ case class JTMNRefactored() {
 
   var rules: List[Rule] = List()
 
-  val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
+  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val suppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -39,7 +39,7 @@ case class JTMNRefactored() {
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
-  def atoms() = Cons.keySet
+  def atoms() = cons.keySet
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
@@ -48,36 +48,37 @@ case class JTMNRefactored() {
   def unknownAtoms() = status.keys filter (status(_) == unknown)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
+  def ACons(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
   def repercussions(a: Atom) = trans(ACons, a)
 
   def antecedents(a: Atom): Set[Atom] = {
-    if (status(a) == in) return Supp(a)
+    if (status(a) == in) return supp(a)
     Set()
   }
 
   def foundations(a: Atom) = trans(antecedents, a)
 
-  def ancestors(a: Atom) = trans(Supp, a)
+  def ancestors(a: Atom) = trans(supp, a)
 
-  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
+  def isAssumption(a: Atom) = (status(a) == in) && !suppRule(a).get.neg.isEmpty
 
-  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
+  def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
-  def foundedValid(rule: Rule) =
+  def valid(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def foundedInvalid(rule: Rule) =
+  def invalid(rule: Rule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfoundedValid(rule: Rule) =
-    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
+  def unfounded(rule: Rule) =
+    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
 
   //JTMS update algorithm
   def add(rule: Rule): Unit = {
     register(rule)
-    if (status(rule.head) == in || invalid(rule)) return
+    if (status(rule.head) == in) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
     val atoms = repercussions(rule.head) + rule.head
     updateBeliefs(atoms)
   }
@@ -86,19 +87,14 @@ case class JTMNRefactored() {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
-    rule.body foreach (Cons(_) += rule.head)
+    rule.body foreach (cons(_) += rule.head)
   }
 
   def register(a: Atom): Unit = {
     if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
-  }
-
-  def invalid(rule: Rule) = findSpoiler(rule) match {
-    case Some(spoiler) => Supp(rule.head) += spoiler; true
-    case None => false
+    if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
+    if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
+    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
   def updateBeliefs(atoms: Set[Atom]): Boolean = {
@@ -110,22 +106,22 @@ case class JTMNRefactored() {
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
-    Supp(rule.head) = Set() ++ rule.body
-    SuppRule(rule.head) = Some(rule)
+    supp(rule.head) = Set() ++ rule.body
+    suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
     status(a) = out
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
     //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
-    SuppRule(a) = None
+    suppRule(a) = None
   }
 
   def setUnknown(atom: Atom) = {
     status(atom) = unknown
-    Supp(atom) = Set()
-    SuppRule(atom) = None
+    supp(atom) = Set()
+    suppRule(atom) = None
   }
 
   def findSpoiler(rule: Rule): Option[Atom] = {
@@ -151,14 +147,14 @@ case class JTMNRefactored() {
   }
 
   def validation(a: Atom): Boolean = {
-    justifications(a) find foundedValid match {
+    justifications(a) find valid match {
       case Some(rule) => setIn(rule); true
       case None => false
     }
   }
 
   def invalidation(a: Atom): Boolean = {
-    if (justifications(a) forall foundedInvalid) {
+    if (justifications(a) forall invalid) {
       setOut(a)
       return true
     }
@@ -179,7 +175,7 @@ case class JTMNRefactored() {
   }
 
   def fix(a: Atom): Boolean = {
-    justifications(a) find unfoundedValid match {
+    justifications(a) find unfounded match {
       case Some(rule) => {
           if (ACons(a).isEmpty) fixIn(rule)
           else return false
@@ -238,7 +234,7 @@ case class JTMNRefactored() {
       return false //contradiction cannot be solved
 
     findBacktrackingRule(maxAssumptions) match {
-      case Some(rule) => { add(rule); return true }
+      case Some(rule) => add(rule); return true
       case None => return false
     }
 
@@ -247,9 +243,9 @@ case class JTMNRefactored() {
   def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
     val culprit = maxAssumptions.head
-    val n = SuppRule(culprit).get.neg.head //(all .neg have status out at this point)
+    val n = suppRule(culprit).get.neg.head //(all .neg have status out at this point)
 
-    val suppRules = maxAssumptions map (SuppRule(_).get)
+    val suppRules = maxAssumptions map (suppRule(_).get)
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - n
     val rule = RuleFromBacktracking(pos, neg, n)
