@@ -34,9 +34,9 @@ case class AnswerUpdateNetwork() {
 
   var rules: List[Rule] = List()
 
-  val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SuppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
+  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val suppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   var consistent: Boolean = true
@@ -50,7 +50,7 @@ case class AnswerUpdateNetwork() {
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
-  def atoms() = Cons.keySet
+  def atoms() = cons.keySet
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
@@ -59,36 +59,37 @@ case class AnswerUpdateNetwork() {
   def unknownAtoms() = status.keys filter (status(_) == unknown)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
+  def ACons(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
   def repercussions(a: Atom) = trans(ACons, a)
 
   def antecedents(a: Atom): Set[Atom] = {
-    if (status(a) == in) return Supp(a)
+    if (status(a) == in) return supp(a)
     Set()
   }
 
   def foundations(a: Atom) = trans(antecedents, a)
 
-  def ancestors(a: Atom) = trans(Supp, a)
+  def ancestors(a: Atom) = trans(supp, a)
 
-  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
+  def isAssumption(a: Atom) = (status(a) == in) && !suppRule(a).get.neg.isEmpty
 
-  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
+  def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
-  def foundedValid(rule: Rule) =
+  def valid(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def foundedInvalid(rule: Rule) =
+  def invalid(rule: Rule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfoundedValid(rule: Rule) =
+  def unfounded(rule: Rule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
   //based on JTMS update algorithm
   def add(rule: Rule): Unit = {
     register(rule)
-    if (status(rule.head) == in || invalid(rule)) return
+    if (status(rule.head) == in) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
     val atoms = repercussions(rule.head) + rule.head
     updateBeliefs(atoms)
   }
@@ -97,19 +98,14 @@ case class AnswerUpdateNetwork() {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
-    rule.body foreach (Cons(_) += rule.head)
+    rule.body foreach (cons(_) += rule.head)
   }
 
   def register(a: Atom): Unit = {
     if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
-  }
-
-  def invalid(rule: Rule) = findSpoiler(rule) match {
-    case Some(spoiler) => Supp(rule.head) += spoiler; true
-    case None => false
+    if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
+    if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
+    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
   def updateBeliefs(atoms: Set[Atom]): Boolean = {
@@ -148,22 +144,22 @@ case class AnswerUpdateNetwork() {
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
-    Supp(rule.head) = Set() ++ rule.body
-    SuppRule(rule.head) = Some(rule)
+    supp(rule.head) = Set() ++ rule.body
+    suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
     status(a) = out
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    Supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
     //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
-    SuppRule(a) = None
+    suppRule(a) = None
   }
 
   def setUnknown(atom: Atom) = {
     status(atom) = unknown
-    Supp(atom) = Set()
-    SuppRule(atom) = None
+    supp(atom) = Set()
+    suppRule(atom) = None
   }
 
   def findSpoiler(rule: Rule): Option[Atom] = {
@@ -189,14 +185,14 @@ case class AnswerUpdateNetwork() {
   }
 
   def validation(a: Atom): Boolean = {
-    justifications(a) find foundedValid match {
+    justifications(a) find valid match {
       case Some(rule) => setIn(rule); true
       case None => false
     }
   }
 
   def invalidation(a: Atom): Boolean = {
-    if (justifications(a) forall foundedInvalid) {
+    if (justifications(a) forall invalid) {
       setOut(a)
       return true
     }
@@ -227,7 +223,7 @@ case class AnswerUpdateNetwork() {
   }
 
   def fix(a: Atom): Boolean = {
-    justifications(a) find unfoundedValid match {
+    justifications(a) find unfounded match {
       case Some(rule) => {
           if (ACons(a).isEmpty) fixIn(rule)
           else return false
@@ -244,45 +240,12 @@ case class AnswerUpdateNetwork() {
 
   def fixOut(a: Atom) = {
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-    //val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    //val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    //unknownPosAtoms foreach setOut //create foundation
-    //setOut(a)
-    status(a) = out
-    SuppRule(a) = None
-    checkBackwardOut(a)
-  }
-
-  def checkBackwardOut(a: Atom): Unit =  {
-    val justs = justifications(a)
-    if (justs.size != 1) return
-    val rule = justs.head
-    rule.pos filter (status(_) == unknown) foreach (status(_) = in)
-    rule.neg filter (status(_) == unknown) foreach (status(_) = out)
-    for (atom <- atoms) {
-      if (needCheckBackwardOut(atom)) {
-        checkBackwardOut(atom)
-      }
-      if (!consistent) return
-    }
-  }
-
-  def needCheckBackwardOut(atom: Atom): Boolean = {
-    if (status(atom)!=out) return false
-
-    val rules = justifications(atom)
-    if (rules.size != 1) return false
-
-    val rule = rules.head
-
-    if (foundedInvalid(rule)) return false
-
-    if (foundedValid(rule)) {
-      consistent = false
-      return false
-    }
-
-    return true
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
+    //TODO why isn't a possibility to create more generally a spoiler for each r in justifications(a)?
+    //it should be equally fine to set an negative body atom to in (esp when pos body is empty)
+    unknownPosAtoms foreach setOut //create foundation
+    setOut(a)
   }
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
@@ -330,7 +293,7 @@ case class AnswerUpdateNetwork() {
   def findBacktrackingRule(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
 
     val culprit = maxAssumptions.head
-    val sr = SuppRule(culprit).get
+    val sr = suppRule(culprit).get
     val n = sr.neg.head //(all .neg have status out at this point)
 
     //val suppRules = maxAssumptions map (SuppRule(_).get)
@@ -360,7 +323,7 @@ case class AnswerUpdateNetwork() {
 
     def removeRule(rule: Rule) = {
       for (m <- rule.body) {
-        Cons(m) -= rule.head //TODO (HB) not necessarily
+        cons(m) -= rule.head //TODO (HB) not necessarily
       }
 
       rules = rules filter (_ != rule)
@@ -374,9 +337,9 @@ case class AnswerUpdateNetwork() {
     if (!rules.exists(_.atoms.contains(head))) {
       //atoms -= head
       status.remove(head)
-      Supp.remove(head)
-      SuppRule.remove(head)
-      Cons.remove(head)
+      supp.remove(head)
+      suppRule.remove(head)
+      cons.remove(head)
       L -= head
     }
 
