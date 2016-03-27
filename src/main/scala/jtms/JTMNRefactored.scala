@@ -186,7 +186,7 @@ case class JTMNRefactored() {
   }
 
   def fixIn(unfoundedValidRule: Rule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors
     setIn(unfoundedValidRule)
   }
 
@@ -194,7 +194,7 @@ case class JTMNRefactored() {
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //create foundation
+    unknownPosAtoms foreach setOut //fix ancestors
     setOut(a)
   }
 

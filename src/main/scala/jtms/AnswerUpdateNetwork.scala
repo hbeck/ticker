@@ -234,17 +234,17 @@ case class AnswerUpdateNetwork() {
   }
 
   def fixIn(unfoundedValidRule: Rule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //create foundation
+    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors
     setIn(unfoundedValidRule)
   }
 
   def fixOut(a: Atom) = {
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    //TODO why isn't a possibility to create more generally a spoiler for each r in justifications(a)?
-    //it should be equally fine to set an negative body atom to in (esp when pos body is empty)
-    unknownPosAtoms foreach setOut //create foundation
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)    
+    unknownPosAtoms foreach setOut //fix ancestors
+    //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
+    //where the negative body is out/unknown is 
     setOut(a)
   }
 
