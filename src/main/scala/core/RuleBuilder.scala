@@ -67,17 +67,18 @@ class Builder(head: Atom) {
 object :- {
   //  def apply(atom: Atom) = new BuilderHead(Falsum) :- PosBuilderAtom(atom)
 
-  def apply(item:BuilderItem)= new BuilderHead(Falsum) :- item
+  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
 
   //  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
 }
 
-class BuilderHead(head: Atom) {
+class BuilderHead(val head: Atom) {
   def :-(item: BuilderItem) = item match {
     case PosBuilderAtom(atom) => new BuilderCollection(head, Set(atom))
     case NegBuilderAtom(atom) => new BuilderCollection(head, Set(), Set(atom))
   }
 }
+
 
 class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val negativeBody: Set[Atom] = Set()) {
   def and(builderItem: BuilderItem) = builderItem match {
@@ -86,7 +87,7 @@ class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val
   }
 
 
-  implicit def toRule(): Rule = new UserDefinedRule(positiveBody, negativeBody, head)
+//  implicit def toRule(): Rule = new UserDefinedRule(positiveBody, negativeBody, head)
 }
 
 object BuilderCollection {
@@ -112,18 +113,26 @@ case class PosBuilderAtom(atom: Atom) extends BuilderItem
 case class NegBuilderAtom(atom: Atom) extends BuilderItem
 
 object ProgramBuilder {
-  def apply(rule: Rule) = {
-    new ProgramBuilder(Set(rule))
-  }
+//  def apply(rule: Rule) = {
+//    new ProgramBuilder(Set(rule))
+//  }
 
   //  def apply(rules: Rule*)={
   //    new ProgramBuilder(rules.toSet)
   //  }
-  implicit def toProgramBuilder(rule: Rule) = ProgramBuilder(rule)
+//  implicit def toProgramBuilder(rule: Rule) = ProgramBuilder(rule)
+//
+  def rule(rule: Rule) = new ProgramBuilder(Set(rule))
+//
+//  def +(rule: Rule) = rule(rule)
 
-  def rule(rule: Rule) = ProgramBuilder(rule)
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): Program = {
+    val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
-  def +(rule: Rule) = rule(rule)
+    val rules = atomsToRules(atoms)
+
+    Program(rules.toList)
+  }
 }
 
 class ProgramBuilder(rules: Set[Rule]) {
@@ -133,10 +142,4 @@ class ProgramBuilder(rules: Set[Rule]) {
 
   def toProgram = new Program(rules.toList)
 
-}
-
-object AtomProgramBuilder {
-  def foo(function: Function[Atom, Set[Rule]]) = {
-
-  }
 }

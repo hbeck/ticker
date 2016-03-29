@@ -11,6 +11,8 @@ object Atom {
   def apply(caption: String): Atom = NamedAtom(caption)
 
   implicit def headAtomToBuilder(atom: Atom) = new BuilderHead(atom)
+
+  implicit def headAtomToFact(atom: Atom): Rule = Fact(atom)
 }
 
 case class NamedAtom(caption: String) extends Atom

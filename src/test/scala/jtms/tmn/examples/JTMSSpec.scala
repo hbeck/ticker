@@ -38,28 +38,9 @@ class JTMSSpec extends FlatSpec {
 
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
 
-  val program2 = ProgramBuilder(j2)(j3)(j4a)
-  val program3 = ProgramBuilder rule j1 rule j2
-  //    .rule(j3)
-  //  j4a
-  //  j4b
-  //  j5
-  //  j6)
-
-  val program4 = ProgramBuilder
-    .rule(a :- c and d and not(e) and not(f))
-    .rule(:-(d) and not(e))
-  //    .rule(j3)
-  //  j4a
-  //  j4b
-  //  j5
-  //  j6)
-
-  val program5 = ProgramBuilder rule (a :- c and d and not(e) and not(f))
-
 
   def JTMS = {
-    val tmn = TMN(program3.toProgram)
+    val tmn = TMN(program)
 
     tmn
   }
