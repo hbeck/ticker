@@ -2,7 +2,7 @@ package aspsamples
 
 import asp.Asp
 import core._
-import jtms.{jTmn, TMN}
+import jtms.evaluation.AnswerUpdateNetworkEvaluation
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps
@@ -44,10 +44,10 @@ trait SingleHusbandBehavior {
 }
 
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
-  def tmn = new jTmn
+  def net = new AnswerUpdateNetworkEvaluation
 
   def asp = Asp()
 
-  "The TMN implementation " should behave like singleHusband(tmn)
+  "The AnserUpdateNetwork implementation " should behave like singleHusband(net)
   "The ASP implementation " should behave like singleHusband(asp)
 }

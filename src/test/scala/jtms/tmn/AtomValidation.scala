@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core.{Rule, Atom}
-import jtms.{Status, TMN}
+import jtms.{Status, JTMNRefactored}
 import org.scalatest.{GivenWhenThen, FlatSpec}
 
 /**
@@ -11,7 +11,7 @@ import org.scalatest.{GivenWhenThen, FlatSpec}
 trait AtomValidation {
   this: FlatSpec =>
 
-  def atomValidation(tmn: TMN, n: Atom): ((AtomValidator) => Any) => Any = {
+  def atomValidation(tmn: JTMNRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 
     def atomCheckTestCallback(check: (AtomValidator) => Any) = {
@@ -21,7 +21,7 @@ trait AtomValidation {
     return atomCheckTestCallback
   }
 
-  class AtomValidator(tmn: TMN, atom: Atom) {
+  class AtomValidator(tmn: JTMNRefactored, atom: Atom) {
 
     info(atom.toString)
 
@@ -47,13 +47,13 @@ trait AtomValidation {
         text = "have no supporting rules";
 
       it should text in {
-        assert(tmn.SuppRule(atom) == j)
+        assert(tmn.suppRule(atom) == j)
       }
     }
 
     def Supp(atoms: Atom*) = {
       it should "have Supp " + atoms.toSet in {
-        assert(tmn.Supp(atom) == atoms.toSet)
+        assert(tmn.supp(atom) == atoms.toSet)
       }
     }
 
@@ -77,7 +77,7 @@ trait AtomValidation {
 
     def Cons(atoms: Atom*) = {
       it should "have Cons " + atoms.toSet in {
-        assert(tmn.Cons(atom) == atoms.toSet)
+        assert(tmn.cons(atom) == atoms.toSet)
       }
     }
 

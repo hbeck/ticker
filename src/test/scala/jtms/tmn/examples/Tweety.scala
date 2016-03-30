@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import aspsamples.EvaluateBothImplementations
+import aspsamples.EvaluateJTMNImplementations
 import core._
 import jtms._
 import org.scalatest.FlatSpec
@@ -42,6 +42,6 @@ trait TweetyBehavior {
   }
 }
 
-class Tweety extends FlatSpec with TweetyBehavior with EvaluateBothImplementations {
+class Tweety extends FlatSpec with TweetyBehavior with EvaluateJTMNImplementations {
   "The Tweety" should behave like theSame(tweety)
 }

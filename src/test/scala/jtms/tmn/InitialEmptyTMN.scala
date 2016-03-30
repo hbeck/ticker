@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import jtms.{TMN, in}
+import jtms.{JTMNRefactored, in}
 import org.scalatest.{FlatSpec, BeforeAndAfter}
 import scala.language.implicitConversions
 
@@ -13,10 +13,10 @@ class InitialEmptyTMN extends FlatSpec {
   val assumptionA = Fact(Atom("A"))
   val program = Program(assumptionA)
 
-  val EmptyTMN = TMN(Program())
+  val EmptyTMN = JTMNRefactored(Program())
 
   val tmn = {
-    TMN(program)
+    JTMNRefactored(program)
   }
 
   "An empty TMN" should "have no rules and no status values set" in {
@@ -38,8 +38,8 @@ class InitialEmptyTMN extends FlatSpec {
   }
 
   it should "have no consequences and no support" in {
-    assert(tmn.Cons(assumptionA.head).size == 0)
-    assert(tmn.Supp(assumptionA.head).size == 0)
+    assert(tmn.cons(assumptionA.head).size == 0)
+    assert(tmn.supp(assumptionA.head).size == 0)
   }
 
   "An TMN with the same assumptions applied two times" should "still contain one status" in {

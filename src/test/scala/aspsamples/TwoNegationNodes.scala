@@ -1,7 +1,7 @@
-package jtms.tmn.founding
+package aspsamples
 
-import core.{Program, Rule, Atom}
-import jtms.JTMNRefactored
+import core.{Atom, Program, Rule}
+import jtms.AnswerUpdateNetwork
 import org.scalatest.FlatSpec
 
 /**
@@ -16,10 +16,10 @@ class TwoNegationNodes extends FlatSpec {
 
   val program = Program(r1, r2)
 
-  def tmn = JTMNRefactored(program)
+  def net = AnswerUpdateNetwork(program)
 
   val modelA = {
-    val t = tmn
+    val t = net
 
     t.set(Set(a))
 
@@ -27,7 +27,7 @@ class TwoNegationNodes extends FlatSpec {
   }
 
   val modelB = {
-    val t = tmn
+    val t = net
 
     t.set(Set(b))
 

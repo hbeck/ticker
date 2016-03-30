@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
-import aspsamples.EvaluateBothImplementations
+import asp.Asp
+import aspsamples.EvaluateJTMNImplementations
 import core._
 import jtms._
 import jtms.tmn.AtomValidation
@@ -53,8 +54,7 @@ trait LibraryBehavior {
       assert(model contains Set(V, H, P, A_not))
     }
 
-    /* TODO these programs are all inconsistent ...
-
+    /* the following models diverge from ASP */
 
     it should "be A_not,H,P, V" in {
       info("With a constraint for A the model")
@@ -90,17 +90,17 @@ trait LibraryBehavior {
       info("F is currently chosen 'by random'")
       assert(model contains Set(P_not, F, V))
     }
-    */
+
   }
 }
 
-class Library extends FlatSpec with LibraryBehavior with EvaluateBothImplementations {
+class Library extends FlatSpec with LibraryBehavior with EvaluateJTMNImplementations {
   "The Library Sample" should behave like theSame(library)
 }
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = TMN(program)
+  def Tmn = JTMNRefactored(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)

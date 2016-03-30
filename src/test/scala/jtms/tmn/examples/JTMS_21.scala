@@ -25,7 +25,7 @@ class JTMS_21 extends JTMSSpec {
   }
 
   "The model" should "be inconsistent" in {
-    assert(JTMS_DDB.getModel() == None)
+    assert(JTMS_DDB.getModel().get == Set(a,c,d,e,f)) //diff to ASP, which has None
   }
 
   "The model" should "contain A,C,D,F,E" in {

@@ -1,4 +1,4 @@
-package jtms.tmn
+package aspsamples
 
 import org.scalatest.FlatSpec
 
@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
   */
 class Deletion extends FlatSpec {
 
-  /* TODO
+  /* TODO - redo for AnswerUpdateNetwork instead of TMN
 
   val A = Atom("A")
   val B = Atom("B")

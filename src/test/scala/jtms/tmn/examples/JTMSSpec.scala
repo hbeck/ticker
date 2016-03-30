@@ -30,7 +30,7 @@ class JTMSSpec extends FlatSpec {
 
 
   def JTMS = {
-    val tmn = TMN(program)
+    val tmn = JTMNRefactored(program)
 
     tmn
   }

@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import aspsamples.EvaluateBothImplementations
+import aspsamples.EvaluateJTMNImplementations
 import core._
 import jtms._
 import org.scalatest.FlatSpec
@@ -44,6 +44,6 @@ trait ManufacturingBehavior {
 
 }
 
-class Manufacturing extends FlatSpec with ManufacturingBehavior with EvaluateBothImplementations {
+class Manufacturing extends FlatSpec with ManufacturingBehavior with EvaluateJTMNImplementations {
   "The Manufacturing sample" should behave like theSame(manufacturing)
 }

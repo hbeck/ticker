@@ -2,20 +2,20 @@ package aspsamples
 
 import asp.Asp
 import core.Evaluation
-import jtms.jTmn
+import jtms.evaluation.AnswerUpdateNetworkEvaluation
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 25.02.16.
   */
-trait EvaluateBothImplementations {
+trait EvaluateASPImplementations {
   this: FlatSpec =>
 
   val asp = Asp()
-  val tmn = new jTmn
+  val answerUpdate = new AnswerUpdateNetworkEvaluation
 
   def theSame(tests: => Evaluation => Unit) = {
     "The ASP implementation" should behave like tests(asp)
-    "The TMN implementation" should behave like tests(tmn)
+    "The AnswerUpdate implementation" should behave like tests(answerUpdate)
   }
 }

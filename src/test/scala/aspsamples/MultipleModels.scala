@@ -1,7 +1,6 @@
-package jtms.tmn.examples
+package aspsamples
 
 import asp.Asp
-import aspsamples.EvaluateJTMNImplementations
 import core._
 import org.scalatest.FlatSpec
 
@@ -44,6 +43,6 @@ trait MultipleModelsBehavior {
   }
 }
 
-class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateJTMNImplementations {
+class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateASPImplementations {
   "Multiple Models" should behave like theSame(multipleModels)
 }
