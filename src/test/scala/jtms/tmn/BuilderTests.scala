@@ -60,7 +60,7 @@ class BuilderTests extends FlatSpec {
     assert(p2.rules.size == 3)
   }
 
-  "a :- b, not c. c :- b. b :- not d. :- d. b." should "be definable as a program" in {
+  "a :- b, not c. c :- b. b :- not d. :- d. b." should "be a valid program" in {
 
     val program = ProgramBuilder({
       case a #:: b #:: c #:: d #:: atoms => Set(

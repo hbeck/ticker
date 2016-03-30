@@ -8,11 +8,12 @@ sealed trait Atom
 object Falsum extends Atom
 
 object Atom {
-  def apply(caption: String): Atom = NamedAtom(caption)
+  def apply(caption: String): Atom = UserDefinedAtom(caption)
 
   implicit def headAtomToBuilder(atom: Atom) = new BuilderHead(atom)
 
   implicit def headAtomToFact(atom: Atom): Rule = Fact(atom)
 }
 
-case class NamedAtom(caption: String) extends Atom
+case class UserDefinedAtom(caption: String) extends Atom
+case class ContradictionAtom(caption: String) extends Atom

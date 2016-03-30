@@ -17,16 +17,6 @@ class JTMSSpec extends FlatSpec {
   val f = Atom("f")
 
   val none = Set[Atom]()
-  //    val j1 = a :- PosBuilderAtom(c), NegBuilderAtom(d), PosBuilderAtom(e)
-  //  val j1 = a :- c and d and not(e) and not(f)
-  //, Not(d), e)
-  val j1 = Rule.pos(c).head(a)
-  val j2 = Rule.neg(a).head(b)
-  val j3 = Rule.pos(a).head(c)
-  val j4a = Rule.pos(b).head(d)
-  val j4b = Rule.pos(c).head(d)
-  val j5 = Fact(e)
-  val j6 = Rule.pos(c, e).head(f)
 
   val j1 = Rule(a, c)
   val j2 = Rule(b, none, Set(a))
