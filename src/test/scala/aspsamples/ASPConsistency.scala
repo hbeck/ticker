@@ -234,10 +234,39 @@ class ASPConsistency extends FunSuite {
     net2.add(Rule(b,none,Set(c))) // b :- not c
     assert(net2.getModel.get == Set(c)) //{c} (or {a,b})
 
-    val r = Rule(n,c)
-    net2.add(r) //:- c
+    net2.add(Rule(n,c)) //:- c
     //force other
     assert(net2.getModel.get == Set(a,b))
+
+  }
+
+  test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
+
+    val net1 = AnswerUpdateNetwork()
+    net1.add(Rule(a,b))
+    assert(net1.getModel.get == Set())
+
+    net1.add(Rule(b,none,Set(c)))
+    assert(net1.getModel.get == Set(a,b))
+
+    net1.add(Rule(c,none,Set(a)))
+    assert(net1.getModel.get == Set(a,b))
+
+    net1.add(Rule(n,a)) //:- a
+    //force other
+    assert(net1.getModel.get == Set(c))
+
+    //other insertion order
+    val net2 = AnswerUpdateNetwork()
+    net2.add(Rule(a,b)) //a :- b
+    net2.add(Rule(b,none,Set(c))) // b :- not c {a,b}
+    assert(net2.getModel.get == Set(a,b)) //{a,b}
+
+    net2.add(Rule(n,a)) //:- a
+    assert(net2.getModel == None)
+
+    net2.add(Rule(c,none,Set(a))) //c :- not a
+    assert(net2.getModel.get == Set(c)) //{c}
 
   }
 

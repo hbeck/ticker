@@ -49,6 +49,7 @@ case class JTMNRefactored() {
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def ACons(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
+  def aff(a:Atom) = ACons(a:Atom)
 
   def repercussions(a: Atom) = trans(ACons, a)
 

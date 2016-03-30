@@ -15,6 +15,11 @@ class JTMNConsistency extends FunSuite {
   val d = Atom("d")
 //  val e = Atom("e")
   val f = Atom("f")
+  val t1 = Atom("t1")
+  val t2 = Atom("t2")
+  val r1 = Atom("r1")
+  val r2 = Atom("r2")
+  val x = Atom("x")
 
   val n = ContradictionAtom("n")
 
@@ -174,7 +179,7 @@ class JTMNConsistency extends FunSuite {
   //inconsistent: direct odd loop
 //  test("a :- not a.") {
 //
-//    val tmn = TMN()
+//    val tmn = JTMNRefactored()
 //    tmn.add(Rule(a,Set(),Set(a)))
 //    assert(tmn.getModel == None)
 //
@@ -211,6 +216,22 @@ class JTMNConsistency extends FunSuite {
 //    }
 //  }
 
+  test("even loop. a :- b not. b :- not c. c :- not d. d :- not a.") { //{a,c} or {b,d}
+
+    for (i <- 1 to times) {
+      val tmn = JTMNRefactored()
+      tmn.add(Rule(a, none, Set(b)))
+      tmn.add(Rule(b, none, Set(c)))
+      tmn.add(Rule(c, none, Set(d)))
+      tmn.add(Rule(d, none, Set(c)))
+      assert(tmn.getModel.get == Set(a,c))
+
+      //tmn.add(Rule(n,Set(a)))
+      //assert(tmn.getModel.get == Set[Atom](b,c)) //ASP would be {b,d} !!
+    }
+  }
+
+
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
     val tmn1 = JTMNRefactored()
@@ -234,11 +255,85 @@ class JTMNConsistency extends FunSuite {
     tmn2.add(Rule(b,none,Set(c))) // b :- not c
     assert(tmn2.getModel.get == Set(c)) //{c} (or {a,b})
 
-    val r = Rule(n,c)
-    tmn2.add(r) //:- c
+    tmn2.add(Rule(n,c)) //:- c
     //force other
     assert(tmn2.getModel.get == Set(a,b))
 
+  }
+
+  test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
+
+    val net1 = JTMNRefactored()
+    net1.add(Rule(a,b)) //a :- b
+    assert(net1.getModel.get == Set())
+
+    net1.add(Rule(b,none,Set(c))) //b :- not c
+    assert(net1.getModel.get == Set(a,b))
+
+    net1.add(Rule(c,none,Set(a))) //c :- not a
+    assert(net1.getModel.get == Set(a,b))
+
+    assert(net1.supp(a)==Set(b))
+    assert(net1.supp(b)==Set(c))
+    assert(net1.supp(c)==Set(a))
+    Set(a,b,c) foreach ( x => assert(net1.ancestors(x) == Set(a,b,c)) )
+
+    assert(net1.antecedents(a)==Set(b))
+    assert(net1.antecedents(b)==Set(c))
+    assert(net1.antecedents(c)==Set())
+    //
+    assert(net1.foundations(a)==Set(b,c))
+    assert(net1.foundations(b)==Set(c))
+    assert(net1.foundations(c)==Set())
+
+    assert(net1.cons(a)==Set(c))
+    assert(net1.cons(b)==Set(a))
+    assert(net1.cons(c)==Set(b))
+    //
+    assert(net1.aff(a)==Set(c))
+    assert(net1.aff(b)==Set(a))
+    assert(net1.aff(c)==Set(b))
+    //
+    assert(net1.repercussions(a)==Set(a,b,c))
+    assert(net1.repercussions(b)==Set(a,b,c))
+    assert(net1.repercussions(c)==Set(a,b,c))
+
+//    net1.add(Rule(a,d))
+//    assert(net1.cons(d)==Set(a))
+//    assert(net1.aff(d)==Set())
+//    assert(net1.repercussions(d)==Set())
+
+//    net1.add(Rule(x,Set(a,b)))
+//    assert(net1.foundations(x) == Set(a,b,c))
+//    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
+
+    net1.add(Rule(n,Set(a,b))) //:- a,b
+    //force other
+    assert(net1.getModel.get == Set(c))
+
+    //TODO
+    //other insertion order
+    val net2 = JTMNRefactored()
+    net2.add(Rule(a,b)) //a :- b
+    net2.add(Rule(b,none,Set(c))) // b :- not c  => {a,b}
+    assert(net2.getModel.get == Set(a,b)) //{a,b}
+
+    net2.add(Rule(n,Set(a,b))) //:- a,b
+    assert(net2.getModel == None)
+
+    net2.add(Rule(c,none,Set(a))) //c :- not a
+    assert(net2.getModel.get == Set(c)) //{c}
+
+  }
+
+  test("doyle time room") {
+    val tmn = JTMNRefactored()
+    tmn.add(Rule(t1,none,Set(t2)))
+    tmn.add(Rule(r1,none,Set(r2)))
+    assert(tmn.getModel.get == Set(t1,r1))
+
+    tmn.add(Rule(n,Set(t1,r1)))
+    assert(tmn.getModel.get == Set(t1,r2)) //not an answer set!
   }
 
   test("elkan p228") {

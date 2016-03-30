@@ -44,7 +44,7 @@ case class JTMNBeierle() {
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
-  def update(rule: Rule): Unit = {
+  def add(rule: Rule): Unit = {
     updateSteps1to5(rule)
     //6
     for (n <- atoms()) {
