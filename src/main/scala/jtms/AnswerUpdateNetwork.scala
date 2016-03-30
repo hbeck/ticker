@@ -59,9 +59,9 @@ case class AnswerUpdateNetwork() {
   def unknownAtoms() = status.keys filter (status(_) == unknown)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def ACons(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
+  def aff(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
-  def repercussions(a: Atom) = trans(ACons, a)
+  def repercussions(a: Atom) = trans(aff, a)
 
   def antecedents(a: Atom): Set[Atom] = {
     if (status(a) == in) return supp(a)
@@ -206,7 +206,7 @@ case class AnswerUpdateNetwork() {
     if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
-      val affected = ACons(a) + a
+      val affected = aff(a) + a
       affected foreach setUnknown
       affected foreach fixAndPropagateStatus
     }
@@ -217,7 +217,7 @@ case class AnswerUpdateNetwork() {
       if (!consistent) return
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
-      val affected = ACons(a) + a
+      val affected = aff(a) + a
       affected foreach setUnknown
     }
   }
@@ -225,7 +225,7 @@ case class AnswerUpdateNetwork() {
   def fix(a: Atom): Boolean = {
     justifications(a) find unfounded match {
       case Some(rule) => {
-          if (ACons(a).isEmpty) fixIn(rule)
+          if (aff(a).isEmpty) fixIn(rule)
           else return false
       }
       case None => fixOut(a)

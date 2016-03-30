@@ -26,8 +26,10 @@ class BuilderTests extends FlatSpec {
     val e = Atom("e")
     val f = Atom("f")
 
-    val j1 = Rule.pos(c).head(a)
-    val j2 = Rule.neg(a).head(b)
+    city(vienna), not (d)
+
+    val j1 = a :- c// Rule.pos(c).head(a) //Rule(a,c)  // a :- c
+    val j2 = b :- not(a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
     val j3 = Rule.pos(a).head(c)
     val j4a = Rule.pos(b).head(d)
     val j4b = Rule.pos(c).head(d)
@@ -39,6 +41,7 @@ class BuilderTests extends FlatSpec {
       j1 rule
       a :- b rule
       c :- d
+   //   d :- d and b and not (c) and not(d)
     //    .rule(j3)
     //  j4a
     //  j4b
@@ -66,8 +69,8 @@ class BuilderTests extends FlatSpec {
       case a #:: b #:: c #:: d #:: atoms => Set(
         a :- b and not(c),
         c :- b,
-        b :- not(d),
-        :-(d),
+        b :- not(d) and not(d),
+        Falsum :- d,
         //        :- d,
         b
       )
