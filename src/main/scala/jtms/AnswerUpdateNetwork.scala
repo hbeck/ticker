@@ -309,41 +309,44 @@ case class AnswerUpdateNetwork() {
 
   /* ----------------------- in progress ... ------------------------------------- */
 
-  //TODO (hb) use List instead of Set s.t. consecutive removals amount to undo (same results as before)
-  //in particular: Rule: List of pos/neg body atoms
-  def remove(rule: Rule) = {
+  def remove(rule: Rule): Unit = {
 
-    val head = rule.head
+    unregister(rule)
+    //if (status(rule.head) == out) return
 
-    val rulesFromBacktracking = rules.filter(_.isInstanceOf[RuleFromBacktracking])
+    //TODO filtering the following based on dependecy/relation to rule?
+    val rulesFromBacktracking = rules filter (_.isInstanceOf[RuleFromBacktracking])
 
-    def affectedAtoms(a: Atom) = repercussions(a) + a
+    val heads = Set(rule.head) ++ (rulesFromBacktracking map (_.head))
+    val atoms = heads ++ (heads flatMap repercussions)
 
-    var L = affectedAtoms(head) ++ rulesFromBacktracking.flatMap(x => affectedAtoms(x.head))
+    updateBeliefs(atoms)
+  }
 
-    def removeRule(rule: Rule) = {
-      for (m <- rule.body) {
-        cons(m) -= rule.head //TODO (HB) not necessarily
-      }
+  def unregister(rule: Rule): Unit = {
+    if (!(rules contains rule)) return
+    rules = rules filterNot (_ == rule)
+    conditionalConsRemove(rule)
+    rule.atoms foreach conditionalUnregister
+  }
 
-      rules = rules filter (_ != rule)
+  //precondition: rule is already deleted from this.rules
+  def conditionalConsRemove(rule: Rule): Unit = {
+    for (a <- rule.body) {
+      if (!(justifications(rule.head) exists (_.body contains a))) cons(a) -= rule.head //efficiency - better use data structure
     }
+  }
 
-    removeRule(rule)
+  def conditionalUnregister(a: Atom): Unit = {
+    val A = (rules flatMap (r => r.body + r.head)).toSet
+    if (!(A contains a)) unregister(a)
+  }
 
-    rulesFromBacktracking.foreach(removeRule)
-
-    // if no other rule exists containing the atom - remove it completely
-    if (!rules.exists(_.atoms.contains(head))) {
-      //atoms -= head
-      status.remove(head)
-      supp.remove(head)
-      suppRule.remove(head)
-      cons.remove(head)
-      L -= head
-    }
-
-    this.updateBeliefs(L)
+  def unregister(a: Atom): Unit = {
+    status remove a
+    cons remove a
+    supp remove a
+    suppRule remove a
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------
