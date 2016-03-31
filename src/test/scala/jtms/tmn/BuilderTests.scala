@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import jtms.TMN
+import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
 import scala.collection.immutable.Stream.#::
@@ -25,8 +25,6 @@ class BuilderTests extends FlatSpec {
     val d = Atom("d")
     val e = Atom("e")
     val f = Atom("f")
-
-    city(vienna), not (d)
 
     val j1 = a :- c// Rule.pos(c).head(a) //Rule(a,c)  // a :- c
     val j2 = b :- not(a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
@@ -76,7 +74,7 @@ class BuilderTests extends FlatSpec {
       )
     })
 
-    val tmn = TMN(program)
+    val tmn = JTMNRefactored(program)
 
     assert(tmn.getModel().isDefined)
   }

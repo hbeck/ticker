@@ -1,8 +1,8 @@
 package jtms.tmn.examples
 
 import asp.Asp
-import aspsamples.EvaluateJTMNImplementations
 import core._
+import jtms.asp.examples.EvaluateJTMNImplementations
 import org.scalatest.FlatSpec
 
 /**

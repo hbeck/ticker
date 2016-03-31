@@ -1,24 +1,18 @@
-package jtms.tmn.examples
+package jtms.asp.examples
 
-import asp.Asp
 import core._
-import jtms.JTMNRefactored
-import jtms.asp.examples.EvaluateJTMNImplementations
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-trait JTMS_21Behavior extends JTMSSpec {
+trait JTMS_21Behavior_ASP extends JTMSSpecASP {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
-  val j7: Rule = Rule.pos(b).neg(c).head(Falsum)
+  val j7: Rule = Rule(Falsum,Set(b),Set(c))
 
-  def p = {
-    val p = program + j7
-    p
-  }
+  val p = program + j7
 
   def example21(evaluation: Evaluation): Unit = {
     it should "not generate a model" in {
@@ -27,19 +21,17 @@ trait JTMS_21Behavior extends JTMSSpec {
         assert(model == None)
       }
 
-
       // this is not a founded/sounded model!
       // a and c are supporting each other
       // -> do a check on the final model
       // -> we need do do DDB with all variants
       // --> if there is no model with any possible enumeration -> fail
 
-
     }
   }
 }
 
-class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateJTMNImplementations {
+class JTMS_21_ASP extends JTMSSpecASP with JTMS_21Behavior_ASP with EvaluateASPImplementations {
   "The example 21" should behave like theSame(example21)
 
 }

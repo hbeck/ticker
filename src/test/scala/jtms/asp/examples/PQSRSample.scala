@@ -1,4 +1,4 @@
-package aspsamples
+package jtms.asp.examples
 
 import core._
 import org.scalatest.FlatSpec

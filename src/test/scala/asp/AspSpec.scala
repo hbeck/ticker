@@ -1,7 +1,7 @@
 package asp
 
 import core._
-import aspsamples.SingleHusbandSample
+import jtms.asp.examples.SingleHusbandSample
 import org.scalatest.{FlatSpec}
 
 /**

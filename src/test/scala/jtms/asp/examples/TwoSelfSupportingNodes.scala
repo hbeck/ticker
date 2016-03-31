@@ -1,4 +1,4 @@
-package aspsamples
+package jtms.asp.examples
 
 import core.{Atom, Program, Rule}
 import jtms.AnswerUpdateNetwork

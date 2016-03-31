@@ -1,4 +1,4 @@
-package aspsamples
+package jtms.asp.examples
 
 import asp.Asp
 import core.Evaluation

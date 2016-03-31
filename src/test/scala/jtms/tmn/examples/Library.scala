@@ -1,9 +1,9 @@
 package jtms.tmn.examples
 
 import asp.Asp
-import aspsamples.EvaluateJTMNImplementations
 import core._
 import jtms._
+import jtms.asp.examples.EvaluateJTMNImplementations
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
 

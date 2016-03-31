@@ -8,3 +8,4 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 
 scalacOptions += "-feature"
 scalacOptions += "-language:postfixOps"
+scalacOptions += "-language:implicitConversions"
