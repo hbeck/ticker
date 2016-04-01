@@ -52,7 +52,7 @@ case class AnswerUpdateNetwork() {
 
   def atoms() = cons.keySet
 
-  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
+  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
   def inAtoms() = status.keys filter (status(_) == in)
 
