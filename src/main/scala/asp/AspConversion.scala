@@ -27,10 +27,11 @@ object AspConversion {
   }
 
   def apply(atom: Atom): String = {
-    val atomName = atom match {
+    val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
-      case UserDefinedAtom(caption) => caption
-      case _ => atom.toString
+      case UserDefinedAtom(caption) => (caption, "")
+      case AtomWithArguments(a, args) => (a.toString, args.map(_.toString).mkString("(", ",", ")"))
+      case _ => (atom.toString, "")
     }
 
     if (atomName.head.isUpper)
@@ -42,6 +43,6 @@ object AspConversion {
     if (!(atomName matches ("^[a-zA-Z0-9_]*$")))
       throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
 
-    atomName
+    atomName + argumentNames
   }
 }

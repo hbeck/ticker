@@ -65,8 +65,8 @@ class BuilderTests extends FlatSpec {
 
     val program = ProgramBuilder({
       case a #:: b #:: c #:: d #:: atoms => Set(
-        a :- b and not(c),
-        c :- b,
+        a :- b and not(c("1","a")),
+        c :- b("1","a"),
         b :- not(d) and not(d),
         Falsum :- d,
         //        :- d,
