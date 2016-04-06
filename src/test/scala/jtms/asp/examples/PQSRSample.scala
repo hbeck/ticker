@@ -44,18 +44,19 @@ class PQSRSample extends FlatSpec with EvaluateASPImplementations {
     }
   }
 
-  def withKillClause(evaluation: Evaluation) = {
-    val c = ContradictionAtom("c")
-    val p = programQFirst + Rule(c, Set(q), Set(r)) //Q first!
-
-    it should "generate only one model" in {
-      val model = evaluation(p)
-
-      assert(model contains Set(s))
-    }
-  }
+  //constraints not implemented
+//  def withKillClause(evaluation: Evaluation) = {
+//    val c = ContradictionAtom("c")
+//    val p = programQFirst + Rule(c, Set(q), Set(r)) //Q first!
+//
+//    it should "generate only one model" in {
+//      val model = evaluation(p)
+//
+//      assert(model contains Set(s))
+//    }
+//  }
 
   "Two models" should behave like theSame(generateTwoModels)
 
-  "With a kill clause" should behave like theSame(withKillClause)
+  //"With a kill clause" should behave like theSame(withKillClause)
 }

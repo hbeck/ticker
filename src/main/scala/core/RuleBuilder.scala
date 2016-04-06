@@ -10,19 +10,19 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
 
   def neg(atoms: Atom*) = new RuleBuilder(bodyPos, bodyNeg ++ atoms)
 
-  def head(head: Atom) = new UserDefinedRule(bodyPos, bodyNeg, head)
+  def head(head: Atom) = new UserDefinedRule(head, bodyPos, bodyNeg)
 }
 
 object ConsequencesBuilder {
 
   implicit def rule(entailsBuilder: ConsequencesBuilder): Rule = {
-    new UserDefinedRule(entailsBuilder.positiveBody, entailsBuilder.negativeBody, entailsBuilder.head)
+    new UserDefinedRule(entailsBuilder.head, entailsBuilder.positiveBody, entailsBuilder.negativeBody)
   }
 
 }
 
 object ConstraintBuilder {
-  implicit def toRule(builder: ConstraintBuilder): Rule = new UserDefinedRule(builder.bodyPos, builder.bodyNeg, Falsum)
+  implicit def toRule(builder: ConstraintBuilder): Rule = new UserDefinedRule(Falsum, builder.bodyPos, builder.bodyNeg)
 }
 
 class ConstraintBuilder(val bodyPos: Set[Atom] = Set(), val bodyNeg: Set[Atom] = Set()) {
@@ -60,7 +60,7 @@ class Builder(head: Atom) {
       case NegBuilderAtom(atom) => atom
     }
 
-    new UserDefinedRule(pos.toSet, neg.toSet, head)
+    new UserDefinedRule(head, pos.toSet, neg.toSet)
   }
 }
 
@@ -91,7 +91,7 @@ class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val
 }
 
 object BuilderCollection {
-  implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.positiveBody, builder.negativeBody, builder.head)
+  implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.head, builder.positiveBody, builder.negativeBody)
 
   //  implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.bodyPos, builder.bodyNeg, Falsum)
 }

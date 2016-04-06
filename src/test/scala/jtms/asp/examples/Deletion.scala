@@ -213,19 +213,4 @@ class Deletion extends FlatSpec {
     assert(net.getModel.get == Set(setup.e, setup.b, setup.d))
   }
 
-  "Removing a exclusion rule for A in the library sample" should "result in the initial model" in {
-    val setup = new LibraryAtomValidationASP
-    val net = setup.Network
-
-    net.add(setup.r10)
-
-    assume(net.getModel.get == Set(setup.not_a, setup.h, setup.p, setup.v))
-
-    // act
-    net.remove(setup.r10)
-
-    // assert
-    assert(net.getModel.get == Set(setup.a, setup.p, setup.v))
-  }
-
 }

@@ -28,7 +28,7 @@ case class AnswerUpdateNetwork() {
   object UpdateStrategyDoyle extends UpdateStrategy
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
+  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
 
   //
 
@@ -108,21 +108,21 @@ case class AnswerUpdateNetwork() {
     if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
-  def updateBeliefs(atoms: Set[Atom]): Boolean = {
+  def updateBeliefs(atoms: Set[Atom]): Unit = {
     updateStrategy match {
       case `UpdateStrategyDoyle` => updateDoyle(atoms)
       case `UpdateStrategyStepwise` => updateStepwise(atoms)
     }
   }
 
-  def updateDoyle(atoms: Set[Atom]): Boolean = {
+  def updateDoyle(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
-    tryEnsureConsistency
+    //tryEnsureConsistency
   }
 
-  def updateStepwise(atoms: Set[Atom]): Boolean = {
+  def updateStepwise(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown
     while (hasUnknown && consistent) {
       unknownAtomsList foreach determineAndPropagateStatus
@@ -131,11 +131,9 @@ case class AnswerUpdateNetwork() {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
     }
-    if (consistent) {
-      tryEnsureConsistency
-    } else {
-      return false
-    }
+//    if (consistent) {
+//      tryEnsureConsistency
+//    }
   }
 
   def hasUnknown = atoms exists (status(_) == unknown)
@@ -150,9 +148,9 @@ case class AnswerUpdateNetwork() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     suppRule(a) = None
   }
 
@@ -239,9 +237,9 @@ case class AnswerUpdateNetwork() {
   }
 
   def fixOut(a: Atom) = {
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)    
+    val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
+//    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+//    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is 
@@ -263,48 +261,47 @@ case class AnswerUpdateNetwork() {
   }
 
   //return false if called DDB method leaves without resolving a contradiction
-  def tryEnsureConsistency(): Boolean = {
-    for (c <- inAtoms() filter contradictionAtom) {
-      if (!DDB(c)) return false
-    }
-    true
-  }
+//  def tryEnsureConsistency(): Boolean = {
+//    for (c <- inAtoms() filter contradictionAtom) {
+//      if (!DDB(c)) return false
+//    }
+//    true
+//  }
 
-  //TODO
-  def DDB(c: Atom): Boolean = {
+//  def DDB(c: Atom): Boolean = {
+//
+//    if (status(c) != in) return true
+//
+//    val asms = foundations(c) filter isAssumption
+//    val maxAssumptions = asms filter { a =>
+//      ! ((asms - a) exists (b => foundations(b) contains a))
+//    }
+//
+//    if (maxAssumptions.isEmpty)
+//      return false //contradiction cannot be solved
+//
+//    findBacktrackingRule(c, maxAssumptions) match {
+//      case Some(rule) => { add(rule); return true }
+//      case None => return false
+//    }
+//
+//  }
 
-    if (status(c) != in) return true
-
-    val asms = foundations(c) filter isAssumption
-    val maxAssumptions = asms filter { a =>
-      ! ((asms - a) exists (b => foundations(b) contains a))
-    }
-
-    if (maxAssumptions.isEmpty)
-      return false //contradiction cannot be solved
-
-    findBacktrackingRule(c, maxAssumptions) match {
-      case Some(rule) => { add(rule); return true }
-      case None => return false
-    }
-
-  }
-
-  def findBacktrackingRule(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-
-    val culprit = maxAssumptions.head
-    val sr = suppRule(culprit).get
-    val n = sr.neg.head //(all .neg have status out at this point)
-
-    //val suppRules = maxAssumptions map (SuppRule(_).get)
-    //val pos = (suppRules flatMap (_.pos))
-    //val neg = (suppRules flatMap (_.neg)) - n
-    val pos = (maxAssumptions - culprit + c).toSet
-    val neg = (sr.neg - n).toSet
-    val rule = RuleFromBacktracking(pos, neg, n)
-
-    Some(rule)
-  }
+//  def findBacktrackingRule(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+//
+//    val culprit = maxAssumptions.head
+//    val sr = suppRule(culprit).get
+//    val n = sr.neg.head //(all .neg have status out at this point)
+//
+//    //val suppRules = maxAssumptions map (SuppRule(_).get)
+//    //val pos = (suppRules flatMap (_.pos))
+//    //val neg = (suppRules flatMap (_.neg)) - n
+//    val pos = (maxAssumptions - culprit + c).toSet
+//    val neg = (sr.neg - n).toSet
+//    val rule = RuleFromBacktracking(pos, neg, n)
+//
+//    Some(rule)
+//  }
 
 
   /* ----------------------- in progress ... ------------------------------------- */
@@ -314,11 +311,12 @@ case class AnswerUpdateNetwork() {
     unregister(rule)
     //if (status(rule.head) == out) return
 
-    //TODO filtering the following based on dependecy/relation to rule?
-    val rulesFromBacktracking = rules filter (_.isInstanceOf[RuleFromBacktracking])
+    //val rulesFromBacktracking = rules filter (_.isInstanceOf[RuleFromBacktracking])
 
-    val heads = Set(rule.head) ++ (rulesFromBacktracking map (_.head))
-    val atoms = heads ++ (heads flatMap repercussions)
+//    val heads = Set(rule.head) ++ (rulesFromBacktracking map (_.head))
+//    val atoms = heads ++ (heads flatMap repercussions)
+
+    val atoms = repercussions(rule.head) + rule.head //TODO filter repercussions for proper ones
 
     updateBeliefs(atoms)
   }
