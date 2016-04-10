@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 08.04.16.
   */
-class EngineSpecs extends FlatSpec {
+class EngineEvaluationSpecs extends FlatSpec {
 
   val atom = EngineAtom("a")
 
