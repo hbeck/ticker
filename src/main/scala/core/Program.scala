@@ -5,7 +5,10 @@ package core
   */
 case class Program(rules: List[Rule]) {
   val atoms = rules.flatMap(_.atoms)
+
   def +(rule: Rule) = Program(rules :+ rule)
+
+  def ++(rules: List[Rule]) = Program(this.rules ++ rules)
 }
 
 object Program {
