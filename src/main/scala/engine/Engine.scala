@@ -5,7 +5,7 @@ import scala.collection.SortedMap
 /**
   * Created by FM on 08.04.16.
   */
-object Engine extends EvaluationEngine {
+object FooEngine extends EvaluationEngine {
   var inputStream = SortedMap.empty[Time, Set[EngineAtom]](
     Ordering.fromLessThan((l, r) => l.milliseconds < r.milliseconds)
   )
