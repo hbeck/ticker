@@ -24,28 +24,26 @@ class ASPConsistency extends FunSuite {
 
   test("a") {
     val net = AnswerUpdateNetwork()
-    var model = net.getModel.get
-    assert(model.isEmpty)
+    assert(net.getModel.get.isEmpty)
 
     net.add(Rule(a))
-    model = net.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
+    assert(net.getModel.get == Set(a))
+
+    net.remove(Rule(a))
+    assert(net.getModel.get.isEmpty)
   }
 
   test("a :- not b. then b.") {
 
     val net = AnswerUpdateNetwork()
     net.add(Rule(a,none,Set(b)))
-    var model = net.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
+    assert(net.getModel.get == Set(a))
 
-    net.add(Rule(b,none,none))
-    model = net.getModel.get
-    assert(model.size == 1)
-    assert(model contains b)
+    net.add(Rule(b))
+    assert(net.getModel.get == Set(b))
 
+    net.remove(Rule(b))
+    assert(net.getModel.get == Set(a))
   }
 
   test("a :- not b. b :- not a.  b.") {
@@ -53,13 +51,13 @@ class ASPConsistency extends FunSuite {
     val net = AnswerUpdateNetwork()
     net.add(Rule(a,none,Set(b)))
     net.add(Rule(b,none,Set(a)))
-    var model = net.getModel.get
-    assert(model == Set(a))
+    assert(net.getModel.get == Set(a))
 
-    net.add(Rule(b,none,none))
-    model = net.getModel.get
-    assert(model == Set(b))
+    net.add(Rule(b))
+    assert(net.getModel.get == Set(b))
 
+    net.remove(Rule(b))
+    assert(net.getModel.get == Set(a) || net.getModel.get == Set(b)) //!
   }
 
   //constraints not implemented

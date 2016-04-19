@@ -17,15 +17,14 @@ class Deletion extends FlatSpec {
   val none = Set[Atom]()
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
-    val r0 = Rule(a,none,none)
 
     val net = new AnswerUpdateNetwork()
-    net.add(r0)
+    net.add(Rule(a))
 
-    assume(net.getModel == Some(Set(a)))
+    assume(net.getModel.get == Set(a))
     assume(net.status(a) == in)
 
-    net.remove(r0)
+    net.remove(Rule(a))
 
     assert(net.atoms.isEmpty)
     assert(net.status.isEmpty)
@@ -38,7 +37,7 @@ class Deletion extends FlatSpec {
   }
 
   "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have cons(c) = a " in {
-    val r1 = Rule(a,Set(c),none)
+    val r1 = Rule(a,Set(c))
     val r2 = Rule(a,Set(c, b))
 
     val program = Program(r1, r2)

@@ -13,7 +13,11 @@ object Atom {
   implicit def headAtomToBuilder(atom: Atom) = new BuilderHead(atom)
 
   implicit def headAtomToFact(atom: Atom): Rule = Fact(atom)
+
 }
 
-case class UserDefinedAtom(caption: String) extends Atom
+case class UserDefinedAtom(caption: String) extends Atom {
+  override def toString = caption
+}
+
 case class ContradictionAtom(caption: String) extends Atom

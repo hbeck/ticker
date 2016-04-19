@@ -90,8 +90,8 @@ case class AnswerUpdateNetwork() {
     register(rule)
     if (status(rule.head) == in) return
     if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val atoms = repercussions(rule.head) + rule.head
-    updateBeliefs(atoms)
+    val ats = repercussions(rule.head) + rule.head
+    updateBeliefs(ats)
   }
 
   def register(rule: Rule): Unit = {
@@ -148,9 +148,9 @@ case class AnswerUpdateNetwork() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a.
     suppRule(a) = None
   }
 
@@ -314,11 +314,13 @@ case class AnswerUpdateNetwork() {
     //val rulesFromBacktracking = rules filter (_.isInstanceOf[RuleFromBacktracking])
 
 //    val heads = Set(rule.head) ++ (rulesFromBacktracking map (_.head))
-//    val atoms = heads ++ (heads flatMap repercussions)
+//    val ats = heads ++ (heads flatMap repercussions)
 
-    val atoms = repercussions(rule.head) + rule.head //TODO filter repercussions for proper ones
+    if (!(atoms contains rule.head)) return
 
-    updateBeliefs(atoms)
+    val ats = repercussions(rule.head) + rule.head //TODO filter repercussions for proper ones
+
+    updateBeliefs(ats)
   }
 
   def unregister(rule: Rule): Unit = {
