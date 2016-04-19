@@ -20,6 +20,7 @@ class EngineSpec extends FlatSpec {
     a :- b,
     b :- c and not(d)
   )
+  // TODO: figure out how to correctly name the atoms in the builder
   val programWithBuilder = ProgramBuilder({
     case a #:: b #:: c #:: d #:: atoms => Set(
       a :- b,
@@ -31,8 +32,8 @@ class EngineSpec extends FlatSpec {
   val t2 = At.minute(2)
   val t3 = At.minute(3)
 
-  def engineWithStreams = {
-    val engine = Engine(AnswerUpdateNetworkEngine(program))
+  def engineWithStreams(evaluationEngine: EvaluationEngine) = {
+    val engine = Engine(evaluationEngine)
 
     val stream_1 = Stream.fromItem(
       t1 -> EngineAtom("b"),
@@ -54,16 +55,19 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams
+    val engine = engineWithStreams(AspEvaluation(program))
 
     assert(engine.evaluate(t1) == Set(EngineAtom("a"), EngineAtom("b")))
   }
 
   it should "invalidate 'b' for t3" in {
-    val engine = engineWithStreams
+    val engine = engineWithStreams(AspEvaluation(program))
 
-    assert(engine.evaluate(t3) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d")))
+
+    assert(
+      engine.evaluate(t3) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d")),
+      "currently there is no way to 'outdate' the data in the intensional stream, therefor this test fails"
+    )
   }
-
 }
 
