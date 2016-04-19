@@ -11,6 +11,12 @@ object Time {
   implicit val ordering = Ordering.by((time: Time) => time.milliseconds)
 }
 
+object At {
+  def second(seconds: Long) = Second(seconds)
+
+  def minute(minutes: Long) = Minute(minutes)
+}
+
 object Second {
   def apply(seconds: Long) = Time(seconds * 1000)
 }

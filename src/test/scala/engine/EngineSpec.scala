@@ -27,12 +27,12 @@ class EngineSpec extends FlatSpec {
     )
   })
 
-  val t1 = Minute(1)
-  val t2 = Minute(2)
-  val t3 = Minute(3)
+  val t1 = At.minute(1)
+  val t2 = At.minute(2)
+  val t3 = At.minute(3)
 
   def engineWithStreams = {
-    val engine = Engine(AspEvaluation(program))
+    val engine = Engine(AnswerUpdateNetworkEngine(program))
 
     val stream_1 = Stream.fromItem(
       t1 -> EngineAtom("b"),
@@ -64,7 +64,6 @@ class EngineSpec extends FlatSpec {
 
     assert(engine.evaluate(t3) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d")))
   }
-
 
 }
 
