@@ -28,15 +28,11 @@ case class Evaluation(time: Time, atoms: Set[Atom])
 
 object Stream {
 
-  def fromItems(items: Evaluation*): Observable = {
-    new ObservableList(items.toSeq)
-  }
-
   def fromItems(items: (Time, Set[Atom])*): Observable = {
-    fromItems(items.map(x => Evaluation(x._1, x._2)): _*)
+    new ObservableList(items.map(x => Evaluation(x._1, x._2)))
   }
 
-  def fromItems(items: (Time, Atom)*): Observable = {
+  def fromItem(items: (Time, Atom)*): Observable = {
     fromItems(items map (x => (x._1, Set(x._2))): _*)
   }
 

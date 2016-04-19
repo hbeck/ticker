@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 08.04.16.
   */
-class EngineEvaluationSpecs extends FlatSpec {
+class IntensionalAtomStreamSpecs extends FlatSpec {
 
   val atom = EngineAtom("a")
 
@@ -14,7 +14,7 @@ class EngineEvaluationSpecs extends FlatSpec {
   val t2 = Time(2)
 
   def defaultEngine = {
-    Engine
+    new OrderedAtomStream
   }
 
   "An empty engine" should "not evaluate to a result at t0" in {
@@ -25,7 +25,7 @@ class EngineEvaluationSpecs extends FlatSpec {
   "Appending atom a at t1" should "allow it to be queried at t1" in {
     val engine = defaultEngine
 
-    engine.append(t1)(atom)
+    engine.append(t1)(Set(atom))
 
     assert(engine.evaluate(t1) == Set(atom))
   }
@@ -34,7 +34,7 @@ class EngineEvaluationSpecs extends FlatSpec {
     val engine = defaultEngine
 
 
-    engine.append(t1)(atom)
+    engine.append(t1)(Set(atom))
 
     assert(engine.evaluate(t0) == Set())
   }
@@ -42,7 +42,7 @@ class EngineEvaluationSpecs extends FlatSpec {
   it should "be available at t2" in {
     val engine = defaultEngine
 
-    engine.append(t1)(atom)
+    engine.append(t1)(Set(atom))
 
     assert(engine.evaluate(t2) == Set(atom))
   }
@@ -50,11 +50,11 @@ class EngineEvaluationSpecs extends FlatSpec {
   "Adding to atoms after each other" should "allow the to be queried both" in {
     val engine = defaultEngine
 
-    engine.append(t0)(atom)
+    engine.append(t0)(Set(atom))
 
     val atom2 = EngineAtom("b")
 
-    engine.append(t1)(atom2)
+    engine.append(t1)(Set(atom2))
 
     assert(engine.evaluate(t1) == Set(atom, atom2))
   }
@@ -63,11 +63,11 @@ class EngineEvaluationSpecs extends FlatSpec {
     val engine = defaultEngine
     val atT1 = engine.append(t1) _
 
-    atT1(List(atom))
+    atT1(Set(atom))
 
     val atom2 = EngineAtom("b")
 
-    atT1(List(atom2))
+    atT1(Set(atom2))
 
     assert(engine.evaluate(t1) == Set(atom, atom2))
   }

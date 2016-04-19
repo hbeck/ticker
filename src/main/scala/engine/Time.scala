@@ -7,10 +7,14 @@ case class Time(milliseconds: Long) {
 
 }
 
-object Seconds {
+object Time {
+  implicit val ordering = Ordering.by((time: Time) => time.milliseconds)
+}
+
+object Second {
   def apply(seconds: Long) = Time(seconds * 1000)
 }
 
 object Minute {
-  def apply(minutes: Long) = Seconds(minutes * 60)
+  def apply(minutes: Long) = Second(minutes * 60)
 }

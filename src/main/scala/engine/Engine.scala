@@ -1,23 +1,20 @@
 package engine
 
-import scala.collection.SortedMap
-
 /**
-  * Created by FM on 08.04.16.
+  * Created by FM on 16.04.16.
   */
-object FooEngine extends EvaluationEngine {
-  var inputStream = SortedMap.empty[Time, Set[EngineAtom]](
-    Ordering.fromLessThan((l, r) => l.milliseconds < r.milliseconds)
-  )
+case class Engine(private val evaluationEngine: EvaluationEngine) {
 
-  override def append(time: Time)(atoms: Atom*): Unit = {
-    inputStream = inputStream.updated(time, inputStream.getOrElse(time, Set[Atom]()) ++ atoms.toSet)
+
+  def add(observable: Observable) = {
+
+    observable.subscribe(new Observer {
+      override def append(evaluation: Evaluation): Unit = {
+        evaluationEngine.append(evaluation.time)(evaluation.atoms.toSeq: _*)
+      }
+    })
   }
 
-  override def evaluate(time: Time): Set[Atom] = {
-    inputStream.filterKeys(_.milliseconds <= time.milliseconds)
-      .values
-      .reduceOption((v, atoms) => v union atoms)
-      .getOrElse(Set())
-  }
+  def evaluate(time: Time) = evaluationEngine.evaluate(time)
+
 }
