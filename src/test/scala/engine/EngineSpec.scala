@@ -43,7 +43,7 @@ class EngineSpec extends FlatSpec {
 
     def loadStreamFromFile = {
       Stream.fromItems(
-        t2 -> Set(EngineAtom("a"), EngineAtom("d"))
+        t2 -> Set(EngineAtom("c"), EngineAtom("d"))
       )
     }
     val stream_2 = loadStreamFromFile
@@ -55,18 +55,17 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(AspEvaluation(program))
+    val engine = engineWithStreams(AnswerUpdateNetworkEngine(program))
 
     assert(engine.evaluate(t1) == Set(EngineAtom("a"), EngineAtom("b")))
   }
 
   it should "invalidate 'b' for t3" in {
-    val engine = engineWithStreams(AspEvaluation(program))
+    val engine = engineWithStreams(AnswerUpdateNetworkEngine(program))
 
 
     assert(
-      engine.evaluate(t3) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d")),
-      "currently there is no way to 'outdate' the data in the intensional stream, therefor this test fails"
+      engine.evaluate(t2) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d"))
     )
   }
 }

@@ -39,15 +39,15 @@ class IntensionalAtomStreamSpecs extends FlatSpec {
     assert(engine.evaluate(t0) == Set())
   }
 
-  it should "be available at t2" in {
+  it should "not be available at t2" in {
     val engine = defaultEngine
 
     engine.append(t1)(Set(atom))
 
-    assert(engine.evaluate(t2) == Set(atom))
+    assert(engine.evaluate(t2) == Set())
   }
 
-  "Adding to atoms after each other" should "allow the to be queried both" in {
+  "Adding to atoms after each other" should "result in only atom at t1" in {
     val engine = defaultEngine
 
     engine.append(t0)(Set(atom))
@@ -56,7 +56,7 @@ class IntensionalAtomStreamSpecs extends FlatSpec {
 
     engine.append(t1)(Set(atom2))
 
-    assert(engine.evaluate(t1) == Set(atom, atom2))
+    assert(engine.evaluate(t1) == Set(atom2))
   }
 
   "Adding two atoms at the same time point" should "allow both to be queried" in {
