@@ -5,7 +5,7 @@ import scala.collection.SortedMap
 /**
   * Created by FM on 08.04.16.
   */
-class OrderedAtomStream  {
+class OrderedAtomStream {
   var inputStream = SortedMap.empty[Time, Set[EngineAtom]](
     Ordering.fromLessThan((l, r) => l.milliseconds < r.milliseconds)
   )
@@ -15,10 +15,7 @@ class OrderedAtomStream  {
   }
 
   def evaluate(time: Time): Set[Atom] = {
-    inputStream.filterKeys(_.milliseconds <= time.milliseconds)
-      .values
-      .reduceOption((v, atoms) => v union atoms)
-      .getOrElse(Set())
+    inputStream.getOrElse(time, Set())
   }
 
 }
