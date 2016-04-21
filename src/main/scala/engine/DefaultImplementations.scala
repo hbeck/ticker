@@ -18,13 +18,14 @@ case class AnswerUpdateNetworkEngine(private val program: Program) extends Evalu
     intensionalAtomStream.append(time)(atoms.toSet)
   }
 
-  def evaluate(time: Time): Set[Atom] = {
-    val facts = intensionalAtomStream.evaluate(time).map(x => Fact(Atom(x.name)))
+  def evaluate(time: Time) = {
+    val facts = intensionalAtomStream.evaluate(time).map(x => Fact(x))
     facts foreach answerUpdateNetwork.add
 
-    return answerUpdateNetwork.getModel() match {
-      case Some(atoms) => atoms.map(x => EngineAtom(x.toString))
-      case None => Set()
+    new Result {
+      override def value(): Option[Set[Atom]] = {
+        answerUpdateNetwork.getModel()
+      }
     }
   }
 }
@@ -47,10 +48,15 @@ case class AspEvaluation(private val initialProgram: Program) extends Evaluation
 
   val intensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
-  def evaluate(time: Time): Set[Atom] = {
-    val facts = intensionalAtomStream.evaluate(time) map (x => Fact(Atom(x.name)))
+  def evaluate(time: Time) = {
+    val facts = intensionalAtomStream.evaluate(time) map (x => Fact(x))
     val result = aspEngine(initialProgram ++ facts.toList)
-    result.headOption.getOrElse(Set()).map(x => EngineAtom(x.toString))
+    new Result {
+      override def value(): Option[Set[Atom]] = result.headOption match {
+        case Some(model) => Some(model.toSet)
+        case None => None
+      }
+    }
   }
 
   override def append(time: Time)(atoms: Atom*): Unit = {

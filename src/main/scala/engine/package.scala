@@ -5,7 +5,7 @@ package object engine {
 
   // From an outside perspective we only want to pass in anonymous data
 
-  type Atom = EngineAtom
+  type Atom = core.Atom
   case class EngineAtom(name: String, arguments: Seq[String] = List())
 }
 

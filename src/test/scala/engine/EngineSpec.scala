@@ -36,14 +36,14 @@ class EngineSpec extends FlatSpec {
     val engine = Engine(evaluationEngine)
 
     val stream_1 = Stream.fromItem(
-      t1 -> EngineAtom("b"),
-      t2 -> EngineAtom("a"),
-      t3 -> EngineAtom("c")
+      t1 -> Atom("b"),
+      t2 -> Atom("a"),
+      t3 -> Atom("c")
     )
 
     def loadStreamFromFile = {
       Stream.fromItems(
-        t2 -> Set(EngineAtom("c"), EngineAtom("d"))
+        t2 -> Set(Atom("c"), Atom("d"))
       )
     }
     val stream_2 = loadStreamFromFile
@@ -55,18 +55,16 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(AnswerUpdateNetworkEngine(program))
+    val engine = engineWithStreams(AspEvaluation(program))
 
-    assert(engine.evaluate(t1) == Set(EngineAtom("a"), EngineAtom("b")))
+    assert(engine.evaluate(t1).value contains Set(a, b))
   }
 
   it should "invalidate 'b' for t3" in {
-    val engine = engineWithStreams(AnswerUpdateNetworkEngine(program))
+    val engine = engineWithStreams(AspEvaluation(program))
 
 
-    assert(
-      engine.evaluate(t2) == Set(EngineAtom("a"), EngineAtom("c"), EngineAtom("d"))
-    )
+    assert(engine.evaluate(t2).value contains Set(a, c, d))
   }
 }
 

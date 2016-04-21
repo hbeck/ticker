@@ -8,6 +8,9 @@ trait EvaluationEngine {
 
   def append(time: Time)(atoms: Atom*): Unit
 
-  def evaluate(time: Time): Set[Atom]
+  def evaluate(time: Time): Result
+}
 
+trait Result {
+  def value: Option[Set[Atom]]
 }

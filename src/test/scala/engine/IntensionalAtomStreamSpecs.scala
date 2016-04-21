@@ -1,5 +1,6 @@
 package engine
 
+import core.Atom
 import org.scalatest.FlatSpec
 
 /**
@@ -7,7 +8,7 @@ import org.scalatest.FlatSpec
   */
 class IntensionalAtomStreamSpecs extends FlatSpec {
 
-  val atom = EngineAtom("a")
+  val atom = Atom("a")
 
   val t0 = Time(0)
   val t1 = Time(1)
@@ -52,7 +53,7 @@ class IntensionalAtomStreamSpecs extends FlatSpec {
 
     engine.append(t0)(Set(atom))
 
-    val atom2 = EngineAtom("b")
+    val atom2 = Atom("b")
 
     engine.append(t1)(Set(atom2))
 
@@ -65,7 +66,7 @@ class IntensionalAtomStreamSpecs extends FlatSpec {
 
     atT1(Set(atom))
 
-    val atom2 = EngineAtom("b")
+    val atom2 = Atom("b")
 
     atT1(Set(atom2))
 

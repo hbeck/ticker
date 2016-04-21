@@ -6,12 +6,13 @@ import scala.collection.SortedMap
   * Created by FM on 08.04.16.
   */
 class OrderedAtomStream {
-  var inputStream = SortedMap.empty[Time, Set[EngineAtom]](
+  var inputStream = SortedMap.empty[Time, Set[Atom]](
     Ordering.fromLessThan((l, r) => l.milliseconds < r.milliseconds)
   )
 
   def append(time: Time)(atoms: Set[Atom]): Unit = {
-    inputStream = inputStream.updated(time, inputStream.getOrElse(time, Set[Atom]()) ++ atoms)
+    val previousValue = inputStream.getOrElse(time, Set[Atom]())
+    inputStream = inputStream.updated(time, previousValue ++ atoms)
   }
 
   def evaluate(time: Time): Set[Atom] = {
