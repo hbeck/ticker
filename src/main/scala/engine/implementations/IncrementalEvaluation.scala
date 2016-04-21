@@ -1,15 +1,13 @@
-package engine
+package engine.implementations
 
-import asp.Asp
-import core.{Atom, Evaluation, Fact, Program}
+import core.{Atom, Fact, Program}
+import engine.{Result, _}
 import jtms.AnswerUpdateNetwork
-
-import scala.collection.{SortedMap, mutable}
 
 /**
   * Created by FM on 05.04.16.
   */
-case class AnswerUpdateNetworkEngine(private val program: Program) extends EvaluationEngine {
+case class IncrementalEvaluation(private val program: Program) extends EvaluationEngine {
   val intensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
   val answerUpdateNetwork = AnswerUpdateNetwork(program)
