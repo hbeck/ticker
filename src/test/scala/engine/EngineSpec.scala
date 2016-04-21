@@ -2,6 +2,7 @@ package engine
 
 import core.{Atom, Program, ProgramBuilder, not}
 import engine._
+import engine.implementations.AspPullEvaluation
 import org.scalatest.FlatSpec
 
 import scala.collection.SortedMap
@@ -55,13 +56,13 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(AspEvaluation(program))
+    val engine = engineWithStreams(AspPullEvaluation(program))
 
     assert(engine.evaluate(t1).value contains Set(a, b))
   }
 
   it should "invalidate 'b' for t3" in {
-    val engine = engineWithStreams(AspEvaluation(program))
+    val engine = engineWithStreams(AspPullEvaluation(program))
 
 
     assert(engine.evaluate(t2).value contains Set(a, c, d))
