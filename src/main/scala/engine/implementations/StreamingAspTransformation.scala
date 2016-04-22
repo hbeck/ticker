@@ -1,15 +1,21 @@
 package engine.implementations
 
+import asp.AspConversion
+import core.{Atom, Fact}
 import engine.{Atom, Time}
 
 /**
   * Created by FM on 22.04.16.
   */
 object StreamingAspTransformation {
+  val nowAtom = Atom("now")
+
   def transform(time: Time, atoms: Set[Atom]) = {
-    val now = f"now(${time.milliseconds})."
-    val atomFacts = atoms map (x => f"${x.toString}.")
-    atomFacts + now
+    val nowAtT = nowAtom(time.milliseconds.toString)
+
+    val atomFacts = (atoms + nowAtT) map (x => Fact(x))
+
+    atomFacts map (x => AspConversion(x))
   }
 
 
