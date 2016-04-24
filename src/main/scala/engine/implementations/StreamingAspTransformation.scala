@@ -41,7 +41,7 @@ case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEng
     }
 
     new Result {
-      override def value: Option[Set[Atom]] = result
+      override def get: Option[Set[Atom]] = result
     }
   }
 }

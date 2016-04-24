@@ -22,7 +22,7 @@ case class AspPushEvaluation(private val initialProgram: Program) extends Evalua
     val result = aspEngine(initialProgram ++ facts.toList)
 
     cachedResults.put(time, new Result {
-      override def value(): Option[Set[Atom]] = result.headOption match {
+      override def get(): Option[Set[Atom]] = result.headOption match {
         case Some(model) => Some(model.toSet)
         case None => None
       }

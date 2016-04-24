@@ -33,20 +33,20 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val convert = StreamingAspTransformation(Set())
     pendingUntilFixed {
       //TODO: discuss what's correct
-      assert(convert.prepare(t1, Set()).value contains Set(StreamingAspTransformation.now(t1.milliseconds.toString)))
+      assert(convert.prepare(t1, Set()).get contains Set(StreamingAspTransformation.now(t1.milliseconds.toString)))
     }
   }
 
   "A fact in an ASP-Program" should "still be part of the result" in {
     val convert = StreamingAspTransformation(Set(AspExpression("a.")))
-    val result = convert.prepare(t1, Set()).value
+    val result = convert.prepare(t1, Set()).get
     //TODO: discuss what's correct
     result.get should contain only (a)
   }
 
   "Facts from the program and the parameters" should "be part of the result" in {
     val convert = StreamingAspTransformation(Set(AspExpression("b.")))
-    val result = convert.prepare(t1, Set(a)).value
+    val result = convert.prepare(t1, Set(a)).get
     //TODO: discuss what's correct
     result.get should contain allOf(a, Atom("b"))
   }

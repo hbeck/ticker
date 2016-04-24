@@ -34,11 +34,11 @@ class EngineStreamSpec extends FlatSpec {
 
     atT1(Seq(Atom("c")))
 
-    assume(Set(a, b, c) subsetOf engine.evaluate(t1).value.value)
+    assume(Set(a, b, c) subsetOf engine.evaluate(t1).get.value)
 
     atT1(Seq(Atom("d")))
 
-    engine.evaluate(t1).value.value should contain allOf(c, d)
+    engine.evaluate(t1).get.value should contain allOf(c, d)
   }
 
   "Adding one atom at t2" should "not lead to a result at t3" in {
@@ -46,10 +46,10 @@ class EngineStreamSpec extends FlatSpec {
 
     engine.append(t2)(Atom("c"))
 
-    assume(Set(a, b, c).subsetOf(engine.evaluate(t2).value.value))
+    assume(Set(a, b, c).subsetOf(engine.evaluate(t2).get.value))
 
     pendingUntilFixed {
-      assert(engine.evaluate(t3).value.isEmpty)
+      assert(engine.evaluate(t3).get.isEmpty)
     }
   }
 
@@ -58,10 +58,10 @@ class EngineStreamSpec extends FlatSpec {
 
     engine.append(t2)(Atom("c"))
 
-    assume(Set(a, b, c) subsetOf engine.evaluate(t2).value.value)
+    assume(Set(a, b, c) subsetOf engine.evaluate(t2).get.value)
 
     pendingUntilFixed {
-      assert(engine.evaluate(t1).value.isEmpty)
+      assert(engine.evaluate(t1).get.isEmpty)
     }
   }
 }

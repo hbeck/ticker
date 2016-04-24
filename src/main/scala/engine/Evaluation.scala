@@ -12,5 +12,5 @@ trait EvaluationEngine {
 }
 
 trait Result {
-  def value: Option[Set[Atom]]
+  def get: Option[Set[Atom]]
 }

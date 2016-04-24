@@ -18,5 +18,5 @@ case class FutureResult(future: Future[Option[Set[Atom]]]) extends Result {
   // append adds tu queue
   // we have a seperat thread feeding from queue by evaluating it
   // see https://twitter.github.io/scala_school/concurrency.html
-  override def value: Option[Set[Atom]] = Await.result(future, 1 second)
+  override def get: Option[Set[Atom]] = Await.result(future, 1 second)
 }

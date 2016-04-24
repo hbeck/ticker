@@ -58,7 +58,7 @@ class EngineSpec extends FlatSpec {
 
   "The Asp Evaluation" should "return a result for t1" in {
     val engine = engineWithStreams(AspPullEvaluation(program))
-    val result = engine.evaluate(t1).value
+    val result = engine.evaluate(t1).get
 
     result.value should contain allOf(a, b)
   }
@@ -66,7 +66,7 @@ class EngineSpec extends FlatSpec {
   it should "invalidate 'b' for t3" in {
     val engine = engineWithStreams(AspPullEvaluation(program))
 
-    val result = engine.evaluate(t2).value
+    val result = engine.evaluate(t2).get
 
     result.value should contain allOf(a, c, d)
   }

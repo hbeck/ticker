@@ -21,7 +21,7 @@ case class IncrementalEvaluation(private val program: Program) extends Evaluatio
     facts foreach answerUpdateNetwork.add
 
     new Result {
-      override def value(): Option[Set[Atom]] = {
+      override def get(): Option[Set[Atom]] = {
         answerUpdateNetwork.getModel()
       }
     }
