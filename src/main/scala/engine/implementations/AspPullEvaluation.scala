@@ -23,10 +23,7 @@ case class AspPullEvaluation(private val initialProgram: Program) extends Evalua
 
   def prepare(time: Time) = {
     val future = Future {
-      val result = streamingAspTransformation.prepare(time, atomStream.evaluate(time))
-
-
-      result.get
+      streamingAspTransformation.prepare(time, atomStream.evaluate(time))
     }
     cachedResults.put(time, FutureResult(future))
   }
