@@ -9,14 +9,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by FM on 24.04.16.
   */
-case class FutureAspEvaluation(private val aspEvaluation: AspEvaluation) extends AspEvaluation {
+case class FutureAspEvaluation(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
 
   override def prepare(time: Time, atoms: Set[Atom]): Result = {
     val future = Future {
       aspEvaluation.prepare(time, atoms)
     }
 
-    FutureResult(future)
+    FutureResult(future, waitingAtMost)
   }
 }
 

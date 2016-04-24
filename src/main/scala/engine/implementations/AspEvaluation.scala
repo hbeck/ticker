@@ -4,9 +4,11 @@ import asp.AspConversion
 import core.Program
 import engine.{Atom, Result, Time}
 
+import scala.concurrent.duration._
+
 trait EvaluationMode
 
-object UseFuture extends EvaluationMode
+case class UseFuture(waitingAtMost: Duration = 1 second) extends EvaluationMode
 
 object Direct extends EvaluationMode
 
@@ -24,7 +26,7 @@ object AspEvaluation {
     val transformation = StreamingAspTransformation(AspConversion(program))
 
     evaluationMode match {
-      case UseFuture => FutureAspEvaluation(transformation)
+      case UseFuture(waitingAtMost: Duration) => FutureAspEvaluation(transformation, waitingAtMost)
       case _ => transformation
     }
   }
