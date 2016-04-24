@@ -22,7 +22,7 @@ object StreamingAspTransformation {
   }
 }
 
-case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEngine: Asp = Asp()) {
+case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEngine: Asp = Asp()) extends AspEvaluation {
 
   def prepare(time: Time, atoms: Set[Atom]): Result = {
 

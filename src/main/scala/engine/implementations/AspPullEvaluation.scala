@@ -7,23 +7,22 @@ import engine._
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+
 
 /**
   * Created by FM on 21.04.16.
   */
 
-case class AspPullEvaluation(private val streamingAspTransformation: StreamingAspTransformation) extends EvaluationEngine {
+case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
   val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
 
   def prepare(time: Time) = {
-    val future = Future {
-      streamingAspTransformation.prepare(time, atomStream.evaluate(time))
-    }
-    cachedResults.put(time, FutureResult(future))
+    val result = aspEvaluation.prepare(time, atomStream.evaluate(time))
+
+    cachedResults.put(time, result)
   }
 
   def evaluate(time: Time) = {
