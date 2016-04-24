@@ -2,10 +2,11 @@ package engine
 
 import core.{Atom, Program, ProgramBuilder, not}
 import engine._
-import engine.implementations.AspPullEvaluation
+import engine.implementations.{AspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
+
 import scala.collection.SortedMap
 
 /**
@@ -57,14 +58,14 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(AspPullEvaluation(program))
+    val engine = engineWithStreams(AspEvaluation.pull(program))
     val result = engine.evaluate(t1).get
 
     result.value should contain allOf(a, b)
   }
 
   it should "invalidate 'b' for t3" in {
-    val engine = engineWithStreams(AspPullEvaluation(program))
+    val engine = engineWithStreams(AspEvaluation.pull(program))
 
     val result = engine.evaluate(t2).get
 

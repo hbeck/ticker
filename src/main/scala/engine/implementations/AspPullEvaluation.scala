@@ -13,9 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * Created by FM on 21.04.16.
   */
 
-case class AspPullEvaluation(private val initialProgram: Program) extends EvaluationEngine {
-
-  val streamingAspTransformation = StreamingAspTransformation(AspConversion(initialProgram))
+case class AspPullEvaluation(private val streamingAspTransformation: StreamingAspTransformation) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 

@@ -1,7 +1,7 @@
 package engine
 
 import core.{Atom, Program, not}
-import engine.implementations.AspPullEvaluation
+import engine.implementations.{AspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -25,7 +25,7 @@ class EngineStreamSpec extends FlatSpec {
   val t2 = At.minute(2)
   val t3 = At.minute(3)
 
-  def evaluationEngine: EvaluationEngine = AspPullEvaluation(program)
+  def evaluationEngine: EvaluationEngine = AspEvaluation.pull(program)
 
   "Adding atoms one after another at the same timepoint" should "lead to different evaluation results" in {
     val engine = evaluationEngine
