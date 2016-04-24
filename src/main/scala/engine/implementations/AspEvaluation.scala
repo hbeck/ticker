@@ -22,6 +22,10 @@ object AspEvaluation {
     AspPullEvaluation(buildTransformation(program, evaluationMode))
   }
 
+  def push(program: Program, evaluationMode: EvaluationMode = Direct) = {
+    AspPushEvaluation(buildTransformation(program, evaluationMode))
+  }
+
   def buildTransformation(program: Program, evaluationMode: EvaluationMode): AspEvaluation = {
     val transformation = StreamingAspTransformation(AspConversion(program))
 

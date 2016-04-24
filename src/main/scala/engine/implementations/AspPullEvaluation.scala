@@ -4,11 +4,6 @@ import asp.{Asp, AspConversion}
 import core.{AtomWithArguments, Fact, Program}
 import engine._
 
-import scala.collection.mutable
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-
-
 /**
   * Created by FM on 21.04.16.
   */
