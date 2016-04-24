@@ -28,7 +28,7 @@ case class AspPullEvaluation(private val initialProgram: Program) extends Evalua
       val result = aspEngine(convertedProgram ++ facts)
 
       // TODO: should we remove time(now)?
-      // TODO: how do we differentiate if the mo el is defined or not? Adding the fact now(T) leads to a model
+      // TODO: how do we differentiate if the model is defined or not? Adding the fact now(T) leads to a model
       result.headOption match {
         case Some(model) => {
           val atoms = model.filterNot {
@@ -55,15 +55,4 @@ case class AspPullEvaluation(private val initialProgram: Program) extends Evalua
     // the remove is probably not enough (==> invalidate previous fetched results)
     cachedResults.remove(time)
   }
-}
-
-case class FutureResult(future: Future[Option[Set[Atom]]]) extends Result {
-  // look at http://alvinalexander.com/scala/concurrency-with-scala-futures-tutorials-examples
-  // prefer non blocking
-  // additional option:
-  // use a producer/consumer scenario
-  // append adds tu queue
-  // we have a seperat thread feeding from queue by evaluating it
-  // see https://twitter.github.io/scala_school/concurrency.html
-  override def value: Option[Set[Atom]] = Await.result(future, 1 second)
 }
