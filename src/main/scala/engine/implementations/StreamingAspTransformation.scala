@@ -16,7 +16,7 @@ object StreamingAspTransformation {
     val nowAtT = now(timeParameter)
     val atomsWithT = atoms.map(x => x(timeParameter))
 
-    val atomFacts = (atomsWithT + nowAtT) map (x => Fact(x))
+    val atomFacts = (atoms ++ atomsWithT + nowAtT) map (x => Fact(x))
 
     atomFacts map (x => AspConversion(x))
   }

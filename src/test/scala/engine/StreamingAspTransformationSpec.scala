@@ -19,14 +19,18 @@ class StreamingAspTransformationSpec extends FlatSpec {
     assert(StreamingAspTransformation.transform(t1, Set()) == Set(AspExpression("now(1000).")))
   }
 
-  "One atom and time t2" should "be translated into the facts 'now(2000). a(2000).'" in {
-    assert(StreamingAspTransformation.transform(t2, Set(a)) == Set(AspExpression("now(2000)."), AspExpression("a(2000).")))
+  "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
+    assertResult(Set(AspExpression("now(2000)."), AspExpression("a(2000)."), AspExpression("a."))) {
+      StreamingAspTransformation.transform(t2, Set(a))
+    }
   }
 
-  "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000)." in {
+  "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000). b." in {
     val b = Atom("b").apply("1")
 
-    assert(StreamingAspTransformation.transform(At.second(3), Set(a, b)) == Set(AspExpression("now(3000)."), AspExpression("a(3000)."), AspExpression("b(1,3000).")))
+    assertResult(Set(AspExpression("now(3000)."), AspExpression("a(3000)."), AspExpression("a."), AspExpression("b(1,3000)."), AspExpression("b(1)."))) {
+      StreamingAspTransformation.transform(At.second(3), Set(a, b))
+    }
   }
 
   "An empty set of ASP-Expressions" should "return a result with only time t1" in {
@@ -48,6 +52,6 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val convert = StreamingAspTransformation(Set(AspExpression("b.")))
     val result = convert.prepare(t1, Set(a)).get
     //TODO: discuss what's correct
-    result.get should contain allOf(a(t1.milliseconds.toString), Atom("b"))
+    result.get should contain allOf(a, a(t1.milliseconds.toString), Atom("b"))
   }
 }

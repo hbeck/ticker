@@ -21,9 +21,9 @@ class EngineStreamSpec extends FlatSpec {
     b :- c and not(d)
   )
 
-  val t1 = At.minute(1)
-  val t2 = At.minute(2)
-  val t3 = At.minute(3)
+  val t1 = At.second(1)
+  val t2 = At.second(2)
+  val t3 = At.second(3)
 
   def evaluationEngine: EvaluationEngine = AspEvaluation.pull(program)
 
@@ -34,11 +34,11 @@ class EngineStreamSpec extends FlatSpec {
 
     atT1(Seq(Atom("c")))
 
-    assume(Set(a, b, c) subsetOf engine.evaluate(t1).get.value)
+    assume(Set(a, b, c(t1.toString)) subsetOf engine.evaluate(t1).get.value)
 
     atT1(Seq(Atom("d")))
 
-    engine.evaluate(t1).get.value should contain allOf(c, d)
+    engine.evaluate(t1).get.value should contain allOf(c(t1.toString), d(t1.toString))
   }
 
   "Adding one atom at t2" should "not lead to a result at t3" in {
