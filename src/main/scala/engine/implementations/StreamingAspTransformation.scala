@@ -11,9 +11,12 @@ object StreamingAspTransformation {
   val now = Atom("now")
 
   def transform(time: Time, atoms: Set[Atom]) = {
-    val nowAtT = now(time.milliseconds.toString)
+    val timeParameter = time.milliseconds.toString
 
-    val atomFacts = (atoms + nowAtT) map (x => Fact(x))
+    val nowAtT = now(timeParameter)
+    val atomsWithT = atoms.map(x => x(timeParameter))
+
+    val atomFacts = (atomsWithT + nowAtT) map (x => Fact(x))
 
     atomFacts map (x => AspConversion(x))
   }

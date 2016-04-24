@@ -37,6 +37,10 @@ case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends Atom {
     case x: AtomWithArguments => this == x
     case _ => false
   }
+
+  override def apply(arguments: String*): Atom = {
+    AtomWithArguments(atom, this.arguments ++ arguments)
+  }
 }
 
 object Falsum extends Atom
