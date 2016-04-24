@@ -27,4 +27,5 @@ class StreamingAspTransformationSpec extends FlatSpec {
     assert(StreamingAspTransformation.transform(At.second(3), Set(a, b)) == Set(AspExpression("now(3000)."), AspExpression("a."), AspExpression("b(1).")))
   }
 
+
 }
