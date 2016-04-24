@@ -28,3 +28,19 @@ case class Engine(private val evaluationEngine: EvaluationEngine) {
   def evaluate(time: Time) = evaluationEngine.evaluate(time)
 
 }
+
+
+/*
++Potential Builder?
++
++val engine = Engine
++  .initialize()
++  .forProgram(program)
++  .withAsp()
++    .pull().withFuture(5 seconds)
++  .useInput(Stream.load(..))
++  .build()
++
++engine.run()
++
++ */
