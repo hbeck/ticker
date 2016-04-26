@@ -15,7 +15,7 @@ case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends E
   val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
 
   def prepare(time: Time) = {
-    val result = aspEvaluation.prepare(time, atomStream.evaluate(time))
+    val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }

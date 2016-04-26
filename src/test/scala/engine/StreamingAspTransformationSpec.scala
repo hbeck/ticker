@@ -70,7 +70,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
 
   "Facts from the program and the parameters" should "be part of the result" in {
     val convert = StreamingAspTransformation(Set(AspExpression("b.")))
-    val result = convert.prepare(t1, Set(a)).get
+    val result = convert.prepare(t1, Set(Evaluation(t1, Set(a)))).get
     //TODO: discuss what's correct
     result.get should contain allOf(a, a(t1.milliseconds.toString), Atom("b"))
   }

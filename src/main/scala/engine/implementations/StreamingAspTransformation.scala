@@ -11,7 +11,7 @@ object StreamingAspTransformation {
   val now = Atom("now")
 
 
-  def transform(evaluation: Set[Evaluation]) = {
+  def transform(evaluation: Set[Evaluation]): Set[AspExpression] = {
     evaluation flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
@@ -28,23 +28,21 @@ object StreamingAspTransformation {
   }
 
   // TODO: naming of previousEvalutions, and Set[Evaluation]
-  def transform(currentTime: Time, previousEvalutions: Set[Evaluation]) = {
-    val evalu = transform(previousEvalutions)
+  def transform(currentTime: Time, previousEvalutions: Set[Evaluation]): Set[AspExpression] = {
+    val transformedAtoms = transform(previousEvalutions)
 
-    val transformedAtoms = evalu + AspConversion(atomAtT(currentTime, now))
+    val transformedAtomsAndNow = transformedAtoms + AspConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtoms ++ (previousEvalutions flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
+    transformedAtomsAndNow ++ (previousEvalutions flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
   }
 }
 
 case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEngine: Asp = Asp()) extends AspEvaluation {
 
-  def prepare(time: Time, atoms: Set[Atom]): Result = {
+  def prepare(time: Time, evaluations: Set[Evaluation]): Result = {
 
-    // TOOD: fix
-    val e = Evaluation(time, atoms)
-    val transformed = StreamingAspTransformation.transform(time, Set(e))
+    val transformed = StreamingAspTransformation.transform(time, evaluations)
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 
