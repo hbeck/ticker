@@ -16,7 +16,7 @@ object StreamingAspTransformation {
   }
 
   def atomAtT(time: Time, atom: Atom) = {
-    val timeParameter = time.milliseconds.toString
+    val timeParameter = time.timePoint.toString
 
     Fact(atom(timeParameter))
   }
@@ -27,14 +27,14 @@ object StreamingAspTransformation {
     atomsWithT map (x => AspConversion(x))
   }
 
-  // TODO: naming of previousEvalutions, and Set[Evaluation]
-  def transform(currentTime: Time, previousEvalutions: Set[Evaluation]): Set[AspExpression] = {
-    val transformedAtoms = transform(previousEvalutions)
+  // TODO: naming of previousEvaluations, and Set[Evaluation]
+  def transform(currentTime: Time, previousEvaluations: Set[Evaluation]): Set[AspExpression] = {
+    val transformedAtoms = transform(previousEvaluations)
 
     val transformedAtomsAndNow = transformedAtoms + AspConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtomsAndNow ++ (previousEvalutions flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
+    transformedAtomsAndNow ++ (previousEvaluations flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
   }
 }
 

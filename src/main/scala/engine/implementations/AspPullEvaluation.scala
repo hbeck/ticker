@@ -1,7 +1,5 @@
 package engine.implementations
 
-import asp.{Asp, AspConversion}
-import core.{AtomWithArguments, Fact, Program}
 import engine._
 
 /**
@@ -25,7 +23,7 @@ case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends E
       prepare(time)
 
     // TODO implement this correctly
-    var smallerKeys = cachedResults.filterKeys(p => p.milliseconds <= time.milliseconds)
+    val smallerKeys = cachedResults.filterKeys(p => p.timePoint <= time.timePoint)
     val aggregatedResult = smallerKeys.flatMap(x => x._2.get.getOrElse(Set()))
     new Result {
       override def get: Option[Set[Atom]] = Some(aggregatedResult.toSet)

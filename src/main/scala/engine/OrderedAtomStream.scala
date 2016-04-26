@@ -7,7 +7,7 @@ import scala.collection.SortedMap
   */
 class OrderedAtomStream {
   var inputStream = SortedMap.empty[Time, Set[Atom]](
-    Ordering.fromLessThan((l, r) => l.milliseconds < r.milliseconds)
+    Ordering.fromLessThan((l, r) => l.timePoint < r.timePoint)
   )
 
   def append(time: Time)(atoms: Set[Atom]): Unit = {

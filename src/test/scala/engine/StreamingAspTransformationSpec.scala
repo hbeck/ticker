@@ -5,7 +5,6 @@ import core.Atom
 import engine.implementations.StreamingAspTransformation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import org.scalatest.OptionValues._
 
 /**
   * Created by FM on 22.04.16.
@@ -57,7 +56,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val convert = StreamingAspTransformation(Set())
     pendingUntilFixed {
       //TODO: discuss what's correct
-      assert(convert.prepare(t1, Set()).get contains Set(StreamingAspTransformation.now(t1.milliseconds.toString)))
+      assert(convert.prepare(t1, Set()).get contains Set(StreamingAspTransformation.now(t1.timePoint.toString)))
     }
   }
 
@@ -72,6 +71,6 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val convert = StreamingAspTransformation(Set(AspExpression("b.")))
     val result = convert.prepare(t1, Set(Evaluation(t1, Set(a)))).get
     //TODO: discuss what's correct
-    result.get should contain allOf(a, a(t1.milliseconds.toString), Atom("b"))
+    result.get should contain allOf(a, a(t1.timePoint.toString), Atom("b"))
   }
 }

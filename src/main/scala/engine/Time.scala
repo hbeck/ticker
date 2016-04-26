@@ -3,15 +3,15 @@ package engine
 /**
   * Created by FM on 05.04.16.
   */
-case class Time(milliseconds: Long) {
+case class Time(timePoint: Long) {
   // TODO: whats the minimum unit?
   override def toString = {
-    milliseconds.toString
+    timePoint.toString
   }
 }
 
 object Time {
-  implicit val ordering = Ordering.by((time: Time) => time.milliseconds)
+  implicit val ordering = Ordering.by((time: Time) => time.timePoint)
 }
 
 object At {
