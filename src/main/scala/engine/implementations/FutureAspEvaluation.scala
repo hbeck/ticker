@@ -25,8 +25,8 @@ case class FutureResult(future: Future[Result], waitingAtMost: Duration = 1 seco
   // prefer non blocking
   // additional option:
   // use a producer/consumer scenario
-  // append adds tu queue
-  // we have a seperat thread feeding from queue by evaluating it
+  // append adds to queue
+  // we have a separate thread feeding from queue by evaluating it
   // see https://twitter.github.io/scala_school/concurrency.html
   override def get: Option[Set[Atom]] = Await.result(future, waitingAtMost).get
 }

@@ -21,7 +21,12 @@ case class AspPushEvaluation(private val aspEvaluation: AspEvaluation) extends E
   }
 
   def evaluate(time: Time) = {
-    cachedResults(time)
+    // TODO implement this correctly
+    val smallerKeys = cachedResults.filterKeys(p => p.milliseconds <= time.milliseconds)
+    val aggregatedResult = smallerKeys.flatMap(x => x._2.get.getOrElse(Set()))
+    new Result {
+      override def get: Option[Set[Atom]] = Some(aggregatedResult.toSet)
+    }
   }
 
   override def append(time: Time)(atoms: Atom*): Unit = {
