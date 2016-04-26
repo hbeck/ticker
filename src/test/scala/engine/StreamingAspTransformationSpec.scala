@@ -25,7 +25,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
     assert(StreamingAspTransformation.transformAtoms(t1, Set()) == Set())
   }
   it should "be empty with evaluation" in {
-    assert(StreamingAspTransformation.evaluation(Set()) == Set())
+    assert(StreamingAspTransformation.transform(Set()) == Set())
   }
 
   "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
@@ -40,7 +40,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
   }
   it should "be translated into the facts 'a(2000)." in {
     assertResult(Set(AspExpression("a(2000)."))) {
-      StreamingAspTransformation.evaluation(Set(Evaluation(t2, Set(a))))
+      StreamingAspTransformation.transform(Set(Evaluation(t2, Set(a))))
     }
   }
 

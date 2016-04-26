@@ -10,7 +10,8 @@ import engine.{Atom, Evaluation, Result, Time}
 object StreamingAspTransformation {
   val now = Atom("now")
 
-  def evaluation(evaluation: Set[Evaluation]) = {
+
+  def transform(evaluation: Set[Evaluation]) = {
     evaluation flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
@@ -26,8 +27,9 @@ object StreamingAspTransformation {
     atomsWithT map (x => AspConversion(x))
   }
 
+  // TODO: naming of previousEvalutions, and Set[Evaluation]
   def transform(currentTime: Time, previousEvalutions: Set[Evaluation]) = {
-    val evalu = evaluation(previousEvalutions)
+    val evalu = transform(previousEvalutions)
 
     val transformedAtoms = evalu + AspConversion(atomAtT(currentTime, now))
 
