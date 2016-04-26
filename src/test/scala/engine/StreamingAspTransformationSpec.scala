@@ -19,11 +19,21 @@ class StreamingAspTransformationSpec extends FlatSpec {
     assert(StreamingAspTransformation.transform(t1, Set()) == Set(AspExpression("now(1000).")))
   }
 
+  "No atom and only time t1" should "be empty" in {
+    assert(StreamingAspTransformation.transformAtoms(t1, Set()) == Set())
+  }
+
   "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
     assertResult(Set(AspExpression("now(2000)."), AspExpression("a(2000)."), AspExpression("a."))) {
       StreamingAspTransformation.transform(t2, Set(a))
     }
   }
+  "One atom and time t2" should "be translated into the facts 'a(2000).'" in {
+    assertResult(Set(AspExpression("a(2000)."))) {
+      StreamingAspTransformation.transformAtoms(t2, Set(a))
+    }
+  }
+
 
   "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000). b." in {
     val b = Atom("b").apply("1")

@@ -10,15 +10,22 @@ import engine.{Atom, Result, Time}
 object StreamingAspTransformation {
   val now = Atom("now")
 
-  def transform(time: Time, atoms: Set[Atom]) = {
+  def transformAtoms(time: Time, atoms: Set[Atom]) = {
     val timeParameter = time.milliseconds.toString
 
-    val nowAtT = now(timeParameter)
     val atomsWithT = atoms.map(x => x(timeParameter))
 
-    val atomFacts = (atoms ++ atomsWithT + nowAtT) map (x => Fact(x))
+    val atomFacts = atomsWithT map (x => Fact(x))
 
     atomFacts map (x => AspConversion(x))
+  }
+
+  def transform(time: Time, atoms: Set[Atom]) = {
+    val transformedAtoms = transformAtoms(time, atoms + now)
+
+
+    // TODO: do we need the last clause?
+    transformedAtoms ++ (atoms map (x => Fact(x)) map (x => AspConversion(x)))
   }
 }
 
