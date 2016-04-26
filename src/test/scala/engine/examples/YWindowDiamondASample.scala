@@ -47,7 +47,7 @@ class YWindowDiamondASample extends FlatSpec {
   }
 
   "Given 't1 -> a' " should "not lead to y at t0" in {
-    evaluation.evaluate(t0).get shouldNot contain(y)
+    evaluation.evaluate(t0).get shouldNot contain(y("0"))
   }
 
   it should "lead to y at t1" in {
