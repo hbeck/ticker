@@ -2,7 +2,7 @@ package engine.examples
 
 import asp.{AspConversion, AspExpression}
 import core.{Atom, Program, not}
-import engine.At
+import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -34,9 +34,9 @@ class YWindowDiamondASample extends FlatSpec {
     y("T") :- w1d_a("T"),
     w1d_a("T") :- a("U") and now("T") and u("U")
   )
-  val t0 = At.second(0)
-  val t1 = At.second(1)
-  val t2 = At.second(2)
+  val t0 = Time(0)
+  val t1 = Time(1)
+  val t2 = Time(2)
 
   def evaluation = {
     val e = AspPullEvaluation(StreamingAspTransformation(aspExpressions))
@@ -51,10 +51,16 @@ class YWindowDiamondASample extends FlatSpec {
   }
 
   it should "lead to y at t1" in {
-    evaluation.evaluate(t1).get.value should contain(y("1000"))
+    evaluation.evaluate(t1).get.value should contain(y("1"))
   }
 
   it should "lead to y at t2" in {
-    evaluation.evaluate(t2).get.value should contain(y("2000"))
+    evaluation.evaluate(t2).get.value should contain(y("2"))
+  }
+
+  it should "still contain y(1) at t2" in {
+    val e = evaluation
+    e.evaluate(t1)
+    e.evaluate(t2).get.value should contain(y("1"))
   }
 }

@@ -23,7 +23,14 @@ case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends E
   def evaluate(time: Time) = {
     if (!cachedResults.contains(time))
       prepare(time)
-    cachedResults(time)
+
+    // TODO implement this correctly
+    var smallerKeys = cachedResults.filterKeys(p => p.milliseconds <= time.milliseconds)
+    val aggregatedResult = smallerKeys.flatMap(x => x._2.get.getOrElse(Set()))
+    new Result {
+      override def get: Option[Set[Atom]] = Some(aggregatedResult.toSet)
+    }
+    //    cachedResults(time)
   }
 
   override def append(time: Time)(atoms: Atom*): Unit = {
