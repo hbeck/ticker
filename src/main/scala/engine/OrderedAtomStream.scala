@@ -19,4 +19,9 @@ class OrderedAtomStream {
     inputStream.getOrElse(time, Set())
   }
 
+  def evaluateUntil(time: Time): Set[Evaluation] = {
+    val eval = inputStream.map(x => Evaluation(x._1, x._2))
+    eval.toSet
+  }
+
 }
