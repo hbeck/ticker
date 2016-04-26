@@ -15,7 +15,7 @@ class YWindowDiamondASample extends FlatSpec {
   val aspProgram =
     """y(T) :- w1d_a(T).
 
-      w1d_a(T) :- a(U), now(T), U >= T - 1, U <= T.
+      w1d_a(T) :- a(U), now(T), U >= T - 1000, U <= T.
 
       #show a/1.
       #show y/1.
