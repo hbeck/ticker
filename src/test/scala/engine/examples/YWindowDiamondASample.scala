@@ -3,7 +3,7 @@ package engine.examples
 import asp.{AspConversion, AspExpression}
 import core.{Atom, Program, not}
 import engine.At
-import engine.implementations.StreamingAspTransformation
+import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -38,17 +38,23 @@ class YWindowDiamondASample extends FlatSpec {
   val t1 = At.second(1)
   val t2 = At.second(2)
 
-  val conversion = StreamingAspTransformation(aspExpressions)
+  def evaluation = {
+    val e = AspPullEvaluation(StreamingAspTransformation(aspExpressions))
+
+    e.append(t1)(a)
+
+    e
+  }
 
   "Given 't1 -> a' " should "not lead to y at t0" in {
-    conversion.prepare(t0, Set()).get shouldNot contain(y)
+    evaluation.evaluate(t0).get shouldNot contain(y)
   }
 
   it should "lead to y at t1" in {
-    conversion.prepare(t1, Set(a)).get.value should contain(y("1000"))
+    evaluation.evaluate(t1).get.value should contain(y("1000"))
   }
 
   it should "lead to y at t2" in {
-    conversion.prepare(t2, Set()).get.value should contain(y("2000"))
+    evaluation.evaluate(t2).get.value should contain(y("2000"))
   }
 }
