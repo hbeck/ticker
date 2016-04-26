@@ -13,24 +13,34 @@ import org.scalatest.OptionValues._
 class StreamingAspTransformationSpec extends FlatSpec {
   val t1 = At.second(1)
   val t2 = At.second(2)
+  val t3 = At.second(3)
+
   val a = Atom("a")
 
   "No atom and only time t1" should "be translated into the fact 'now(1000)'" in {
     assert(StreamingAspTransformation.transform(t1, Set()) == Set(AspExpression("now(1000).")))
   }
 
-  "No atom and only time t1" should "be empty" in {
+  it should "be empty with transformAtoms" in {
     assert(StreamingAspTransformation.transformAtoms(t1, Set()) == Set())
+  }
+  it should "be empty with evaluation" in {
+    assert(StreamingAspTransformation.evaluation(Set()) == Set())
   }
 
   "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
     assertResult(Set(AspExpression("now(2000)."), AspExpression("a(2000)."), AspExpression("a."))) {
-      StreamingAspTransformation.transform(t2, Set(a))
+      StreamingAspTransformation.transform(t2, Set(Evaluation(t2, Set(a))))
     }
   }
-  "One atom and time t2" should "be translated into the facts 'a(2000).'" in {
+  it should "be translated into the facts 'a(2000).'" in {
     assertResult(Set(AspExpression("a(2000)."))) {
       StreamingAspTransformation.transformAtoms(t2, Set(a))
+    }
+  }
+  it should "be translated into the facts 'a(2000)." in {
+    assertResult(Set(AspExpression("a(2000)."))) {
+      StreamingAspTransformation.evaluation(Set(Evaluation(t2, Set(a))))
     }
   }
 
@@ -39,7 +49,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val b = Atom("b").apply("1")
 
     assertResult(Set(AspExpression("now(3000)."), AspExpression("a(3000)."), AspExpression("a."), AspExpression("b(1,3000)."), AspExpression("b(1)."))) {
-      StreamingAspTransformation.transform(At.second(3), Set(a, b))
+      StreamingAspTransformation.transform(t3, Set(Evaluation(t3, Set(a, b))))
     }
   }
 

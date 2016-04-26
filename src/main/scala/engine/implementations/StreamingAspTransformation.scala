@@ -2,7 +2,7 @@ package engine.implementations
 
 import asp.{Asp, AspConversion, AspExpression}
 import core.{Atom, AtomWithArguments, Fact}
-import engine.{Atom, Result, Time}
+import engine.{Atom, Evaluation, Result, Time}
 
 /**
   * Created by FM on 22.04.16.
@@ -10,22 +10,29 @@ import engine.{Atom, Result, Time}
 object StreamingAspTransformation {
   val now = Atom("now")
 
-  def transformAtoms(time: Time, atoms: Set[Atom]) = {
-    val timeParameter = time.milliseconds.toString
-
-    val atomsWithT = atoms.map(x => x(timeParameter))
-
-    val atomFacts = atomsWithT map (x => Fact(x))
-
-    atomFacts map (x => AspConversion(x))
+  def evaluation(evaluation: Set[Evaluation]) = {
+    evaluation flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
-  def transform(time: Time, atoms: Set[Atom]) = {
-    val transformedAtoms = transformAtoms(time, atoms + now)
+  def atomAtT(time: Time, atom: Atom) = {
+    val timeParameter = time.milliseconds.toString
 
+    Fact(atom(timeParameter))
+  }
+
+  def transformAtoms(time: Time, atoms: Set[Atom]) = {
+    val atomsWithT = atoms.map(x => atomAtT(time, x))
+
+    atomsWithT map (x => AspConversion(x))
+  }
+
+  def transform(currentTime: Time, previousEvalutions: Set[Evaluation]) = {
+    val evalu = evaluation(previousEvalutions)
+
+    val transformedAtoms = evalu + AspConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtoms ++ (atoms map (x => Fact(x)) map (x => AspConversion(x)))
+    transformedAtoms ++ (previousEvalutions flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
   }
 }
 
@@ -33,7 +40,9 @@ case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEng
 
   def prepare(time: Time, atoms: Set[Atom]): Result = {
 
-    val transformed = StreamingAspTransformation.transform(time, atoms)
+    // TOOD: fix
+    val e = Evaluation(time, atoms)
+    val transformed = StreamingAspTransformation.transform(time, Set(e))
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 
