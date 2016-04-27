@@ -36,7 +36,7 @@ object ClingoWrapper {
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
 
-  def run(expressions: Set[AspExpression]): String = run(expressions.mkString(System.lineSeparator))
+  def run(expressions: AspProgram): String = run(expressions.mkString(System.lineSeparator))
 
   def run(program: String): String = {
 
