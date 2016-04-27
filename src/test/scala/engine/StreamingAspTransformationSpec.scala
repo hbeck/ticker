@@ -5,6 +5,7 @@ import core.Atom
 import engine.implementations.StreamingAspTransformation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import org.scalatest.OptionValues._
 
 /**
   * Created by FM on 22.04.16.
@@ -52,14 +53,19 @@ class StreamingAspTransformationSpec extends FlatSpec {
     }
   }
 
-  "An empty set of ASP-Expressions" should "return a result with only time t1" in {
+  "An empty set of ASP-Expressions" should "return an empty result" in {
     val convert = StreamingAspTransformation(Set())
-    pendingUntilFixed {
-      //TODO: discuss what's correct
-      assert(convert.prepare(t1, Set()).get contains Set(StreamingAspTransformation.now(t1.timePoint.toString)))
-    }
+    convert.prepare(t1, Set()).get.value should be(empty)
   }
 
+  "A fact in an ASP-Program" should "only be allowed if its defined with an time-parameter T" in {
+    pendingUntilFixed {
+      intercept[IllegalArgumentException] {
+        //TODO: discuss what's correct
+        StreamingAspTransformation(Set(AspExpression("a.")))
+      }
+    }
+  }
   "A fact in an ASP-Program" should "still be part of the result and remain unchanged" in {
     val convert = StreamingAspTransformation(Set(AspExpression("a.")))
     val result = convert.prepare(t1, Set()).get

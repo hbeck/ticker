@@ -58,17 +58,14 @@ class YWindowDiamondASample extends FlatSpec {
     evaluation.evaluate(t2).get.value should contain(y("2"))
   }
 
-  it should "still contain y(1) at t2" in {
-    val e = evaluation
-    // TODO: pull currently needs an evaluate call for each timestamp
-    e.evaluate(t1)
-    e.evaluate(t2).get.value should contain(y("1"))
+  it should "not contain y(1) at t2" in {
+    evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
   }
-  it should "still contain y(1) at t2 with push" in {
+  it should "still not contain y(1) at t2 with push" in {
     val e = AspPushEvaluation(StreamingAspTransformation(aspExpressions))
 
     e.append(t1)(a)
 
-    e.evaluate(t2).get.value should contain(y("1"))
+    e.evaluate(t2).get shouldBe None
   }
 }

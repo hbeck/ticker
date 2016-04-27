@@ -65,9 +65,7 @@ class XWindowBoxASample extends FlatSpec {
   it should "lead to x at t2" in {
     evaluation.evaluate(t2).get.value should contain(x("2"))
   }
-  it should "still contain x(2) at t3" in {
-    val e =evaluation
-    e.evaluate(t2).get
-    e.evaluate(Time(3)).get.value should contain(x("2"))
+  it should "not contain x(2) at t3" in {
+    evaluation.evaluate(Time(3)).get.value shouldNot contain(x("2"))
   }
 }
