@@ -13,13 +13,6 @@ import scala.collection.mutable
 
 // + stream: derive from Scala stream - operators are defined for free
 // - time is not handled explicitly - only sequence of data
-trait Collector {
-  def append(evaluation: Evaluation)
-}
-
-trait Stream {
-  def emit(collector: Collector)
-}
 
 
 trait Observable {
@@ -27,17 +20,17 @@ trait Observable {
 }
 
 trait Observer {
-  def append(evaluation: Evaluation)
+  def append(evaluation: StreamEntry)
 }
 
-case class Evaluation(time: Time, atoms: Set[Atom])
+
 
 
 object Stream {
 
 
   def fromItems(items: (Time, Set[Atom])*): Observable = {
-    new ObservableList(items.map(x => Evaluation(x._1, x._2)))
+    new ObservableList(items.map(x => StreamEntry(x._1, x._2)))
   }
 
   def fromItem(items: (Time, Atom)*): Observable = {
@@ -45,7 +38,7 @@ object Stream {
   }
 }
 
-class ObservableList(private val items: Seq[Evaluation]) extends Observable {
+class ObservableList(private val items: Seq[StreamEntry]) extends Observable {
 
   override def subscribe(observer: Observer): Unit = {
     items foreach observer.append

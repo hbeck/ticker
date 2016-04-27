@@ -30,7 +30,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
 
   "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
     assertResult(Set(AspExpression("now(2000)."), AspExpression("a(2000)."), AspExpression("a."))) {
-      StreamingAspTransformation.transform(t2, Set(Evaluation(t2, Set(a))))
+      StreamingAspTransformation.transform(t2, Set(StreamEntry(t2, Set(a))))
     }
   }
   it should "be translated into the facts 'a(2000).'" in {
@@ -40,7 +40,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
   }
   it should "be translated into the facts 'a(2000)." in {
     assertResult(Set(AspExpression("a(2000)."))) {
-      StreamingAspTransformation.transform(Set(Evaluation(t2, Set(a))))
+      StreamingAspTransformation.transform(Set(StreamEntry(t2, Set(a))))
     }
   }
 
@@ -49,7 +49,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val b = Atom("b").apply("1")
 
     assertResult(Set(AspExpression("now(3000)."), AspExpression("a(3000)."), AspExpression("a."), AspExpression("b(1,3000)."), AspExpression("b(1)."))) {
-      StreamingAspTransformation.transform(t3, Set(Evaluation(t3, Set(a, b))))
+      StreamingAspTransformation.transform(t3, Set(StreamEntry(t3, Set(a, b))))
     }
   }
 
@@ -75,7 +75,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
 
   "Facts from the program and the parameters" should "be part of the result" in {
     val convert = StreamingAspTransformation(Set(AspExpression("b.")))
-    val result = convert.prepare(t1, Set(Evaluation(t1, Set(a)))).get
+    val result = convert.prepare(t1, Set(StreamEntry(t1, Set(a)))).get
     //TODO: discuss what's correct
     result.get should contain allOf(a, a(t1.timePoint.toString), Atom("b"))
   }

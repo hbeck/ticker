@@ -15,6 +15,7 @@ case class AspPushEvaluation(private val aspEvaluation: AspEvaluation) extends E
   val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
 
   def prepare(time: Time) = {
+    // TODO: decide if we want to use evaluateUntil or the whole stream
     val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
