@@ -29,7 +29,7 @@ class JTMSSpecASP extends FlatSpec {
   val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
   //val program = Program(j5, j3, j1, j2, j4a, j4b, j6)
 
-  def Network = AnswerUpdateNetwork(program)
+  def Network = ExtendedJTMS(program)
 
 }
 

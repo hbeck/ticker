@@ -1,7 +1,7 @@
 package jtms.asp
 
 import core.{Atom, Rule}
-import jtms.{AnswerUpdateNetwork, Status}
+import jtms.{ExtendedJTMS, Status}
 import org.scalatest.FlatSpec
 
 /**
@@ -11,7 +11,7 @@ import org.scalatest.FlatSpec
 trait AtomValidationASP {
   this: FlatSpec =>
 
-  def atomValidation(net: AnswerUpdateNetwork, n: Atom): ((AtomValidatorASP) => Any) => Any = {
+  def atomValidation(net: ExtendedJTMS, n: Atom): ((AtomValidatorASP) => Any) => Any = {
     val nc = new AtomValidatorASP(net, n)
 
     def atomCheckTestCallback(check: (AtomValidatorASP) => Any) = {
@@ -21,7 +21,7 @@ trait AtomValidationASP {
     return atomCheckTestCallback
   }
 
-  class AtomValidatorASP(net: AnswerUpdateNetwork, atom: Atom) {
+  class AtomValidatorASP(net: ExtendedJTMS, atom: Atom) {
 
     info(atom.toString)
 

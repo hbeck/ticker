@@ -5,10 +5,10 @@ import core._
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
-object AnswerUpdateNetwork {
+object ExtendedJTMS {
 
-  def apply(P: Program): AnswerUpdateNetwork = {
-    val net = new AnswerUpdateNetwork()
+  def apply(P: Program): ExtendedJTMS = {
+    val net = new ExtendedJTMS()
     P.rules foreach net.add
     net
   }
@@ -16,16 +16,14 @@ object AnswerUpdateNetwork {
 }
 
 /**
-  * Answer Update Network
-  * based on justification-based truth maintenance network
+  * In addition to JTMS, ExtendedJTMS has a remove method.
+  * Works in two modes, i) according to Doyle/Beierle and ii) stepwise, suitable if remove is used
   *
-  *
-  * Created by hb on 03/25/16.
   */
-case class AnswerUpdateNetwork() {
+case class ExtendedJTMS() {
 
   sealed trait UpdateStrategy
-  object UpdateStrategyDoyle extends UpdateStrategy
+  object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
   var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
@@ -39,12 +37,9 @@ case class AnswerUpdateNetwork() {
   val suppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
-  var consistent: Boolean = true
-
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    if (!consistent) return None
     val atoms = inAtoms()
-    if (atoms exists contradictionAtom) return None
+    if (atoms exists contradictionAtom) return None //not dealt with
     Some(atoms.toSet)
   }
 
@@ -124,16 +119,13 @@ case class AnswerUpdateNetwork() {
 
   def updateStepwise(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown
-    while (hasUnknown && consistent) {
+    while (hasUnknown) {
       unknownAtomsList foreach determineAndPropagateStatus
       val atom = unknownAtomsList.headOption
       if (atom.isDefined) {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
     }
-//    if (consistent) {
-//      tryEnsureConsistency
-//    }
   }
 
   def hasUnknown = atoms exists (status(_) == unknown)
@@ -212,7 +204,6 @@ case class AnswerUpdateNetwork() {
 
   def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
     if (fix(a)) {
-      if (!consistent) return
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
       val affected = aff(a) + a
@@ -237,9 +228,13 @@ case class AnswerUpdateNetwork() {
   }
 
   def fixOut(a: Atom) = {
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } // TODO not always possible for delete (Doyle)
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
+    val unknownPosAtoms = updateStrategy match {
+      case `UpdateStrategyDoyle` => {
+        val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+        (maybeAtoms filter (_.isDefined)) map (_.get)
+      }
+      case `UpdateStrategyStepwise` => justifications(a) map { r => (r.pos find (status(_) == unknown)).get }
+    }
     unknownPosAtoms foreach setOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
@@ -259,52 +254,6 @@ case class AnswerUpdateNetwork() {
     }
     trans(f)(nextSet)
   }
-
-  //return false if called DDB method leaves without resolving a contradiction
-//  def tryEnsureConsistency(): Boolean = {
-//    for (c <- inAtoms() filter contradictionAtom) {
-//      if (!DDB(c)) return false
-//    }
-//    true
-//  }
-
-//  def DDB(c: Atom): Boolean = {
-//
-//    if (status(c) != in) return true
-//
-//    val asms = foundations(c) filter isAssumption
-//    val maxAssumptions = asms filter { a =>
-//      ! ((asms - a) exists (b => foundations(b) contains a))
-//    }
-//
-//    if (maxAssumptions.isEmpty)
-//      return false //contradiction cannot be solved
-//
-//    findBacktrackingRule(c, maxAssumptions) match {
-//      case Some(rule) => { add(rule); return true }
-//      case None => return false
-//    }
-//
-//  }
-
-//  def findBacktrackingRule(c: Atom, maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
-//
-//    val culprit = maxAssumptions.head
-//    val sr = suppRule(culprit).get
-//    val n = sr.neg.head //(all .neg have status out at this point)
-//
-//    //val suppRules = maxAssumptions map (SuppRule(_).get)
-//    //val pos = (suppRules flatMap (_.pos))
-//    //val neg = (suppRules flatMap (_.neg)) - n
-//    val pos = (maxAssumptions - culprit + c).toSet
-//    val neg = (sr.neg - n).toSet
-//    val rule = RuleFromBacktracking(pos, neg, n)
-//
-//    Some(rule)
-//  }
-
-
-  /* ----------------------- in progress ... ------------------------------------- */
 
   def remove(rule: Rule): Unit = {
     unregister(rule)
@@ -344,7 +293,7 @@ case class AnswerUpdateNetwork() {
   // ----------------- test stuff or stuff that might not be needed ----------------
 
   /** @return true if M is admissible **/
-  def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
+  def set(M: collection.immutable.Set[Atom]): Boolean = {
   val m = M.toList
     for (i <- 0 to M.size - 1) {
       val rule: Option[Rule] = findSuppRule(m, i)

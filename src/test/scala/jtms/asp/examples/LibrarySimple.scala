@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core._
-import jtms.AnswerUpdateNetwork
+import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
 /**
@@ -34,19 +34,19 @@ class LibrarySimple extends FunSuite {
   val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   test("1") {
-    assert(AnswerUpdateNetwork(program).getModel.get == Set(V, P, A))
+    assert(ExtendedJTMS(program).getModel.get == Set(V, P, A))
   }
 
   test("2") {
-    assert(AnswerUpdateNetwork(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
+    assert(ExtendedJTMS(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
   test("3") {
-    assert(AnswerUpdateNetwork(program + Rule(Falsum,Set(A))).getModel == None)
+    assert(ExtendedJTMS(program + Rule(Falsum,Set(A))).getModel == None)
   }
 
   test("4") {
-    assert(AnswerUpdateNetwork(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
+    assert(ExtendedJTMS(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

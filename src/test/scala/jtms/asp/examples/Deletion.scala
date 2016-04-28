@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import core.{Atom, Fact, Program, Rule}
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{AnswerUpdateNetwork, in}
+import jtms.{ExtendedJTMS, in}
 import org.scalatest.FlatSpec
 
 /**
@@ -18,7 +18,7 @@ class Deletion extends FlatSpec {
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
-    val net = new AnswerUpdateNetwork()
+    val net = new ExtendedJTMS()
     net.add(Rule(a))
 
     assume(net.getModel.get == Set(a))
@@ -42,7 +42,7 @@ class Deletion extends FlatSpec {
 
     val program = Program(r1, r2)
 
-    val net = AnswerUpdateNetwork(program)
+    val net = ExtendedJTMS(program)
 
     assume(net.cons(c) == Set(a))
 
@@ -56,7 +56,7 @@ class Deletion extends FlatSpec {
     val r0 = Rule(b,a)
     val r1 = Rule(a,none,none)
 
-    val net = new AnswerUpdateNetwork()
+    val net = new ExtendedJTMS()
 
     net.add(r0)
     net.add(r1)
@@ -83,7 +83,7 @@ class Deletion extends FlatSpec {
     val r1 = Rule(b,a)
     val r2 = Fact(a)
 
-    val net = new AnswerUpdateNetwork()
+    val net = new ExtendedJTMS()
 
     net.add(r1)
     net.add(r2)
@@ -110,7 +110,7 @@ class Deletion extends FlatSpec {
     val r1 = Fact(a)
     val r2 = Rule.pos(b).head(c)
 
-    val net = new AnswerUpdateNetwork()
+    val net = new ExtendedJTMS()
 
     net.add(r0)
     net.add(r1)
@@ -137,7 +137,7 @@ class Deletion extends FlatSpec {
     val r2 = Rule.pos(b).head(c)
     val r3 = Rule.pos(a).head(c)
 
-    val net = new AnswerUpdateNetwork()
+    val net = new ExtendedJTMS()
 
     net.add(r0)
     net.add(r1)
@@ -183,7 +183,7 @@ class Deletion extends FlatSpec {
 
     val setup = new Tweety
 
-    val net = AnswerUpdateNetwork(setup.program)
+    val net = ExtendedJTMS(setup.program)
 
     net.add(setup.j5)
 

@@ -2,7 +2,7 @@ package engine.implementations
 
 import core.{Atom, Fact, Program}
 import engine.{Result, _}
-import jtms.AnswerUpdateNetwork
+import jtms.ExtendedJTMS
 
 /**
   * Created by FM on 05.04.16.
@@ -10,7 +10,7 @@ import jtms.AnswerUpdateNetwork
 case class IncrementalEvaluation(private val program: Program) extends EvaluationEngine {
   val intensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
-  val answerUpdateNetwork = AnswerUpdateNetwork(program)
+  val answerUpdateNetwork = ExtendedJTMS(program)
 
   def append(time: Time)(atoms: Atom*): Unit = {
     intensionalAtomStream.append(time)(atoms.toSet)

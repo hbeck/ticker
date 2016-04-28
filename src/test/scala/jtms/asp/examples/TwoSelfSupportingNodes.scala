@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core.{Atom, Program, Rule}
-import jtms.AnswerUpdateNetwork
+import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec
 
 /**
@@ -16,7 +16,7 @@ class TwoSelfSupportingNodes extends FlatSpec {
 
   val program = Program(r1, r2)
 
-  val net = AnswerUpdateNetwork(program)
+  val net = ExtendedJTMS(program)
 
 
   "A program containing only two self supporting nodes" should "have no model" in {

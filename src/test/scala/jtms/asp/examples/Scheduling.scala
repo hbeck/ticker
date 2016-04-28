@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core._
-import jtms.AnswerUpdateNetwork
+import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec
 
 /**
@@ -26,13 +26,13 @@ class Scheduling extends FlatSpec {
   )
 
   "The model" should "be Time1000, Room813" in {
-    val tmn = AnswerUpdateNetwork(program)
+    val tmn = ExtendedJTMS(program)
 
     assert(tmn.getModel.get == Set(Time1000, Room813))
   }
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
-    val tmn = AnswerUpdateNetwork(program)
+    val tmn = ExtendedJTMS(program)
     tmn.add(Rule(contradiction, Set(Time1000, Room813), Set()))
 
     //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //this is the the JTMN result
@@ -40,7 +40,7 @@ class Scheduling extends FlatSpec {
   }
 
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
-    val tmn = AnswerUpdateNetwork(
+    val tmn = ExtendedJTMS(
       program +
         Rule(contradiction, Set(Time1000, Room813), Set()) +
         Rule(contradiction, Set(NotTime1000), Set())

@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import asp.Asp
 import core._
-import jtms.evaluation.AnswerUpdateNetworkEvaluation
+import jtms.evaluation.ExtendedJTMSEvaluation
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps
@@ -44,7 +44,7 @@ trait SingleHusbandBehavior {
 }
 
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
-  def net = new AnswerUpdateNetworkEvaluation
+  def net = new ExtendedJTMSEvaluation
 
   def asp = Asp()
 
