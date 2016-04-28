@@ -228,13 +228,9 @@ case class ExtendedJTMS() {
   }
 
   def fixOut(a: Atom) = {
-    val unknownPosAtoms = updateStrategy match {
-      case `UpdateStrategyDoyle` => {
-        val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-        (maybeAtoms filter (_.isDefined)) map (_.get)
-      }
-      case `UpdateStrategyStepwise` => justifications(a) map { r => (r.pos find (status(_) == unknown)).get }
-    }
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //doesn't always work for remove
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
@@ -260,7 +256,8 @@ case class ExtendedJTMS() {
     if (!(atoms contains rule.head)) return
     if (status(rule.head) == out) return
     if (suppRule(rule.head).get != rule) return
-    val ats = repercussions(rule.head) + rule.head
+    //val ats = repercussions(rule.head) + rule.head
+    val ats = trans(cons,rule.head) + rule.head //TODO repercussions do not suffice!
     updateBeliefs(ats)
   }
 
@@ -274,7 +271,8 @@ case class ExtendedJTMS() {
   //precondition: rule is already deleted from this.rules
   def conditionalConsRemove(rule: Rule): Unit = {
     for (a <- rule.body) {
-      if (!(justifications(rule.head) exists (_.body contains a))) cons(a) -= rule.head //efficiency - better use data structure
+      if ((atoms contains a) &&
+        !(justifications(rule.head) exists (_.body contains a))) cons(a) -= rule.head //efficiency - better use data structure
     }
   }
 
