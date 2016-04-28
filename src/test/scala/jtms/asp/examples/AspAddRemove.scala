@@ -227,5 +227,90 @@ class AspAddRemove extends FunSuite {
 
   }
 
+  test("mess") {
+
+    val tms = ExtendedJTMS()
+    def m = tms.getModel.get
+
+    tms.add(Rule(a,Set(b,c),Set(d,e))) //1
+    tms.add(Rule(b,Set(f,g),Set(h,i))) //2
+    tms.add(Rule(c,Set(j,k))) //3
+    tms.add(Rule(c,none,Set(d,e))) //4
+    assert(m == Set(c))
+
+    tms.add(Rule(d,Set(k,l),Set(n))) //5
+    tms.add(Rule(e,none,Set(b,c))) //6
+    assert(m == Set(c))
+
+    tms.remove(Rule(c,none,Set(d,e))) //7
+    assert(m == Set(e))
+
+    tms.add(Rule(f,Set(e),Set(h))) //8
+    assert(m == Set(e,f))
+
+    tms.add(Rule(g,Set(c),Set(i))) //9
+    assert(m == Set(e,f))
+
+    tms.add(Rule(c,none,Set(d,e))) //10
+    assert(m == Set(e,f))
+
+    tms.remove(Rule(e,none,Set(b,c))) //11
+    assert(m == Set(c,g))
+
+    tms.add(Rule(h,Set(c,g),Set(f))) //12
+    assert(m == Set(c,g,h))
+
+    tms.add(Rule(a,Set(h),Set(e))) //13
+    assert(m == Set(a,c,g,h))
+
+    tms.add(Rule(e,none,Set(b,c))) //14
+    assert(m == Set(a,c,g,h))
+
+    tms.remove(Rule(c,none,Set(d,e))) //15
+    assert(m == Set(e,f))
+
+    tms.add(Rule(i,Set(e,f),Set(a))) //16
+    assert(m == Set(e,f,i))
+
+    tms.add(Rule(a,Set(e,f),Set(i))) //17
+    assert(m == Set(e,f,i))
+
+    tms.remove(Rule(i,Set(e,f),Set(a))) //18
+    assert(m == Set(e,f,a))
+
+    tms.add(Rule(c,none,Set(d,e))) //19
+    assert(m == Set(e,f,a))
+
+    tms.remove(Rule(e,none,Set(b,c))) //20
+    assert(m == Set(c,g,h,a))
+
+    tms.add(Rule(j,Set(c,g),Set(a))) // 21
+    assert(m == Set(c,g,h,a))
+
+    tms.remove(Rule(a,Set(e,f),Set(i))) //22
+    assert(m == Set(a,c,g,h))
+
+    tms.add(Rule(b,none,Set(e))) //23
+    assert(m == Set(a,b,c,g,h))
+
+    tms.add(Rule(e,none,Set(b,c))) //24
+    assert(m == Set(a,b,c,g,h))
+
+    tms.remove(Rule(c,none,Set(d,e))) //25
+    assert(m == Set(b) || m == Set(e,f)) //!
+
+    tms.remove(Rule(b,none,Set(e))) //26
+    assert(m == Set(e,f))
+
+  }
+
+  val g = Atom("g")
+  val h = Atom("h")
+  val i = Atom("i")
+  val j = Atom("j")
+  val k = Atom("k")
+  val l = Atom("l")
+  val n = Atom("n")
+
 
 }
