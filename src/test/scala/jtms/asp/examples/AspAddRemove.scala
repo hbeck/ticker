@@ -163,5 +163,69 @@ class AspAddRemove extends FunSuite {
 
   }
 
+  test("a :- not b. b :- c, not a. x :- a, c. y :- a, not c. c :- not d. d :- not c.") {
+
+    val a__not_b = Rule(a,none,Set(b))
+    val b__c_not_a = Rule(b,Set(c),Set(a))
+    val x__a_c = Rule(x,Set(a,c))
+    val y__a_not_c = Rule(y,Set(a),Set(c))
+    val c__not_d = Rule(c,none,Set(d))
+    val d__not_c = Rule(d,none,Set(c))
+
+    val tms = ExtendedJTMS()
+    def m = tms.getModel.get
+
+    tms.add(x__a_c)
+    tms.add(y__a_not_c)
+    tms.add(b__c_not_a)
+    assert(m == Set())
+
+    tms.add(d__not_c)
+    assert(m == Set(d))
+
+    tms.add(c__not_d)
+    assert(m == Set(d))
+
+    tms.remove(d__not_c)
+    assert(m == Set(b,c))
+
+    tms.remove(b__c_not_a)
+    assert(m == Set(c))
+
+    tms.add(a__not_b)
+    assert(m == Set(a,c,x))
+
+    tms.add(b__c_not_a)
+    assert(m == Set(a,c,x))
+
+    tms.add(d__not_c)
+    assert(m == Set(a,c,x))
+
+    tms.remove(c__not_d)
+    assert(m == Set(a,d,y))
+
+    tms.remove(a__not_b)
+    assert(m == Set(d))
+
+    tms.remove(d__not_c)
+    assert(m == Set())
+
+    tms.add(c__not_d)
+    assert(m == Set(b,c))
+
+    tms.add(a__not_b)
+    assert(m == Set(b,c))
+
+    tms.remove(b__c_not_a)
+    assert(m == Set(a,c,x))
+
+    tms.add(b__c_not_a)
+    assert(m == Set(a,c,x))
+
+    tms.add(d__not_c)
+    assert(m == Set(a,c,x))
+
+  }
+
 
 }
