@@ -1,6 +1,6 @@
 package engine.implementations
 
-import asp.{Asp, AspConversion, AspExpression, AspProgram}
+import asp.{Asp, AspConversion, AspExpression, AspExpressionProgram}
 import core.{Atom, AtomWithArguments, Fact}
 import engine.{Atom, Result, Stream, Time}
 
@@ -37,7 +37,7 @@ object StreamingAspTransformation {
   }
 }
 
-case class StreamingAspTransformation(aspExpressions: AspProgram, aspEngine: Asp = Asp()) extends AspEvaluation {
+case class StreamingAspTransformation(aspExpressions: AspExpressionProgram, aspEngine: Asp = Asp()) extends AspEvaluation {
 
   def prepare(time: Time, dataStream: Stream): Result = {
 

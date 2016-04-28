@@ -7,7 +7,7 @@ import core._
   */
 object AspConversion {
 
-  def apply(program: Program): AspProgram = {
+  def apply(program: Program): AspExpressionProgram = {
     program.rules.map(apply).toSet
   }
 
@@ -40,7 +40,7 @@ object AspConversion {
     if (atomName exists (_.isWhitespace))
       throw new IllegalArgumentException("Constants in ASP cannot contain a whitespace. You provided " + atom)
 
-    if (!(atomName matches ("^[a-zA-Z0-9_]*$")))
+    if (!(atomName matches "^[a-zA-Z0-9_]*$"))
       throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
 
     atomName + argumentNames
