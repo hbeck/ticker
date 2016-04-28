@@ -49,7 +49,7 @@ class AspConversionSpecs extends FlatSpec {
     assert(AspConversion(j) == AspExpression("a :- b, not c."))
   }
 
-  "A rule with a ContradictionNode" should "be transformed into an integrity constraint ':- a, not c.'" in{
+  "A rule with a ContradictionNode" should "be transformed into an integrity constraint ':- a, not c.'" in {
     val r = Rule.pos(a).neg(c).head(Falsum)
 
     assert(AspConversion(r) == AspExpression(":- a, not c."))
@@ -85,5 +85,16 @@ class AspConversionSpecs extends FlatSpec {
     intercept[IllegalArgumentException] {
       AspConversion(umlaut)
     }
+  }
+
+  "An atom a with arity 1" should "be converted into a(1)" in {
+    val atomValue = a("1")
+
+    assert(AspConversion(atomValue) == "a(1)")
+  }
+  "An atom a with arity 2" should "be converted into a(asdf,2)" in {
+    val atomValue = a("asdf", "2")
+
+    assert(AspConversion(atomValue) == "a(asdf,2)")
   }
 }

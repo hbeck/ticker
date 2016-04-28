@@ -60,7 +60,6 @@ sealed trait Rule {
 /**
   * Created by hb on 12/22/15.
   */
-//TODO (hb) following order is better: (head, pos, neg)
 case class UserDefinedRule(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends Rule
 
 case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {

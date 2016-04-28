@@ -56,4 +56,26 @@ class AspSpec extends FlatSpec {
     assert(asp contains Set(example.man, example.husband))
     assert(asp contains Set(example.man, example.single))
   }
+
+  "A program with rules with arity 1 and 2" should "be executed by ASP" in {
+    val bb: Atom = b("1")
+    val cc: Atom = c("1", "2")
+
+    val program = Program(
+      a :- bb,
+      bb :- cc,
+      cc
+    )
+
+    val asp = Asp(program)
+
+    assert(asp.head.size == 3)
+    assert(asp.head == Set(cc, bb, a))
+  }
+
+  "Models with arity" should "be parsed into AtomsWithArguments" in {
+    val cc: Atom = c("a", "b")
+
+    assert(AtomWithArguments(c, List("a", "b")) == Asp.convert("c(a,b)"))
+  }
 }

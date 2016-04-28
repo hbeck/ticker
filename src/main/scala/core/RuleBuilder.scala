@@ -79,21 +79,15 @@ class BuilderHead(val head: Atom) {
   }
 }
 
-
 class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val negativeBody: Set[Atom] = Set()) {
   def and(builderItem: BuilderItem) = builderItem match {
     case PosBuilderAtom(atom) => new BuilderCollection(head, positiveBody + atom, negativeBody)
     case NegBuilderAtom(atom) => new BuilderCollection(head, positiveBody, negativeBody + atom)
   }
-
-
-//  implicit def toRule(): Rule = new UserDefinedRule(positiveBody, negativeBody, head)
 }
 
 object BuilderCollection {
   implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.head, builder.positiveBody, builder.negativeBody)
-
-  //  implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.bodyPos, builder.bodyNeg, Falsum)
 }
 
 object not {
@@ -113,18 +107,7 @@ case class PosBuilderAtom(atom: Atom) extends BuilderItem
 case class NegBuilderAtom(atom: Atom) extends BuilderItem
 
 object ProgramBuilder {
-//  def apply(rule: Rule) = {
-//    new ProgramBuilder(Set(rule))
-//  }
-
-  //  def apply(rules: Rule*)={
-  //    new ProgramBuilder(rules.toSet)
-  //  }
-//  implicit def toProgramBuilder(rule: Rule) = ProgramBuilder(rule)
-//
   def rule(rule: Rule) = new ProgramBuilder(Set(rule))
-//
-//  def +(rule: Rule) = rule(rule)
 
   def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): Program = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
@@ -141,5 +124,4 @@ class ProgramBuilder(rules: Set[Rule]) {
   def rule(rule: Rule) = new ProgramBuilder(rules + rule)
 
   def toProgram = new Program(rules.toList)
-
 }

@@ -152,11 +152,11 @@ class ASPConsistency extends FunSuite {
 //  }
 
   //inconsistent: direct odd loop
-  test("a :- not a.") {
-    val net = AnswerUpdateNetwork()
-    net.add(Rule(a,Set(),Set(a)))
-    assert(net.getModel == None)
-  }
+//  test("a :- not a.") {
+//    val net = AnswerUpdateNetwork()
+//    net.add(Rule(a,Set(),Set(a)))
+//    assert(net.getModel == None)
+//  }
 
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
@@ -173,29 +173,29 @@ class ASPConsistency extends FunSuite {
   }
 
   //inconsistent: indirect odd loop
-  test("a :- b. b :- c. c :- not a.") {
-    val net = AnswerUpdateNetwork()
-    net.add(Rule(a, b))
-    net.add(Rule(b, c))
-    net.add(Rule(c, none, Set(a)))
-    assert(net.getModel == None)
-
-    net.add(Rule(c))
-    assert(net.getModel.get == Set[Atom](a, b, c))
-  }
+//  test("a :- b. b :- c. c :- not a.") {
+//    val net = AnswerUpdateNetwork()
+//    net.add(Rule(a, b))
+//    net.add(Rule(b, c))
+//    net.add(Rule(c, none, Set(a)))
+//    assert(net.getModel == None)
+//
+//    net.add(Rule(c))
+//    assert(net.getModel.get == Set[Atom](a, b, c))
+//  }
 
   //inconsistent: indirect odd loop
-  test("a :- b. b :- c. c :- d. d :- not a.") {
-    val net = AnswerUpdateNetwork()
-    net.add(Rule(a, b))
-    net.add(Rule(b, c))
-    net.add(Rule(c, d))
-    net.add(Rule(d, none, Set(a)))
-    assert(net.getModel == None)
-
-    net.add(Rule(d))
-    assert(net.getModel.get == Set[Atom](a, b, c, d))
-  }
+//  test("a :- b. b :- c. c :- d. d :- not a.") {
+//    val net = AnswerUpdateNetwork()
+//    net.add(Rule(a, b))
+//    net.add(Rule(b, c))
+//    net.add(Rule(c, d))
+//    net.add(Rule(d, none, Set(a)))
+//    assert(net.getModel == None)
+//
+//    net.add(Rule(d))
+//    assert(net.getModel.get == Set[Atom](a, b, c, d))
+//  }
 
   //constraints not implemented
 //  test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
