@@ -312,5 +312,86 @@ class AspAddRemove extends FunSuite {
   val l = Atom("l")
   val n = Atom("n")
 
+  test("reach") {
+
+    /* edge(a,b). edge(b,c). edge(c,d). edge(d,e). edge(b,e).
+       reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+       reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    */
+
+    val tms = ExtendedJTMS()
+
+    val a = "a"
+    val b = "b"
+    val c = "c"
+    val d = "d"
+    val e = "e"
+    def edge(x:String, y:String) = Atom("edge("+x+","+y+")")
+    def reach(x:String, y:String) = Atom("reach("+x+","+y+")")
+    def blocked(x:String, y:String) = Atom("blocked("+x+","+y+")")
+
+    tms.add(edge(a,b))
+    tms.add(edge(b,c))
+    tms.add(edge(c,d))
+    tms.add(edge(d,e))
+    tms.add(edge(b,e))
+
+    val C = List(a,b,c,d,e)
+    //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+    for (x <- C) {
+      for (y <- C) {
+        val r = Rule(reach(x,y),Set(edge(x,y)),Set(blocked(x,y)))
+        tms.add(r)
+        //println(r)
+      }
+    }
+    //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    for (x <- C) {
+      for (y <- C) {
+        for (z <- C) {
+          val r = Rule(reach(x,y),Set(reach(x,z),edge(z,y)),Set(blocked(z,y)))
+          tms.add(r)
+          //println(r)
+        }
+      }
+    }
+
+    def m = tms.getModel.get
+
+    assert(m contains reach(a,b))
+    assert(m contains reach(b,c))
+    assert(m contains reach(c,d))
+    assert(m contains reach(d,e))
+    assert(m contains reach(a,c))
+    assert(m contains reach(a,d))
+    assert(m contains reach(a,e))
+    assert(m contains reach(b,c))
+    assert(m contains reach(b,d))
+    assert(m contains reach(b,e))
+    assert(m contains reach(c,d))
+    assert(m contains reach(c,e))
+    assert(m contains reach(d,e))
+
+    tms.add(blocked(b,c))
+    assert(!(m contains reach(b,d)))
+    assert(m contains reach(b,e))
+    assert(m contains reach(c,d))
+    assert(m contains reach(c,e))
+    assert(m contains reach(a,e))
+
+    tms.add(blocked(b,e))
+    assert(!(m contains reach(b,e)))
+    assert(m contains reach(d,e))
+    assert(m contains reach(c,e))
+    assert(!(m contains reach(a,e)))
+
+    tms.remove(blocked(b,c))
+    assert(m contains reach(b,c))
+    assert(m contains reach(b,d))
+    assert(m contains reach(b,e))
+    assert(m contains reach(a,e))
+
+  }
+
 
 }
