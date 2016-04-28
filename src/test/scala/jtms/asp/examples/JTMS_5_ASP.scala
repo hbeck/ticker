@@ -10,13 +10,14 @@ class JTMS_5_ASP extends JTMSSpecASP {
 
   val j0 = Fact(a)
 
-  var diff: Set[Atom] = Set();
+  var diff: Set[Atom] = Set()
+
   val net = {
     val network = Network
     network.set(Set(e, b, d))
-    val m1 = network.getModel().get
+    val m1 = network.getModel.get
     network.add(j0)
-    val m2 = network.getModel().get
+    val m2 = network.getModel.get
     diff = symmdiff(m1,m2)
     network
   }

@@ -30,7 +30,7 @@ class Deletion extends FlatSpec {
     assert(net.status.isEmpty)
 
     assert(net.rules.isEmpty)
-    assert(net.getModel == None)
+    assert(net.getModel.get.isEmpty)
 
     assert(net.cons.isEmpty)
     assert(net.supp.isEmpty)
@@ -53,7 +53,7 @@ class Deletion extends FlatSpec {
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
-    val r0 = Rule.pos(a).head(b)
+    val r0 = Rule(b,a)
     val r1 = Rule(a,none,none)
 
     val net = new AnswerUpdateNetwork()
@@ -67,7 +67,7 @@ class Deletion extends FlatSpec {
     net.remove(r1)
 
     // assert
-    assert(net.getModel.isEmpty)
+    assert(net.getModel.get.isEmpty)
 
     assert(net.rules == List(r0))
     assert(net.supp(a).isEmpty)
@@ -168,7 +168,7 @@ class Deletion extends FlatSpec {
     val setup = new JTMS_5_ASP
     val net = setup.net
 
-    assume(net.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
+    assert(net.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
 
     // act
     net.remove(setup.j0)
@@ -194,22 +194,6 @@ class Deletion extends FlatSpec {
 
     // assert
     assert(net.getModel.get == Set(setup.V, setup.F))
-  }
-
-  "Removing a rule from a TMN where backtracking occurred" should "result in the original model" in {
-    // arrange
-    class JTMS_21ASP extends JTMSSpecASP with JTMS_21Behavior_ASP
-    val setup = new JTMS_21ASP
-    val net = AnswerUpdateNetwork(setup.p)
-
-    assume(net.getModel.get == Set(setup.a, setup.c, setup.d, setup.f, setup.e))
-
-    // act
-    net.remove(setup.j7)
-
-    // assert
-    //assert(net.getModel == setup.net.model) TODO??
-    assert(net.getModel.get == Set(setup.e, setup.b, setup.d))
   }
 
 }

@@ -28,7 +28,7 @@ case class AnswerUpdateNetwork() {
   object UpdateStrategyDoyle extends UpdateStrategy
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
   //
 
@@ -237,12 +237,12 @@ case class AnswerUpdateNetwork() {
   }
 
   def fixOut(a: Atom) = {
-    val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
-//    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
-//    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } // TODO not always possible for delete (Doyle)
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
-    //where the negative body is out/unknown is 
+    //where the negative body is out/unknown is
     setOut(a)
   }
 
@@ -307,27 +307,19 @@ case class AnswerUpdateNetwork() {
   /* ----------------------- in progress ... ------------------------------------- */
 
   def remove(rule: Rule): Unit = {
-
     unregister(rule)
-    //if (status(rule.head) == out) return
-
-    //val rulesFromBacktracking = rules filter (_.isInstanceOf[RuleFromBacktracking])
-
-//    val heads = Set(rule.head) ++ (rulesFromBacktracking map (_.head))
-//    val ats = heads ++ (heads flatMap repercussions)
-
     if (!(atoms contains rule.head)) return
-
-    val ats = repercussions(rule.head) + rule.head //TODO filter repercussions for proper ones
-
+    if (status(rule.head) == out) return
+    if (suppRule(rule.head).get != rule) return
+    val ats = repercussions(rule.head) + rule.head
     updateBeliefs(ats)
   }
 
   def unregister(rule: Rule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filterNot (_ == rule)
-    conditionalConsRemove(rule)
     rule.atoms foreach conditionalUnregister
+    conditionalConsRemove(rule)
   }
 
   //precondition: rule is already deleted from this.rules
@@ -378,7 +370,7 @@ case class AnswerUpdateNetwork() {
   def findSuppRule(M: List[Atom], idx: Int): Option[Rule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
-    val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
+    val rules = justifications(n) filter (rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 

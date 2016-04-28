@@ -21,7 +21,7 @@ object Rule {
 sealed trait Rule {
   val pos: Set[Atom]
   val neg: Set[Atom]
-  val head: Atom //TODO later: Option[Atom] for constraints
+  val head: Atom
 
   val body = pos union neg
   val atoms = body + head
