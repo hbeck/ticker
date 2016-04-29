@@ -15,18 +15,14 @@ case class AspPushEvaluation(private val aspEvaluation: AspEvaluation) extends E
   val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
 
   def prepare(time: Time) = {
+    // TODO: decide if we want to use evaluateUntil or the whole stream
     val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }
 
   def evaluate(time: Time) = {
-    // TODO implement this correctly
-    val smallerKeys = cachedResults.filterKeys(p => p.timePoint <= time.timePoint)
-    val aggregatedResult = smallerKeys.flatMap(x => x._2.get.getOrElse(Set()))
-    new Result {
-      override def get: Option[Set[Atom]] = Some(aggregatedResult.toSet)
-    }
+    cachedResults.getOrElse(time, EmptyResult)
   }
 
   override def append(time: Time)(atoms: Atom*): Unit = {
@@ -35,4 +31,8 @@ case class AspPushEvaluation(private val aspEvaluation: AspEvaluation) extends E
     // a results.remove(time) is probably not enough
     prepare(time)
   }
+}
+
+object EmptyResult extends Result {
+  override def get: Option[Set[Atom]] = None
 }

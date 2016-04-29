@@ -2,7 +2,7 @@ package engine.implementations
 
 import asp.AspConversion
 import core.Program
-import engine.{Atom, Evaluation, Result, Time}
+import engine.{Atom, Stream, Result, Time}
 
 import scala.concurrent.duration._
 
@@ -13,8 +13,7 @@ case class UseFuture(waitingAtMost: Duration = 1 second) extends EvaluationMode
 object Direct extends EvaluationMode
 
 trait AspEvaluation {
-  // TODO: naming
-  def prepare(time: Time, evaluations: Set[Evaluation]): Result
+  def prepare(time: Time, dataStream: Stream): Result
 }
 
 object AspEvaluation {

@@ -1,8 +1,8 @@
 package engine.implementations
 
-import asp.{Asp, AspConversion, AspExpression}
+import asp.{Asp, AspConversion, AspExpression, AspExpressionProgram}
 import core.{Atom, AtomWithArguments, Fact}
-import engine.{Atom, Evaluation, Result, Time}
+import engine.{Atom, Result, Stream, Time}
 
 /**
   * Created by FM on 22.04.16.
@@ -11,8 +11,8 @@ object StreamingAspTransformation {
   val now = Atom("now")
 
 
-  def transform(evaluation: Set[Evaluation]): Set[AspExpression] = {
-    evaluation flatMap (x => transformAtoms(x.time, x.atoms))
+  def transform(dataStream: Stream): Set[AspExpression] = {
+    dataStream flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
   def atomAtT(time: Time, atom: Atom) = {
@@ -27,22 +27,21 @@ object StreamingAspTransformation {
     atomsWithT map (x => AspConversion(x))
   }
 
-  // TODO: naming of previousEvaluations, and Set[Evaluation]
-  def transform(currentTime: Time, previousEvaluations: Set[Evaluation]): Set[AspExpression] = {
-    val transformedAtoms = transform(previousEvaluations)
+  def transform(currentTime: Time, dataStream: Stream): Set[AspExpression] = {
+    val transformedAtoms = transform(dataStream)
 
     val transformedAtomsAndNow = transformedAtoms + AspConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtomsAndNow ++ (previousEvaluations flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
+    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
   }
 }
 
-case class StreamingAspTransformation(aspExpressions: Set[AspExpression], aspEngine: Asp = Asp()) extends AspEvaluation {
+case class StreamingAspTransformation(aspExpressions: AspExpressionProgram, aspEngine: Asp = Asp()) extends AspEvaluation {
 
-  def prepare(time: Time, evaluations: Set[Evaluation]): Result = {
+  def prepare(time: Time, dataStream: Stream): Result = {
 
-    val transformed = StreamingAspTransformation.transform(time, evaluations)
+    val transformed = StreamingAspTransformation.transform(time, dataStream)
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 

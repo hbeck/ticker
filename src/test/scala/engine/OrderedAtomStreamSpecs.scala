@@ -84,7 +84,7 @@ class OrderedAtomStreamSpecs extends FlatSpec {
 
     s.append(t0)(Set(atom))
 
-    assert(s.evaluateUntil(t1) == Set(Evaluation(t0, Set(atom))))
+    assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom))))
   }
 
   "A stream with one entry at t0 and one t1" should "return both with their timestamps" in {
@@ -95,6 +95,6 @@ class OrderedAtomStreamSpecs extends FlatSpec {
     val b = Atom("b")
     s.append(t1)(Set(b))
 
-    assert(s.evaluateUntil(t1) == Set(Evaluation(t0, Set(atom)), Evaluation(t1, Set(b))))
+    assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom)), StreamEntry(t1, Set(b))))
   }
 }

@@ -44,8 +44,8 @@ class Asp(val clingo: ClingoWrapper) extends Evaluation {
     apply(AspConversion(program))
   }
 
-  def apply(expressions: Set[AspExpression]): Set[Model] = {
-    val result = clingo.run(expressions)
+  def apply(aspProgram: AspExpressionProgram): Set[Model] = {
+    val result = clingo.run(aspProgram)
     val models = clingo.parseResult(result)
 
     if (models.isDefined) {

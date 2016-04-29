@@ -3,7 +3,8 @@ package core
 /**
   * Created by hb on 12/22/15.
   */
-sealed trait Atom {
+// TODO: sealed was temporary removed - TBD is this OK?
+ trait Atom {
 
   def apply(arguments: String*): Atom = {
     AtomWithArguments(this, arguments.toSeq)

@@ -1,6 +1,6 @@
 package engine.implementations
 
-import engine.{Atom, Evaluation, Result, Time}
+import engine.{Atom, Stream, Result, Time}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -11,9 +11,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 case class FutureAspEvaluation(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
 
-  override def prepare(time: Time, evaluations: Set[Evaluation]): Result = {
+  override def prepare(time: Time, dataStream: Stream): Result = {
     val future = Future {
-      aspEvaluation.prepare(time, evaluations)
+      aspEvaluation.prepare(time, dataStream)
     }
 
     FutureResult(future, waitingAtMost)
