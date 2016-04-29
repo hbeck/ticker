@@ -26,7 +26,7 @@ case class ExtendedJTMS() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
+  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
 
   //
 
@@ -114,7 +114,6 @@ case class ExtendedJTMS() {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
-    //tryEnsureConsistency
   }
 
   def updateStepwise(atoms: Set[Atom]): Unit = {
