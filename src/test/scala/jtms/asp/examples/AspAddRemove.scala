@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Rule, Atom}
+import core.{Program, Fact, Rule, Atom}
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
@@ -22,23 +22,23 @@ class AspAddRemove extends FunSuite {
   val none = Set[Atom]()
 
   test("a :- b. b :- not c. c :- not d.") {
-    
+
     val r1 = Rule(a,b)
     val r2 = Rule(b,none,Set(c))
-    val r3 = Rule(c,none,Set(d))    
-        
+    val r3 = Rule(c,none,Set(d))
+
     val tms = ExtendedJTMS()
     def m = tms.getModel.get
-    
+
     tms.add(r1)
     assert(m == Set())
-    
+
     tms.add(r2)
     assert(m == Set(a,b))
-    
+
     tms.remove(r2)
     assert(m == Set())
-    
+
     tms.remove(r1)
     assert(m == Set())
 
@@ -391,6 +391,56 @@ class AspAddRemove extends FunSuite {
     assert(m contains reach(b,e))
     assert(m contains reach(a,e))
 
+  }
+
+  test("jtms5") {
+
+    /*
+       breaks with normal doyle implementation, even if fixOut uses options.
+     */
+
+    val r1 = Rule(a, c)
+    val r2 = Rule(b, none, Set(a))
+    val r3 = Rule(c, a)
+    val r4a = Rule(d, b)
+    val r4b = Rule(d, c)
+    val r5 = Rule(e)
+    val r6 = Rule(f, Set(c, e))
+    val r0 = Fact(a)
+
+    val tms = ExtendedJTMS(Program(r1,r2,r3,r4a,r4b,r5,r6))
+    def m = tms.getModel.get
+
+    assert(m == Set(e,b,d))
+
+    tms.add(r0)
+    assert(m == Set(a,c,d,e,f))
+
+    tms.remove(r0)
+    assert(m == Set(e,b,d))
+
+  }
+
+  test("jtms5 essence") {
+
+    //works with doyle if c and b are replaced (i.e., a :- b. b :- a. etc.)
+
+    val tms = ExtendedJTMS(Program(
+      Rule(a,c), //a :- c
+      Rule(c,a), //c :- a
+      Rule(b,none,Set(a)), //b :- not a
+      Rule(d,b), //d :- b
+      Rule(d,c))) //d :- c
+
+    def m = tms.getModel.get
+
+    assert(m == Set(b,d))
+
+    tms.add(Rule(a))
+    assert(m == Set(a,c,d))
+
+    tms.remove(Rule(a))
+    assert(m == Set(b,d))
   }
 
 
