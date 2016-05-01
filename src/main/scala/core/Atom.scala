@@ -1,10 +1,12 @@
 package core
 
+import core.lars.Formula
+
 /**
   * Created by hb on 12/22/15.
   */
-// TODO: sealed was temporary removed - TBD is this OK?
- trait Atom {
+// TODO: is inheritance from formula ok?
+sealed trait Atom extends Formula {
 
   def apply(arguments: String*): Atom = {
     AtomWithArguments(this, arguments.toSeq)
