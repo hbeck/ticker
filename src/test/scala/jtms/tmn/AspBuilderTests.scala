@@ -9,7 +9,7 @@ import scala.collection.immutable.Stream.#::
 /**
   * Created by FM on 17.03.16.
   */
-class BuilderTests extends FlatSpec {
+class AspBuilderTests extends FlatSpec {
 
   //  def bar(atoms: List[Atom]) = {
   //    atoms match {
@@ -35,7 +35,7 @@ class BuilderTests extends FlatSpec {
     val j6 = Rule.pos(c, e).head(f)
 
     //    val program2 = ProgramBuilder(j2)(j3)(j4a)
-    val program3 = ProgramBuilder rule
+    val program3 = AspProgramBuilder rule
       j1 rule
       a :- b rule
       c :- d
@@ -46,7 +46,7 @@ class BuilderTests extends FlatSpec {
     //  j5
     //  j6)
 
-    val program4 = ProgramBuilder
+    val program4 = AspProgramBuilder
       .rule(a :- c and d and not(e) and not(f))
       .rule(Falsum :- d and not(e))
     //    .rule(j3)
@@ -55,7 +55,7 @@ class BuilderTests extends FlatSpec {
     //  j5
     //  j6)
 
-    val program5 = ProgramBuilder rule (a :- c and d and not(e) and not(f))
+    val program5 = AspProgramBuilder rule (a :- c and d and not(e) and not(f))
 
     val p2 = program3.toProgram
     assert(p2.rules.size == 3)
@@ -63,7 +63,7 @@ class BuilderTests extends FlatSpec {
 
   "a :- b, not c. c :- b. b :- not d. :- d. b." should "be a valid program" in {
 
-    val program = ProgramBuilder({
+    val program = AspProgramBuilder({
       case a #:: b #:: c #:: d #:: atoms => Set(
         a :- b and not(c("1","a")),
         c :- b("1","a"),

@@ -106,8 +106,8 @@ case class PosBuilderAtom(atom: Atom) extends BuilderItem
 
 case class NegBuilderAtom(atom: Atom) extends BuilderItem
 
-object ProgramBuilder {
-  def rule(rule: Rule) = new ProgramBuilder(Set(rule))
+object AspProgramBuilder {
+  def rule(rule: Rule) = new AspProgramBuilder(Set(rule))
 
   def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): Program = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
@@ -118,10 +118,10 @@ object ProgramBuilder {
   }
 }
 
-class ProgramBuilder(rules: Set[Rule]) {
-  def apply(rule: Rule) = new ProgramBuilder(rules + rule)
+class AspProgramBuilder(rules: Set[Rule]) {
+  def apply(rule: Rule) = new AspProgramBuilder(rules + rule)
 
-  def rule(rule: Rule) = new ProgramBuilder(rules + rule)
+  def rule(rule: Rule) = new AspProgramBuilder(rules + rule)
 
   def toProgram = new Program(rules.toList)
 }
