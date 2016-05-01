@@ -13,64 +13,6 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
   def head(head: Atom) = new UserDefinedRule(head, bodyPos, bodyNeg)
 }
 
-object ConsequencesBuilder {
-
-  implicit def rule(entailsBuilder: ConsequencesBuilder): Rule = {
-    new UserDefinedRule(entailsBuilder.head, entailsBuilder.positiveBody, entailsBuilder.negativeBody)
-  }
-
-}
-
-object ConstraintBuilder {
-  implicit def toRule(builder: ConstraintBuilder): Rule = new UserDefinedRule(Falsum, builder.bodyPos, builder.bodyNeg)
-}
-
-class ConstraintBuilder(val bodyPos: Set[Atom] = Set(), val bodyNeg: Set[Atom] = Set()) {
-  def pos(atoms: Atom*) = new ConstraintBuilder(bodyPos ++ atoms, bodyNeg)
-
-  def neg(atoms: Atom*) = new ConstraintBuilder(bodyPos, bodyNeg ++ atoms)
-}
-
-// use object :- {} for contraint
-// :- p, not a
-// investigate of writing a program with DSL is possible
-// check if we can use new-line
-class ConsequencesBuilder(val head: Atom, val positiveBody: Set[Atom] = Set(), val negativeBody: Set[Atom] = Set()) {
-
-  def :-(atom: Atom) = {
-    new ConsequencesBuilder(head, positiveBody + atom, negativeBody)
-  }
-
-  def and(atom: Atom) = {
-    new ConsequencesBuilder(head, positiveBody + atom, negativeBody)
-  }
-
-  def not(atom: Atom) = {
-    new ConsequencesBuilder(head, positiveBody, negativeBody + atom)
-  }
-
-}
-
-class Builder(head: Atom) {
-  def :-(items: Any*) = {
-    val pos = items map {
-      case atom: Atom => atom
-    }
-    val neg = items map {
-      case NegBuilderAtom(atom) => atom
-    }
-
-    new UserDefinedRule(head, pos.toSet, neg.toSet)
-  }
-}
-
-object :- {
-  //  def apply(atom: Atom) = new BuilderHead(Falsum) :- PosBuilderAtom(atom)
-
-  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
-
-  //  def apply(item: BuilderItem) = new BuilderHead(Falsum) :- item
-}
 
 class BuilderHead(val head: Atom) {
   def :-(item: BuilderItem) = item match {
@@ -97,7 +39,7 @@ object not {
 }
 
 object BuilderItem {
-  implicit def toBuilderItem(atom: Atom) = new PosBuilderAtom(atom)
+  implicit def toBuilderItem(atom: Atom): PosBuilderAtom = new PosBuilderAtom(atom)
 }
 
 sealed trait BuilderItem
