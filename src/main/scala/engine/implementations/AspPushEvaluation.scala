@@ -1,7 +1,7 @@
 package engine.implementations
 
 import asp.Asp
-import core.{Fact, AspProgram}
+import core.{AspFact, AspProgram}
 import engine._
 
 /**

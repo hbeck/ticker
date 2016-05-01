@@ -10,7 +10,7 @@ trait JTMS_21Behavior_ASP extends JTMSSpecASP {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
-  val j7: Rule = Rule(Falsum,Set(b),Set(c))
+  val j7: AspRule = AspRule(Falsum,Set(b),Set(c))
 
   val p = program + j7
 

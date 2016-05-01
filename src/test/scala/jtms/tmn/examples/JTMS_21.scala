@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Rule, ContradictionAtom}
+import core.{AspRule, ContradictionAtom}
 
 /**
   * Created by FM on 11.02.16.
@@ -8,7 +8,7 @@ import core.{Rule, ContradictionAtom}
 class JTMS_21 extends JTMSSpec {
   val N_contr = ContradictionAtom("N_contr")
 
-  val j7 = Rule(N_contr, Set(b), Set(c))
+  val j7 = AspRule(N_contr, Set(b), Set(c))
 
   def JTMS_DDB = {
     val tmn = JTMS
@@ -20,7 +20,7 @@ class JTMS_21 extends JTMSSpec {
 
   def JTMS_DDB_addA = {
     val tmn = JTMS_DDB
-    tmn.add(Rule(a))
+    tmn.add(AspRule(a))
     tmn
   }
 

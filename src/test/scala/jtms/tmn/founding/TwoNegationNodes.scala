@@ -1,6 +1,6 @@
 package jtms.tmn.founding
 
-import core.{AspProgram, Rule, Atom}
+import core.{AspProgram, AspRule, Atom}
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
@@ -11,8 +11,8 @@ class TwoNegationNodes extends FlatSpec {
   val a = Atom("a")
   val b = Atom("b")
 
-  val r1 = Rule.neg(a).head(b)
-  val r2 = Rule.neg(b).head(a)
+  val r1 = AspRule.neg(a).head(b)
+  val r2 = AspRule.neg(b).head(a)
 
   val program = AspProgram(r1, r2)
 

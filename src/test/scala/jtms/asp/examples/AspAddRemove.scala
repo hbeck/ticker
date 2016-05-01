@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Program, Fact, Rule, Atom}
+import core.{AspRule, Atom}
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
@@ -22,11 +22,11 @@ class AspAddRemove extends FunSuite {
   val none = Set[Atom]()
 
   test("a :- b. b :- not c. c :- not d.") {
-
-    val r1 = Rule(a,b)
-    val r2 = Rule(b,none,Set(c))
-    val r3 = Rule(c,none,Set(d))
-
+    
+    val r1 = AspRule(a,b)
+    val r2 = AspRule(b,none,Set(c))
+    val r3 = AspRule(c,none,Set(d))
+        
     val tms = ExtendedJTMS()
     def m = tms.getModel.get
 
@@ -79,51 +79,51 @@ class AspAddRemove extends FunSuite {
     val tms = ExtendedJTMS()
     def m = tms.getModel.get
 
-    tms.add(Rule(a,b))
+    tms.add(AspRule(a,b))
     assert(m == Set())
 
-    tms.add(Rule(b,a))
+    tms.add(AspRule(b,a))
     assert(m == Set())
 
-    tms.add(Rule(b,Set(c),Set(d)))
+    tms.add(AspRule(b,Set(c),Set(d)))
     assert(m == Set())
 
-    tms.add(Rule(c,none,Set(e)))
+    tms.add(AspRule(c,none,Set(e)))
     assert(m == Set(a,b,c))
 
-    tms.add(Rule(e))
+    tms.add(AspRule(e))
     assert(m == Set(e))
 
-    tms.remove(Rule(e))
+    tms.remove(AspRule(e))
     assert(m == Set(a,b,c))
 
-    tms.add(Rule(e))
-    tms.remove(Rule(b,Set(c),Set(d)))
+    tms.add(AspRule(e))
+    tms.remove(AspRule(b,Set(c),Set(d)))
     assert(m == Set(e))
 
-    tms.remove(Rule(e))
+    tms.remove(AspRule(e))
     assert(m == Set(c))
 
-    tms.remove(Rule(a,b))
+    tms.remove(AspRule(a,b))
     assert(m == Set(c))
 
-    tms.add(Rule(b,Set(c),Set(d)))
+    tms.add(AspRule(b,Set(c),Set(d)))
     assert(m == Set(b,c))
 
-    tms.add(Rule(a,b))
+    tms.add(AspRule(a,b))
     assert(m == Set(a,b,c))
 
-    tms.add(Rule(e))
+    tms.add(AspRule(e))
     assert(m == Set(e))
 
   }
 
   test("a :- x, not b. b :- y, not a. x :- not y. y :- not x.") {
 
-    val a__x_not_b = Rule(a,Set(x),Set(b))
-    val b__y_not_a = Rule(b,Set(y),Set(a))
-    val x__not_y = Rule(x,none,Set(y))
-    val y__not_x = Rule(y,none,Set(x))
+    val a__x_not_b = AspRule(a,Set(x),Set(b))
+    val b__y_not_a = AspRule(b,Set(y),Set(a))
+    val x__not_y = AspRule(x,none,Set(y))
+    val y__not_x = AspRule(y,none,Set(x))
 
     val tms = ExtendedJTMS()
     def m = tms.getModel.get
@@ -165,12 +165,12 @@ class AspAddRemove extends FunSuite {
 
   test("a :- not b. b :- c, not a. x :- a, c. y :- a, not c. c :- not d. d :- not c.") {
 
-    val a__not_b = Rule(a,none,Set(b))
-    val b__c_not_a = Rule(b,Set(c),Set(a))
-    val x__a_c = Rule(x,Set(a,c))
-    val y__a_not_c = Rule(y,Set(a),Set(c))
-    val c__not_d = Rule(c,none,Set(d))
-    val d__not_c = Rule(d,none,Set(c))
+    val a__not_b = AspRule(a,none,Set(b))
+    val b__c_not_a = AspRule(b,Set(c),Set(a))
+    val x__a_c = AspRule(x,Set(a,c))
+    val y__a_not_c = AspRule(y,Set(a),Set(c))
+    val c__not_d = AspRule(c,none,Set(d))
+    val d__not_c = AspRule(d,none,Set(c))
 
     val tms = ExtendedJTMS()
     def m = tms.getModel.get

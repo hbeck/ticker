@@ -1,14 +1,14 @@
 package jtms.asp.examples
 
 import common.sets.symmdiff
-import core.{Atom, Fact}
+import core.{Atom, AspFact}
 
 /**
   * Created by FM on 06.02.16.
   */
 class JTMS_5_ASP extends JTMSSpecASP {
 
-  val j0 = Fact(a)
+  val j0 = AspFact(a)
 
   var diff: Set[Atom] = Set()
 

@@ -20,9 +20,9 @@ class Scheduling extends FlatSpec {
   val contradiction = ContradictionAtom("c")
 
   val program = AspProgram(
-    Rule(Time1000, Set(), Set(NotTime1000)),
+    AspRule(Time1000, Set(), Set(NotTime1000)),
     //    Fact(NotTime1000),
-    Rule(Room813, Set(), Set(Room801))
+    AspRule(Room813, Set(), Set(Room801))
   )
 
   "The model" should "be Time1000, Room813" in {
@@ -33,7 +33,7 @@ class Scheduling extends FlatSpec {
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
     val tmn = ExtendedJTMS(program)
-    tmn.add(Rule(contradiction, Set(Time1000, Room813), Set()))
+    tmn.add(AspRule(contradiction, Set(Time1000, Room813), Set()))
 
     //assert(tmn.getModel.get == Set(NotTime1000, Room813)) //this is the the JTMN result
     assert(tmn.getModel == None)
@@ -42,8 +42,8 @@ class Scheduling extends FlatSpec {
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
     val tmn = ExtendedJTMS(
       program +
-        Rule(contradiction, Set(Time1000, Room813), Set()) +
-        Rule(contradiction, Set(NotTime1000), Set())
+        AspRule(contradiction, Set(Time1000, Room813), Set()) +
+        AspRule(contradiction, Set(NotTime1000), Set())
     )
 
     //assert(tmn.getModel.get == Set(Time1000, Room801)) //this is the the JTMN result

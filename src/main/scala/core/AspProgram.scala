@@ -3,14 +3,14 @@ package core
 /**
   * Created by FM on 25.02.16.
   */
-case class AspProgram(rules: List[Rule]) {
+case class AspProgram(rules: List[AspRule]) {
   val atoms = rules.flatMap(_.atoms)
 
-  def +(rule: Rule) = AspProgram(rules :+ rule)
+  def +(rule: AspRule) = AspProgram(rules :+ rule)
 
-  def ++(rules: List[Rule]) = AspProgram(this.rules ++ rules)
+  def ++(rules: List[AspRule]) = AspProgram(this.rules ++ rules)
 }
 
 object AspProgram {
-  def apply(rules: Rule*): AspProgram = AspProgram(rules.toList)
+  def apply(rules: AspRule*): AspProgram = AspProgram(rules.toList)
 }

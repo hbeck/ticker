@@ -28,11 +28,11 @@ class AspBuilderTests extends FlatSpec {
 
     val j1 = a :- c // Rule.pos(c).head(a) //Rule(a,c)  // a :- c
     val j2 = b :- not(a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
-    val j3 = Rule.pos(a).head(c)
-    val j4a = Rule.pos(b).head(d)
-    val j4b = Rule.pos(c).head(d)
-    val j5 = Fact(e)
-    val j6 = Rule.pos(c, e).head(f)
+    val j3 = AspRule.pos(a).head(c)
+    val j4a = AspRule.pos(b).head(d)
+    val j4b = AspRule.pos(c).head(d)
+    val j5 = AspFact(e)
+    val j6 = AspRule.pos(c, e).head(f)
 
     //    val program2 = ProgramBuilder(j2)(j3)(j4a)
     val program3 = AspProgramBuilder rule
@@ -85,14 +85,14 @@ class AspBuilderTests extends FlatSpec {
     assert(program.size == 6)
   }
 
-  val testProgram: PartialFunction[Seq[Atom], Set[Rule]] = {
+  val testProgram: PartialFunction[Seq[Atom], Set[AspRule]] = {
     case a #:: b #:: c #:: d #:: e #:: f #:: atoms => Set(
-      Rule.fact(a),
-      Rule.fact(b),
-      Rule.fact(c),
-      Rule.fact(d),
-      Rule.fact(e),
-      Rule.fact(f)
+      AspRule.fact(a),
+      AspRule.fact(b),
+      AspRule.fact(c),
+      AspRule.fact(d),
+      AspRule.fact(e),
+      AspRule.fact(f)
     )
   }
 }

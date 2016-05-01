@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, Fact, AspProgram, Rule}
+import core.{Atom, AspFact, AspProgram, AspRule}
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}
 import org.scalatest.FlatSpec
@@ -19,12 +19,12 @@ class Deletion extends FlatSpec {
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
     val net = new ExtendedJTMS()
-    net.add(Rule(a))
+    net.add(AspRule(a))
 
     assume(net.getModel.get == Set(a))
     assume(net.status(a) == in)
 
-    net.remove(Rule(a))
+    net.remove(AspRule(a))
 
     assert(net.allAtoms.isEmpty)
     assert(net.status.isEmpty)
@@ -37,8 +37,8 @@ class Deletion extends FlatSpec {
   }
 
   "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have cons(c) = a " in {
-    val r1 = Rule(a,Set(c))
-    val r2 = Rule(a,Set(c, b))
+    val r1 = AspRule(a,Set(c))
+    val r2 = AspRule(a,Set(c, b))
 
     val program = AspProgram(r1, r2)
 
@@ -53,8 +53,8 @@ class Deletion extends FlatSpec {
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
     // arrange
-    val r0 = Rule(b,a)
-    val r1 = Rule(a,none,none)
+    val r0 = AspRule(b,a)
+    val r1 = AspRule(a,none,none)
 
     val net = new ExtendedJTMS()
 
@@ -80,8 +80,8 @@ class Deletion extends FlatSpec {
 
   it should "have the Model A after deletion of a rule" in {
     // arrange
-    val r1 = Rule(b,a)
-    val r2 = Fact(a)
+    val r1 = AspRule(b,a)
+    val r2 = AspFact(a)
 
     val net = new ExtendedJTMS()
 
@@ -106,9 +106,9 @@ class Deletion extends FlatSpec {
   }
 
   "A TMN with three atoms" should "have only Model A after deleting a rule" in {
-    val r0 = Rule.pos(a).head(b)
-    val r1 = Fact(a)
-    val r2 = Rule.pos(b).head(c)
+    val r0 = AspRule.pos(a).head(b)
+    val r1 = AspFact(a)
+    val r2 = AspRule.pos(b).head(c)
 
     val net = new ExtendedJTMS()
 
@@ -132,10 +132,10 @@ class Deletion extends FlatSpec {
   }
 
   "A TMN with three atoms and a redundant rule" should "have Model A,C after deleting a rule supporting B" in {
-    val r0 = Rule.pos(a).head(b)
-    val r1 = Fact(a)
-    val r2 = Rule.pos(b).head(c)
-    val r3 = Rule.pos(a).head(c)
+    val r0 = AspRule.pos(a).head(b)
+    val r1 = AspFact(a)
+    val r2 = AspRule.pos(b).head(c)
+    val r3 = AspRule.pos(a).head(c)
 
     val net = new ExtendedJTMS()
 

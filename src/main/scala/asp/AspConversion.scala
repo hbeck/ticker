@@ -11,7 +11,7 @@ object AspConversion {
     program.rules.map(apply).toSet
   }
 
-  def apply(rule: Rule): AspExpression = {
+  def apply(rule: AspRule): AspExpression = {
     if (rule.body.isEmpty) {
       return AspExpression(apply(rule.head) + '.')
     } else {

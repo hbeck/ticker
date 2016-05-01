@@ -1,28 +1,24 @@
 package core
 
-import core.lars.WindowAtom
-
-object Fact {
-  def apply(head: Atom) = Rule.fact(head)
+object AspFact {
+  def apply(head: Atom) = AspRule.fact(head)
 }
 
-
-
-object Rule {
+object AspRule {
   def pos(atoms: Atom*) = new RuleBuilder(atoms.toSet)
 
   def neg(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
 
-  def fact(head: Atom) = UserDefinedRule(head, Set(), Set())
+  def fact(head: Atom) = UserDefinedAspRule(head, Set(), Set())
 
-  def apply(head: Atom, pos:Set[Atom], neg: Set[Atom]) = UserDefinedRule(head, pos, neg)
-  def apply(head: Atom) = UserDefinedRule(head, Set(), Set())
-  def apply(head: Atom, pos: Atom) = UserDefinedRule(head, Set(pos), Set())
-  def apply(head: Atom, pos: Set[Atom]) = UserDefinedRule(head, pos, Set())
+  def apply(head: Atom, pos:Set[Atom], neg: Set[Atom]) = UserDefinedAspRule(head, pos, neg)
+  def apply(head: Atom) = UserDefinedAspRule(head, Set(), Set())
+  def apply(head: Atom, pos: Atom) = UserDefinedAspRule(head, Set(pos), Set())
+  def apply(head: Atom, pos: Set[Atom]) = UserDefinedAspRule(head, pos, Set())
 
 }
 
-sealed trait Rule {
+sealed trait AspRule {
 
   val pos: Set[Atom]
   val neg: Set[Atom]
@@ -31,7 +27,7 @@ sealed trait Rule {
   val body = pos union neg
   val atoms = body + head
 
-  def ==(other: Rule): Boolean = {
+  def ==(other: AspRule): Boolean = {
     if (this.head != other.head) return false
     if (this.pos != other.pos) return false
     if (this.neg != other.neg) return false
@@ -39,10 +35,10 @@ sealed trait Rule {
   }
 
   override def equals(other: Any): Boolean = {
-    if (!other.isInstanceOf[Rule]) {
+    if (!other.isInstanceOf[AspRule]) {
       return false
     }
-    val r = other.asInstanceOf[Rule]
+    val r = other.asInstanceOf[AspRule]
     return this == r
   }
 
@@ -65,16 +61,16 @@ sealed trait Rule {
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedRule(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends Rule
+case class UserDefinedAspRule(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends AspRule
 
-case class RuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends Rule {
+case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends AspRule {
   override def toString = {
     super.toString.replaceAll("<-","<--")
   }
 }
 
-object RuleFromBacktracking {
-  def apply (pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): RuleFromBacktracking = {
-    RuleFromBacktracking(pos.toSet,neg.toSet,head)
+object AspRuleFromBacktracking {
+  def apply (pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
+    AspRuleFromBacktracking(pos.toSet,neg.toSet,head)
   }
 }

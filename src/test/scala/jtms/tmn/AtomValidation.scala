@@ -1,6 +1,6 @@
 package jtms.tmn
 
-import core.{Rule, Atom}
+import core.{AspRule, Atom}
 import jtms.{Status, JTMNRefactored}
 import org.scalatest.{GivenWhenThen, FlatSpec}
 
@@ -31,14 +31,14 @@ trait AtomValidation {
       }
     }
 
-    def Rules(rules: Rule*) = {
+    def Rules(rules: AspRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
         assert(tmn.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 
-    def SJ(j: Option[Rule]) = {
+    def SJ(j: Option[AspRule]) = {
 
       var text: String = ""
       if (j.isDefined)

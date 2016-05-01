@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Fact, Atom}
+import core.{AspFact, Atom}
 import common.sets.symmdiff
 
 /**
@@ -8,7 +8,7 @@ import common.sets.symmdiff
   */
 class JTMS_5 extends JTMSSpec {
 
-  val j0 = Fact(a)
+  val j0 = AspFact(a)
 
   var diff: Set[Atom] = Set();
   val tmn = {

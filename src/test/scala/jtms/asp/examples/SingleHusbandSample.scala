@@ -17,9 +17,9 @@ trait SingleHusbandBehavior {
   val single = Atom("single")
   val husband = Atom("husband")
 
-  val r0 = Fact(man)
-  val r1 = Rule(single,Set(man),Set(husband)) //single :- man, not husband
-  val r2 = Rule(husband,Set(man),Set(single)) //husband :- man, not single
+  val r0 = AspFact(man)
+  val r1 = AspRule(single,Set(man),Set(husband)) //single :- man, not husband
+  val r2 = AspRule(husband,Set(man),Set(single)) //husband :- man, not single
 
   val pSingleFirst = AspProgram(r0, r1, r2)
   val pHusbandFirst = AspProgram(r0, r2, r1)

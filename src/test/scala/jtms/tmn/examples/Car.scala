@@ -18,16 +18,16 @@ trait CarBehavior {
   val C = Atom("carb_broken")
   val Falsum = new ContradictionAtom("f")
 
-  val j0 = Rule.pos(S_not).neg(D).head(G_not);
-  val j1 = Rule.pos(S_not, G).head(D)
-  val j2 = Rule.pos(G, G_not).head(Falsum)
-  val j3 = Rule.pos(I).head(D)
-  val j4 = Rule.pos(C).head(D)
+  val j0 = AspRule.pos(S_not).neg(D).head(G_not);
+  val j1 = AspRule.pos(S_not, G).head(D)
+  val j2 = AspRule.pos(G, G_not).head(Falsum)
+  val j3 = AspRule.pos(I).head(D)
+  val j4 = AspRule.pos(C).head(D)
 
-  val notStarting = Fact(S_not)
-  val enoughGas = Fact(G)
-  val notEnoughGas = Fact(G_not)
-  val brokenIgnition = Fact(C)
+  val notStarting = AspFact(S_not)
+  val enoughGas = AspFact(G)
+  val notEnoughGas = AspFact(G_not)
+  val brokenIgnition = AspFact(C)
 
   val program = AspProgram(j0, j1, j2, j3, j4)
 

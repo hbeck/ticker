@@ -24,11 +24,11 @@ object JTMNRefactored {
   */
 case class JTMNRefactored() {
 
-  var rules: List[Rule] = List()
+  var rules: List[AspRule] = List()
 
   val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val suppRule: Map[Atom, Option[Rule]] = new HashMap[Atom, Option[Rule]]
+  val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -66,17 +66,17 @@ case class JTMNRefactored() {
 
   def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
-  def valid(rule: Rule) =
+  def valid(rule: AspRule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def invalid(rule: Rule) =
+  def invalid(rule: AspRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfounded(rule: Rule) =
+  def unfounded(rule: AspRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
 
   //JTMS update algorithm
-  def add(rule: Rule): Unit = {
+  def add(rule: AspRule): Unit = {
     register(rule)
     if (status(rule.head) == in) return
     if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
@@ -84,7 +84,7 @@ case class JTMNRefactored() {
     updateBeliefs(atoms)
   }
 
-  def register(rule: Rule): Unit = {
+  def register(rule: AspRule): Unit = {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
@@ -105,7 +105,7 @@ case class JTMNRefactored() {
     tryEnsureConsistency
   }
 
-  def setIn(rule: Rule) = {
+  def setIn(rule: AspRule) = {
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
     suppRule(rule.head) = Some(rule)
@@ -125,7 +125,7 @@ case class JTMNRefactored() {
     suppRule(atom) = None
   }
 
-  def findSpoiler(rule: Rule): Option[Atom] = {
+  def findSpoiler(rule: AspRule): Option[Atom] = {
     if (math.random < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
@@ -186,7 +186,7 @@ case class JTMNRefactored() {
     true
   }
 
-  def fixIn(unfoundedValidRule: Rule) = {
+  def fixIn(unfoundedValidRule: AspRule) = {
     unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors
     setIn(unfoundedValidRule)
   }
@@ -241,7 +241,7 @@ case class JTMNRefactored() {
 
   }
 
-  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[RuleFromBacktracking] = {
+  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[AspRuleFromBacktracking] = {
 
     val culprit = maxAssumptions.head
     val n = suppRule(culprit).get.neg.head //(all .neg have status out at this point)
@@ -249,7 +249,7 @@ case class JTMNRefactored() {
     val suppRules = maxAssumptions map (suppRule(_).get)
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - n
-    val rule = RuleFromBacktracking(pos, neg, n)
+    val rule = AspRuleFromBacktracking(pos, neg, n)
 
     Some(rule)
   }
@@ -263,7 +263,7 @@ case class JTMNRefactored() {
   def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
   val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val rule: Option[Rule] = findSuppRule(m, i)
+      val rule: Option[AspRule] = findSuppRule(m, i)
       if (rule.isEmpty) {
         return false
       }
@@ -278,14 +278,14 @@ case class JTMNRefactored() {
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSuppRule(M: List[Atom], idx: Int): Option[Rule] = {
+  def findSuppRule(M: List[Atom], idx: Int): Option[AspRule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
     val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
-  def selectRule(rules: List[Rule]): Option[Rule] = {
+  def selectRule(rules: List[AspRule]): Option[AspRule] = {
     if (rules.isEmpty)
       return None
     Some(rules.head)

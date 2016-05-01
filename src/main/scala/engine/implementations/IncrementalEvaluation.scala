@@ -1,6 +1,6 @@
 package engine.implementations
 
-import core.{Atom, Fact, AspProgram}
+import core.{Atom, AspFact, AspProgram}
 import engine.{Result, _}
 import jtms.ExtendedJTMS
 
@@ -17,7 +17,7 @@ case class IncrementalEvaluation(private val program: AspProgram) extends Evalua
   }
 
   def evaluate(time: Time) = {
-    val facts = intensionalAtomStream.evaluate(time).map(x => Fact(x))
+    val facts = intensionalAtomStream.evaluate(time).map(x => AspFact(x))
     facts foreach answerUpdateNetwork.add
 
     new Result {

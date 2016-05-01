@@ -17,13 +17,13 @@ trait TweetyBehavior {
 
   val Falsum = new ContradictionAtom("f")
 
-  val j0 = Rule.pos(P).head(F_not)
-  val j1 = Rule.pos(P).head(V)
-  val j2 = Rule.pos(V).neg(F_not).head(F)
-  val j3 = Rule.pos(F, F_not).head(Falsum)
-  val j4 = Fact(V)
+  val j0 = AspRule.pos(P).head(F_not)
+  val j1 = AspRule.pos(P).head(V)
+  val j2 = AspRule.pos(V).neg(F_not).head(F)
+  val j3 = AspRule.pos(F, F_not).head(Falsum)
+  val j4 = AspFact(V)
 
-  val j5 = Fact(P)
+  val j5 = AspFact(P)
 
   val program = AspProgram(j0, j1, j2, j3, j4)
 

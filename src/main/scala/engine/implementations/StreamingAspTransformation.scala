@@ -1,7 +1,7 @@
 package engine.implementations
 
 import asp.{Asp, AspConversion, AspExpression, AspExpressionProgram}
-import core.{Atom, AtomWithArguments, Fact}
+import core.{Atom, AtomWithArguments, AspFact}
 import engine.{Atom, Result, Stream, Time}
 
 /**
@@ -18,7 +18,7 @@ object StreamingAspTransformation {
   def atomAtT(time: Time, atom: Atom) = {
     val timeParameter = time.timePoint.toString
 
-    Fact(atom(timeParameter))
+    AspFact(atom(timeParameter))
   }
 
   def transformAtoms(time: Time, atoms: Set[Atom]) = {
@@ -33,7 +33,7 @@ object StreamingAspTransformation {
     val transformedAtomsAndNow = transformedAtoms + AspConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(Fact(_))) map (x => AspConversion(x)))
+    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(AspFact(_))) map (x => AspConversion(x)))
   }
 }
 

@@ -10,7 +10,7 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
 
   def neg(atoms: Atom*) = new RuleBuilder(bodyPos, bodyNeg ++ atoms)
 
-  def head(head: Atom) = new UserDefinedRule(head, bodyPos, bodyNeg)
+  def head(head: Atom) = new UserDefinedAspRule(head, bodyPos, bodyNeg)
 }
 
 
@@ -29,7 +29,7 @@ class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val
 }
 
 object BuilderCollection {
-  implicit def toRule(builder: BuilderCollection): Rule = new UserDefinedRule(builder.head, builder.positiveBody, builder.negativeBody)
+  implicit def toRule(builder: BuilderCollection): AspRule = new UserDefinedAspRule(builder.head, builder.positiveBody, builder.negativeBody)
 }
 
 object not {
@@ -49,9 +49,9 @@ case class PosBuilderAtom(atom: Atom) extends BuilderItem
 case class NegBuilderAtom(atom: Atom) extends BuilderItem
 
 object AspProgramBuilder {
-  def rule(rule: Rule) = new AspProgramBuilder(Set(rule))
+  def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): AspProgram = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): AspProgram = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)
@@ -60,10 +60,10 @@ object AspProgramBuilder {
   }
 }
 
-class AspProgramBuilder(rules: Set[Rule]) {
-  def apply(rule: Rule) = new AspProgramBuilder(rules + rule)
+class AspProgramBuilder(rules: Set[AspRule]) {
+  def apply(rule: AspRule) = new AspProgramBuilder(rules + rule)
 
-  def rule(rule: Rule) = new AspProgramBuilder(rules + rule)
+  def rule(rule: AspRule) = new AspProgramBuilder(rules + rule)
 
   def toProgram = new AspProgram(rules.toList)
 }

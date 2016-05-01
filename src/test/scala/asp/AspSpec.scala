@@ -21,7 +21,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing only a premise A" should "be executed an converted to one single model containing A" in {
-    val program = AspProgram(Fact(a))
+    val program = AspProgram(AspFact(a))
 
     val asp = Asp(program)
 
@@ -30,7 +30,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing a premise and a rule" should "return only the premise" in {
-    val program = AspProgram(Fact(a), Rule.pos(b).head(c))
+    val program = AspProgram(AspFact(a), AspRule.pos(b).head(c))
 
     val asp = Asp(program)
 
@@ -39,7 +39,7 @@ class AspSpec extends FlatSpec {
     assert(asp contains Set(a))
   }
   it should "return two nodes" in {
-    val program = AspProgram(Fact(a), Rule.pos(a).head(b))
+    val program = AspProgram(AspFact(a), AspRule.pos(a).head(b))
 
     val asp = Asp(program)
 

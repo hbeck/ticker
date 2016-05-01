@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.{Atom, ContradictionAtom, Rule}
+import core.{Atom, ContradictionAtom, AspRule}
 import jtms.JTMNRefactored
 import org.scalatest.FunSuite
 
@@ -32,7 +32,7 @@ class JTMNConsistency extends FunSuite {
     var model = tmn.getModel.get
     assert(model.isEmpty)
 
-    tmn.add(Rule(a))
+    tmn.add(AspRule(a))
     model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains a)
@@ -41,12 +41,12 @@ class JTMNConsistency extends FunSuite {
   test("a :- not b. then b.") {
 
     val tmn = JTMNRefactored()
-    tmn.add(Rule(a,none,Set(b)))
+    tmn.add(AspRule(a,none,Set(b)))
     var model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains a)
 
-    tmn.add(Rule(b,none,none))
+    tmn.add(AspRule(b,none,none))
     model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains b)
@@ -56,12 +56,12 @@ class JTMNConsistency extends FunSuite {
   test("a :- not b. b :- not a.  b.") {
 
     val tmn = JTMNRefactored()
-    tmn.add(Rule(a,none,Set(b)))
-    tmn.add(Rule(b,none,Set(a)))
+    tmn.add(AspRule(a,none,Set(b)))
+    tmn.add(AspRule(b,none,Set(a)))
     var model = tmn.getModel.get
     assert(model == Set(a))
 
-    tmn.add(Rule(b,none,none))
+    tmn.add(AspRule(b,none,none))
     model = tmn.getModel.get
     assert(model == Set(b))
 
@@ -70,13 +70,13 @@ class JTMNConsistency extends FunSuite {
   test("P1: a :- not b.  b :- not a.  n :- a.") {
     for (i <- 1 to times) {
       val tmn = JTMNRefactored()
-      tmn.add(Rule(a, none, Set(b)))
-      tmn.add(Rule(b, none, Set(a))) //-> {a}
+      tmn.add(AspRule(a, none, Set(b)))
+      tmn.add(AspRule(b, none, Set(a))) //-> {a}
 
       var model = tmn.getModel.get
       assert(model == Set(a))
 
-      tmn.add(Rule(n, a))
+      tmn.add(AspRule(n, a))
       model = tmn.getModel.get
       assert(model == Set(b))
     }
@@ -86,18 +86,18 @@ class JTMNConsistency extends FunSuite {
     for (i <- 1 to times) {
       val tmn0 = JTMNRefactored()
 
-      tmn0.add(Rule(n, Set(b), Set(c)))
+      tmn0.add(AspRule(n, Set(b), Set(c)))
       assert(tmn0.getModel.get == Set[Atom]())
 
-      tmn0.add(Rule(b, none, Set(a)))
+      tmn0.add(AspRule(b, none, Set(a)))
       assert(tmn0.getModel.get == Set(a)) //diff to ASP, which has None
 
       val tmn1 = JTMNRefactored()
 
-      tmn1.add(Rule(b, none, Set(a)))
+      tmn1.add(AspRule(b, none, Set(a)))
       assert(tmn1.getModel.get == Set(b))
 
-      tmn1.add(Rule(n, Set(b), Set(c)))
+      tmn1.add(AspRule(n, Set(b), Set(c)))
       assert(tmn1.getModel.get == Set(a)) //diff to ASP, which has None
     }
   }
@@ -105,18 +105,18 @@ class JTMNConsistency extends FunSuite {
   test("P3: a :- c.  c :- a.  b :- not a.  n :- b, not c.") {
     for (i <- 1 to times) {
       val tmn = JTMNRefactored()
-      tmn.add(Rule(a, c))
+      tmn.add(AspRule(a, c))
 
       assert(tmn.getModel.get.isEmpty)
 
-      tmn.add(Rule(c, a))
+      tmn.add(AspRule(c, a))
       assert(tmn.getModel.get.isEmpty)
 
-      tmn.add(Rule(b, none, Set(a)))
+      tmn.add(AspRule(b, none, Set(a)))
       assert(tmn.getModel.get.size == 1)
       assert(tmn.getModel.get contains b)
 
-      tmn.add(Rule(n, Set(b), Set(c)))
+      tmn.add(AspRule(n, Set(b), Set(c)))
       assert(tmn.getModel.get == Set(a,c)) //diff to ASP, which has None
     }
   }
@@ -124,24 +124,24 @@ class JTMNConsistency extends FunSuite {
   test("P4:  a :- c.  c :- a.  b :- not a.  n :- b, not c.  a.") {
     for (i <- 1 to times) {
       val tmnBefore = JTMNRefactored()
-      tmnBefore.add(Rule(a, c)) //{}
-      tmnBefore.add(Rule(c, a)) //{}
-      tmnBefore.add(Rule(b, none, Set(a))) //{b}
+      tmnBefore.add(AspRule(a, c)) //{}
+      tmnBefore.add(AspRule(c, a)) //{}
+      tmnBefore.add(AspRule(b, none, Set(a))) //{b}
       //
-      tmnBefore.add(Rule(a,none,none)) //{a,c}
+      tmnBefore.add(AspRule(a,none,none)) //{a,c}
       assert(tmnBefore.getModel.get == Set[Atom](a,c))
-      tmnBefore.add(Rule(n, Set(b), Set(c))) //{a,c}
+      tmnBefore.add(AspRule(n, Set(b), Set(c))) //{a,c}
       assert(tmnBefore.getModel.get == Set[Atom](a,c))
 
 
       val tmnAfter = JTMNRefactored()
-      tmnAfter.add(Rule(a, c)) //{}
-      tmnAfter.add(Rule(c, a)) //{}
-      tmnAfter.add(Rule(b, none, Set(a))) //{b}
+      tmnAfter.add(AspRule(a, c)) //{}
+      tmnAfter.add(AspRule(c, a)) //{}
+      tmnAfter.add(AspRule(b, none, Set(a))) //{b}
       //
-      tmnAfter.add(Rule(n, Set(b), Set(c))) //None
+      tmnAfter.add(AspRule(n, Set(b), Set(c))) //None
       assert(tmnAfter.getModel.get == Set(a,c)) //diff to ASP, which has none
-      tmnAfter.add(Rule(a,none,none)) //{a,c}
+      tmnAfter.add(AspRule(a,none,none)) //{a,c}
       assert(tmnAfter.getModel.get == Set[Atom](a,c))
 
     }
@@ -150,15 +150,15 @@ class JTMNConsistency extends FunSuite {
   //inconsistent
   test(":- not a") {
     val tmn = JTMNRefactored()
-    tmn.add(Rule(n,none,Set(a)))
+    tmn.add(AspRule(n,none,Set(a)))
     assert(tmn.getModel == None)
   }
 
   //inconsistent
   test("a. :- a.") {
     val tmn = JTMNRefactored()
-    tmn.add(Rule(a))
-    tmn.add(Rule(n,a))
+    tmn.add(AspRule(a))
+    tmn.add(AspRule(n,a))
     assert(tmn.getModel == None)
   }
 
@@ -166,13 +166,13 @@ class JTMNConsistency extends FunSuite {
   test("a. a :- not a.") {
 
     val tmnFactFirst = JTMNRefactored()
-    tmnFactFirst.add(Rule(a))
-    tmnFactFirst.add(Rule(a,Set(),Set(a)))
+    tmnFactFirst.add(AspRule(a))
+    tmnFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(tmnFactFirst.getModel.get == Set(a))
 
     val tmnRuleFirst = JTMNRefactored()
-    tmnRuleFirst.add(Rule(a,Set(),Set(a)))
-    tmnRuleFirst.add(Rule(a))
+    tmnRuleFirst.add(AspRule(a,Set(),Set(a)))
+    tmnRuleFirst.add(AspRule(a))
     assert(tmnRuleFirst.getModel.get == Set(a))
   }
 
@@ -220,10 +220,10 @@ class JTMNConsistency extends FunSuite {
 
     for (i <- 1 to times) {
       val tmn = JTMNRefactored()
-      tmn.add(Rule(a, none, Set(b)))
-      tmn.add(Rule(b, none, Set(c)))
-      tmn.add(Rule(c, none, Set(d)))
-      tmn.add(Rule(d, none, Set(c)))
+      tmn.add(AspRule(a, none, Set(b)))
+      tmn.add(AspRule(b, none, Set(c)))
+      tmn.add(AspRule(c, none, Set(d)))
+      tmn.add(AspRule(d, none, Set(c)))
       assert(tmn.getModel.get == Set(a,c))
 
       //tmn.add(Rule(n,Set(a)))
@@ -235,27 +235,27 @@ class JTMNConsistency extends FunSuite {
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
     val tmn1 = JTMNRefactored()
-    tmn1.add(Rule(a,b))
-    tmn1.add(Rule(b,none,Set(c)))
+    tmn1.add(AspRule(a,b))
+    tmn1.add(AspRule(b,none,Set(c)))
     assert(tmn1.getModel.get == Set(a,b))
 
-    tmn1.add(Rule(c,none,Set(a)))
+    tmn1.add(AspRule(c,none,Set(a)))
     assert(tmn1.getModel.get == Set(a,b))
 
-    tmn1.add(Rule(n,c)) //:- c
+    tmn1.add(AspRule(n,c)) //:- c
     //force other
     assert(tmn1.getModel.get == Set(a,b))
 
     //other insertion order of last two
     val tmn2 = JTMNRefactored()
-    tmn2.add(Rule(a,b)) //a :- b
-    tmn2.add(Rule(c,none,Set(a))) //c :- not a
+    tmn2.add(AspRule(a,b)) //a :- b
+    tmn2.add(AspRule(c,none,Set(a))) //c :- not a
     assert(tmn2.getModel.get == Set(c)) //{c}
 
-    tmn2.add(Rule(b,none,Set(c))) // b :- not c
+    tmn2.add(AspRule(b,none,Set(c))) // b :- not c
     assert(tmn2.getModel.get == Set(c)) //{c} (or {a,b})
 
-    tmn2.add(Rule(n,c)) //:- c
+    tmn2.add(AspRule(n,c)) //:- c
     //force other
     assert(tmn2.getModel.get == Set(a,b))
 
@@ -264,13 +264,13 @@ class JTMNConsistency extends FunSuite {
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
     val net1 = JTMNRefactored()
-    net1.add(Rule(a,b)) //a :- b
+    net1.add(AspRule(a,b)) //a :- b
     assert(net1.getModel.get == Set())
 
-    net1.add(Rule(b,none,Set(c))) //b :- not c
+    net1.add(AspRule(b,none,Set(c))) //b :- not c
     assert(net1.getModel.get == Set(a,b))
 
-    net1.add(Rule(c,none,Set(a))) //c :- not a
+    net1.add(AspRule(c,none,Set(a))) //c :- not a
     assert(net1.getModel.get == Set(a,b))
 
     assert(net1.supp(a)==Set(b))
@@ -307,43 +307,43 @@ class JTMNConsistency extends FunSuite {
 //    assert(net1.foundations(x) == Set(a,b,c))
 //    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
 
-    net1.add(Rule(n,Set(a,b))) //:- a,b
+    net1.add(AspRule(n,Set(a,b))) //:- a,b
     //force other
     assert(net1.getModel.get == Set(c))
 
     //TODO
     //other insertion order
     val net2 = JTMNRefactored()
-    net2.add(Rule(a,b)) //a :- b
-    net2.add(Rule(b,none,Set(c))) // b :- not c  => {a,b}
+    net2.add(AspRule(a,b)) //a :- b
+    net2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}
     assert(net2.getModel.get == Set(a,b)) //{a,b}
 
-    net2.add(Rule(n,Set(a,b))) //:- a,b
+    net2.add(AspRule(n,Set(a,b))) //:- a,b
     assert(net2.getModel == None)
 
-    net2.add(Rule(c,none,Set(a))) //c :- not a
+    net2.add(AspRule(c,none,Set(a))) //c :- not a
     assert(net2.getModel.get == Set(c)) //{c}
 
   }
 
   test("doyle time room") {
     val tmn = JTMNRefactored()
-    tmn.add(Rule(t1,none,Set(t2)))
-    tmn.add(Rule(r1,none,Set(r2)))
+    tmn.add(AspRule(t1,none,Set(t2)))
+    tmn.add(AspRule(r1,none,Set(r2)))
     assert(tmn.getModel.get == Set(t1,r1))
 
-    tmn.add(Rule(n,Set(t1,r1)))
+    tmn.add(AspRule(n,Set(t1,r1)))
     assert(tmn.getModel.get == Set(t1,r2)) //not an answer set!
   }
 
   test("elkan p228") {
     val tmn = JTMNRefactored()
-    tmn.add(Rule(f,none,Set(a,c)))
-    tmn.add(Rule(b,none,Set(a)))
-    tmn.add(Rule(a,none,Set(b)))
+    tmn.add(AspRule(f,none,Set(a,c)))
+    tmn.add(AspRule(b,none,Set(a)))
+    tmn.add(AspRule(a,none,Set(b)))
     assert(tmn.getModel.get == Set(b,f))
 
-    tmn.add(Rule(n,f))
+    tmn.add(AspRule(n,f))
     assert(tmn.getModel.get == Set(a))
   }
 

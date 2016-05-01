@@ -52,7 +52,7 @@ object Atom {
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 
-  implicit def headAtomToFact(atom: Atom): Rule = Fact(atom)
+  implicit def headAtomToFact(atom: Atom): AspRule = AspFact(atom)
 
 }
 

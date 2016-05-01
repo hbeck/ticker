@@ -21,15 +21,15 @@ class LibrarySimple extends FunSuite {
 
   val Falsum = new ContradictionAtom("f")
 
-  val j1 = Fact(V)
-  val j2 = Rule.pos(V).neg(F, G).head(P)
-  val j3 = Rule.pos(F).head(P_not)
-  val j4 = Rule.pos(G).head(P_not)
-  val j5 = Rule.pos(P).neg(H, N).head(A)
-  val j6 = Rule.pos(P, P_not).head(Falsum)
-  val j7 = Rule.pos(N).head(A_not)
-  val j8 = Rule.pos(H).head(A_not)
-  val j9 = Rule.pos(A, A_not).head(Falsum)
+  val j1 = AspFact(V)
+  val j2 = AspRule.pos(V).neg(F, G).head(P)
+  val j3 = AspRule.pos(F).head(P_not)
+  val j4 = AspRule.pos(G).head(P_not)
+  val j5 = AspRule.pos(P).neg(H, N).head(A)
+  val j6 = AspRule.pos(P, P_not).head(Falsum)
+  val j7 = AspRule.pos(N).head(A_not)
+  val j8 = AspRule.pos(H).head(A_not)
+  val j9 = AspRule.pos(A, A_not).head(Falsum)
 
   val program = AspProgram(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
@@ -38,15 +38,15 @@ class LibrarySimple extends FunSuite {
   }
 
   test("2") {
-    assert(ExtendedJTMS(program + Fact(H)).getModel.get == Set(V, P, A_not, H))
+    assert(ExtendedJTMS(program + AspFact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
   test("3") {
-    assert(ExtendedJTMS(program + Rule(Falsum,Set(A))).getModel == None)
+    assert(ExtendedJTMS(program + AspRule(Falsum,Set(A))).getModel == None)
   }
 
   test("4") {
-    assert(ExtendedJTMS(program + Rule(Falsum,Set(P),Set[Atom]())).getModel == None)
+    assert(ExtendedJTMS(program + AspRule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

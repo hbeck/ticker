@@ -13,7 +13,7 @@ trait JTMS_21Behavior extends JTMSSpec {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
-  val j7: Rule = Rule.pos(b).neg(c).head(Falsum)
+  val j7: AspRule = AspRule.pos(b).neg(c).head(Falsum)
 
   def p = {
     val p = program + j7

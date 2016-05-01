@@ -17,10 +17,10 @@ trait ManufacturingBehavior {
   val A2 = Atom("resource_2")
   val L1 = Atom("supply_problems_A1")
 
-  val j0 = Rule.pos(C).neg(B).head(A1)
-  val j1 = Rule.pos(C, B).head(A2)
-  val j2 = Rule.pos(L1).head(B)
-  val j3 = Rule.fact(C)
+  val j0 = AspRule.pos(C).neg(B).head(A1)
+  val j1 = AspRule.pos(C, B).head(A2)
+  val j2 = AspRule.pos(L1).head(B)
+  val j3 = AspRule.fact(C)
 
   val program = AspProgram(j0, j1, j2, j3)
 
@@ -34,7 +34,7 @@ trait ManufacturingBehavior {
 
     it should "mark as troubles and use resource A2" in {
       info("When there are supply problems with A1")
-      val p = program + Fact(L1)
+      val p = program + AspFact(L1)
 
       val model = evaluation(p)
 

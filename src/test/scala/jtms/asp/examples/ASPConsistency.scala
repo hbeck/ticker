@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, ContradictionAtom, Rule}
+import core.{Atom, ContradictionAtom, AspRule}
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
@@ -26,37 +26,37 @@ class ASPConsistency extends FunSuite {
     val net = ExtendedJTMS()
     assert(net.getModel.get.isEmpty)
 
-    net.add(Rule(a))
+    net.add(AspRule(a))
     assert(net.getModel.get == Set(a))
 
-    net.remove(Rule(a))
+    net.remove(AspRule(a))
     assert(net.getModel.get.isEmpty)
   }
 
   test("a :- not b. then b.") {
 
     val net = ExtendedJTMS()
-    net.add(Rule(a,none,Set(b)))
+    net.add(AspRule(a,none,Set(b)))
     assert(net.getModel.get == Set(a))
 
-    net.add(Rule(b))
+    net.add(AspRule(b))
     assert(net.getModel.get == Set(b))
 
-    net.remove(Rule(b))
+    net.remove(AspRule(b))
     assert(net.getModel.get == Set(a))
   }
 
   test("a :- not b. b :- not a.  b.") {
 
     val net = ExtendedJTMS()
-    net.add(Rule(a,none,Set(b)))
-    net.add(Rule(b,none,Set(a)))
+    net.add(AspRule(a,none,Set(b)))
+    net.add(AspRule(b,none,Set(a)))
     assert(net.getModel.get == Set(a))
 
-    net.add(Rule(b))
+    net.add(AspRule(b))
     assert(net.getModel.get == Set(b))
 
-    net.remove(Rule(b))
+    net.remove(AspRule(b))
     assert(net.getModel.get == Set(a) || net.getModel.get == Set(b)) //!
   }
 
@@ -162,13 +162,13 @@ class ASPConsistency extends FunSuite {
   test("a. a :- not a.") {
 
     val netFactFirst = ExtendedJTMS()
-    netFactFirst.add(Rule(a))
-    netFactFirst.add(Rule(a,Set(),Set(a)))
+    netFactFirst.add(AspRule(a))
+    netFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(netFactFirst.getModel.get == Set(a))
 
     val netRuleFirst = ExtendedJTMS()
-    netRuleFirst.add(Rule(a,Set(),Set(a)))
-    netRuleFirst.add(Rule(a))
+    netRuleFirst.add(AspRule(a,Set(),Set(a)))
+    netRuleFirst.add(AspRule(a))
     assert(netRuleFirst.getModel.get == Set(a))
   }
 

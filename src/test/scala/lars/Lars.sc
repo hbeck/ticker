@@ -1,4 +1,4 @@
-import core.{Atom, Rule, not}
+import core.{Atom, AspRule, not}
 import core.lars._
 import engine.{Stream, Time}
 
@@ -61,7 +61,7 @@ val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(Slidin
 r.body map prettyPrintAtom foreach println
 
 
-def prettyPrint(rule: Rule) = {
+def prettyPrint(rule: AspRule) = {
   f"${rule.head} :- ${rule.pos map prettyPrintAtom mkString ","}${rule.neg map prettyPrintAtom mkString(", not ", ", not ", "")}. "
 }
 
