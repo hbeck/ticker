@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core.Atom
-import core.asp.AspRule
+import core.asp.{AspFact, AspProgram, AspRule}
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
@@ -233,74 +233,74 @@ class AspAddRemove extends FunSuite {
     val tms = ExtendedJTMS()
     def m = tms.getModel.get
 
-    tms.add(Rule(a,Set(b,c),Set(d,e))) //1
-    tms.add(Rule(b,Set(f,g),Set(h,i))) //2
-    tms.add(Rule(c,Set(j,k))) //3
-    tms.add(Rule(c,none,Set(d,e))) //4
+    tms.add(AspRule(a,Set(b,c),Set(d,e))) //1
+    tms.add(AspRule(b,Set(f,g),Set(h,i))) //2
+    tms.add(AspRule(c,Set(j,k))) //3
+    tms.add(AspRule(c,none,Set(d,e))) //4
     assert(m == Set(c))
 
-    tms.add(Rule(d,Set(k,l),Set(n))) //5
-    tms.add(Rule(e,none,Set(b,c))) //6
+    tms.add(AspRule(d,Set(k,l),Set(n))) //5
+    tms.add(AspRule(e,none,Set(b,c))) //6
     assert(m == Set(c))
 
-    tms.remove(Rule(c,none,Set(d,e))) //7
+    tms.remove(AspRule(c,none,Set(d,e))) //7
     assert(m == Set(e))
 
-    tms.add(Rule(f,Set(e),Set(h))) //8
+    tms.add(AspRule(f,Set(e),Set(h))) //8
     assert(m == Set(e,f))
 
-    tms.add(Rule(g,Set(c),Set(i))) //9
+    tms.add(AspRule(g,Set(c),Set(i))) //9
     assert(m == Set(e,f))
 
-    tms.add(Rule(c,none,Set(d,e))) //10
+    tms.add(AspRule(c,none,Set(d,e))) //10
     assert(m == Set(e,f))
 
-    tms.remove(Rule(e,none,Set(b,c))) //11
+    tms.remove(AspRule(e,none,Set(b,c))) //11
     assert(m == Set(c,g))
 
-    tms.add(Rule(h,Set(c,g),Set(f))) //12
+    tms.add(AspRule(h,Set(c,g),Set(f))) //12
     assert(m == Set(c,g,h))
 
-    tms.add(Rule(a,Set(h),Set(e))) //13
+    tms.add(AspRule(a,Set(h),Set(e))) //13
     assert(m == Set(a,c,g,h))
 
-    tms.add(Rule(e,none,Set(b,c))) //14
+    tms.add(AspRule(e,none,Set(b,c))) //14
     assert(m == Set(a,c,g,h))
 
-    tms.remove(Rule(c,none,Set(d,e))) //15
+    tms.remove(AspRule(c,none,Set(d,e))) //15
     assert(m == Set(e,f))
 
-    tms.add(Rule(i,Set(e,f),Set(a))) //16
+    tms.add(AspRule(i,Set(e,f),Set(a))) //16
     assert(m == Set(e,f,i))
 
-    tms.add(Rule(a,Set(e,f),Set(i))) //17
+    tms.add(AspRule(a,Set(e,f),Set(i))) //17
     assert(m == Set(e,f,i))
 
-    tms.remove(Rule(i,Set(e,f),Set(a))) //18
+    tms.remove(AspRule(i,Set(e,f),Set(a))) //18
     assert(m == Set(e,f,a))
 
-    tms.add(Rule(c,none,Set(d,e))) //19
+    tms.add(AspRule(c,none,Set(d,e))) //19
     assert(m == Set(e,f,a))
 
-    tms.remove(Rule(e,none,Set(b,c))) //20
+    tms.remove(AspRule(e,none,Set(b,c))) //20
     assert(m == Set(c,g,h,a))
 
-    tms.add(Rule(j,Set(c,g),Set(a))) // 21
+    tms.add(AspRule(j,Set(c,g),Set(a))) // 21
     assert(m == Set(c,g,h,a))
 
-    tms.remove(Rule(a,Set(e,f),Set(i))) //22
+    tms.remove(AspRule(a,Set(e,f),Set(i))) //22
     assert(m == Set(a,c,g,h))
 
-    tms.add(Rule(b,none,Set(e))) //23
+    tms.add(AspRule(b,none,Set(e))) //23
     assert(m == Set(a,b,c,g,h))
 
-    tms.add(Rule(e,none,Set(b,c))) //24
+    tms.add(AspRule(e,none,Set(b,c))) //24
     assert(m == Set(a,b,c,g,h))
 
-    tms.remove(Rule(c,none,Set(d,e))) //25
+    tms.remove(AspRule(c,none,Set(d,e))) //25
     assert(m == Set(b) || m == Set(e,f)) //!
 
-    tms.remove(Rule(b,none,Set(e))) //26
+    tms.remove(AspRule(b,none,Set(e))) //26
     assert(m == Set(e,f))
 
   }
@@ -341,7 +341,7 @@ class AspAddRemove extends FunSuite {
     //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
     for (x <- C) {
       for (y <- C) {
-        val r = Rule(reach(x,y),Set(edge(x,y)),Set(blocked(x,y)))
+        val r = AspRule(reach(x,y),Set(edge(x,y)),Set(blocked(x,y)))
         tms.add(r)
         //println(r)
       }
@@ -350,7 +350,7 @@ class AspAddRemove extends FunSuite {
     for (x <- C) {
       for (y <- C) {
         for (z <- C) {
-          val r = Rule(reach(x,y),Set(reach(x,z),edge(z,y)),Set(blocked(z,y)))
+          val r = AspRule(reach(x,y),Set(reach(x,z),edge(z,y)),Set(blocked(z,y)))
           tms.add(r)
           //println(r)
         }
@@ -400,16 +400,16 @@ class AspAddRemove extends FunSuite {
        breaks with normal doyle implementation, even if fixOut uses options.
      */
 
-    val r1 = Rule(a, c)
-    val r2 = Rule(b, none, Set(a))
-    val r3 = Rule(c, a)
-    val r4a = Rule(d, b)
-    val r4b = Rule(d, c)
-    val r5 = Rule(e)
-    val r6 = Rule(f, Set(c, e))
-    val r0 = Fact(a)
+    val r1 = AspRule(a, c)
+    val r2 = AspRule(b, none, Set(a))
+    val r3 = AspRule(c, a)
+    val r4a = AspRule(d, b)
+    val r4b = AspRule(d, c)
+    val r5 = AspRule(e)
+    val r6 = AspRule(f, Set(c, e))
+    val r0 = AspFact(a)
 
-    val tms = ExtendedJTMS(Program(r1,r2,r3,r4a,r4b,r5,r6))
+    val tms = ExtendedJTMS(AspProgram(r1,r2,r3,r4a,r4b,r5,r6))
     def m = tms.getModel.get
 
     assert(m == Set(e,b,d))
@@ -426,21 +426,21 @@ class AspAddRemove extends FunSuite {
 
     //works with doyle if c and b are replaced (i.e., a :- b. b :- a. etc.)
 
-    val tms = ExtendedJTMS(Program(
-      Rule(a,c), //a :- c
-      Rule(c,a), //c :- a
-      Rule(b,none,Set(a)), //b :- not a
-      Rule(d,b), //d :- b
-      Rule(d,c))) //d :- c
+    val tms = ExtendedJTMS(AspProgram(
+      AspRule(a,c), //a :- c
+      AspRule(c,a), //c :- a
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(d,b), //d :- b
+      AspRule(d,c))) //d :- c
 
     def m = tms.getModel.get
 
     assert(m == Set(b,d))
 
-    tms.add(Rule(a))
+    tms.add(AspRule(a))
     assert(m == Set(a,c,d))
 
-    tms.remove(Rule(a))
+    tms.remove(AspRule(a))
     assert(m == Set(b,d))
   }
 
