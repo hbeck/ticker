@@ -26,7 +26,7 @@ case class ExtendedJTMS() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
   //
 
@@ -263,21 +263,18 @@ case class ExtendedJTMS() {
   def unregister(rule: Rule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filterNot (_ == rule)
-    rule.atoms foreach conditionalUnregister
-    conditionalConsRemove(rule)
-  }
-
-  //precondition: rule is already deleted from this.rules
-  def conditionalConsRemove(rule: Rule): Unit = {
-    for (a <- rule.body) {
-      if ((atoms contains a) &&
-        !(justifications(rule.head) exists (_.body contains a))) cons(a) -= rule.head //efficiency - better use data structure
+    //unregister deprecated atoms
+    val A = (rules flatMap (r => r.body + r.head)).toSet //atoms() based on cons keys which is not yet updated
+    for (a <- (rule.atoms diff A)) {
+      unregister(a)
     }
-  }
-
-  def conditionalUnregister(a: Atom): Unit = {
-    val A = (rules flatMap (r => r.body + r.head)).toSet
-    if (!(A contains a)) unregister(a)
+    //remove deprecated cons information
+    for (a <- (rule.body intersect A)) {
+      //efficiency - better use data structure
+      if (!(justifications(rule.head) exists (_.body contains a))) {
+        cons(a) -= rule.head
+      }
+    }
   }
 
   def unregister(a: Atom): Unit = {
