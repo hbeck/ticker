@@ -14,14 +14,14 @@ class AspSpec extends FlatSpec {
   val c = Atom("c")
 
   "An empty program" should "be executed and converted back to empty models" in {
-    val program = Program()
+    val program = AspProgram()
 
     val asp = Asp(program)
     assert(asp.isEmpty)
   }
 
   "A program containing only a premise A" should "be executed an converted to one single model containing A" in {
-    val program = Program(Fact(a))
+    val program = AspProgram(Fact(a))
 
     val asp = Asp(program)
 
@@ -30,7 +30,7 @@ class AspSpec extends FlatSpec {
   }
 
   "A program containing a premise and a rule" should "return only the premise" in {
-    val program = Program(Fact(a), Rule.pos(b).head(c))
+    val program = AspProgram(Fact(a), Rule.pos(b).head(c))
 
     val asp = Asp(program)
 
@@ -39,7 +39,7 @@ class AspSpec extends FlatSpec {
     assert(asp contains Set(a))
   }
   it should "return two nodes" in {
-    val program = Program(Fact(a), Rule.pos(a).head(b))
+    val program = AspProgram(Fact(a), Rule.pos(a).head(b))
 
     val asp = Asp(program)
 
@@ -61,7 +61,7 @@ class AspSpec extends FlatSpec {
     val bb: Atom = b("1")
     val cc: Atom = c("1", "2")
 
-    val program = Program(
+    val program = AspProgram(
       a :- bb,
       bb :- cc,
       cc

@@ -21,8 +21,8 @@ trait SingleHusbandBehavior {
   val r1 = Rule(single,Set(man),Set(husband)) //single :- man, not husband
   val r2 = Rule(husband,Set(man),Set(single)) //husband :- man, not single
 
-  val pSingleFirst = Program(r0, r1, r2)
-  val pHusbandFirst = Program(r0, r2, r1)
+  val pSingleFirst = AspProgram(r0, r1, r2)
+  val pHusbandFirst = AspProgram(r0, r2, r1)
 
   def singleHusband(evaluation: => Evaluation) {
 

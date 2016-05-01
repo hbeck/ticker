@@ -51,12 +51,12 @@ case class NegBuilderAtom(atom: Atom) extends BuilderItem
 object AspProgramBuilder {
   def rule(rule: Rule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): Program = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[Rule]]): AspProgram = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)
 
-    Program(rules.toList)
+    AspProgram(rules.toList)
   }
 }
 
@@ -65,5 +65,5 @@ class AspProgramBuilder(rules: Set[Rule]) {
 
   def rule(rule: Rule) = new AspProgramBuilder(rules + rule)
 
-  def toProgram = new Program(rules.toList)
+  def toProgram = new AspProgram(rules.toList)
 }

@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, Fact, Program, Rule}
+import core.{Atom, Fact, AspProgram, Rule}
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}
 import org.scalatest.FlatSpec
@@ -40,7 +40,7 @@ class Deletion extends FlatSpec {
     val r1 = Rule(a,Set(c))
     val r2 = Rule(a,Set(c, b))
 
-    val program = Program(r1, r2)
+    val program = AspProgram(r1, r2)
 
     val net = ExtendedJTMS(program)
 

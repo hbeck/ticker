@@ -56,13 +56,13 @@ class AspConversionSpecs extends FlatSpec {
   }
 
   "An empty program" should "return no AspExpressions" in {
-    val p = Program()
+    val p = AspProgram()
 
     assert(AspConversion(p).isEmpty)
   }
 
   "A program containing one rule" should "return one expression" in {
-    val p = Program(Fact(a))
+    val p = AspProgram(Fact(a))
 
     assert(AspConversion(p).size == 1)
   }

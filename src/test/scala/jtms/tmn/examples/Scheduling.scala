@@ -19,7 +19,7 @@ class Scheduling extends FlatSpec {
 
   val contradiction = ContradictionAtom("c")
 
-  val program = Program(
+  val program = AspProgram(
     Rule(Time1000, Set(), Set(NotTime1000)),
     //    Fact(NotTime1000),
     Rule(Room813, Set(), Set(Room801))

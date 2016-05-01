@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, Program, Rule}
+import core.{Atom, AspProgram, Rule}
 import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec
 
@@ -14,7 +14,7 @@ class TwoSelfSupportingNodes extends FlatSpec {
   val r1 = Rule.pos(a).head(b)
   val r2 = Rule.pos(b).head(a)
 
-  val program = Program(r1, r2)
+  val program = AspProgram(r1, r2)
 
   val net = ExtendedJTMS(program)
 

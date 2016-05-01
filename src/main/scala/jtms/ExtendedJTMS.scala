@@ -7,7 +7,7 @@ import scala.collection.mutable.{HashMap, Map, Set}
 
 object ExtendedJTMS {
 
-  def apply(P: Program): ExtendedJTMS = {
+  def apply(P: AspProgram): ExtendedJTMS = {
     val net = new ExtendedJTMS()
     P.rules foreach net.add
     net

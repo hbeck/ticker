@@ -31,7 +31,7 @@ class LibrarySimple extends FunSuite {
   val j8 = Rule.pos(H).head(A_not)
   val j9 = Rule.pos(A, A_not).head(Falsum)
 
-  val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
+  val program = AspProgram(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   test("1") {
     assert(ExtendedJTMS(program).getModel.get == Set(V, P, A))

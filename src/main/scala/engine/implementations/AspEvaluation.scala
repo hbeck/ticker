@@ -1,7 +1,7 @@
 package engine.implementations
 
 import asp.AspConversion
-import core.Program
+import core.AspProgram
 import engine.{Atom, Stream, Result, Time}
 
 import scala.concurrent.duration._
@@ -18,15 +18,15 @@ trait AspEvaluation {
 
 object AspEvaluation {
 
-  def pull(program: Program, evaluationMode: EvaluationMode = Direct) = {
+  def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPullEvaluation(buildTransformation(program, evaluationMode))
   }
 
-  def push(program: Program, evaluationMode: EvaluationMode = Direct) = {
+  def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPushEvaluation(buildTransformation(program, evaluationMode))
   }
 
-  def buildTransformation(program: Program, evaluationMode: EvaluationMode): AspEvaluation = {
+  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
     val transformation = StreamingAspTransformation(AspConversion(program))
 
     evaluationMode match {

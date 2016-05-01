@@ -19,14 +19,14 @@ class PQSRSample extends FlatSpec with EvaluateASPImplementations {
 
   val Falsum = new ContradictionAtom("n")
 
-  val programSFirst = Program(
+  val programSFirst = AspProgram(
     Rule(p, Set(q), Set(s)),
     Rule(r, Set(p), Set(q, s)),
     Rule(s, none, Set(q)), //s
     Rule(q, none, Set(s)) //q
   )
 
-  val programQFirst = Program(
+  val programQFirst = AspProgram(
     Rule(p, Set(q), Set(s)),
     Rule(r, Set(p), Set(q, s)),
     Rule(q, none, Set(s)), //q

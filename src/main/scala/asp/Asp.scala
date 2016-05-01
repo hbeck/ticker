@@ -8,7 +8,7 @@ import core._
   */
 
 object Asp {
-  def apply(program: Program): Set[Model] = {
+  def apply(program: AspProgram): Set[Model] = {
     val asp = new Asp(ClingoWrapper())
 
     asp(program)
@@ -40,7 +40,7 @@ object Asp {
 
 class Asp(val clingo: ClingoWrapper) extends Evaluation {
 
-  def apply(program: Program): Set[Model] = {
+  def apply(program: AspProgram): Set[Model] = {
     apply(AspConversion(program))
   }
 

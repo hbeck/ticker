@@ -26,7 +26,7 @@ class JTMSSpec extends FlatSpec {
   val j5 = Rule(e)
   val j6 = Rule(f, Set(c, e))
 
-  val program = Program(j1, j2, j3, j4a, j4b, j5, j6)
+  val program = AspProgram(j1, j2, j3, j4a, j4b, j5, j6)
 
 
   def JTMS = {

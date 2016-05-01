@@ -11,9 +11,9 @@ import scala.language.implicitConversions
 class InitialEmptyTMN extends FlatSpec {
 
   val assumptionA = Fact(Atom("A"))
-  val program = Program(assumptionA)
+  val program = AspProgram(assumptionA)
 
-  val EmptyTMN = JTMNRefactored(Program())
+  val EmptyTMN = JTMNRefactored(AspProgram())
 
   val tmn = {
     JTMNRefactored(program)

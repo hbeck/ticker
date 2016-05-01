@@ -1,7 +1,7 @@
 package engine.examples
 
 import asp.{AspConversion, AspExpression}
-import core.{Atom, Program, not}
+import core.{Atom, AspProgram, not}
 import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, AspPushEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
@@ -30,7 +30,7 @@ class YWindowDiamondASample extends FlatSpec {
 
   val now = StreamingAspTransformation.now
 
-  val program = Program(
+  val program = AspProgram(
     y("T") :- w1d_a("T"),
     w1d_a("T") :- a("U") and now("T") and u("U")
   )

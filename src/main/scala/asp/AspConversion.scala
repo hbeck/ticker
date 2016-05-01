@@ -7,7 +7,7 @@ import core._
   */
 object AspConversion {
 
-  def apply(program: Program): AspExpressionProgram = {
+  def apply(program: AspProgram): AspExpressionProgram = {
     program.rules.map(apply).toSet
   }
 

@@ -1,6 +1,6 @@
 package engine
 
-import core.{Atom, Program, AspProgramBuilder, not}
+import core.{Atom, AspProgram, AspProgramBuilder, not}
 import engine.implementations.AspEvaluation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -16,7 +16,7 @@ class EngineSpec extends FlatSpec {
   val c = Atom("c")
   val d = Atom("d")
 
-  val program = Program(
+  val program = AspProgram(
     a :- b,
     b :- c and not(d)
   )

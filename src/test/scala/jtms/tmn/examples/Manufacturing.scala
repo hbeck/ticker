@@ -22,7 +22,7 @@ trait ManufacturingBehavior {
   val j2 = Rule.pos(L1).head(B)
   val j3 = Rule.fact(C)
 
-  val program = Program(j0, j1, j2, j3)
+  val program = AspProgram(j0, j1, j2, j3)
 
   def manufacturing(evaluation: Evaluation) = {
     it should "use resource A1" in {

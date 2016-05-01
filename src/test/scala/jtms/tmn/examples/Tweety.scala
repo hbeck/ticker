@@ -25,7 +25,7 @@ trait TweetyBehavior {
 
   val j5 = Fact(P)
 
-  val program = Program(j0, j1, j2, j3, j4)
+  val program = AspProgram(j0, j1, j2, j3, j4)
 
   def tweety(evaluation: Evaluation) = {
     it should "contain only V and F" in {

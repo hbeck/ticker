@@ -1,6 +1,6 @@
 package jtms.evaluation
 
-import core.{Evaluation, Program}
+import core.{Evaluation, AspProgram}
 import jtms.ExtendedJTMS
 
 /**
@@ -8,7 +8,7 @@ import jtms.ExtendedJTMS
   */
 class ExtendedJTMSEvaluation extends Evaluation {
 
-  def apply(program: Program) = {
+  def apply(program: AspProgram) = {
     val tmn = ExtendedJTMS(program)
 
     val singleModel = tmn.getModel.get

@@ -20,7 +20,7 @@ trait MultipleModelsBehavior {
 
     it should "be B" in {
       info("When adding j1 before j2 the valid model")
-      val model = evaluation(Program(j1, j2))
+      val model = evaluation(AspProgram(j1, j2))
 
       if (evaluation.isInstanceOf[Asp])
         assert(model == Set(Set(b), Set(a)))
@@ -32,7 +32,7 @@ trait MultipleModelsBehavior {
 
     it should "be A" in {
       info("When adding j2 before j1 the valid model")
-      val model = evaluation(Program(j2, j1))
+      val model = evaluation(AspProgram(j2, j1))
       if (evaluation.isInstanceOf[Asp])
         assert(model == Set(Set(b), Set(a)))
       else {

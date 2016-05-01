@@ -1,6 +1,6 @@
 package jtms.tmn.founding
 
-import core.{Program, Rule, Atom}
+import core.{AspProgram, Rule, Atom}
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
@@ -14,7 +14,7 @@ class TwoNegationNodes extends FlatSpec {
   val r1 = Rule.neg(a).head(b)
   val r2 = Rule.neg(b).head(a)
 
-  val program = Program(r1, r2)
+  val program = AspProgram(r1, r2)
 
   def tmn = JTMNRefactored(program)
 

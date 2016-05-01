@@ -29,7 +29,7 @@ trait CarBehavior {
   val notEnoughGas = Fact(G_not)
   val brokenIgnition = Fact(C)
 
-  val program = Program(j0, j1, j2, j3, j4)
+  val program = AspProgram(j0, j1, j2, j3, j4)
 
   def theCar(evaluation: Evaluation): Unit = {
     it should "not result in a defect" in {

@@ -38,7 +38,7 @@ trait LibraryBehavior {
 
   val jExclusionA: Rule = Rule.pos(A).head(Falsum)
 
-  val program = Program(j1, j2, j3, j4, j5, j6, j7, j8, j9)
+  val program = AspProgram(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   def library(evaluation: Evaluation) = {
     it should "be V, P, A" in {

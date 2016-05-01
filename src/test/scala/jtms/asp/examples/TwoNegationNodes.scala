@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, Program, Rule}
+import core.{Atom, AspProgram, Rule}
 import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec
 
@@ -14,7 +14,7 @@ class TwoNegationNodes extends FlatSpec {
   val r1 = Rule.neg(a).head(b)
   val r2 = Rule.neg(b).head(a)
 
-  val program = Program(r1, r2)
+  val program = AspProgram(r1, r2)
 
   def net = ExtendedJTMS(program)
 
