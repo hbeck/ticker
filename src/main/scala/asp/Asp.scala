@@ -1,6 +1,5 @@
 package asp
 
-import core.EvaluationResult.Model
 import core._
 
 /**

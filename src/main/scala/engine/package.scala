@@ -13,7 +13,6 @@ package object engine {
   case class StreamEntry(time: Time, atoms: Set[Atom])
 
   type Stream = Set[StreamEntry]
-
 }
 
 

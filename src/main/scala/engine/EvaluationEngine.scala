@@ -1,6 +1,6 @@
 package engine
 
-import core.Atom
+import core.{Atom, Model}
 
 
 /**
@@ -14,5 +14,5 @@ trait EvaluationEngine {
 }
 
 trait Result {
-  def get: Option[Set[Atom]]
+  def get: Option[Model]
 }
