@@ -1,5 +1,5 @@
 import core.{Atom, Rule, not}
-import core.lars.{TemporalOperator, WinOp, WindowFunction, WindowSize}
+import core.lars._
 import engine.{Stream, Time}
 
 def SlidingTimeWindowFunction(windowSize: WindowSize)(stream: Stream, time: Time): Stream = {
@@ -16,47 +16,47 @@ case class SlidingTimeWindow(windowSize: WindowSize) extends WindowFunction {
 //  true
 //}
 
-object Diamond extends TemporalOperator {
-  def apply(stream: Stream, atom: Atom): Boolean = {
-    stream exists (_.atoms.contains(atom))
-  }
-}
-
-object Box extends TemporalOperator {
-  override def apply(stream: Stream, atom: Atom): Boolean = {
-    stream forall (_.atoms.contains(atom))
-  }
-}
-
-case class At(time: Time) extends TemporalOperator {
-  override def apply(stream: Stream, atom: Atom): Boolean = {
-    stream filter (_.time == time) exists (_.atoms.contains(atom))
-  }
-}
+//object Diamond extends TemporalOperator {
+//  def apply(stream: Stream, atom: Atom): Boolean = {
+//    stream exists (_.atoms.contains(atom))
+//  }
+//}
+//
+//object Box extends TemporalOperator {
+//  override def apply(stream: Stream, atom: Atom): Boolean = {
+//    stream forall (_.atoms.contains(atom))
+//  }
+//}
+//
+//case class At(time: Time) extends TemporalOperator {
+//  override def apply(stream: Stream, atom: Atom): Boolean = {
+//    stream filter (_.time == time) exists (_.atoms.contains(atom))
+//  }
+//}
 
 
 val a = Atom("a")
 val b = Atom("b")
 val c = Atom("c")
 
-val op: WinOp = WinOp(SlidingTimeWindow(3), Diamond, a)
+val op: WindowAtom = WindowAtom(SlidingTimeWindow(3), Diamond, a)
 
-def prettyPrintWindow(operator: WinOp) = operator match {
-  case WinOp(SlidingTimeWindow(windowSize), Diamond, atom) => f"⊞^$windowSize ☐ $atom"
-  case WinOp(SlidingTimeWindow(windowSize), Box, atom) => f"⊞^$windowSize ◇ $atom"
-  case WinOp(SlidingTimeWindow(windowSize), At(time), atom) => f"⊞^$windowSize @_$time $atom"
+def prettyPrintWindow(operator: WindowAtom) = operator match {
+  case WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom) => f"⊞^$windowSize ☐ $atom"
+  case WindowAtom(SlidingTimeWindow(windowSize), Box, atom) => f"⊞^$windowSize ◇ $atom"
+  case WindowAtom(SlidingTimeWindow(windowSize), At(time), atom) => f"⊞^$windowSize @_$time $atom"
 }
 
 prettyPrintWindow(op)
 
 def prettyPrintAtom(atom: Atom): String = atom match {
-  case w: WinOp => prettyPrintWindow(w)
+  case w: WindowAtom => prettyPrintWindow(w)
   case a: Atom => a.toString
 }
 
 
-val r = c :- WinOp(SlidingTimeWindow(3), Diamond, a) and not(b)
-val r2 = c :- WinOp(SlidingTimeWindow(5), Box, b) and not(WinOp(SlidingTimeWindow(3), Diamond, a)) and not(WinOp(SlidingTimeWindow(1),At(Time(3)),a))
+val r = c :- WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
+val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1),At(Time(3)),a))
 
 r.body map prettyPrintAtom foreach println
 

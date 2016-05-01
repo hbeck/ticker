@@ -1,8 +1,12 @@
 package core
 
+import core.lars.WindowAtom
+
 object Fact {
   def apply(head: Atom) = Rule.fact(head)
 }
+
+
 
 object Rule {
   def pos(atoms: Atom*) = new RuleBuilder(atoms.toSet)
@@ -19,6 +23,7 @@ object Rule {
 }
 
 sealed trait Rule {
+
   val pos: Set[Atom]
   val neg: Set[Atom]
   val head: Atom

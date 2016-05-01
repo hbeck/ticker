@@ -12,6 +12,4 @@ package object lars {
   type WindowFunction = (Stream, Time) => Stream
 
 
-  // TODO: what's the signature of TempOp?
-  type TemporalOperator = (Stream, Atom) => Boolean //extends ()
 }
