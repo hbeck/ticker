@@ -1,4 +1,4 @@
-package asp
+package clingo
 
 import clingo.{ClingoAtom, ClingoProgram}
 import core._

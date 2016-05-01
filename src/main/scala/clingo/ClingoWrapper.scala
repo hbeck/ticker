@@ -1,9 +1,7 @@
-package asp
+package clingo
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
-
-import clingo.{ClingoModel, ClingoProgram}
 
 import scala.sys.process._
 

@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import asp.ClingoEvaluation
+import clingo.ClingoEvaluation
 import core._
 import org.scalatest.FlatSpec
 

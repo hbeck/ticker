@@ -1,4 +1,4 @@
-package asp
+package clingo
 
 import core._
 import jtms.asp.examples.SingleHusbandSample

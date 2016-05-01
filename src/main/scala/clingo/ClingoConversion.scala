@@ -1,6 +1,5 @@
-package asp
+package clingo
 
-import clingo.{ClingoAtom, ClingoExpression, ClingoProgram}
 import core._
 
 /**
@@ -14,7 +13,7 @@ object ClingoConversion {
 
   def apply(rule: AspRule): ClingoExpression = {
     if (rule.body.isEmpty) {
-      return apply(rule.head) + '.'
+      apply(rule.head) + '.'
     } else {
       val iParts = rule.pos.map(apply)
       val oParts = rule.neg.map(apply).map("not " + _)

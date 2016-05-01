@@ -1,6 +1,6 @@
 package engine.implementations
 
-import asp.ClingoConversion
+import clingo.ClingoConversion
 import core.AspProgram
 import engine.{Stream, Result, Time}
 

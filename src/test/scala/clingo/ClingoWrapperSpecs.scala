@@ -1,4 +1,4 @@
-package asp
+package clingo
 
 import org.scalatest.FlatSpec
 
