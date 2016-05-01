@@ -45,13 +45,13 @@ case class ExtendedJTMS() {
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
-  def atoms() = cons.keySet
+  def allAtoms() = cons.keySet
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
-  def inAtoms() = status.keys filter (status(_) == in)
+  def inAtoms() = allAtoms filter (status(_) == in)
 
-  def unknownAtoms() = status.keys filter (status(_) == unknown)
+  def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
   def aff(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
@@ -119,17 +119,17 @@ case class ExtendedJTMS() {
   def updateStepwise(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown
     while (hasUnknown) {
-      unknownAtomsList foreach determineAndPropagateStatus
-      val atom = unknownAtomsList.headOption
+      unknownAtoms foreach determineAndPropagateStatus
+      val atom = unknownAtoms.headOption
       if (atom.isDefined) {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
     }
   }
 
-  def hasUnknown = atoms exists (status(_) == unknown)
+  def hasUnknown = allAtoms exists (status(_) == unknown)
 
-  def unknownAtomsList = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
+  //def unknownAtomsList = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
 
   def setIn(rule: Rule) = {
     status(rule.head) = in
@@ -205,8 +205,7 @@ case class ExtendedJTMS() {
     if (fix(a)) {
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
-      val affected = aff(a) + a
-      affected foreach setUnknown
+      aff(a) foreach setUnknown
     }
   }
 
@@ -252,7 +251,7 @@ case class ExtendedJTMS() {
 
   def remove(rule: Rule): Unit = {
     unregister(rule)
-    if (!(atoms contains rule.head)) return
+    if (!(allAtoms contains rule.head)) return
     if (status(rule.head) == out) return
     if (suppRule(rule.head).get != rule) return
     //val ats = repercussions(rule.head) + rule.head
@@ -263,13 +262,13 @@ case class ExtendedJTMS() {
   def unregister(rule: Rule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filterNot (_ == rule)
-    //unregister deprecated atoms
+    //unregister deprecated rule atoms
     val A = (rules flatMap (r => r.body + r.head)).toSet //atoms() based on cons keys which is not yet updated
     for (a <- (rule.atoms diff A)) {
       unregister(a)
     }
     //remove deprecated cons information
-    for (a <- (rule.body intersect A)) {
+    for (a <- (rule.body intersect A)) { //body atoms still in use
       //efficiency - better use data structure
       if (!(justifications(rule.head) exists (_.body contains a))) {
         cons(a) -= rule.head
@@ -296,13 +295,13 @@ case class ExtendedJTMS() {
       }
       setIn(rule.get)
     }
-    for (n <- atoms diff M) {
+    for (n <- allAtoms diff M) {
       setOut(n)
     }
     true
   }
 
-  def isFounded(atoms:scala.collection.immutable.Set[Atom])={
+  def isFounded(atoms: scala.collection.immutable.Set[Atom])={
     false
   }
 

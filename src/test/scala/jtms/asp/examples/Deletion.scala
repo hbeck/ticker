@@ -26,7 +26,7 @@ class Deletion extends FlatSpec {
 
     net.remove(Rule(a))
 
-    assert(net.atoms.isEmpty)
+    assert(net.allAtoms.isEmpty)
     assert(net.status.isEmpty)
 
     assert(net.rules.isEmpty)
@@ -74,7 +74,7 @@ class Deletion extends FlatSpec {
     assert(net.suppRule(a) == None)
     assert(net.suppRule(b) == None)
     assert(net.cons(a) == Set(b))
-    assert(net.atoms == Set(a, b))
+    assert(net.allAtoms == Set(a, b))
     assert(net.status.keys == Set(a, b))
   }
 
@@ -101,7 +101,7 @@ class Deletion extends FlatSpec {
     assert(net.suppRule(a) == Some(r2))
     assert(net.cons(a) == Set())
 
-    assert(net.atoms == Set(a))
+    assert(net.allAtoms == Set(a))
     assert(net.status.keys == Set(a))
   }
 
@@ -127,7 +127,7 @@ class Deletion extends FlatSpec {
     assert(net.cons(a) == Set())
     assert(net.suppRule(c) == None)
 
-    assert(net.atoms== Set(a, b, c))
+    assert(net.allAtoms== Set(a, b, c))
     assert(net.status.keys == Set(a, b, c))
   }
 
