@@ -1,4 +1,4 @@
-package core
+package core.asp
 
 /**
   * Created by FM on 25.02.16.

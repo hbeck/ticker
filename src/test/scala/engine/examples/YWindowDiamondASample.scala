@@ -1,6 +1,7 @@
 package engine.examples
 
-import core.{Atom, AspProgram, not}
+import core.asp.AspProgram
+import core.Atom
 import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, AspPushEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec

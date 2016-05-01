@@ -1,5 +1,6 @@
 package core
 
+import core.asp.{AspFact, AspRule, BuilderHead}
 import core.lars.Formula
 
 /**

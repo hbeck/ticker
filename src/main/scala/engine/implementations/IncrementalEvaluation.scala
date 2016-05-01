@@ -1,6 +1,7 @@
 package engine.implementations
 
-import core.{Atom, AspFact, AspProgram}
+import core.asp.{AspFact, AspProgram}
+import core.Atom
 import engine.{Result, _}
 import jtms.ExtendedJTMS
 

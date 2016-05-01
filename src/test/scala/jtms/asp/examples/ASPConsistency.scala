@@ -1,6 +1,7 @@
 package jtms.asp.examples
 
-import core.{Atom, ContradictionAtom, AspRule}
+import core.asp.AspRule
+import core.{Atom, ContradictionAtom}
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 

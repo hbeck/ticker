@@ -1,6 +1,7 @@
 package jtms.tmn.founding
 
-import core.{AspProgram, AspRule, Atom}
+import core.asp.{AspProgram, AspRule}
+import core.Atom
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 

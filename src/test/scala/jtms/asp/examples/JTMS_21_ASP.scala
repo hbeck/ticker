@@ -1,6 +1,7 @@
 package jtms.asp.examples
 
 import core._
+import core.asp.AspRule
 import org.scalatest.FlatSpec
 
 /**

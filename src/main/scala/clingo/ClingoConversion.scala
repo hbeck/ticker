@@ -1,6 +1,7 @@
 package clingo
 
 import core._
+import core.asp.{AspProgram, AspRule}
 
 /**
   * Created by FM on 22.02.16.

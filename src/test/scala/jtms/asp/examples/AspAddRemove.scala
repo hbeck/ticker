@@ -1,6 +1,7 @@
 package jtms.asp.examples
 
-import core.{AspRule, Atom}
+import core.Atom
+import core.asp.AspRule
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 

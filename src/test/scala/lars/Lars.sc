@@ -1,4 +1,4 @@
-import core.{Atom, AspRule, not}
+import core.Atom
 import core.lars._
 import engine.{Stream, Time}
 

@@ -1,6 +1,7 @@
 package engine.examples
 
-import core.{Atom, AspProgram, not}
+import core.asp.AspProgram
+import core.{Atom, asp}
 import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
@@ -35,8 +36,8 @@ class XWindowBoxASample extends FlatSpec {
 
   val program = AspProgram(
     x("T") :- w1b_a("T"),
-    w1b_a("T") :- now("T") and not(spoil_w1b_a("T")),
-    spoil_w1b_a("T") :- now("T") and u("U") and not(a("U"))
+    w1b_a("T") :- now("T") and asp.not(spoil_w1b_a("T")),
+    spoil_w1b_a("T") :- now("T") and u("U") and asp.not(a("U"))
   )
 
 

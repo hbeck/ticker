@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
 import core._
+import core.asp.{AspProgram, AspRule}
 import jtms._
 import org.scalatest.FlatSpec
 

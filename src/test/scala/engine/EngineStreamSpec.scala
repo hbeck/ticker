@@ -1,6 +1,7 @@
 package engine
 
-import core.{Atom, AspProgram, not}
+import core.asp.AspProgram
+import core.{Atom, asp}
 import engine.implementations.{AspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -18,7 +19,7 @@ class EngineStreamSpec extends FlatSpec {
 
   val program = AspProgram(
     a :- b,
-    b :- c and not(d)
+    b :- c and asp.not(d)
   )
 
   val t1 = At.second(1)

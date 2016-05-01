@@ -2,6 +2,7 @@ package jtms.asp.examples
 
 import clingo.ClingoEvaluation
 import core._
+import core.asp.{AspFact, AspProgram, AspRule}
 import jtms.evaluation.ExtendedJTMSEvaluation
 import org.scalatest.FlatSpec
 

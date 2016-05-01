@@ -2,6 +2,7 @@ package jtms.tmn.examples
 
 import clingo.ClingoEvaluation
 import core._
+import core.asp.{AspFact, AspProgram, AspRule}
 import jtms._
 import jtms.asp.examples.EvaluateJTMNImplementations
 import jtms.tmn.AtomValidation

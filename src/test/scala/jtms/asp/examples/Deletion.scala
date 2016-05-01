@@ -1,6 +1,7 @@
 package jtms.asp.examples
 
-import core.{Atom, AspFact, AspProgram, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule}
+import core.Atom
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}
 import org.scalatest.FlatSpec

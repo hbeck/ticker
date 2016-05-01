@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
-import core.{AspRule, ContradictionAtom}
+import core.ContradictionAtom
+import core.asp.AspRule
 
 /**
   * Created by FM on 11.02.16.

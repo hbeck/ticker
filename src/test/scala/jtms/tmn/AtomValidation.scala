@@ -1,8 +1,9 @@
 package jtms.tmn
 
-import core.{AspRule, Atom}
-import jtms.{Status, JTMNRefactored}
-import org.scalatest.{GivenWhenThen, FlatSpec}
+import core.Atom
+import core.asp.AspRule
+import jtms.{JTMNRefactored, Status}
+import org.scalatest.{FlatSpec, GivenWhenThen}
 
 /**
   * Created by FM on 11.02.16.

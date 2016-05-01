@@ -1,6 +1,7 @@
 package clingo
 
 import core._
+import core.asp.{AspFact, AspProgram, AspRule}
 import org.scalatest.FlatSpec
 
 /**

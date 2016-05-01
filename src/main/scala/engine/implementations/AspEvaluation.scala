@@ -1,8 +1,8 @@
 package engine.implementations
 
 import clingo.ClingoConversion
-import core.AspProgram
-import engine.{Stream, Result, Time}
+import core.asp.AspProgram
+import engine.{Result, Stream, Time}
 
 import scala.concurrent.duration._
 

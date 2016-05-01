@@ -1,4 +1,6 @@
-package core
+package core.asp
+
+import core.Atom
 
 object AspFact {
   def apply(head: Atom) = AspRule.fact(head)

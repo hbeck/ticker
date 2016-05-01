@@ -1,6 +1,7 @@
 package engine
 
-import core.{Atom, AspProgram, AspProgramBuilder, not}
+import core.asp.{AspProgram, AspProgramBuilder}
+import core.{Atom, asp}
 import engine.implementations.AspEvaluation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -18,13 +19,13 @@ class EngineSpec extends FlatSpec {
 
   val program = AspProgram(
     a :- b,
-    b :- c and not(d)
+    b :- c and asp.not(d)
   )
   // TODO: figure out how to correctly name the atoms in the builder
   val programWithBuilder = AspProgramBuilder({
     case a #:: b #:: c #:: d #:: atoms => Set(
       a :- b,
-      b :- c and not(d)
+      b :- c and asp.not(d)
     )
   })
 

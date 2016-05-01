@@ -1,6 +1,7 @@
 package jtms
 
 import core._
+import core.asp.{AspProgram, AspRule, AspRuleFromBacktracking}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}

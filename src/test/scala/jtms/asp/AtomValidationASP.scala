@@ -1,6 +1,7 @@
 package jtms.asp
 
-import core.{Atom, AspRule}
+import core.Atom
+import core.asp.AspRule
 import jtms.{ExtendedJTMS, Status}
 import org.scalatest.FlatSpec
 

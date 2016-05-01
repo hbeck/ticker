@@ -1,4 +1,6 @@
-package core
+package core.asp
+
+import core.Atom
 
 import scala.language.implicitConversions
 

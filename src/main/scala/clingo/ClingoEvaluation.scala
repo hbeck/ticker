@@ -1,7 +1,8 @@
 package clingo
 
-import clingo.{ClingoAtom, ClingoProgram}
+
 import core._
+import core.asp.AspProgram
 
 /**
   * Created by FM on 25.02.16.

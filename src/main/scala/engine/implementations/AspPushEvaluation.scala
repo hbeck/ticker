@@ -1,6 +1,6 @@
 package engine.implementations
 
-import core.{AspFact, AspProgram, Atom}
+import core.Atom
 import engine._
 
 /**

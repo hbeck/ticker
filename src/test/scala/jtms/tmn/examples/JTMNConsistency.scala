@@ -1,6 +1,7 @@
 package jtms.tmn.examples
 
-import core.{Atom, ContradictionAtom, AspRule}
+import core.asp.AspRule
+import core.{Atom, ContradictionAtom}
 import jtms.JTMNRefactored
 import org.scalatest.FunSuite
 

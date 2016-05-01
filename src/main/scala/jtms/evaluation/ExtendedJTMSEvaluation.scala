@@ -1,6 +1,7 @@
 package jtms.evaluation
 
-import core.{Evaluation, AspProgram}
+import core.Evaluation
+import core.asp.AspProgram
 import jtms.ExtendedJTMS
 
 /**

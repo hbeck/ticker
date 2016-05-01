@@ -1,7 +1,8 @@
 package jtms.asp.examples
 
 import common.sets.symmdiff
-import core.{Atom, AspFact}
+import core.Atom
+import core.asp.AspFact
 
 /**
   * Created by FM on 06.02.16.

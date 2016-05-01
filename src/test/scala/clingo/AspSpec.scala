@@ -1,8 +1,9 @@
 package clingo
 
 import core._
+import core.asp.{AspFact, AspProgram, AspRule}
 import jtms.asp.examples.SingleHusbandSample
-import org.scalatest.{FlatSpec}
+import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 25.02.16.

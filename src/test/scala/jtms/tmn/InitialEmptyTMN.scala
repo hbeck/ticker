@@ -1,8 +1,10 @@
 package jtms.tmn
 
 import core._
+import core.asp.{AspFact, AspProgram}
 import jtms.{JTMNRefactored, in}
-import org.scalatest.{FlatSpec, BeforeAndAfter}
+import org.scalatest.{BeforeAndAfter, FlatSpec}
+
 import scala.language.implicitConversions
 
 /**

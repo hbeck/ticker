@@ -1,6 +1,7 @@
 package jtms.tmn
 
-import core.{AspFact, AspRule, UserDefinedAtom, Atom}
+import core.asp.{AspFact, AspRule}
+import core.{ Atom, UserDefinedAtom}
 import jtms._
 import org.scalatest.FlatSpec
 
