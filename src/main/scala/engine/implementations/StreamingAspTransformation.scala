@@ -1,6 +1,7 @@
 package engine.implementations
 
 import asp._
+import clingo.{ClingoExpression, ClingoProgram}
 import core.{AspFact, Atom, AtomWithArguments}
 import engine.{Result, Stream, Time}
 

@@ -1,6 +1,5 @@
 package engine.examples
 
-import asp.ClingoExpression
 import core.Atom
 import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}

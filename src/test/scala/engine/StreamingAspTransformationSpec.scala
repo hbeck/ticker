@@ -1,6 +1,5 @@
 package engine
 
-import asp.ClingoExpression
 import core.Atom
 import engine.implementations.StreamingAspTransformation
 import org.scalatest.FlatSpec

@@ -1,5 +1,6 @@
 package asp
 
+import clingo.{ClingoAtom, ClingoExpression, ClingoProgram}
 import core._
 
 /**
@@ -26,7 +27,7 @@ object ClingoConversion {
     }
   }
 
-  def apply(atom: Atom): String = {
+  def apply(atom: Atom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case UserDefinedAtom(caption) => (caption, "")

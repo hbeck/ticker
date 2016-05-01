@@ -1,6 +1,6 @@
 package asp
 
-import asp.ClingoWrapper.ClingoAtom
+import clingo.{ClingoAtom, ClingoProgram}
 import core._
 
 /**

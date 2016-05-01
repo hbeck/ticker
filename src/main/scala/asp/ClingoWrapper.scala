@@ -3,15 +3,13 @@ package asp
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
-import asp.ClingoWrapper.ClingoModel
+import clingo.{ClingoModel, ClingoProgram}
 
 import scala.sys.process._
 
 
 object ClingoWrapper {
 
-  type ClingoAtom = String
-  type ClingoModel = Set[ClingoAtom]
 
   def parseVersion(versionString: String) = {
     val regex = """^clingo version (\d\.\d\.\d)""".r("version")
