@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import asp.Asp
+import asp.ClingoEvaluation
 import core._
 import jtms.JTMNRefactored
 import jtms.asp.examples.EvaluateJTMNImplementations

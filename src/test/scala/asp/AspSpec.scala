@@ -16,14 +16,14 @@ class AspSpec extends FlatSpec {
   "An empty program" should "be executed and converted back to empty models" in {
     val program = AspProgram()
 
-    val asp = Asp(program)
+    val asp = ClingoEvaluation(program)
     assert(asp.isEmpty)
   }
 
   "A program containing only a premise A" should "be executed an converted to one single model containing A" in {
     val program = AspProgram(AspFact(a))
 
-    val asp = Asp(program)
+    val asp = ClingoEvaluation(program)
 
     assert(asp.nonEmpty)
     assert(asp contains Set(a))
@@ -32,7 +32,7 @@ class AspSpec extends FlatSpec {
   "A program containing a premise and a rule" should "return only the premise" in {
     val program = AspProgram(AspFact(a), AspRule.pos(b).head(c))
 
-    val asp = Asp(program)
+    val asp = ClingoEvaluation(program)
 
     assert(asp.nonEmpty)
     assert(asp.size == 1)
@@ -41,7 +41,7 @@ class AspSpec extends FlatSpec {
   it should "return two nodes" in {
     val program = AspProgram(AspFact(a), AspRule.pos(a).head(b))
 
-    val asp = Asp(program)
+    val asp = ClingoEvaluation(program)
 
     assert(asp.nonEmpty)
     assert(asp.size == 1)
@@ -50,7 +50,7 @@ class AspSpec extends FlatSpec {
 
   "A program with two models" can "be executed and converted back into both models" in {
     val example = new SingleHusbandSample()
-    val asp = Asp(example.pHusbandFirst)
+    val asp = ClingoEvaluation(example.pHusbandFirst)
 
     assert(asp.size == 2)
     assert(asp contains Set(example.man, example.husband))
@@ -67,7 +67,7 @@ class AspSpec extends FlatSpec {
       cc
     )
 
-    val asp = Asp(program)
+    val asp = ClingoEvaluation(program)
 
     assert(asp.head.size == 3)
     assert(asp.head == Set(cc, bb, a))
@@ -76,6 +76,6 @@ class AspSpec extends FlatSpec {
   "Models with arity" should "be parsed into AtomsWithArguments" in {
     val cc: Atom = c("a", "b")
 
-    assert(AtomWithArguments(c, List("a", "b")) == Asp.convert("c(a,b)"))
+    assert(AtomWithArguments(c, List("a", "b")) == ClingoEvaluation.convert("c(a,b)"))
   }
 }

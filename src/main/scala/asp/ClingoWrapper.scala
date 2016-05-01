@@ -3,14 +3,15 @@ package asp
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
-import asp.ClingoWrapper.AspModel
+import asp.ClingoWrapper.ClingoModel
 
 import scala.sys.process._
 
 
 object ClingoWrapper {
 
-  type AspModel = Set[String]
+  type ClingoAtom = String
+  type ClingoModel = Set[ClingoAtom]
 
   def parseVersion(versionString: String) = {
     val regex = """^clingo version (\d\.\d\.\d)""".r("version")
@@ -36,7 +37,7 @@ object ClingoWrapper {
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
 
-  def run(expressions: AspExpressionProgram): String = run(expressions.mkString(System.lineSeparator))
+  def run(expressions: ClingoProgram): String = run(expressions.mkString(System.lineSeparator))
 
   def run(program: String): String = {
 
@@ -66,7 +67,7 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
     //    output.toString()
   }
 
-  def parseResult(result: String): Option[Set[AspModel]] = {
+  def parseResult(result: String): Option[Set[ClingoModel]] = {
 
     if (result.endsWith("SATISFIABLE")) {
       val lines = result.linesWithSeparators

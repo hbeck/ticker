@@ -1,6 +1,6 @@
 package engine
 
-import asp.AspExpression
+import asp.ClingoExpression
 import core.Atom
 import engine.implementations.StreamingAspTransformation
 import org.scalatest.FlatSpec
@@ -18,7 +18,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
   val a = Atom("a")
 
   "No atom and only time t1" should "be translated into the fact 'now(1000)'" in {
-    assert(StreamingAspTransformation.transform(t1, Set()) == Set(AspExpression("now(1000).")))
+    assert(StreamingAspTransformation.transform(t1, Set()) == Set(ClingoExpression("now(1000).")))
   }
 
   it should "be empty with transformAtoms" in {
@@ -29,17 +29,17 @@ class StreamingAspTransformationSpec extends FlatSpec {
   }
 
   "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
-    assertResult(Set(AspExpression("now(2000)."), AspExpression("a(2000)."), AspExpression("a."))) {
+    assertResult(Set(ClingoExpression("now(2000)."), ClingoExpression("a(2000)."), ClingoExpression("a."))) {
       StreamingAspTransformation.transform(t2, Set(StreamEntry(t2, Set(a))))
     }
   }
   it should "be translated into the facts 'a(2000).'" in {
-    assertResult(Set(AspExpression("a(2000)."))) {
+    assertResult(Set(ClingoExpression("a(2000)."))) {
       StreamingAspTransformation.transformAtoms(t2, Set(a))
     }
   }
   it should "be translated into the facts 'a(2000)." in {
-    assertResult(Set(AspExpression("a(2000)."))) {
+    assertResult(Set(ClingoExpression("a(2000)."))) {
       StreamingAspTransformation.transform(Set(StreamEntry(t2, Set(a))))
     }
   }
@@ -48,7 +48,7 @@ class StreamingAspTransformationSpec extends FlatSpec {
   "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000). b." in {
     val b = Atom("b").apply("1")
 
-    assertResult(Set(AspExpression("now(3000)."), AspExpression("a(3000)."), AspExpression("a."), AspExpression("b(1,3000)."), AspExpression("b(1)."))) {
+    assertResult(Set(ClingoExpression("now(3000)."), ClingoExpression("a(3000)."), ClingoExpression("a."), ClingoExpression("b(1,3000)."), ClingoExpression("b(1)."))) {
       StreamingAspTransformation.transform(t3, Set(StreamEntry(t3, Set(a, b))))
     }
   }
@@ -62,19 +62,19 @@ class StreamingAspTransformationSpec extends FlatSpec {
     pendingUntilFixed {
       intercept[IllegalArgumentException] {
         //TODO: discuss what's correct
-        StreamingAspTransformation(Set(AspExpression("a.")))
+        StreamingAspTransformation(Set(ClingoExpression("a.")))
       }
     }
   }
   "A fact in an ASP-Program" should "still be part of the result and remain unchanged" in {
-    val convert = StreamingAspTransformation(Set(AspExpression("a.")))
+    val convert = StreamingAspTransformation(Set(ClingoExpression("a.")))
     val result = convert.prepare(t1, Set()).get
     //TODO: discuss what's correct
     result.get should contain only (a)
   }
 
   "Facts from the program and the parameters" should "be part of the result" in {
-    val convert = StreamingAspTransformation(Set(AspExpression("b.")))
+    val convert = StreamingAspTransformation(Set(ClingoExpression("b.")))
     val result = convert.prepare(t1, Set(StreamEntry(t1, Set(a)))).get
     //TODO: discuss what's correct
     result.get should contain allOf(a, a(t1.timePoint.toString), Atom("b"))

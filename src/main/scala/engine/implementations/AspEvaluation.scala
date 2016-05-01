@@ -1,6 +1,6 @@
 package engine.implementations
 
-import asp.AspConversion
+import asp.ClingoConversion
 import core.AspProgram
 import engine.{Stream, Result, Time}
 
@@ -27,7 +27,7 @@ object AspEvaluation {
   }
 
   def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
-    val transformation = StreamingAspTransformation(AspConversion(program))
+    val transformation = StreamingAspTransformation(ClingoConversion(program))
 
     evaluationMode match {
       case UseFuture(waitingAtMost: Duration) => FutureAspEvaluation(transformation, waitingAtMost)

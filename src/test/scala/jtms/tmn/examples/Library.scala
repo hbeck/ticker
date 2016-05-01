@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import asp.Asp
+import asp.ClingoEvaluation
 import core._
 import jtms._
 import jtms.asp.examples.EvaluateJTMNImplementations
@@ -62,7 +62,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains Set(A_not, H, P, V))
@@ -73,7 +73,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains Set(A_not, H, P, V))
@@ -85,7 +85,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[Asp]) pending
+      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
 
       info("F is currently chosen 'by random'")
       assert(model contains Set(P_not, F, V))

@@ -1,6 +1,6 @@
 package engine.examples
 
-import asp.AspExpression
+import asp.ClingoExpression
 import core.{Atom, AspProgram, not}
 import engine.{At, Time}
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
@@ -23,7 +23,7 @@ class XWindowBoxASample extends FlatSpec {
       #show x/1.
     """
 
-  val aspExpressions = aspProgram.split('\n') map (x => AspExpression(x)) toSet
+  val aspExpressions = aspProgram.split('\n') map (x => ClingoExpression(x)) toSet
 
 
   val x = Atom("x")

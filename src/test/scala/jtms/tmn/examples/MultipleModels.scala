@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import asp.Asp
+import asp.ClingoEvaluation
 import core._
 import jtms.asp.examples.EvaluateJTMNImplementations
 import org.scalatest.FlatSpec
@@ -23,7 +23,7 @@ trait MultipleModelsBehavior {
       info("When adding j1 before j2 the valid model")
       val model = evaluation(AspProgram(j1, j2))
 
-      if (evaluation.isInstanceOf[Asp])
+      if (evaluation.isInstanceOf[ClingoEvaluation])
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(b))
@@ -34,7 +34,7 @@ trait MultipleModelsBehavior {
     it should "be A" in {
       info("When adding j2 before j1 the valid model")
       val model = evaluation(AspProgram(j2, j1))
-      if (evaluation.isInstanceOf[Asp])
+      if (evaluation.isInstanceOf[ClingoEvaluation])
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(a))

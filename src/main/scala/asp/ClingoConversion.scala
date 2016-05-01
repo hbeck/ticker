@@ -5,15 +5,15 @@ import core._
 /**
   * Created by FM on 22.02.16.
   */
-object AspConversion {
+object ClingoConversion {
 
-  def apply(program: AspProgram): AspExpressionProgram = {
+  def apply(program: AspProgram): ClingoProgram = {
     program.rules.map(apply).toSet
   }
 
-  def apply(rule: AspRule): AspExpression = {
+  def apply(rule: AspRule): ClingoExpression = {
     if (rule.body.isEmpty) {
-      return AspExpression(apply(rule.head) + '.')
+      return ClingoExpression(apply(rule.head) + '.')
     } else {
       val iParts = rule.pos.map(apply)
       val oParts = rule.neg.map(apply).map("not " + _)
@@ -22,7 +22,7 @@ object AspConversion {
 
       val expression = parts.mkString(apply(rule.head) + " :- ", ", ", ".").trim
 
-      AspExpression(expression)
+      ClingoExpression(expression)
     }
   }
 

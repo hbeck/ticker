@@ -1,7 +1,7 @@
 package engine.implementations
 
-import asp.{Asp, AspConversion, AspExpression, AspExpressionProgram}
-import core.{Atom, AtomWithArguments, AspFact}
+import asp._
+import core.{AspFact, Atom, AtomWithArguments}
 import engine.{Result, Stream, Time}
 
 /**
@@ -11,7 +11,7 @@ object StreamingAspTransformation {
   val now = Atom("now")
 
 
-  def transform(dataStream: Stream): Set[AspExpression] = {
+  def transform(dataStream: Stream): Set[ClingoExpression] = {
     dataStream flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
@@ -24,20 +24,20 @@ object StreamingAspTransformation {
   def transformAtoms(time: Time, atoms: Set[Atom]) = {
     val atomsWithT = atoms.map(x => atomAtT(time, x))
 
-    atomsWithT map (x => AspConversion(x))
+    atomsWithT map (x => ClingoConversion(x))
   }
 
-  def transform(currentTime: Time, dataStream: Stream): Set[AspExpression] = {
+  def transform(currentTime: Time, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
-    val transformedAtomsAndNow = transformedAtoms + AspConversion(atomAtT(currentTime, now))
+    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, now))
 
     // TODO: do we need the last clause?
-    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(AspFact(_))) map (x => AspConversion(x)))
+    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(AspFact(_))) map (x => ClingoConversion(x)))
   }
 }
 
-case class StreamingAspTransformation(aspExpressions: AspExpressionProgram, aspEngine: Asp = Asp()) extends AspEvaluation {
+case class StreamingAspTransformation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
 
   def prepare(time: Time, dataStream: Stream): Result = {
 

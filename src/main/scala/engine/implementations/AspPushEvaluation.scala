@@ -1,6 +1,5 @@
 package engine.implementations
 
-import asp.Asp
 import core.{AspFact, AspProgram, Atom}
 import engine._
 

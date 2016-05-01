@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import asp.Asp
+import asp.ClingoEvaluation
 import core._
 import jtms.evaluation.ExtendedJTMSEvaluation
 import org.scalatest.FlatSpec
@@ -46,7 +46,7 @@ trait SingleHusbandBehavior {
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
   def net = new ExtendedJTMSEvaluation
 
-  def asp = Asp()
+  def asp = ClingoEvaluation()
 
   "The AnserUpdateNetwork implementation " should behave like singleHusband(net)
   "The ASP implementation " should behave like singleHusband(asp)

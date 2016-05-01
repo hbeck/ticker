@@ -1,21 +1,22 @@
 package asp
 
+import asp.ClingoWrapper.ClingoAtom
 import core._
 
 /**
   * Created by FM on 25.02.16.
   */
 
-object Asp {
+object ClingoEvaluation {
   def apply(program: AspProgram): Set[Model] = {
-    val asp = new Asp(ClingoWrapper())
+    val asp = new ClingoEvaluation(ClingoWrapper())
 
     asp(program)
   }
 
-  def apply() = new Asp(ClingoWrapper())
+  def apply() = new ClingoEvaluation(ClingoWrapper())
 
-  def convert(result: String): Atom = {
+  def convert(result: ClingoAtom): Atom = {
     if (!result.contains('('))
       return Atom(result)
 
@@ -37,18 +38,18 @@ object Asp {
   }
 }
 
-class Asp(val clingo: ClingoWrapper) extends Evaluation {
+class ClingoEvaluation(val clingo: ClingoWrapper) extends Evaluation {
 
   def apply(program: AspProgram): Set[Model] = {
-    apply(AspConversion(program))
+    apply(ClingoConversion(program))
   }
 
-  def apply(aspProgram: AspExpressionProgram): Set[Model] = {
-    val result = clingo.run(aspProgram)
+  def apply(clingoProgram: ClingoProgram): Set[Model] = {
+    val result = clingo.run(clingoProgram)
     val models = clingo.parseResult(result)
 
     if (models.isDefined) {
-      val convertedModels = models.get.map(m => m.map(Asp.convert))
+      val convertedModels = models.get.map(m => m.map(ClingoEvaluation.convert))
       return convertedModels
     }
 
