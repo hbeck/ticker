@@ -1,6 +1,7 @@
 package engine.implementations
 
-import engine.{Atom, Stream, Result, Time}
+import core.Atom
+import engine.{Result, Stream, Time}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

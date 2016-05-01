@@ -1,5 +1,6 @@
 package engine.implementations
 
+import core.Atom
 import engine._
 
 /**

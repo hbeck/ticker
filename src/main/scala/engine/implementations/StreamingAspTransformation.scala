@@ -2,7 +2,7 @@ package engine.implementations
 
 import asp.{Asp, AspConversion, AspExpression, AspExpressionProgram}
 import core.{Atom, AtomWithArguments, AspFact}
-import engine.{Atom, Result, Stream, Time}
+import engine.{Result, Stream, Time}
 
 /**
   * Created by FM on 22.04.16.

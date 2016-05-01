@@ -2,7 +2,7 @@ package engine.implementations
 
 import asp.AspConversion
 import core.AspProgram
-import engine.{Atom, Stream, Result, Time}
+import engine.{Stream, Result, Time}
 
 import scala.concurrent.duration._
 

@@ -1,5 +1,7 @@
 package engine
 
+import core.Atom
+
 import scala.collection.mutable
 
 /**
