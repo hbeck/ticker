@@ -27,7 +27,7 @@ class ZWindowTimeASample extends FlatSpec {
     #show i/1.
     """.stripMargin
 
-  val aspExpressions = aspProgram.split('\n') map (x => ClingoExpression(x)) toSet
+  val aspExpressions = aspProgram.split('\n') toSet
 
   val z = Atom("z")
   val w1d_a = Atom("w1d_a")

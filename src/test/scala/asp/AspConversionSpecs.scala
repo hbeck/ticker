@@ -18,41 +18,41 @@ class AspConversionSpecs extends FlatSpec {
   "A premise A" should "be transformed into the expression 'a.'" in {
     val premise = AspFact(a)
 
-    assert(ClingoConversion(premise) == ClingoExpression("a."))
+    assert(ClingoConversion(premise) == "a.")
   }
 
   "A rule with only positive support" should "be transformed into the expression 'a :- b.'" in {
     val j = AspRule.pos(b).head(a)
 
-    assert(ClingoConversion(j) == ClingoExpression("a :- b."))
+    assert(ClingoConversion(j) == "a :- b.")
   }
   it should "be transformed into the expression 'a :- b, c.'" in {
     val j = AspRule.pos(b, c).head(a)
 
-    assert(ClingoConversion(j) == ClingoExpression("a :- b, c."))
+    assert(ClingoConversion(j) == "a :- b, c.")
   }
 
   "A rule with only negative support" should "be transformed into the expression 'a :- not b.'" in {
     val j = AspRule.neg(b).head(a)
 
-    assert(ClingoConversion(j) == ClingoExpression("a :- not b."))
+    assert(ClingoConversion(j) == "a :- not b.")
   }
   it should "be transformed into the expression 'a:- not b, not c" in {
     val j = AspRule.neg(b, c).head(a)
 
-    assert(ClingoConversion(j) == ClingoExpression("a :- not b, not c."))
+    assert(ClingoConversion(j) == "a :- not b, not c.")
   }
 
   "A rule with both positive an negative support" should "be transformed into 'a :- b, not c.'" in {
     val j = AspRule.pos(b).neg(c).head(a)
 
-    assert(ClingoConversion(j) == ClingoExpression("a :- b, not c."))
+    assert(ClingoConversion(j) == "a :- b, not c.")
   }
 
   "A rule with a ContradictionNode" should "be transformed into an integrity constraint ':- a, not c.'" in {
     val r = AspRule.pos(a).neg(c).head(Falsum)
 
-    assert(ClingoConversion(r) == ClingoExpression(":- a, not c."))
+    assert(ClingoConversion(r) == ":- a, not c.")
   }
 
   "An empty program" should "return no AspExpressions" in {

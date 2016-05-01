@@ -23,7 +23,7 @@ class XWindowBoxASample extends FlatSpec {
       #show x/1.
     """
 
-  val aspExpressions = aspProgram.split('\n') map (x => ClingoExpression(x)) toSet
+  val aspExpressions = aspProgram.split('\n') toSet
 
 
   val x = Atom("x")

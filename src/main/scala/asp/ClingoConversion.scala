@@ -13,7 +13,7 @@ object ClingoConversion {
 
   def apply(rule: AspRule): ClingoExpression = {
     if (rule.body.isEmpty) {
-      return ClingoExpression(apply(rule.head) + '.')
+      return apply(rule.head) + '.'
     } else {
       val iParts = rule.pos.map(apply)
       val oParts = rule.neg.map(apply).map("not " + _)
@@ -22,7 +22,7 @@ object ClingoConversion {
 
       val expression = parts.mkString(apply(rule.head) + " :- ", ", ", ".").trim
 
-      ClingoExpression(expression)
+      expression
     }
   }
 

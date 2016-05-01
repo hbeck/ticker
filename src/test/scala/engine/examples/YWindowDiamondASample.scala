@@ -21,7 +21,7 @@ class YWindowDiamondASample extends FlatSpec {
       #show y/1.
     """
 
-  val aspExpressions = aspProgram.split('\n') map (x => ClingoExpression(x)) toSet
+  val aspExpressions = aspProgram.split('\n') toSet
 
   val y = Atom("y")
   val w1d_a = Atom("w1d_a")

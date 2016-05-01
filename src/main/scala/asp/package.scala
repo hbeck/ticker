@@ -3,4 +3,5 @@
   */
 package object asp {
   type ClingoProgram = Set[ClingoExpression]
+  type ClingoExpression = String
 }
