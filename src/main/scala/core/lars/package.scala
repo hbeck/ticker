@@ -9,7 +9,7 @@ package object lars {
   type WindowSize = Int
 
   //  type WindowFunction = (WindowSize) => (Stream, Time) => Stream
-  type WindowFunction = (Stream, Time) => Stream
+//  type WindowFunction = (Stream, Time) => Stream
 
 
 }

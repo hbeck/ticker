@@ -1,5 +1,5 @@
 package core.lars
 
-case class Rule(head: Formula, pos: Set[Formula], neg: Set[Formula])
+case class Rule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom])
 
 

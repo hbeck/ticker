@@ -1,13 +1,13 @@
 package core
 
 import core.asp.{AspFact, AspRule, BuilderHead}
-import core.lars.Formula
+import core.lars.{ExtendedAtom, HeadAtom}
 
 /**
   * Created by hb on 12/22/15.
   */
 // TODO: is inheritance from formula ok?
-sealed trait Atom extends Formula {
+sealed trait Atom extends ExtendedAtom with HeadAtom {
 
   def apply(arguments: String*): Atom = {
     AtomWithArguments(this, arguments.toSeq)
