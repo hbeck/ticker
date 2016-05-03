@@ -20,6 +20,7 @@ object AspRule {
 
 }
 
+
 sealed trait AspRule {
 
   val pos: Set[Atom]

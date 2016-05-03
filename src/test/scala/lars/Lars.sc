@@ -17,10 +17,12 @@ val r2 = Rule(c,
   Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))
 )
 
-//val r = c :- WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
-//val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))
+val r1b = c <= WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
+val r2b = c <= WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))
 
 val program = Program(Set(r, r2))
 
 Format(program) foreach println
+
+println(Format(r1b))
 

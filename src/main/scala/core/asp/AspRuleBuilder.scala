@@ -23,6 +23,7 @@ class BuilderHead(val head: Atom) {
   }
 }
 
+
 class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val negativeBody: Set[Atom] = Set()) {
   def and(builderItem: BuilderItem) = builderItem match {
     case PosBuilderAtom(atom) => new BuilderCollection(head, positiveBody + atom, negativeBody)
