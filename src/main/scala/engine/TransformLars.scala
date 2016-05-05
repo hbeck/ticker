@@ -1,6 +1,6 @@
 package engine
 
-import core.Atom
+import core.{AtomWithArguments, Atom}
 import core.lars._
 
 /**
@@ -20,7 +20,11 @@ object TransformLars {
   }
 
   def apply(windowAtom: WindowAtom) = {
-    Atom(nameFor(windowAtom))(T)
+    val arguments = windowAtom.atom match {
+      case AtomWithArguments(_, arguments) => arguments :+ T
+      case a: Atom => Seq(T)
+    }
+    Atom(nameFor(windowAtom))(arguments: _*)
   }
 
   def nameFor(window: WindowAtom) = {
@@ -32,6 +36,10 @@ object TransformLars {
       case Box => "b"
       case a: At => f"at_${a.time}"
     }
-    f"${windowFunction}_${operator}_${window.atom}"
+    val atomName = window.atom match {
+      case AtomWithArguments(atom, _) => atom.toString
+      case a: Atom => a.toString
+    }
+    f"${windowFunction}_${operator}_${atomName}"
   }
 }
