@@ -3,13 +3,14 @@ package engine
 import core.asp.AspRule
 import core.{AtomWithArguments, Atom}
 import core.lars._
+import engine.implementations.StreamingAspTransformation
 
 /**
   * Created by FM on 05.05.16.
   */
 object TransformLars {
 
-
+  val now = StreamingAspTransformation.now
   val T = "T"
 
   def apply(atom: Atom): Atom = {
@@ -45,7 +46,19 @@ object TransformLars {
   }
 
   def ruleFor(extendedAtom: ExtendedAtom): Option[AspRule] = extendedAtom match {
-    case w: WindowAtom => Some(AspRule(Atom("foo")))
+    case w: WindowAtom => Some(ruleForBox(w))
     case _ => None
+  }
+
+  def ruleForBox(windowAtom: WindowAtom): AspRule = {
+    val windowSize = windowAtom.windowFunction match {
+      case SlidingTimeWindow(size) => size
+    }
+
+    val generateAtoms = (1 to windowSize) map (T + "-" + _) map (windowAtom.atom(_))
+
+    val posBody = generateAtoms ++ Set(TransformLars(now), TransformLars(windowAtom.atom))
+
+    AspRule(Atom(nameFor(windowAtom)), posBody.toSet)
   }
 }
