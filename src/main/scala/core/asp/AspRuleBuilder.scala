@@ -18,17 +18,12 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
 
 
 class BuilderHead(val head: Atom) {
-//  def :- = new NotBuilderCollection(head, Set[Atom](), Set[Atom]())
 
-  def :-(atom: Atom) = new NotBuilderCollection(head, Set(atom), Set[Atom]())
+  def :-(atom: Atom) = new BuilderCollection(head, Set(atom), Set[Atom]())
 
-  def :-(notAtom: not) = new NotBuilderCollection(head, Set(), Set(notAtom.atom))
-
-  //  def :-(item: BuilderItem[Atom]) = item match {
-  //    case PosBuilderAtom(atom) => new BuilderCollection[Atom, Atom](head, Set[Atom](atom), Set[Atom]())
-  //    case NegBuilderAtom(atom) => new BuilderCollection[Atom, Atom](head, Set[Atom](), Set[Atom](atom))
-  //  }
+  def :-(notAtom: not) = new BuilderCollection(head, Set(), Set(notAtom.atom))
 }
+
 
 object AspProgramBuilder {
   def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))

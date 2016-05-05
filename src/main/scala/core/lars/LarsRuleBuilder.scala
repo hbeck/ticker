@@ -5,25 +5,10 @@ import core._
 /**
   * Created by FM on 03.05.16.
   */
-/**
-  * Created by FM on 27.02.16.
-  */
-class LarsRuleBuilder(bodyPos: Set[ExtendedAtom] = Set(), bodyNeg: Set[ExtendedAtom] = Set()) {
-  def pos(atoms: ExtendedAtom*) = new LarsRuleBuilder(bodyPos ++ atoms, bodyNeg)
-
-  def neg(atoms: ExtendedAtom*) = new LarsRuleBuilder(bodyPos, bodyNeg ++ atoms)
-
-  def head(head: HeadAtom) = new Rule(head, bodyPos, bodyNeg)
-}
-
-
 class LarsBuilderHead(val head: HeadAtom) {
-  def <= = new NotBuilderCollection(head, Set[ExtendedAtom](), Set[ExtendedAtom]())
+  def <=(extendedAtom: ExtendedAtom) = new BuilderCollection(head, Set(extendedAtom), Set[ExtendedAtom]())
 
-  //  def <=(item: BuilderItem[ExtendedAtom]) = item match {
-  //    case PosBuilderAtom(atom) => new BuilderCollection(head, Set[ExtendedAtom](atom),Set[ExtendedAtom]())
-  //    case NegBuilderAtom(atom) => new BuilderCollection(head, Set[ExtendedAtom](), Set[ExtendedAtom](atom))
-  //  }
+  def <=(notAtom: not) = new BuilderCollection(head, Set(), Set(notAtom.atom))
 }
 
 
