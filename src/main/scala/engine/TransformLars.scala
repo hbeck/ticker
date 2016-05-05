@@ -46,8 +46,14 @@ object TransformLars {
   }
 
   def ruleFor(extendedAtom: ExtendedAtom): Option[AspRule] = extendedAtom match {
-    case w: WindowAtom => Some(ruleForBox(w))
+    case w: WindowAtom => Some(ruleForWindow(w))
     case _ => None
+  }
+
+  def ruleForWindow(windowAtom: WindowAtom): AspRule = windowAtom.temporalOperator match {
+    case Box => ruleForBox(windowAtom)
+    case Diamond => AspRule(windowAtom.atom)
+    case a:At => AspRule(windowAtom.atom)
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
