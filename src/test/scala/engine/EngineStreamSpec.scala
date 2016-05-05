@@ -19,7 +19,7 @@ class EngineStreamSpec extends FlatSpec {
 
   val program = AspProgram(
     a :- b,
-    b :- c and asp.not(d)
+    b :- c  not d
   )
 
   val t1 = At.second(1)

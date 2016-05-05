@@ -1,6 +1,6 @@
 package core.lars
 
-import core.Atom
+import core._
 
 /**
   * Created by FM on 03.05.16.
@@ -18,38 +18,14 @@ class LarsRuleBuilder(bodyPos: Set[ExtendedAtom] = Set(), bodyNeg: Set[ExtendedA
 
 
 class LarsBuilderHead(val head: HeadAtom) {
-  def <=(item: BuilderItem) = item match {
-    case PosBuilderAtom(atom) => new BuilderCollection(head, Set(atom))
-    case NegBuilderAtom(atom) => new BuilderCollection(head, Set(), Set(atom))
-  }
+  def <= = new NotBuilderCollection(head, Set[ExtendedAtom](), Set[ExtendedAtom]())
+
+  //  def <=(item: BuilderItem[ExtendedAtom]) = item match {
+  //    case PosBuilderAtom(atom) => new BuilderCollection(head, Set[ExtendedAtom](atom),Set[ExtendedAtom]())
+  //    case NegBuilderAtom(atom) => new BuilderCollection(head, Set[ExtendedAtom](), Set[ExtendedAtom](atom))
+  //  }
 }
 
-class BuilderCollection(val head: HeadAtom, val positiveBody: Set[ExtendedAtom] = Set(), val negativeBody: Set[ExtendedAtom] = Set()) {
-  def and(builderItem: BuilderItem) = builderItem match {
-    case PosBuilderAtom(atom) => new BuilderCollection(head, positiveBody + atom, negativeBody)
-    case NegBuilderAtom(atom) => new BuilderCollection(head, positiveBody, negativeBody + atom)
-  }
-}
-
-object BuilderCollection {
-  implicit def toRule(builder: BuilderCollection): Rule = Rule(builder.head, builder.positiveBody, builder.negativeBody)
-}
-
-object not {
-  def apply(atom: ExtendedAtom): NegBuilderAtom = NegBuilderAtom(atom)
-
-  def apply(posBuilderAtom: PosBuilderAtom): NegBuilderAtom = NegBuilderAtom(posBuilderAtom.atom)
-}
-
-object BuilderItem {
-  implicit def toBuilderItem(atom: ExtendedAtom): PosBuilderAtom = new PosBuilderAtom(atom)
-}
-
-sealed trait BuilderItem
-
-case class PosBuilderAtom(atom: ExtendedAtom) extends BuilderItem
-
-case class NegBuilderAtom(atom: ExtendedAtom) extends BuilderItem
 
 object LarsProgramBuilder {
   def rule(rule: Rule) = new LarsProgramBuilder(Set(rule))

@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import core.asp.{AspFact, AspProgramBuilder, AspRule, not}
+import core.asp.{AspFact, AspProgramBuilder, AspRule}
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
@@ -28,7 +28,7 @@ class AspBuilderTests extends FlatSpec {
     val f = Atom("f")
 
     val j1 = a :- c // Rule.pos(c).head(a) //Rule(a,c)  // a :- c
-    val j2 = b :- not(a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
+    val j2 = b :- not( a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
     val j3 = AspRule.pos(a).head(c)
     val j4a = AspRule.pos(b).head(d)
     val j4b = AspRule.pos(c).head(d)
@@ -48,15 +48,15 @@ class AspBuilderTests extends FlatSpec {
     //  j6)
 
     val program4 = AspProgramBuilder
-      .rule(a :- c and d and not(e) and not(f))
-      .rule(Falsum :- d and not(e))
+      .rule(a :- c and d not (e) not (f))
+      .rule(Falsum :- d not (e))
     //    .rule(j3)
     //  j4a
     //  j4b
     //  j5
     //  j6)
 
-    val program5 = AspProgramBuilder rule (a :- c and d and not(e) and not(f))
+    val program5 = AspProgramBuilder rule (a :- c and d not (e) not (f))
 
     val p2 = program3.toProgram
     assert(p2.rules.size == 3)
@@ -66,9 +66,9 @@ class AspBuilderTests extends FlatSpec {
 
     val program = AspProgramBuilder({
       case a #:: b #:: c #:: d #:: atoms => Set(
-        a :- b and not(c("1","a")),
-        c :- b("1","a"),
-        b :- not(d) and not(d),
+        a :- b not (c("1", "a")),
+        c :- b("1", "a"),
+        b :- not(d) not (d),
         Falsum :- d,
         //        :- d,
         b

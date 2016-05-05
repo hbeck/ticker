@@ -1,6 +1,7 @@
 package core.asp
 
-import core.Atom
+import core._
+import core.lars.{ExtendedAtom, HeadAtom}
 
 import scala.language.implicitConversions
 
@@ -17,39 +18,17 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
 
 
 class BuilderHead(val head: Atom) {
-  def :-(item: BuilderItem) = item match {
-    case PosBuilderAtom(atom) => new BuilderCollection(head, Set(atom))
-    case NegBuilderAtom(atom) => new BuilderCollection(head, Set(), Set(atom))
-  }
+//  def :- = new NotBuilderCollection(head, Set[Atom](), Set[Atom]())
+
+  def :-(atom: Atom) = new NotBuilderCollection(head, Set(atom), Set[Atom]())
+
+  def :-(notAtom: not) = new NotBuilderCollection(head, Set(), Set(notAtom.atom))
+
+  //  def :-(item: BuilderItem[Atom]) = item match {
+  //    case PosBuilderAtom(atom) => new BuilderCollection[Atom, Atom](head, Set[Atom](atom), Set[Atom]())
+  //    case NegBuilderAtom(atom) => new BuilderCollection[Atom, Atom](head, Set[Atom](), Set[Atom](atom))
+  //  }
 }
-
-
-class BuilderCollection(val head: Atom, val positiveBody: Set[Atom] = Set(), val negativeBody: Set[Atom] = Set()) {
-  def and(builderItem: BuilderItem) = builderItem match {
-    case PosBuilderAtom(atom) => new BuilderCollection(head, positiveBody + atom, negativeBody)
-    case NegBuilderAtom(atom) => new BuilderCollection(head, positiveBody, negativeBody + atom)
-  }
-}
-
-object BuilderCollection {
-  implicit def toRule(builder: BuilderCollection): AspRule = new UserDefinedAspRule(builder.head, builder.positiveBody, builder.negativeBody)
-}
-
-object not {
-  def apply(atom: Atom): NegBuilderAtom = NegBuilderAtom(atom)
-
-  def apply(posBuilderAtom: PosBuilderAtom): NegBuilderAtom = NegBuilderAtom(posBuilderAtom.atom)
-}
-
-object BuilderItem {
-  implicit def toBuilderItem(atom: Atom): PosBuilderAtom = new PosBuilderAtom(atom)
-}
-
-sealed trait BuilderItem
-
-case class PosBuilderAtom(atom: Atom) extends BuilderItem
-
-case class NegBuilderAtom(atom: Atom) extends BuilderItem
 
 object AspProgramBuilder {
   def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))
