@@ -1,5 +1,6 @@
 package engine
 
+import core.asp.AspRule
 import core.{AtomWithArguments, Atom}
 import core.lars._
 
@@ -41,5 +42,10 @@ object TransformLars {
       case a: Atom => a.toString
     }
     f"${windowFunction}_${operator}_${atomName}"
+  }
+
+  def ruleFor(extendedAtom: ExtendedAtom): Option[AspRule] = extendedAtom match {
+    case w: WindowAtom => Some(AspRule(Atom("foo")))
+    case _ => None
   }
 }

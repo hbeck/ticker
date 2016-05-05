@@ -8,7 +8,8 @@ import engine.Time
   */
 
 // case class is not (technical) possible - use this workaround for now
-class AtAtom(override val time: Time, val atom: Atom) extends At(time) with HeadAtom
+// TODO: Head and extended Atom correct?
+class AtAtom(override val time: Time, val atom: Atom) extends At(time) with HeadAtom with ExtendedAtom
 
 
 object AtAtom {
