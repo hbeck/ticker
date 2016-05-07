@@ -1,6 +1,6 @@
 package engine
 
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 import core.{AtomWithArguments, Atom}
 import core.lars._
 import engine.implementations.StreamingAspTransformation
@@ -22,6 +22,12 @@ object TransformLars {
     case a: AtAtom => this.apply(a)
     case a: Atom => this.apply(a)
     case a: WindowAtom => this.apply(a)
+  }
+
+  def apply(rule: Rule, time: Time): Set[AspRule] = {
+    val rulesForBody = (rule.pos ++ rule.neg) map (this.ruleFor(_)) filter (_.isDefined) map (_.get)
+
+    Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString)))
   }
 
   def apply(atom: Atom): Atom = {
