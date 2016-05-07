@@ -41,9 +41,11 @@ object TransformLars {
   }
 
   def rule(rule: Rule): AspRule = {
-    val head = this.apply(rule.head)
-
-    AspRule(head, rule.pos map this.apply, rule.neg map this.apply)
+    AspRule(
+      this.apply(rule.head),
+      rule.pos map this.apply,
+      rule.neg map this.apply
+    )
   }
 
   def nameFor(window: WindowAtom) = {

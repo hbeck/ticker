@@ -8,7 +8,7 @@ import org.scalatest.Matchers._
 /**
   * Created by FM on 07.05.16.
   */
-class RuleSpec extends TransformLarsSpec {
+class RuleOnlySpec extends TransformLarsSpec {
   "A fact" should "be translated in an fact" in {
     val f = Fact(a)
 
