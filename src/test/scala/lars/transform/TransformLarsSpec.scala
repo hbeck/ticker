@@ -16,4 +16,5 @@ class TransformLarsSpec extends FlatSpec {
 
   val a = Atom("a")
   val b = Atom("b")
+  val c = Atom("c")
 }

@@ -13,6 +13,17 @@ object TransformLars {
   val now = StreamingAspTransformation.now
   val T = "T"
 
+  def apply(headAtom: HeadAtom): Atom = headAtom match {
+    case a: AtAtom => this.apply(a)
+    case a: Atom => this.apply(a)
+  }
+
+  def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
+    case a: AtAtom => this.apply(a)
+    case a: Atom => this.apply(a)
+    case a: WindowAtom => this.apply(a)
+  }
+
   def apply(atom: Atom): Atom = {
     atom(T)
   }
@@ -27,6 +38,12 @@ object TransformLars {
       case a: Atom => Seq(T)
     }
     Atom(nameFor(windowAtom))(arguments: _*)
+  }
+
+  def rule(rule: Rule): AspRule = {
+    val head = this.apply(rule.head)
+
+    AspRule(head, rule.pos map this.apply, rule.neg map this.apply)
   }
 
   def nameFor(window: WindowAtom) = {
@@ -53,7 +70,7 @@ object TransformLars {
   def ruleForWindow(windowAtom: WindowAtom): AspRule = windowAtom.temporalOperator match {
     case Box => ruleForBox(windowAtom)
     case Diamond => AspRule(windowAtom.atom)
-    case a:At => AspRule(windowAtom.atom)
+    case a: At => AspRule(windowAtom.atom)
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
