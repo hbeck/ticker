@@ -34,7 +34,7 @@ object Format {
 
   def apply(atom: HeadAtom): String = atom match {
     case a: Atom => a.toString
-    case at: AtAtom => apply(at.copy()) + " " + at.atom
+    case at: AtAtom => apply(At(at.time)) + " " + at.atom
   }
 
   def apply(rule: Rule): String = {

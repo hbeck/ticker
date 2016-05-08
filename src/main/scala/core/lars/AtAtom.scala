@@ -9,9 +9,9 @@ import engine.Time
 
 // case class is not (technical) possible - use this workaround for now
 // TODO: Head and extended Atom correct?
-class AtAtom(override val time: Time, val atom: Atom) extends At(time) with HeadAtom with ExtendedAtom
-
-
-object AtAtom {
-  def apply(time: Time, atom: Atom) = new AtAtom(time, atom)
-}
+case class AtAtom(val time: Time, val atom: Atom) extends HeadAtom with ExtendedAtom
+//
+//
+//object AtAtom {
+//  def apply(time: Time, atom: Atom) = new AtAtom(time, atom)
+//}
