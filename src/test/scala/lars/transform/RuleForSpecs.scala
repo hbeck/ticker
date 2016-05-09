@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.lars.{Diamond, SlidingTimeWindow, WindowAtom, AtAtom}
+import core.lars._
 import engine.TransformLars
 
 /**
@@ -16,7 +16,10 @@ class RuleForSpecs extends TransformLarsSpec {
     assert(TransformLars.ruleFor(AtAtom(t1, a)).isEmpty)
   }
 
-  "A window atom" should "be transformed into some rule" in {
-    assert(TransformLars.ruleFor(WindowAtom(SlidingTimeWindow(1), Diamond, a)).isDefined)
+  "A diamond-window atom" should "be transformed into some rule" in {
+    assert(TransformLars.ruleFor(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
+  }
+  "A box-window atom" should "be transformed into some rule" in {
+    assert(TransformLars.ruleFor(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
   }
 }

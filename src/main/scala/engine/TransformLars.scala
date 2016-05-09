@@ -27,7 +27,7 @@ object TransformLars {
   }
 
   def apply(rule: Rule, time: Time): Set[AspRule] = {
-    val rulesForBody = (rule.pos ++ rule.neg) map (this.ruleFor(_)) filter (_.isDefined) map (_.get)
+    val rulesForBody = (rule.pos ++ rule.neg) flatMap (this.ruleFor(_))
 
     Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString)))
   }
@@ -72,15 +72,15 @@ object TransformLars {
     f"${windowFunction}_${operator}_${atomName}"
   }
 
-  def ruleFor(extendedAtom: ExtendedAtom): Option[AspRule] = extendedAtom match {
-    case w: WindowAtom => Some(ruleForWindow(w))
-    case _ => None
+  def ruleFor(extendedAtom: ExtendedAtom): Set[AspRule] = extendedAtom match {
+    case w: WindowAtom => ruleForWindow(w)
+    case _ => Set()
   }
 
-  def ruleForWindow(windowAtom: WindowAtom): AspRule = windowAtom.temporalOperator match {
-    case Box => ruleForBox(windowAtom)
-    case Diamond => AspRule(windowAtom.atom)
-    case a: At => AspRule(windowAtom.atom)
+  def ruleForWindow(windowAtom: WindowAtom): Set[AspRule] = windowAtom.temporalOperator match {
+    case Box => Set(ruleForBox(windowAtom))
+    case Diamond => ruleForDiamond(windowAtom)
+    case a: At => Set(AspRule(windowAtom.atom))
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
@@ -91,14 +91,14 @@ object TransformLars {
     AspRule(Atom(nameFor(windowAtom)), posBody.toSet)
   }
 
-  def ruleForDiamond(windowAtom: WindowAtom) = {
+  def ruleForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
     val head = Atom(nameFor(windowAtom))
 
     val generatedAtoms = generateAtomsOfT(windowAtom)
 
     val rules = generatedAtoms map (a => AspRule(head, Set(now(T), a)))
 
-    rules
+    rules.toSet
   }
 
   def generateAtomsOfT(windowAtom: WindowAtom): Set[Atom] = {
