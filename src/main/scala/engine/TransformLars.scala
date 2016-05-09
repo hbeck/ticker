@@ -5,6 +5,8 @@ import core.{AtomWithArguments, Atom}
 import core.lars._
 import engine.implementations.StreamingAspTransformation
 
+import scala.collection.immutable
+
 /**
   * Created by FM on 05.05.16.
   */
@@ -82,14 +84,29 @@ object TransformLars {
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
+    val generatedAtoms = generateAtomsOfT(windowAtom)
+
+    val posBody = generatedAtoms ++ Set(TransformLars(now), TransformLars(windowAtom.atom))
+
+    AspRule(Atom(nameFor(windowAtom)), posBody.toSet)
+  }
+
+  def ruleForDiamond(windowAtom: WindowAtom) = {
+    val head = Atom(nameFor(windowAtom))
+
+    val generatedAtoms = generateAtomsOfT(windowAtom)
+
+    val rules = generatedAtoms map (a => AspRule(head, Set(now(T), a)))
+
+    rules
+  }
+
+  def generateAtomsOfT(windowAtom: WindowAtom): Set[Atom] = {
     val windowSize = windowAtom.windowFunction match {
       case SlidingTimeWindow(size) => size
     }
 
     val generateAtoms = (1 to windowSize) map (T + "-" + _) map (windowAtom.atom(_))
-
-    val posBody = generateAtoms ++ Set(TransformLars(now), TransformLars(windowAtom.atom))
-
-    AspRule(Atom(nameFor(windowAtom)), posBody.toSet)
+    (generateAtoms :+ this.apply(windowAtom.atom)).toSet
   }
 }
