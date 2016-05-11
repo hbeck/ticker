@@ -24,7 +24,7 @@ class RuleForBoxSpec extends TransformLarsSpec {
     TransformLars.ruleForBox(w_1_b_a).body should contain(a(T + "-1"))
   }
 
-  "The rule for w^3 b a" should "contain a(T -1), a(T -2), a(T -3)" in {
-    TransformLars.ruleForBox(WindowAtom(SlidingTimeWindow(3), Box, a)).body should contain allOf(a(T + "-1"), a(T + "-2"), a(T + "-3"))
+  "The rule for w^3 b a" should "contain a(T) a(T -1), a(T -2), a(T -3)" in {
+    TransformLars.ruleForBox(WindowAtom(SlidingTimeWindow(3), Box, a)).body should contain allOf(a(T), a(T + "-1"), a(T + "-2"), a(T + "-3"))
   }
 }

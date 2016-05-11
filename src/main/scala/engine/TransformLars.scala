@@ -84,7 +84,7 @@ object TransformLars {
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
-    val generatedAtoms = generateAtomsOfT(windowAtom)
+    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
 
     val posBody = generatedAtoms ++ Set(TransformLars(now), TransformLars(windowAtom.atom))
 
@@ -94,19 +94,38 @@ object TransformLars {
   def ruleForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
     val head = Atom(nameFor(windowAtom))
 
-    val generatedAtoms = generateAtomsOfT(windowAtom)
+    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
 
     val rules = generatedAtoms map (a => AspRule(head, Set(now(T), a)))
 
     rules.toSet
   }
 
-  def generateAtomsOfT(windowAtom: WindowAtom): Set[Atom] = {
-    val windowSize = windowAtom.windowFunction match {
+  def ruleForAt(windowAtom: WindowAtom): Set[AspRule] = {
+    val at = windowAtom.temporalOperator.asInstanceOf[At]
+    val head = Atom(nameFor(windowAtom))
+
+    val atomAtTime = windowAtom.atom(at.time.toString)
+
+    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => (at.time.timePoint - x).toString)
+
+    val rules = nowAtoms map (n => AspRule(head, Set(atomAtTime, n)))
+
+    rules.toSet
+  }
+
+  def generateTimeVariable(increment: Int): String = {
+    if (increment == 0)
+      return T
+    T + "-" + increment
+  }
+
+  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => String): Set[Atom] = {
+    val windowSize = windowFunction match {
       case SlidingTimeWindow(size) => size
     }
 
-    val generateAtoms = (1 to windowSize) map (T + "-" + _) map (windowAtom.atom(_))
-    (generateAtoms :+ this.apply(windowAtom.atom)).toSet
+    val generateAtoms = (1 to windowSize) map increment map (atom(_))
+    (generateAtoms :+ atom(increment(0))).toSet
   }
 }

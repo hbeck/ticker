@@ -27,7 +27,7 @@ class RuleForDiamondSpec extends TransformLarsSpec {
     forExactly(1, TransformLars.ruleForDiamond(w_1_d_a)) { rule => rule.body should contain(a(T + "-1")) }
   }
 
-  "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3)" in {
-    TransformLars.ruleForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T + "-1"), a(T + "-2"), a(T + "-3"))
+  "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3), a(T)" in {
+    TransformLars.ruleForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T + "-1"), a(T + "-2"), a(T + "-3"))
   }
 }
