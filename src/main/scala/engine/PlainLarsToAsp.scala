@@ -30,7 +30,7 @@ object PlainLarsToAsp {
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): Set[AspRule] = {
+  def apply(program: Program): Seq[AspRule] = {
     program.rules flatMap this.apply
   }
 

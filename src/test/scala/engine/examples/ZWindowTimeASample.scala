@@ -43,7 +43,7 @@ class ZWindowTimeASample extends FlatSpec {
   val t4 = Time(4)
 
   // TODO: how are we writing the program in a lars syntax?
-  val larsProgram = Program(
+  val larsProgram = Program.from(
     z <= WindowAtom(SlidingTimeWindow(2), At(t1), a)
   )
 

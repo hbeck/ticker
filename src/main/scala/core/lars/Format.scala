@@ -40,7 +40,7 @@ object Format {
     f"${apply(rule.head)} :- ${rule.pos map apply mkString ", "}${rule.neg map apply mkString(", not ", ", not ", "")}. "
   }
 
-  def apply(program: Program): Set[String] = {
+  def apply(program: Program): Seq[String] = {
     program.rules map apply
   }
 

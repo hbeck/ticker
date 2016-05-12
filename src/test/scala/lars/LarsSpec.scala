@@ -30,7 +30,7 @@ class LarsSpec extends FlatSpec {
     //val r = c :- WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
     //val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))
 
-    val program = Program(Set(r1, r2))
+    val program = Program.from(r1, r2)
 
     val formatted = Format(program)
 

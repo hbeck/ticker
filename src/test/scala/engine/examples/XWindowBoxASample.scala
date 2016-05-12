@@ -40,7 +40,7 @@ class XWindowBoxASample extends FlatSpec {
     spoil_w1b_a("T") :- now("T") and u("U") not (a("U"))
   )
 
-  val larsProgram = Program(
+  val larsProgram = Program.from(
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 

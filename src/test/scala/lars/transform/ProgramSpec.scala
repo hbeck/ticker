@@ -11,18 +11,18 @@ import org.scalatest.Matchers._
 class ProgramSpec extends TransformLarsSpec {
 
   "A program with one Fact a." should "be tranformed into one rule" in {
-    val p = Program(Fact(a))
+    val p = Program.from(Fact(a))
 
     PlainLarsToAsp(p) should have size 1
   }
   it should "contain a(T)." in {
-    val p = Program(Fact(a))
+    val p = Program.from(Fact(a))
 
     PlainLarsToAsp(p) should contain(AspRule(a(T), Set(now(T))))
   }
 
   "A program with two different Facts a. b." should "be transformed into 2 rules a(T). b(T)." in {
-    val p = Program(
+    val p = Program.from(
       Fact(a),
       Fact(b)
     )
