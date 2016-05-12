@@ -1,6 +1,6 @@
 package lars
 
-import core.Atom
+import core.{not, Atom}
 import core.lars.{At, Program, _}
 import engine.Time
 import org.scalatest.FlatSpec
@@ -15,15 +15,18 @@ class LarsSpec extends FlatSpec {
   val c = Atom("c")
   val d = Atom("d")
 
+  def W = WindowAtom
+
+  def STW = SlidingTimeWindow
+
+  val r1 = Rule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), d), Set(b))
+  val r2 = Rule(AtAtom(Time(1), c), Set(W(STW(5), Box, b)), Set(W(STW(3), Diamond, a), W(STW(1), At(Time(3)), a)))
+
+  val rb1 = c <= WindowAtom(SlidingTimeWindow(3), Diamond, a) and d not (b)
+  val rb2 = AtAtom(Time(1), c) <= W(STW(5), Box, b) not W(STW(3), Diamond, a) not W(STW(1), At(Time(3)), a)
+
 
   "A simple LARS program" should "be formatted as string" in {
-
-    def W = WindowAtom
-    def STW = SlidingTimeWindow
-
-    val r1 = Rule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), d), Set(b))
-    val r2 = Rule(AtAtom(Time(1), c), Set(W(STW(5), Box, b)), Set(W(STW(3), Diamond, a), W(STW(1), At(Time(3)), a))
-    )
 
     //val r = c :- WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
     //val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))

@@ -1,7 +1,8 @@
 package engine.examples
 
 import core.Atom
-import engine.{At, Time}
+import core.lars._
+import engine.Time
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -40,6 +41,11 @@ class ZWindowTimeASample extends FlatSpec {
   val t2 = Time(2)
   val t3 = Time(3)
   val t4 = Time(4)
+
+  // TODO: how are we writing the program in a lars syntax?
+  val larsProgram = Program(
+    z <= WindowAtom(SlidingTimeWindow(2), At(t1), a)
+  )
 
 
   def evaluation = {

@@ -41,4 +41,16 @@ class RuleSpec extends TransformLarsSpec {
 
     TransformLars(r, t1).map(_.head) should contain(Atom("w_1_b_a"))
   }
+
+  "A rule containing a window atom aˆ1 d a" should "be transformed into four rules"in{
+    val r = Rule(b, Set(WindowAtom(SlidingTimeWindow(1), Diamond, a)))
+
+    TransformLars(r, t1) should have size 4
+  }
+
+  "A rule containing a window atom aˆ1 at_1 a" should "be transformed into four rules"in{
+    val r = Rule(b, Set(WindowAtom(SlidingTimeWindow(1), At(t1), a)))
+
+    TransformLars(r, t1) should have size 4
+  }
 }

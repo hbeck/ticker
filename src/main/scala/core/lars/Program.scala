@@ -5,3 +5,7 @@ package core.lars
   */
 // TODO: Set[Rule] or Seq[Rule] ==> Ordered or unorderd?
 case class Program(rules: Set[Rule])
+
+object Program {
+  def apply(rules: Rule*): Program = Program(rules.toSet)
+}

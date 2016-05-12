@@ -11,7 +11,6 @@ import scala.collection.immutable
   * Created by FM on 05.05.16.
   */
 object TransformLars {
-
   val now = StreamingAspTransformation.now
   val T = "T"
 
@@ -29,7 +28,12 @@ object TransformLars {
   def apply(rule: Rule, time: Time): Set[AspRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap (this.ruleFor(_))
 
+    // TODO: now(time.toString) makes only sense for a program (once, not for every rule)
     Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString)))
+  }
+
+  def apply(program: Program, time: Time): Set[AspRule] = {
+    program.rules flatMap (this.apply(_, time))
   }
 
   def apply(atom: Atom): Atom = {
@@ -80,7 +84,7 @@ object TransformLars {
   def ruleForWindow(windowAtom: WindowAtom): Set[AspRule] = windowAtom.temporalOperator match {
     case Box => Set(ruleForBox(windowAtom))
     case Diamond => ruleForDiamond(windowAtom)
-    case a: At => Set(AspRule(windowAtom.atom))
+    case a: At => ruleForAt(windowAtom)
   }
 
   def ruleForBox(windowAtom: WindowAtom): AspRule = {
