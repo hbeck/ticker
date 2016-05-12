@@ -30,9 +30,9 @@ class EngineSpec extends FlatSpec {
     )
   })
 
-  val t1 = At.minute(1)
-  val t2 = At.minute(2)
-  val t3 = At.minute(3)
+  val t1 = Time(1)
+  val t2 = Time(2)
+  val t3 = Time(3)
 
   def engineWithStreams(evaluationEngine: EvaluationEngine) = {
     val engine = Engine(evaluationEngine)
@@ -60,15 +60,15 @@ class EngineSpec extends FlatSpec {
     val engine = engineWithStreams(AspEvaluation.pull(program))
     val result = engine.evaluate(t1).get
 
-    result.value should contain allOf(a, b)
+    result.value should contain allOf(a(t2.toString), b(t1.toString))
   }
 
-  it should "invalidate 'b' for t3" in {
+  it should "invalidate 'b' for t2" in {
     val engine = engineWithStreams(AspEvaluation.pull(program))
 
     val result = engine.evaluate(t2).get
 
-    result.value should contain allOf(a, c, d)
+    result.value should contain allOf(a(t2.toString), c(t2.toString), d(t2.toString))
   }
 }
 

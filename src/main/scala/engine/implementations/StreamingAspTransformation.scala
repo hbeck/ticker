@@ -34,8 +34,7 @@ object StreamingAspTransformation {
 
     val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, TransformLars.now))
 
-    // TODO: do we need the last clause?
-    transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(AspFact(_))) map (x => ClingoConversion(x)))
+    transformedAtomsAndNow
   }
 }
 

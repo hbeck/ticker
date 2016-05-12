@@ -27,8 +27,8 @@ class StreamingAspTransformationSpec extends FlatSpec {
     assert(StreamingAspTransformation.transform(Set()) == Set())
   }
 
-  "One atom and time t2" should "be translated into the facts 'now(2000). a(2000). a.'" in {
-    assertResult(Set("now(2000).", "a(2000).", "a.")) {
+  "One atom and time t2" should "be translated into the facts 'now(2000). a(2000).'" in {
+    assertResult(Set("now(2000).", "a(2000).")) {
       StreamingAspTransformation.transform(t2, Set(StreamEntry(t2, Set(a))))
     }
   }
@@ -44,10 +44,10 @@ class StreamingAspTransformationSpec extends FlatSpec {
   }
 
 
-  "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000). b." in {
+  "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000)." in {
     val b = Atom("b").apply("1")
 
-    assertResult(Set("now(3000).", "a(3000).", "a.", "b(1,3000).", "b(1).")) {
+    assertResult(Set("now(3000).", "a(3000).", "b(1,3000).")) {
       StreamingAspTransformation.transform(t3, Set(StreamEntry(t3, Set(a, b))))
     }
   }
@@ -76,6 +76,6 @@ class StreamingAspTransformationSpec extends FlatSpec {
     val convert = StreamingAspTransformation(Set("b."))
     val result = convert.prepare(t1, Set(StreamEntry(t1, Set(a)))).get
     //TODO: discuss what's correct
-    result.get should contain allOf(a, a(t1.timePoint.toString), Atom("b"))
+    result.get should contain (a(t1.timePoint.toString))
   }
 }

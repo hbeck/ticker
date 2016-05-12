@@ -35,7 +35,7 @@ class EngineStreamSpec extends FlatSpec {
 
     atT1(Seq(Atom("c")))
 
-    assume(Set(a, b, c(t1.toString)) subsetOf engine.evaluate(t1).get.value)
+    assume(Set(a(t1.toString), b(t1.toString), c(t1.toString)) subsetOf engine.evaluate(t1).get.value)
 
     atT1(Seq(Atom("d")))
 
