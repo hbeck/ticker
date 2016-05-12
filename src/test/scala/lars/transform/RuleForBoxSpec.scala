@@ -4,17 +4,19 @@ import core.lars.{Box, SlidingTimeWindow, WindowAtom}
 import engine.PlainLarsToAsp
 import org.scalatest.Matchers._
 
+
 /**
   * Created by FM on 05.05.16.
   */
 class RuleForBoxSpec extends TransformLarsSpec {
 
   val w_1_b_a = WindowAtom(SlidingTimeWindow(1), Box, a)
+
   "The rule for w^1 b a" should "contain now(T)" in {
     (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(now(T))
   }
   it should "have head w_1_b_a" in {
-    PlainLarsToAsp.rulesForBox(w_1_b_a).head.toString should be("w_1_b_a")
+    PlainLarsToAsp.rulesForBox(w_1_b_a).head.head.toString should be("w_1_b_a")
   }
   it should "contain a(T)" in {
     (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(a(T))

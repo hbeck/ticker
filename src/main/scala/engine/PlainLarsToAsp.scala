@@ -12,12 +12,12 @@ object PlainLarsToAsp {
   val T = "T"
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
-    case AtAtom(t,a) => a(t.toString)
+    case AtAtom(t, a) => a(t.toString)
     case a: Atom => a(T)
   }
 
   def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    case AtAtom(t,a) => a(t.toString)
+    case AtAtom(t, a) => a(t.toString)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
@@ -69,7 +69,7 @@ object PlainLarsToAsp {
   }
 
   def additionalRules(extendedAtom: ExtendedAtom): Set[AspRule] = extendedAtom match {
-    case w@WindowAtom(_,temporalOperator,_) => temporalOperator match {
+    case w@WindowAtom(_, temporalOperator, _) => temporalOperator match {
       case a: At => rulesForAt(w)
       case Diamond => rulesForDiamond(w)
       case Box => rulesForBox(w)
@@ -115,11 +115,13 @@ object PlainLarsToAsp {
   }
 
   def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => String): Set[Atom] = {
-    val windowSize = windowFunction match {
+    val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size
     }
 
-    val generateAtoms = (1 to windowSize) map increment map (atom(_))
+    // TODO: current implementation of (... to ...) only works with ints
+    // luck us if we run out of int's on enumerating
+    val generateAtoms = (1 to windowSize.toInt) map increment map (atom(_))
     (generateAtoms :+ atom(increment(0))).toSet
   }
 }
