@@ -10,7 +10,6 @@ import org.scalatest.Matchers._
   */
 class ProgramSpec extends TransformLarsSpec {
 
-  // TODO: when should facts from a lars-program, e.g. a(T) be tranformed into a(t1)?
   "A program with one Fact a." should "be tranformed into 2 rules" in {
     val p = Program(Fact(a))
 

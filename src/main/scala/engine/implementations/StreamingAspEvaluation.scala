@@ -41,7 +41,6 @@ case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: Clin
 
   def prepare(time: Time, dataStream: Stream): Result = {
 
-    // TODO: what shall we do with facts a(T) in the ASP-program
     val transformed = StreamingAspEvaluation.transform(time, dataStream)
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption

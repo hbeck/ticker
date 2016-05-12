@@ -23,7 +23,6 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
     assert(PlainLarsToAsp(AtAtom(t1, a("1"))) == a("1", t1.toString))
   }
 
-  // TODO: decide if two window-atoms with the same parameter should/could be mapped to the same ASP-Rule
   "The window-atom wˆ1 d a" should "be transformed into w_1_d_a(T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), Diamond, a)
     assert(PlainLarsToAsp(window) == Atom("w_1_d_a")(T))

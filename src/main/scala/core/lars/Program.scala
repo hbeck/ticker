@@ -3,7 +3,7 @@ package core.lars
 /**
   * Created by FM on 01.05.16.
   */
-// TODO: Set[Rule] or Seq[Rule] ==> Ordered or unorderd?
+// TODO: Seq[Rule] (for evaluation purposes it seems more useful to have the order explicitly)
 case class Program(rules: Set[Rule])
 
 object Program {
