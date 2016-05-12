@@ -2,6 +2,7 @@ package engine.implementations
 
 import core.asp.{AspFact, AspProgram}
 import core.Atom
+import core.lars.TimePoint
 import engine.{Result, _}
 import jtms.ExtendedJTMS
 

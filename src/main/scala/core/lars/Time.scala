@@ -1,4 +1,4 @@
-package engine
+package core.lars
 
 /**
   * Created by FM on 05.04.16.
@@ -23,7 +23,7 @@ object TimePoint {
   implicit val ordering = Ordering.by((time: TimePoint) => time.timePoint)
 }
 
-object At {
+object AtTime {
   def second(seconds: Long) = Second(seconds)
 
   def minute(minutes: Long) = Minute(minutes)

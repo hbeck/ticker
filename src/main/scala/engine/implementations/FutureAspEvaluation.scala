@@ -1,7 +1,8 @@
 package engine.implementations
 
 import core.Atom
-import engine.{TimePoint, Result, Stream, TimePoint$}
+import core.lars.TimePoint
+import engine.{Result, Stream}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

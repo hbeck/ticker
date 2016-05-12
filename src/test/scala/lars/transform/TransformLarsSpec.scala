@@ -1,7 +1,8 @@
 package lars.transform
 
 import core.Atom
-import engine.{TimePoint, PlainLarsToAsp, TimePoint$}
+import core.lars.TimePoint
+import engine.{PlainLarsToAsp}
 import org.scalatest.FlatSpec
 
 /**

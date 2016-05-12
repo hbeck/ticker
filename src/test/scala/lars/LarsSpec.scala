@@ -2,7 +2,6 @@ package lars
 
 import core.Atom
 import core.lars.{At, Program, _}
-import engine.{TimePoint, TimePoint$}
 import org.scalatest.FlatSpec
 
 /**

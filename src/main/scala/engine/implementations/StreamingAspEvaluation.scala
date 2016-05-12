@@ -3,6 +3,7 @@ package engine.implementations
 import clingo._
 import clingo.{ClingoExpression, ClingoProgram}
 import core.asp.AspFact
+import core.lars.TimePoint
 import core.{Atom, AtomWithArguments}
 import engine._
 

@@ -2,8 +2,8 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.{TimePoint, PlainLarsToAsp, TimePoint$}
-import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, StreamingAspEvaluation$}
+import engine.{PlainLarsToAsp}
+import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

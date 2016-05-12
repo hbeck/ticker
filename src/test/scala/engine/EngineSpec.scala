@@ -2,6 +2,7 @@ package engine
 
 import core.asp.{AspProgram, AspProgramBuilder}
 import core._
+import core.lars.TimePoint
 import engine.implementations.AspEvaluation
 import org.scalatest.FlatSpec
 

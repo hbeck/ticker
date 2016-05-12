@@ -1,9 +1,9 @@
 package engine.examples
 
 import core.asp.AspProgram
-import core.lars.{Box, SlidingTimeWindow, WindowAtom, Program}
+import core.lars._
 import core.{Atom, asp}
-import engine.{TimePoint, PlainLarsToAsp, At}
+import engine.PlainLarsToAsp
 import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

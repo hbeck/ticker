@@ -1,6 +1,7 @@
 package engine
 
 import core.asp.AspProgram
+import core.lars.AtTime
 import core.{Atom, asp}
 import engine.implementations.{AspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
@@ -22,9 +23,9 @@ class EngineStreamSpec extends FlatSpec {
     b :- c  not d
   )
 
-  val t1 = At.second(1)
-  val t2 = At.second(2)
-  val t3 = At.second(3)
+  val t1 = AtTime.second(1)
+  val t2 = AtTime.second(2)
+  val t3 = AtTime.second(3)
 
   def evaluationEngine: EvaluationEngine = AspEvaluation.pull(program)
 
