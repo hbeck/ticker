@@ -3,8 +3,8 @@ package engine.examples
 import core.asp.AspProgram
 import core.lars.{Box, SlidingTimeWindow, WindowAtom, Program}
 import core.{Atom, asp}
-import engine.{PlainLarsToAsp, At, Time}
-import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, StreamingAspEvaluation$}
+import engine.{TimePoint, PlainLarsToAsp, At}
+import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -45,9 +45,9 @@ class XWindowBoxASample extends FlatSpec {
   )
 
 
-  val t0 = Time(0)
-  val t1 = Time(1)
-  val t2 = Time(2)
+  val t0 = TimePoint(0)
+  val t1 = TimePoint(1)
+  val t2 = TimePoint(2)
 
   def evaluation = {
 
@@ -72,6 +72,6 @@ class XWindowBoxASample extends FlatSpec {
     evaluation.evaluate(t2).get.value should contain(x("2"))
   }
   it should "not contain x(2) at t3" in {
-    evaluation.evaluate(Time(3)).get.value shouldNot contain(x("2"))
+    evaluation.evaluate(TimePoint(3)).get.value shouldNot contain(x("2"))
   }
 }

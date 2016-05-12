@@ -31,11 +31,11 @@ trait Observer {
 object Stream {
 
 
-  def fromItems(items: (Time, Set[Atom])*): Observable = {
+  def fromItems(items: (TimePoint, Set[Atom])*): Observable = {
     new ObservableList(items.map(x => StreamEntry(x._1, x._2)))
   }
 
-  def fromItem(items: (Time, Atom)*): Observable = {
+  def fromItem(items: (TimePoint, Atom)*): Observable = {
     fromItems(items map (x => (x._1, Set(x._2))): _*)
   }
 }

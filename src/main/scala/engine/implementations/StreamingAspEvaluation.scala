@@ -4,7 +4,7 @@ import clingo._
 import clingo.{ClingoExpression, ClingoProgram}
 import core.asp.AspFact
 import core.{Atom, AtomWithArguments}
-import engine.{PlainLarsToAsp, Result, Stream, Time}
+import engine._
 
 /**
   *
@@ -16,19 +16,19 @@ object StreamingAspEvaluation {
     dataStream flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
-  def atomAtT(time: Time, atom: Atom) = {
+  def atomAtT(time: TimePoint, atom: Atom) = {
     val timeParameter = time.timePoint.toString
 
     AspFact(atom(timeParameter))
   }
 
-  def transformAtoms(time: Time, atoms: Set[Atom]) = {
+  def transformAtoms(time: TimePoint, atoms: Set[Atom]) = {
     val atomsWithT = atoms.map(x => atomAtT(time, x))
 
     atomsWithT map (x => ClingoConversion(x))
   }
 
-  def transform(currentTime: Time, dataStream: Stream): Set[ClingoExpression] = {
+  def transform(currentTime: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
     val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, PlainLarsToAsp.now))
@@ -39,7 +39,7 @@ object StreamingAspEvaluation {
 
 case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
 
-  def prepare(time: Time, dataStream: Stream): Result = {
+  def prepare(time: TimePoint, dataStream: Stream): Result = {
 
     val transformed = StreamingAspEvaluation.transform(time, dataStream)
 

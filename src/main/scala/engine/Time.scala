@@ -3,14 +3,24 @@ package engine
 /**
   * Created by FM on 05.04.16.
   */
-case class Time(timePoint: Long) { //TODO
+trait Time
+
+case class TimePoint(timePoint: Long) extends Time {
+
   override def toString = {
     timePoint.toString
   }
 }
 
-object Time {
-  implicit val ordering = Ordering.by((time: Time) => time.timePoint)
+case class TimeVariable(variable: String) extends Time {
+
+  override def toString = {
+    variable
+  }
+}
+
+object TimePoint {
+  implicit val ordering = Ordering.by((time: TimePoint) => time.timePoint)
 }
 
 object At {
@@ -20,7 +30,7 @@ object At {
 }
 
 object Second {
-  def apply(seconds: Long) = Time(seconds * 1000)
+  def apply(seconds: Long) = TimePoint(seconds * 1000)
 }
 
 object Minute {

@@ -2,7 +2,7 @@ package engine.examples
 
 import core.asp.AspProgram
 import core.Atom
-import engine.{PlainLarsToAsp, At, Time}
+import engine.{TimePoint, PlainLarsToAsp, At, TimePoint$}
 import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, AspPushEvaluation, StreamingAspEvaluation$}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -34,9 +34,9 @@ class YWindowDiamondASample extends FlatSpec {
     y("T") :- w1d_a("T"),
     w1d_a("T") :- a("U") and now("T") and u("U")
   )
-  val t0 = Time(0)
-  val t1 = Time(1)
-  val t2 = Time(2)
+  val t0 = TimePoint(0)
+  val t1 = TimePoint(1)
+  val t2 = TimePoint(2)
 
   def evaluation = {
     val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))

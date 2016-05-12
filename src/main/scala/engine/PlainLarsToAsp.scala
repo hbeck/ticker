@@ -99,7 +99,10 @@ object PlainLarsToAsp {
 
     val atomAtTime = windowAtom.atom(at.time.toString)
 
-    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => (at.time.timePoint - x).toString)
+    // TODO implement Timevariable as well
+    val time = at.time.asInstanceOf[TimePoint]
+
+    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => (time.timePoint - x).toString)
 
     val rules = nowAtoms map (n => AspRule(head, Set(atomAtTime, n)))
 

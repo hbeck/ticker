@@ -8,9 +8,9 @@ import core.{Atom, Model}
   */
 trait EvaluationEngine {
 
-  def append(time: Time)(atoms: Atom*): Unit
+  def append(time: TimePoint)(atoms: Atom*): Unit
 
-  def evaluate(time: Time): Result
+  def evaluate(time: TimePoint): Result
 }
 
 trait Result {

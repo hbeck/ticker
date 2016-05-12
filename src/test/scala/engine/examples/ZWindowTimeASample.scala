@@ -2,7 +2,7 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.{PlainLarsToAsp, Time}
+import engine.{TimePoint, PlainLarsToAsp, TimePoint$}
 import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, StreamingAspEvaluation$}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -36,11 +36,11 @@ class ZWindowTimeASample extends FlatSpec {
 
   val now = PlainLarsToAsp.now
 
-  val t0 = Time(0)
-  val t1 = Time(1)
-  val t2 = Time(2)
-  val t3 = Time(3)
-  val t4 = Time(4)
+  val t0 = TimePoint(0)
+  val t1 = TimePoint(1)
+  val t2 = TimePoint(2)
+  val t3 = TimePoint(3)
+  val t4 = TimePoint(4)
 
   // TODO: how are we writing the program in a lars syntax?
   val larsProgram = Program.from(

@@ -11,20 +11,20 @@ case class AspPushEvaluation(private val aspEvaluation: AspEvaluation) extends E
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
-  val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
+  val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
-  def prepare(time: Time) = {
+  def prepare(time: TimePoint) = {
     // TODO: decide if we want to use evaluateUntil or the whole stream
     val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }
 
-  def evaluate(time: Time) = {
+  def evaluate(time: TimePoint) = {
     cachedResults.getOrElse(time, EmptyResult)
   }
 
-  override def append(time: Time)(atoms: Atom*): Unit = {
+  override def append(time: TimePoint)(atoms: Atom*): Unit = {
     atomStream.append(time)(atoms.toSet)
     // TODO: implement invalidation of result
     // a results.remove(time) is probably not enough

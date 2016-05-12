@@ -10,9 +10,9 @@ class OrderedAtomStreamSpecs extends FlatSpec {
 
   val atom = Atom("a")
 
-  val t0 = Time(0)
-  val t1 = Time(1)
-  val t2 = Time(2)
+  val t0 = TimePoint(0)
+  val t1 = TimePoint(1)
+  val t2 = TimePoint(2)
 
   def stream = {
     new OrderedAtomStream

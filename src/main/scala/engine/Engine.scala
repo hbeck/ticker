@@ -25,7 +25,7 @@ case class Engine(private val evaluationEngine: EvaluationEngine) {
     })
   }
 
-  def evaluate(time: Time) = evaluationEngine.evaluate(time)
+  def evaluate(time: TimePoint) = evaluationEngine.evaluate(time)
 
 }
 

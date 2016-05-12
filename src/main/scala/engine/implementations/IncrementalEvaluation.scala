@@ -13,11 +13,11 @@ case class IncrementalEvaluation(private val program: AspProgram) extends Evalua
 
   val answerUpdateNetwork = ExtendedJTMS(program)
 
-  def append(time: Time)(atoms: Atom*): Unit = {
+  def append(time: TimePoint)(atoms: Atom*): Unit = {
     intensionalAtomStream.append(time)(atoms.toSet)
   }
 
-  def evaluate(time: Time) = {
+  def evaluate(time: TimePoint) = {
     val facts = intensionalAtomStream.evaluate(time).map(x => AspFact(x))
     facts foreach answerUpdateNetwork.add
 

@@ -10,7 +10,7 @@ package object engine {
   case class EngineAtom(name: String, arguments: Seq[String] = List())
 
 
-  case class StreamEntry(time: Time, atoms: Set[Atom])
+  case class StreamEntry(time: TimePoint, atoms: Set[Atom])
 
   type Stream = Set[StreamEntry]
 }

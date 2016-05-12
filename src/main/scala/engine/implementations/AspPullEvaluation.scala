@@ -11,22 +11,22 @@ case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends E
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
-  val cachedResults = scala.collection.mutable.HashMap[Time, Result]()
+  val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
-  def prepare(time: Time) = {
+  def prepare(time: TimePoint) = {
     val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }
 
-  def evaluate(time: Time) = {
+  def evaluate(time: TimePoint) = {
     if (!cachedResults.contains(time))
       prepare(time)
 
     cachedResults(time)
   }
 
-  override def append(time: Time)(atoms: Atom*): Unit = {
+  override def append(time: TimePoint)(atoms: Atom*): Unit = {
     atomStream.append(time)(atoms.toSet)
     // TODO: implement invalidation of result
     // the remove is probably not enough (==> invalidate previous fetched results)

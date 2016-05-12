@@ -30,9 +30,9 @@ class EngineSpec extends FlatSpec {
     )
   })
 
-  val t1 = Time(1)
-  val t2 = Time(2)
-  val t3 = Time(3)
+  val t1 = TimePoint(1)
+  val t2 = TimePoint(2)
+  val t3 = TimePoint(3)
 
   def engineWithStreams(evaluationEngine: EvaluationEngine) = {
     val engine = Engine(evaluationEngine)

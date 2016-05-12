@@ -2,7 +2,7 @@ package engine.implementations
 
 import clingo.ClingoConversion
 import core.asp.AspProgram
-import engine.{Result, Stream, Time}
+import engine.{TimePoint, Result, Stream}
 
 import scala.concurrent.duration._
 
@@ -13,7 +13,8 @@ case class UseFuture(waitingAtMost: Duration = 1 second) extends EvaluationMode
 object Direct extends EvaluationMode
 
 trait AspEvaluation {
-  def prepare(time: Time, dataStream: Stream): Result
+  // TODO: discuss if timepoint makes sense here (guess TimeVariable not???)
+  def prepare(time: TimePoint, dataStream: Stream): Result
 }
 
 object AspEvaluation {
