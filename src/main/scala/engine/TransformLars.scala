@@ -11,7 +11,7 @@ import scala.collection.immutable
   * Created by FM on 05.05.16.
   */
 object TransformLars {
-  val now = StreamingAspTransformation.now
+  val now = Atom("now")
   val T = "T"
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
@@ -29,6 +29,8 @@ object TransformLars {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap (this.ruleFor(_))
 
     // TODO: now(time.toString) makes only sense for a program (once, not for every rule)
+    // Discuss further: remove time completly - this transformation is a pre-processing
+    // 'instantiation' to a specific timepoint is needed only at runtime
     Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString)))
   }
 

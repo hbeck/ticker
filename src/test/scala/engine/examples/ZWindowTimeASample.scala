@@ -2,7 +2,7 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.Time
+import engine.{TransformLars, Time}
 import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -34,7 +34,7 @@ class ZWindowTimeASample extends FlatSpec {
   val a = Atom("a")
   val i = Atom("i")
 
-  val now = StreamingAspTransformation.now
+  val now = TransformLars.now
 
   val t0 = Time(0)
   val t1 = Time(1)

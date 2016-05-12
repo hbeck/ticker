@@ -4,13 +4,13 @@ import clingo._
 import clingo.{ClingoExpression, ClingoProgram}
 import core.asp.AspFact
 import core.{Atom, AtomWithArguments}
-import engine.{Result, Stream, Time}
+import engine.{TransformLars, Result, Stream, Time}
 
 /**
   * Created by FM on 22.04.16.
   */
 object StreamingAspTransformation {
-  val now = Atom("now")
+
 
 
   def transform(dataStream: Stream): Set[ClingoExpression] = {
@@ -32,7 +32,7 @@ object StreamingAspTransformation {
   def transform(currentTime: Time, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
-    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, now))
+    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, TransformLars.now))
 
     // TODO: do we need the last clause?
     transformedAtomsAndNow ++ (dataStream flatMap (x => x.atoms.map(AspFact(_))) map (x => ClingoConversion(x)))
@@ -52,7 +52,7 @@ case class StreamingAspTransformation(aspExpressions: ClingoProgram, aspEngine: 
     val result = aspResult match {
       case Some(model) => {
         val atoms = model.filterNot {
-          case AtomWithArguments(baseAtom, _) => baseAtom == StreamingAspTransformation.now
+          case AtomWithArguments(baseAtom, _) => baseAtom == TransformLars.now
           case _ => false
         }
         Some(atoms)

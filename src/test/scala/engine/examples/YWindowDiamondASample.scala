@@ -2,7 +2,7 @@ package engine.examples
 
 import core.asp.AspProgram
 import core.Atom
-import engine.{At, Time}
+import engine.{TransformLars, At, Time}
 import engine.implementations.{AspPullEvaluation, AspPushEvaluation, StreamingAspTransformation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -28,7 +28,7 @@ class YWindowDiamondASample extends FlatSpec {
   val a = Atom("a")
   val u = Atom("u")
 
-  val now = StreamingAspTransformation.now
+  val now = TransformLars.now
 
   val program = AspProgram(
     y("T") :- w1d_a("T"),
