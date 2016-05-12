@@ -1,13 +1,13 @@
 package core
 
 import core.asp.{AspFact, AspRule, BuilderHead}
-import core.lars.{ExtendedAtom, HeadAtom}
+import core.lars.HeadAtom
 
 /**
   * Created by hb on 12/22/15.
   */
 
-sealed trait Atom extends ExtendedAtom with HeadAtom {
+sealed trait Atom extends HeadAtom {
 
   def apply(arguments: String*): Atom = {
     AtomWithArguments(this, arguments.toSeq)

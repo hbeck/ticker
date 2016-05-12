@@ -1,49 +1,39 @@
 package engine
 
 import core.asp.{AspFact, AspRule}
-import core.{AtomWithArguments, Atom}
 import core.lars._
-import engine.implementations.StreamingAspTransformation
-
-import scala.collection.immutable
+import core.{Atom, AtomWithArguments}
 
 /**
   * Created by FM on 05.05.16.
   */
-object TransformLars {
+object PlainLarsToAsp {
   val now = Atom("now")
   val T = "T"
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
-    case a: AtAtom => this.apply(a)
-    case a: Atom => this.apply(a)
+    case AtAtom(t,a) => a(t.toString)
+    case a: Atom => a(T)
   }
 
   def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    case a: AtAtom => this.apply(a)
-    case a: Atom => this.apply(a)
+    case AtAtom(t,a) => a(t.toString)
+    case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
 
+  //main
   def apply(rule: Rule, time: Time): Set[AspRule] = {
-    val rulesForBody = (rule.pos ++ rule.neg) flatMap (this.ruleFor(_))
+    val rulesForBody = (rule.pos ++ rule.neg) flatMap (additionalRules _)
 
     // TODO: now(time.toString) makes only sense for a program (once, not for every rule)
-    // Discuss further: remove time completly - this transformation is a pre-processing
+    // Discuss further: remove time completely - this transformation is a pre-processing
     // 'instantiation' to a specific timepoint is needed only at runtime
-    Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString)))
+    Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString))) //TODO rule rule
   }
 
   def apply(program: Program, time: Time): Set[AspRule] = {
     program.rules flatMap (this.apply(_, time))
-  }
-
-  def apply(atom: Atom): Atom = {
-    atom(T)
-  }
-
-  def apply(atAtom: AtAtom): Atom = {
-    atAtom.atom(atAtom.time.toString)
   }
 
   def apply(windowAtom: WindowAtom) = {
@@ -66,7 +56,7 @@ object TransformLars {
     val windowFunction = window.windowFunction match {
       case SlidingTimeWindow(size) => f"w_$size"
     }
-    val operator = window.temporalOperator match {
+    val operator = window.temporalModality match {
       case Diamond => "d"
       case Box => "b"
       case a: At => f"at_${a.time}"
@@ -78,26 +68,24 @@ object TransformLars {
     f"${windowFunction}_${operator}_${atomName}"
   }
 
-  def ruleFor(extendedAtom: ExtendedAtom): Set[AspRule] = extendedAtom match {
-    case w: WindowAtom => ruleForWindow(w)
+  def additionalRules(extendedAtom: ExtendedAtom): Set[AspRule] = extendedAtom match {
+    case w@WindowAtom(_,temporalOperator,_) => temporalOperator match {
+      case a: At => rulesForAt(w)
+      case Diamond => rulesForDiamond(w)
+      case Box => rulesForBox(w)
+    }
     case _ => Set()
   }
 
-  def ruleForWindow(windowAtom: WindowAtom): Set[AspRule] = windowAtom.temporalOperator match {
-    case Box => Set(ruleForBox(windowAtom))
-    case Diamond => ruleForDiamond(windowAtom)
-    case a: At => ruleForAt(windowAtom)
-  }
-
-  def ruleForBox(windowAtom: WindowAtom): AspRule = {
+  def rulesForBox(windowAtom: WindowAtom): Set[AspRule] = {
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
 
-    val posBody = generatedAtoms ++ Set(TransformLars(now), TransformLars(windowAtom.atom))
+    val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
-    AspRule(Atom(nameFor(windowAtom)), posBody.toSet)
+    Set(AspRule(Atom(nameFor(windowAtom)), posBody.toSet))
   }
 
-  def ruleForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
+  def rulesForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
     val head = Atom(nameFor(windowAtom))
 
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
@@ -107,8 +95,8 @@ object TransformLars {
     rules.toSet
   }
 
-  def ruleForAt(windowAtom: WindowAtom): Set[AspRule] = {
-    val at = windowAtom.temporalOperator.asInstanceOf[At]
+  def rulesForAt(windowAtom: WindowAtom): Set[AspRule] = {
+    val at = windowAtom.temporalModality.asInstanceOf[At]
     val head = Atom(nameFor(windowAtom))
 
     val atomAtTime = windowAtom.atom(at.time.toString)

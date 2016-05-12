@@ -2,8 +2,8 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.{TransformLars, Time}
-import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
+import engine.{PlainLarsToAsp, Time}
+import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, StreamingAspEvaluation$}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -34,7 +34,7 @@ class ZWindowTimeASample extends FlatSpec {
   val a = Atom("a")
   val i = Atom("i")
 
-  val now = TransformLars.now
+  val now = PlainLarsToAsp.now
 
   val t0 = Time(0)
   val t1 = Time(1)
@@ -49,7 +49,7 @@ class ZWindowTimeASample extends FlatSpec {
 
 
   def evaluation = {
-    val e = AspPullEvaluation(StreamingAspTransformation(aspExpressions))
+    val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))
 
     e.append(t1)(a)
 

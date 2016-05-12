@@ -3,8 +3,8 @@ package engine.examples
 import core.asp.AspProgram
 import core.lars.{Box, SlidingTimeWindow, WindowAtom, Program}
 import core.{Atom, asp}
-import engine.{TransformLars, At, Time}
-import engine.implementations.{AspPullEvaluation, StreamingAspTransformation}
+import engine.{PlainLarsToAsp, At, Time}
+import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, StreamingAspEvaluation$}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -32,7 +32,7 @@ class XWindowBoxASample extends FlatSpec {
   val a = Atom("a")
   val u = Atom("u")
 
-  val now = TransformLars.now
+  val now = PlainLarsToAsp.now
 
   val program = AspProgram(
     x("T") :- w1b_a("T"),
@@ -52,7 +52,7 @@ class XWindowBoxASample extends FlatSpec {
   def evaluation = {
 
 //    val convertedLarsProgram = TransformLars(larsProgram)
-    val e = AspPullEvaluation(StreamingAspTransformation(aspExpressions))
+    val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))
 
     e.append(t1)(a)
     e.append(t2)(a)

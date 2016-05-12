@@ -4,14 +4,13 @@ import clingo._
 import clingo.{ClingoExpression, ClingoProgram}
 import core.asp.AspFact
 import core.{Atom, AtomWithArguments}
-import engine.{TransformLars, Result, Stream, Time}
+import engine.{PlainLarsToAsp, Result, Stream, Time}
 
 /**
+  *
   * Created by FM on 22.04.16.
   */
-object StreamingAspTransformation {
-
-
+object StreamingAspEvaluation {
 
   def transform(dataStream: Stream): Set[ClingoExpression] = {
     dataStream flatMap (x => transformAtoms(x.time, x.atoms))
@@ -32,25 +31,25 @@ object StreamingAspTransformation {
   def transform(currentTime: Time, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
-    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, TransformLars.now))
+    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, PlainLarsToAsp.now))
 
     transformedAtomsAndNow
   }
 }
 
-case class StreamingAspTransformation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
+case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
 
   def prepare(time: Time, dataStream: Stream): Result = {
 
-    // TODO: what shall we do with facts a(T) in the ASP-program 
-    val transformed = StreamingAspTransformation.transform(time, dataStream)
+    // TODO: what shall we do with facts a(T) in the ASP-program
+    val transformed = StreamingAspEvaluation.transform(time, dataStream)
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 
     val result = aspResult match {
       case Some(model) => {
         val atoms = model.filterNot {
-          case AtomWithArguments(baseAtom, _) => baseAtom == TransformLars.now
+          case AtomWithArguments(baseAtom, _) => baseAtom == PlainLarsToAsp.now
           case _ => false
         }
         Some(atoms)

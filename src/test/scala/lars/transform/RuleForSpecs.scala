@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.lars._
-import engine.TransformLars
+import engine.PlainLarsToAsp
 
 /**
   * Created by FM on 05.05.16.
@@ -9,17 +9,17 @@ import engine.TransformLars
 class RuleForSpecs extends TransformLarsSpec {
 
   "An atom" should "not be transformed into a rule" in {
-    assert(TransformLars.ruleFor(a).isEmpty)
+    assert(PlainLarsToAsp.additionalRules(a).isEmpty)
   }
 
   "An At-atom" should "not be transformed into a rule" in {
-    assert(TransformLars.ruleFor(AtAtom(t1, a)).isEmpty)
+    assert(PlainLarsToAsp.additionalRules(AtAtom(t1, a)).isEmpty)
   }
 
   "A diamond-window atom" should "be transformed into some rule" in {
-    assert(TransformLars.ruleFor(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
+    assert(PlainLarsToAsp.additionalRules(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
   }
   "A box-window atom" should "be transformed into some rule" in {
-    assert(TransformLars.ruleFor(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
+    assert(PlainLarsToAsp.additionalRules(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
   }
 }

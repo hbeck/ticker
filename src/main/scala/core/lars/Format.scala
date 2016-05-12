@@ -12,7 +12,7 @@ object Format {
     case SlidingTimeWindow(windowSize) => f"⊞^$windowSize"
   }
 
-  def apply(temporalOperator: TemporalOperator) = temporalOperator match {
+  def apply(temporalOperator: TemporalModality) = temporalOperator match {
     case Diamond => "◇"
     case Box => "☐"
     case At(time) => f"@_$time"
@@ -21,7 +21,7 @@ object Format {
   def apply(atom: WindowAtom): String = {
     val parts = Seq(
       apply(atom.windowFunction),
-      apply(atom.temporalOperator),
+      apply(atom.temporalModality),
       atom.atom
     )
     parts mkString " "

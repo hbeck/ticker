@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.Atom
-import engine.{TransformLars, Time}
+import engine.{PlainLarsToAsp, Time}
 import org.scalatest.FlatSpec
 
 /**
@@ -12,8 +12,8 @@ class TransformLarsSpec extends FlatSpec {
   val t1 = Time(1)
   val t2 = Time(2)
 
-  val T = TransformLars.T
-  val now = TransformLars.now
+  val T = PlainLarsToAsp.T
+  val now = PlainLarsToAsp.now
 
   val a = Atom("a")
   val b = Atom("b")

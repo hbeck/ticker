@@ -2,8 +2,8 @@ package engine.examples
 
 import core.asp.AspProgram
 import core.Atom
-import engine.{TransformLars, At, Time}
-import engine.implementations.{AspPullEvaluation, AspPushEvaluation, StreamingAspTransformation}
+import engine.{PlainLarsToAsp, At, Time}
+import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, AspPushEvaluation, StreamingAspEvaluation$}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -28,7 +28,7 @@ class YWindowDiamondASample extends FlatSpec {
   val a = Atom("a")
   val u = Atom("u")
 
-  val now = TransformLars.now
+  val now = PlainLarsToAsp.now
 
   val program = AspProgram(
     y("T") :- w1d_a("T"),
@@ -39,7 +39,7 @@ class YWindowDiamondASample extends FlatSpec {
   val t2 = Time(2)
 
   def evaluation = {
-    val e = AspPullEvaluation(StreamingAspTransformation(aspExpressions))
+    val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))
 
     e.append(t1)(a)
 
@@ -62,7 +62,7 @@ class YWindowDiamondASample extends FlatSpec {
     evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
   }
   it should "still not contain y(1) at t2 with push" in {
-    val e = AspPushEvaluation(StreamingAspTransformation(aspExpressions))
+    val e = AspPushEvaluation(StreamingAspEvaluation(aspExpressions))
 
     e.append(t1)(a)
 

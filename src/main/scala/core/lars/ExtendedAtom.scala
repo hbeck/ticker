@@ -5,7 +5,7 @@ package core.lars
   */
 trait ExtendedAtom
 
-trait HeadAtom
+trait HeadAtom extends ExtendedAtom
 
 
 object HeadAtom {
