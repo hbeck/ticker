@@ -8,7 +8,7 @@ import engine.Time
   */
 
 // case class is not (technical) possible - use this workaround for now
-// TODO: Head and extended Atom correct?
+// TODO: Discuss hierarchy / implementation
 case class AtAtom(val time: Time, val atom: Atom) extends HeadAtom with ExtendedAtom
 //
 //

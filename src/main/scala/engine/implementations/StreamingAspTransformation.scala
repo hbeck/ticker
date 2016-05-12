@@ -47,8 +47,6 @@ case class StreamingAspTransformation(aspExpressions: ClingoProgram, aspEngine: 
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 
-    // TODO: should we remove time(now)?
-    // TODO: how do we differentiate if the model is defined or not? Adding the fact now(T) leads to a model
     val result = aspResult match {
       case Some(model) => {
         val atoms = model.filterNot {
