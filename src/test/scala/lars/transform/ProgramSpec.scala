@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.asp.AspFact
+import core.asp.{AspRule, AspFact}
 import core.lars.{Fact, Program}
 import engine.PlainLarsToAsp
 import org.scalatest.Matchers._
@@ -10,28 +10,23 @@ import org.scalatest.Matchers._
   */
 class ProgramSpec extends TransformLarsSpec {
 
-  "A program with one Fact a." should "be tranformed into 2 rules" in {
+  "A program with one Fact a." should "be tranformed into one rule" in {
     val p = Program(Fact(a))
 
-    PlainLarsToAsp(p, t1) should have size 2
-  }
-  it should "contain now(t1)" in {
-    val p = Program(Fact(a))
-
-    PlainLarsToAsp(p, t1) should contain(AspFact(now(t1.toString)))
+    PlainLarsToAsp(p) should have size 1
   }
   it should "contain a(T)." in {
     val p = Program(Fact(a))
 
-    PlainLarsToAsp(p, t1) should contain(AspFact(a(T)))
+    PlainLarsToAsp(p) should contain(AspRule(a(T), Set(now(T))))
   }
 
-  "A program with two different Facts a. b." should "be transformed into 3 rules a. b. now(t1)." in {
+  "A program with two different Facts a. b." should "be transformed into 2 rules a(T). b(T)." in {
     val p = Program(
       Fact(a),
       Fact(b)
     )
 
-    PlainLarsToAsp(p, t1) should have size 3
+    PlainLarsToAsp(p) should have size 2
   }
 }

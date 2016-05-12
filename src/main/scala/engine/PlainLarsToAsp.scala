@@ -23,17 +23,14 @@ object PlainLarsToAsp {
   }
 
   //main
-  def apply(rule: Rule, time: Time): Set[AspRule] = {
-    val rulesForBody = (rule.pos ++ rule.neg) flatMap (additionalRules _)
+  def apply(rule: Rule): Set[AspRule] = {
+    val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
-    // TODO: now(time.toString) makes only sense for a program (once, not for every rule)
-    // Discuss further: remove time completely - this transformation is a pre-processing
-    // 'instantiation' to a specific timepoint is needed only at runtime
-    Set(this.rule(rule)) ++ rulesForBody ++ Set(AspFact(now(time.toString))) //TODO rule rule
+    Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program, time: Time): Set[AspRule] = {
-    program.rules flatMap (this.apply(_, time))
+  def apply(program: Program): Set[AspRule] = {
+    program.rules flatMap this.apply
   }
 
   def apply(windowAtom: WindowAtom) = {
@@ -47,7 +44,7 @@ object PlainLarsToAsp {
   def rule(rule: Rule): AspRule = {
     AspRule(
       this.apply(rule.head),
-      rule.pos map this.apply,
+      (rule.pos map this.apply) + now(T),
       rule.neg map this.apply
     )
   }

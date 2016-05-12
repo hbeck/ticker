@@ -57,14 +57,6 @@ class StreamingAspTransformationSpec extends FlatSpec {
     convert.prepare(t1, Set()).get.value should be(empty)
   }
 
-  "A fact in an ASP-Program" should "only be allowed if its defined with an time-parameter T" in {
-    pendingUntilFixed {
-      intercept[IllegalArgumentException] {
-        //TODO: discuss what's correct
-        StreamingAspEvaluation(Set("a."))
-      }
-    }
-  }
   "A fact in an ASP-Program" should "still be part of the result and remain unchanged" in {
     val convert = StreamingAspEvaluation(Set("a."))
     val result = convert.prepare(t1, Set()).get
