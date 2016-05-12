@@ -43,7 +43,6 @@ class StreamingAspTransformationSpec extends FlatSpec {
     }
   }
 
-
   "Two atoms with arity and time t3" should "be translated into the facts 'now(3000). a(3000). b(1,3000)." in {
     val b = Atom("b").apply("1")
 
@@ -57,17 +56,5 @@ class StreamingAspTransformationSpec extends FlatSpec {
     convert.prepare(t1, Set()).get.value should be(empty)
   }
 
-  "A fact in an ASP-Program" should "still be part of the result and remain unchanged" in {
-    val convert = StreamingAspEvaluation(Set("a."))
-    val result = convert.prepare(t1, Set()).get
-    //TODO: discuss what's correct
-    result.get should contain only (a)
-  }
-
-  "Facts from the program and the parameters" should "be part of the result" in {
-    val convert = StreamingAspEvaluation(Set("b."))
-    val result = convert.prepare(t1, Set(StreamEntry(t1, Set(a)))).get
-    //TODO: discuss what's correct
-    result.get should contain (a(t1.timePoint.toString))
-  }
+  // TODO: write test that verifies that all atoms have T as argument
 }
