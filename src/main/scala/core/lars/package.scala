@@ -1,13 +1,17 @@
 package core
 
+import engine.Time
+
 /**
   * Created by FM on 29.04.16.
   */
 package object lars {
   type WindowSize = Long
 
-  //  type WindowFunction = (WindowSize) => (Stream, Time) => Stream
-//  type WindowFunction = (Stream, Time) => Stream
+  val T = "T"
 
+  def STW(windowSize: WindowSize) = SlidingTimeWindow(windowSize)
+
+  def W(windowSize: WindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)
 
 }
