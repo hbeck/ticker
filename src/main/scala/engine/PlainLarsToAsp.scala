@@ -36,10 +36,12 @@ object PlainLarsToAsp {
 
   def apply(windowAtom: WindowAtom) = {
     val arguments = windowAtom.atom match {
-      case AtomWithArguments(_, arguments) => arguments :+ T
-      case a: Atom => Seq(T)
+      case AtomWithArguments(_, arg) => arg :+ T.toString
+      case a: Atom => Seq(T.toString)
     }
-    Atom(nameFor(windowAtom))(arguments: _*)
+    val basicAtom = Atom(nameFor(windowAtom))
+
+    basicAtom(arguments: _*)
   }
 
   def rule(rule: Rule): AspRule = {
@@ -97,25 +99,26 @@ object PlainLarsToAsp {
     val at = windowAtom.temporalModality.asInstanceOf[At]
     val head = Atom(nameFor(windowAtom))
 
-    val atomAtTime = windowAtom.atom(at.time.toString)
+    val atomAtTime = windowAtom.atom(at.time)
 
     // TODO implement Timevariable as well
     val time = at.time.asInstanceOf[TimePoint]
 
-    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => (time.timePoint - x).toString)
+    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => TimePoint(time.timePoint - x))
 
     val rules = nowAtoms map (n => AspRule(head, Set(atomAtTime, n)))
 
     rules.toSet
   }
 
-  def generateTimeVariable(increment: Int): String = {
+  def generateTimeVariable(increment: Int): Time = {
     if (increment == 0)
       return T
-    T + "-" + increment
+    // TODO: proper implementation ('GroundableTimeVariable')
+    TimeVariable(T + "-" + increment)
   }
 
-  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => String): Set[Atom] = {
+  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => Time): Set[Atom] = {
     val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size
     }

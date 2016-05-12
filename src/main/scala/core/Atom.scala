@@ -1,7 +1,7 @@
 package core
 
 import core.asp.{AspFact, AspRule, BuilderHead}
-import core.lars.HeadAtom
+import core.lars.{Time, HeadAtom}
 
 /**
   * Created by hb on 12/22/15.
@@ -11,6 +11,10 @@ sealed trait Atom extends HeadAtom {
 
   def apply(arguments: String*): Atom = {
     AtomWithArguments(this, arguments.toSeq)
+  }
+
+  def apply(time: Time): Atom = {
+    this.apply(time.toString)
   }
 
   def arity = 0
