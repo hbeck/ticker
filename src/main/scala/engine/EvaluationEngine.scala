@@ -17,3 +17,8 @@ trait EvaluationEngine {
 trait Result {
   def get: Option[Model]
 }
+
+object EmptyResult extends Result {
+  override def get: Option[Set[Atom]] = None
+}
+

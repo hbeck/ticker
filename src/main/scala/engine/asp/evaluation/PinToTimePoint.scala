@@ -1,9 +1,10 @@
-package engine.asp
+package engine.asp.evaluation
 
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars.TimePoint
 import engine._
+import engine.asp._
 
 /**
   * Created by FM on 13.05.16.

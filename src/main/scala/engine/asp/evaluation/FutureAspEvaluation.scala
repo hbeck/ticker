@@ -1,12 +1,12 @@
-package engine.asp
+package engine.asp.evaluation
 
 import core.Atom
 import core.lars.TimePoint
 import engine.{Result, Stream}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
   * Created by FM on 24.04.16.

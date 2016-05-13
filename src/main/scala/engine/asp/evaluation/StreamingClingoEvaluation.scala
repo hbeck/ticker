@@ -1,10 +1,10 @@
-package engine.asp
+package engine.asp.evaluation
 
-import clingo._
-import clingo.{ClingoExpression, ClingoProgram}
+import clingo.{ClingoExpression, ClingoProgram, _}
 import core.lars.TimePoint
 import core.{Atom, AtomWithArguments}
 import engine._
+import engine.asp.now
 
 /**
   *

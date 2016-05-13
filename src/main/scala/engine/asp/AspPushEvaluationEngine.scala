@@ -3,34 +3,34 @@ package engine.asp
 import core.Atom
 import core.lars.TimePoint
 import engine._
+import engine.asp.evaluation.AspEvaluation
 
 /**
   * Created by FM on 21.04.16.
   */
 
-case class AspPullEvaluation(private val aspEvaluation: AspEvaluation) extends EvaluationEngine {
+case class AspPushEvaluationEngine(private val aspEvaluation: AspEvaluation) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
+    // TODO: decide if we want to use evaluateUntil or the whole stream
     val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }
 
   def evaluate(time: TimePoint) = {
-    if (!cachedResults.contains(time))
-      prepare(time)
-
-    cachedResults(time)
+    cachedResults.getOrElse(time, EmptyResult)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     atomStream.append(time)(atoms.toSet)
     // TODO: implement invalidation of result
-    // the remove is probably not enough (==> invalidate previous fetched results)
-    cachedResults.remove(time)
+    // a results.remove(time) is probably not enough
+    prepare(time)
   }
 }
+

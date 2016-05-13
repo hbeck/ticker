@@ -1,8 +1,9 @@
-package engine.asp
+package engine.asp.evaluation
 
 import clingo.ClingoConversion
 import core.asp.AspProgram
 import core.lars.TimePoint
+import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine}
 import engine.{Result, Stream}
 
 import scala.concurrent.duration._
@@ -21,11 +22,11 @@ trait AspEvaluation {
 object AspEvaluation {
 
   def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPullEvaluation(buildTransformation(program, evaluationMode))
+    AspPullEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
   def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPushEvaluation(buildTransformation(program, evaluationMode))
+    AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
   def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {

@@ -2,8 +2,9 @@ package engine
 
 import core.asp.AspProgram
 import core.lars.AtTime
-import core.{Atom}
-import engine.asp.{AspEvaluation, AspPullEvaluation}
+import core.Atom
+import engine.asp.AspPullEvaluationEngine
+import engine.asp.evaluation.AspEvaluation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
