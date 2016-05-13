@@ -3,7 +3,7 @@ package engine
 import core.asp.AspProgram
 import core.lars.AtTime
 import core.Atom
-import engine.asp.AspPullEvaluationEngine
+import engine.asp.{AspPullEvaluationEngine, EvaluationStrategy}
 import engine.asp.evaluation.AspEvaluation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -28,7 +28,7 @@ class EngineStreamSpec extends FlatSpec {
   val t2 = AtTime.second(2)
   val t3 = AtTime.second(3)
 
-  def evaluationEngine: EvaluationEngine = AspEvaluation.pull(program)
+  def evaluationEngine: EvaluationEngine = EvaluationStrategy.pull(program)
 
   "Adding atoms one after another at the same timepoint" should "lead to different evaluation results" in {
     val engine = evaluationEngine

@@ -3,6 +3,7 @@ package engine
 import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
 import core.lars.TimePoint
+import engine.asp.EvaluationStrategy
 import engine.asp.evaluation.AspEvaluation
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -57,14 +58,14 @@ class EngineSpec extends FlatSpec {
   }
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(AspEvaluation.pull(program))
+    val engine = engineWithStreams(EvaluationStrategy.pull(program))
     val result = engine.evaluate(t1).get
 
     result.value should contain allOf(a(t2.toString), b(t1.toString))
   }
 
   it should "invalidate 'b' for t2" in {
-    val engine = engineWithStreams(AspEvaluation.pull(program))
+    val engine = engineWithStreams(EvaluationStrategy.pull(program))
 
     val result = engine.evaluate(t2).get
 

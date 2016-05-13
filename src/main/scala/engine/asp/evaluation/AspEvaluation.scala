@@ -3,16 +3,10 @@ package engine.asp.evaluation
 import clingo.ClingoConversion
 import core.asp.AspProgram
 import core.lars.TimePoint
-import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine}
+import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, EvaluationMode, UseFuture}
 import engine.{Result, Stream}
 
 import scala.concurrent.duration._
-
-trait EvaluationMode
-
-case class UseFuture(waitingAtMost: Duration = 1 second) extends EvaluationMode
-
-object Direct extends EvaluationMode
 
 trait AspEvaluation {
   // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
@@ -20,14 +14,6 @@ trait AspEvaluation {
 }
 
 object AspEvaluation {
-
-  def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPullEvaluationEngine(buildTransformation(program, evaluationMode))
-  }
-
-  def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
-  }
 
   def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
     val transformation = StreamingClingoEvaluation(ClingoConversion(program))
