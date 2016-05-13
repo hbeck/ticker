@@ -30,6 +30,8 @@ sealed trait AspRule {
   val body = pos union neg
   val atoms = body + head
 
+  def isFact: Boolean = pos.isEmpty && neg.isEmpty
+
   def ==(other: AspRule): Boolean = {
     if (this.head != other.head) return false
     if (this.pos != other.pos) return false

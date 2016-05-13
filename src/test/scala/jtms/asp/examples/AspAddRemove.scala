@@ -75,6 +75,26 @@ class AspAddRemove extends FunSuite {
     assert(m == Set(b))
   }
 
+  test("remove case repercussion vs cons-star") {
+    val tms = ExtendedJTMS()
+    def m = tms.getModel.get
+
+    tms.add(AspRule(a,b))
+    tms.add(AspRule(b,a))
+    tms.add(AspRule(b,Set(c))) //,Set(d)))
+    tms.add(AspRule(c,none,Set(e)))
+    tms.add(AspRule(e))
+    /*
+    the problem is that after this step, the support of a is empty, but it should be b.
+    if supp(a)=b, then we can compute the correct solution with repercussions, which is desired.
+
+    obs: it should not be the case that the support of an atom, that is not (only) a fact, has an empty
+    support.
+     */
+    tms.remove(AspRule(e))
+    assert(m == Set(a,b,c))
+  }
+
   test("a :- b. b :- a. b :- c, not d. c :- not e. e.") {
 
     val tms = ExtendedJTMS()
@@ -96,7 +116,7 @@ class AspAddRemove extends FunSuite {
     assert(m == Set(e))
 
     tms.remove(AspRule(e))
-    assert(m == Set(a,b,c))
+    assert(m == Set(a,b,c)) //
 
     tms.add(AspRule(e))
     tms.remove(AspRule(b,Set(c),Set(d)))

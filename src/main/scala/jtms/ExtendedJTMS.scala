@@ -29,6 +29,38 @@ case class ExtendedJTMS() {
 
   var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
+  var doSemanticsCheck = true //introduced while debugging remove problems
+
+  //based on JTMS update algorithm
+  def add(rule: AspRule): Unit = {
+    register(rule)
+    if (status(rule.head) == in) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
+    val ats = repercussions(rule.head) + rule.head
+    updateBeliefs(ats)
+  }
+
+  def remove(rule: AspRule): Unit = {
+    unregister(rule)
+    if (!(allAtoms contains rule.head)) return
+    if (status(rule.head) == out) return
+    if (suppRule(rule.head).get != rule) return
+    val ats = repercussions(rule.head) + rule.head
+    //val ats = trans(cons,rule.head) + rule.head
+    /* TODO repercussions do not suffice; but the problem likely is
+       that the support is not computed sufficiently
+    */
+    updateBeliefs(ats)
+  }
+
+  def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+    val atoms = inAtoms()
+    if (atoms exists contradictionAtom) return None //not dealt with
+    Some(atoms.toSet)
+  }
+
+  //
+  //
   //
 
   var rules: List[AspRule] = List()
@@ -38,11 +70,7 @@ case class ExtendedJTMS() {
   val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
-  def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    val atoms = inAtoms()
-    if (atoms exists contradictionAtom) return None //not dealt with
-    Some(atoms.toSet)
-  }
+  //
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
@@ -81,15 +109,6 @@ case class ExtendedJTMS() {
   def unfounded(rule: AspRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
-  //based on JTMS update algorithm
-  def add(rule: AspRule): Unit = {
-    register(rule)
-    if (status(rule.head) == in) return
-    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val ats = repercussions(rule.head) + rule.head
-    updateBeliefs(ats)
-  }
-
   def register(rule: AspRule): Unit = {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
@@ -109,6 +128,7 @@ case class ExtendedJTMS() {
       case `UpdateStrategyDoyle` => updateDoyle(atoms)
       case `UpdateStrategyStepwise` => updateStepwise(atoms)
     }
+    checkSemantics()
   }
 
   def updateDoyle(atoms: Set[Atom]): Unit = {
@@ -130,7 +150,20 @@ case class ExtendedJTMS() {
 
   def hasUnknown = allAtoms exists (status(_) == unknown)
 
-  //def unknownAtomsList = unknownAtoms.toList sortWith ((u1,u2) => contradictionAtom(u1))
+  def checkSemantics(): Unit = {
+    if (!doSemanticsCheck) return
+    val ruleHeads = rules map (_.head) toSet
+    val facts = rules filter (_.isFact) map (_.head) toSet
+    val atomsNeedingSupp = ruleHeads diff facts
+    val badAtoms = atomsNeedingSupp filter (supp(_).isEmpty)
+    if (!badAtoms.isEmpty) {
+      println("the following atoms need but do not have a support")
+      for (a <- badAtoms) {
+        println(a)
+      }
+      throw new RuntimeException("no support for atoms "+badAtoms)
+    }
+  }
 
   def setIn(rule: AspRule) = {
     status(rule.head) = in
@@ -227,7 +260,7 @@ case class ExtendedJTMS() {
   }
 
   def fixOut(a: Atom) = {
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //doesn't always work for remove
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work for remove
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
@@ -250,15 +283,7 @@ case class ExtendedJTMS() {
     trans(f)(nextSet)
   }
 
-  def remove(rule: AspRule): Unit = {
-    unregister(rule)
-    if (!(allAtoms contains rule.head)) return
-    if (status(rule.head) == out) return
-    if (suppRule(rule.head).get != rule) return
-    //val ats = repercussions(rule.head) + rule.head
-    val ats = trans(cons,rule.head) + rule.head //TODO repercussions do not suffice!
-    updateBeliefs(ats)
-  }
+
 
   def unregister(rule: AspRule): Unit = {
     if (!(rules contains rule)) return
