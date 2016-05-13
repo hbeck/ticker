@@ -13,22 +13,25 @@ object AspRule {
 
   def fact(head: Atom) = UserDefinedAspRule(head, Set(), Set())
 
-  def apply(head: Atom, pos:Set[Atom], neg: Set[Atom]) = UserDefinedAspRule(head, pos, neg)
+  def apply(head: Atom, pos: Set[Atom], neg: Set[Atom]) = UserDefinedAspRule(head, pos, neg)
+
   def apply(head: Atom) = UserDefinedAspRule(head, Set(), Set())
+
   def apply(head: Atom, pos: Atom) = UserDefinedAspRule(head, Set(pos), Set())
+
   def apply(head: Atom, pos: Set[Atom]) = UserDefinedAspRule(head, pos, Set())
 
 }
 
-
-sealed trait AspRule {
+// TODO: discuss if sealed is needed (removed beacuse of PinnedRule)
+trait AspRule {
 
   val pos: Set[Atom]
   val neg: Set[Atom]
   val head: Atom
 
-  val body = pos union neg
-  val atoms = body + head
+  lazy val body = pos union neg
+  lazy val atoms = body + head
 
   def isFact: Boolean = pos.isEmpty && neg.isEmpty
 
@@ -70,12 +73,12 @@ case class UserDefinedAspRule(head: Atom, pos: Set[Atom], neg: Set[Atom]) extend
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends AspRule {
   override def toString = {
-    super.toString.replaceAll("<-","<--")
+    super.toString.replaceAll("<-", "<--")
   }
 }
 
 object AspRuleFromBacktracking {
-  def apply (pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
-    AspRuleFromBacktracking(pos.toSet,neg.toSet,head)
+  def apply(pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
+    AspRuleFromBacktracking(pos.toSet, neg.toSet, head)
   }
 }

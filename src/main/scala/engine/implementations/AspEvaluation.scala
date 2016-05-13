@@ -14,7 +14,7 @@ case class UseFuture(waitingAtMost: Duration = 1 second) extends EvaluationMode
 object Direct extends EvaluationMode
 
 trait AspEvaluation {
-  // TODO: discuss if timepoint makes sense here (guess TimeVariable not???)
+  // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
   def prepare(time: TimePoint, dataStream: Stream): Result
 }
 

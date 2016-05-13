@@ -5,7 +5,7 @@ package core.asp
   */
 trait AspProgram {
   val rules: Seq[AspRule]
-  val atoms = () => this.rules.flatMap(_.atoms)
+  lazy val atoms = this.rules.flatMap(_.atoms)
 }
 
 case class ModifiableAspProgram(rules: List[AspRule]) extends AspProgram {

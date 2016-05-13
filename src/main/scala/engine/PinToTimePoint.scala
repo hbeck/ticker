@@ -8,7 +8,7 @@ import core.lars.{TimePoint, Time}
   * Created by FM on 13.05.16.
   */
 case class PinToTimePoint(timePoint: TimePoint) {
-  def apply(dataStream: Stream): Set[AspRule] = {
+  def apply(dataStream: Stream): Set[PinnedAspRule] = {
     val nowAtT = apply(now)
 
     val pinnedAtoms = dataStream flatMap (x => PinToTimePoint(x.time).atoms(x.atoms))
@@ -16,12 +16,12 @@ case class PinToTimePoint(timePoint: TimePoint) {
     pinnedAtoms + nowAtT
   }
 
-  def atoms(atoms: Set[Atom]): Set[AspRule] = {
+  def atoms(atoms: Set[Atom]): Set[PinnedAspRule] = {
     atoms map (apply(_))
   }
 
-  def apply(atom: Atom): AspRule = {
-    AspFact(atom(timePoint))
+  def apply(atom: Atom): PinnedAspRule = {
+    PinnedAspRule(AspFact(atom(timePoint)))
   }
 
   def apply(program: AspProgram, dataStream: Stream): AspProgramAtTimePoint = {
@@ -29,6 +29,12 @@ case class PinToTimePoint(timePoint: TimePoint) {
   }
 }
 
-case class AspProgramAtTimePoint(baseProgram: AspProgram, pinnedAtoms: Set[AspRule], timePoint: TimePoint) extends AspProgram {
+case class PinnedAspRule(rule: AspRule) extends AspRule {
+  override val pos: Set[Atom] = rule.pos
+  override val neg: Set[Atom] = rule.neg
+  override val head: Atom = rule.head
+}
+
+case class AspProgramAtTimePoint(baseProgram: AspProgram, pinnedAtoms: Set[PinnedAspRule], timePoint: TimePoint) extends AspProgram {
   val rules: Seq[AspRule] = baseProgram.rules ++ pinnedAtoms
 }

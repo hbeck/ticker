@@ -1,11 +1,10 @@
 package engine
 
-import core.asp.{AspProgram, AspProgramBuilder}
+import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
 import core.lars.TimePoint
 import engine.implementations.AspEvaluation
 import org.scalatest.FlatSpec
-
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
