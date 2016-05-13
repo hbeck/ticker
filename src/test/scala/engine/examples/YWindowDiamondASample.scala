@@ -29,7 +29,7 @@ class YWindowDiamondASample extends FlatSpec {
   val a = Atom("a")
   val u = Atom("u")
 
-  val now = PlainLarsToAsp.now
+  val now = engine.now
 
   val program = AspProgram(
     y("T") :- w1d_a("T"),

@@ -30,7 +30,7 @@ object StreamingAspEvaluation {
   def transform(currentTime: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
-    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(atomAtT(currentTime, PlainLarsToAsp.now))
+    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(TransformAspToTimePoint.atomAtT(currentTime, now))
 
     transformedAtomsAndNow
   }
@@ -47,7 +47,7 @@ case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: Clin
     val result = aspResult match {
       case Some(model) => {
         val atoms = model.filterNot {
-          case AtomWithArguments(baseAtom, _) => baseAtom == PlainLarsToAsp.now
+          case AtomWithArguments(baseAtom, _) => baseAtom == now
           case _ => false
         }
         Some(atoms)

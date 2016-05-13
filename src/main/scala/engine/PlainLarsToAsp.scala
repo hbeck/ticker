@@ -8,9 +8,6 @@ import core.{Atom, AtomWithArguments}
   * Created by FM on 05.05.16.
   */
 object PlainLarsToAsp {
-  // TODO: discuss if now should also be moved into core.lars._
-  val now = Atom("now")
-
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
     case AtAtom(t, a) => a(t)

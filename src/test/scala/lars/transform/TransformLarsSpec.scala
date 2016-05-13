@@ -14,7 +14,7 @@ class TransformLarsSpec extends FlatSpec {
   val t2: Time = 2
 
   val T = core.lars.T
-  val now = PlainLarsToAsp.now
+  val now = engine.now
 
   val a = Atom("a")
   val b = Atom("b")

@@ -34,7 +34,7 @@ class ZWindowTimeASample extends FlatSpec {
   val a = Atom("a")
   val i = Atom("i")
 
-  val now = PlainLarsToAsp.now
+  val now = engine.now
 
   val t0 = TimePoint(0)
   val t1 = TimePoint(1)

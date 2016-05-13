@@ -26,6 +26,9 @@ case class TimeVariable(variable: String) extends Time {
 
 object TimePoint {
   implicit val ordering = Ordering.by((time: TimePoint) => time.timePoint)
+
+  implicit def convertToTimePoint(timePoint: Long): TimePoint = TimePoint(timePoint)
+  implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
 }
 
 object AtTime {

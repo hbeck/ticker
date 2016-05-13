@@ -32,7 +32,7 @@ class XWindowBoxASample extends FlatSpec {
   val a = Atom("a")
   val u = Atom("u")
 
-  val now = PlainLarsToAsp.now
+  val now = engine.now
 
   val program = AspProgram(
     x("T") :- w1b_a("T"),
