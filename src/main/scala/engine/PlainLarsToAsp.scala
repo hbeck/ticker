@@ -13,12 +13,12 @@ object PlainLarsToAsp {
 
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
-    case AtAtom(t, a) => a(t.toString)
+    case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
   }
 
   def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    case AtAtom(t, a) => a(t.toString)
+    case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }

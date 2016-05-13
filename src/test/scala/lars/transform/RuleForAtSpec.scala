@@ -24,19 +24,19 @@ class RuleForAtSpec extends TransformLarsSpec {
     }
   }
   it should "contain now(t0)" in {
-    forExactly(1, PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(now(t0.toString)) }
+    forExactly(1, PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(now(t0)) }
   }
   it should "contain now(t1)" in {
-    forExactly(1, PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(now(t1.toString)) }
+    forExactly(1, PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(now(t1)) }
   }
   it should "have head w_1_at_1_a" in {
     forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.head.toString should be("w_1_at_1_a") }
   }
   it should "contain a(t1) for all elements" in {
-    forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(a(t1.toString)) }
+    forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(a(t1)) }
   }
 
   "The rule for w^2 at_2 a" should "contain now(t0), now(t1), a(t2)" in {
-    PlainLarsToAsp.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0.toString), now(t1.toString), now(t2.toString))
+    PlainLarsToAsp.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0), now(t1), now(t2))
   }
 }

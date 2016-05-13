@@ -18,7 +18,7 @@ class RuleOnlySpec extends TransformLarsSpec {
 
   it should "transform an at-atom in the head" in {
     val f = Fact(AtAtom(t1, a))
-    assert(PlainLarsToAsp.rule(f) == AspRule(a(t1.toString), Set(now(T))))
+    assert(PlainLarsToAsp.rule(f) == AspRule(a(t1), Set(now(T))))
   }
 
   "A rule containing only positive elements" should "have the same amount of items in its transformed pos. body and now(T)" in {

@@ -18,9 +18,7 @@ object StreamingAspEvaluation {
   }
 
   def atomAtT(time: TimePoint, atom: Atom) = {
-    val timeParameter = time.timePoint.toString
-
-    AspFact(atom(timeParameter))
+    AspFact(atom(time.timePoint))
   }
 
   def transformAtoms(time: TimePoint, atoms: Set[Atom]) = {

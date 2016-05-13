@@ -5,6 +5,11 @@ package core.lars
   */
 trait Time
 
+object Time {
+  implicit def convertToTimePoint(timePoint: Long): Time = TimePoint(timePoint)
+  implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
+}
+
 case class TimePoint(timePoint: Long) extends Time {
 
   override def toString = {
