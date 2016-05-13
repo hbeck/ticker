@@ -4,7 +4,7 @@ import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
 import core.lars.TimePoint
 import engine.asp.EvaluationStrategy
-import engine.asp.evaluation.AspEvaluation
+import engine.asp.evaluation.StreamingAspInterpeter$
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

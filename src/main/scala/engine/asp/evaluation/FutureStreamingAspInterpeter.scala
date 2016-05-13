@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 /**
   * Created by FM on 24.04.16.
   */
-case class FutureAspEvaluation(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
+case class FutureStreamingAspInterpeter(private val aspEvaluation: StreamingAspInterpeter, waitingAtMost: Duration) extends StreamingAspInterpeter {
 
   override def prepare(time: TimePoint, dataStream: Stream): Result = {
     val future = Future {

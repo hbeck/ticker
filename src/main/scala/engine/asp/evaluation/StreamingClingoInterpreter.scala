@@ -16,7 +16,7 @@ object StreamingAspToClingo {
   }
 }
 
-case class StreamingClingoEvaluation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
+case class StreamingClingoInterpreter(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpeter {
 
   def prepare(time: TimePoint, dataStream: Stream): Result = {
 

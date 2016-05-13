@@ -2,7 +2,7 @@ package engine
 
 import core.Atom
 import core.lars.{AtTime, TimePoint}
-import engine.asp.evaluation.{StreamingAspToClingo, StreamingClingoEvaluation}
+import engine.asp.evaluation.{StreamingAspToClingo, StreamingClingoInterpreter}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -36,7 +36,7 @@ class StreamingAspToClingoSpec extends FlatSpec {
   }
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
-    val convert = StreamingClingoEvaluation(Set())
+    val convert = StreamingClingoInterpreter(Set())
     convert.prepare(t1, Set()).get.value should be(empty)
   }
 

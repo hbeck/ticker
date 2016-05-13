@@ -3,7 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.lars._
 import core.{Atom, asp}
-import engine.asp.evaluation.StreamingClingoEvaluation
+import engine.asp.evaluation.StreamingClingoInterpreter
 import engine.asp.{AspPullEvaluationEngine, PlainLarsToAsp, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -50,7 +50,7 @@ class XWindowBoxASample extends FlatSpec {
   def evaluation = {
 
 //    val convertedLarsProgram = TransformLars(larsProgram)
-    val e = AspPullEvaluationEngine(StreamingClingoEvaluation(aspExpressions))
+    val e = AspPullEvaluationEngine(StreamingClingoInterpreter(aspExpressions))
 
     e.append(t1)(a)
     e.append(t2)(a)

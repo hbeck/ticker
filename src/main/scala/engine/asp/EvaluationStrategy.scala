@@ -1,7 +1,7 @@
 package engine.asp
 
 import core.asp.AspProgram
-import engine.asp.evaluation.AspEvaluation
+import engine.asp.evaluation.{StreamingAspInterpeter}
 
 import scala.concurrent.duration._
 
@@ -11,11 +11,11 @@ import scala.concurrent.duration._
 object EvaluationStrategy {
 
   def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPullEvaluationEngine(AspEvaluation.buildTransformation(program, evaluationMode))
+    AspPullEvaluationEngine(StreamingAspInterpeter.buildTransformation(program, evaluationMode))
   }
 
   def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPushEvaluationEngine(AspEvaluation.buildTransformation(program, evaluationMode))
+    AspPushEvaluationEngine(StreamingAspInterpeter.buildTransformation(program, evaluationMode))
   }
 
 }

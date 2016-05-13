@@ -3,7 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.Atom
 import core.lars.TimePoint
-import engine.asp.evaluation.StreamingClingoEvaluation
+import engine.asp.evaluation.StreamingClingoInterpreter
 import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -38,7 +38,7 @@ class YWindowDiamondASample extends FlatSpec {
   val t2 = TimePoint(2)
 
   def evaluation = {
-    val e = AspPullEvaluationEngine(StreamingClingoEvaluation(aspExpressions))
+    val e = AspPullEvaluationEngine(StreamingClingoInterpreter(aspExpressions))
 
     e.append(t1)(a)
 
@@ -61,7 +61,7 @@ class YWindowDiamondASample extends FlatSpec {
     evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
   }
   it should "still not contain y(1) at t2 with push" in {
-    val e = AspPushEvaluationEngine(StreamingClingoEvaluation(aspExpressions))
+    val e = AspPushEvaluationEngine(StreamingClingoInterpreter(aspExpressions))
 
     e.append(t1)(a)
 

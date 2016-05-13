@@ -3,13 +3,13 @@ package engine.asp
 import core.Atom
 import core.lars.TimePoint
 import engine._
-import engine.asp.evaluation.AspEvaluation
+import engine.asp.evaluation.StreamingAspInterpeter
 
 /**
   * Created by FM on 21.04.16.
   */
 
-case class AspPushEvaluationEngine(private val aspEvaluation: AspEvaluation) extends EvaluationEngine {
+case class AspPushEvaluationEngine(private val aspEvaluation: StreamingAspInterpeter) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 

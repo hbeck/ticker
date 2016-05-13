@@ -8,18 +8,18 @@ import engine.{Result, Stream}
 
 import scala.concurrent.duration._
 
-trait AspEvaluation {
+trait StreamingAspInterpeter {
   // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
   def prepare(time: TimePoint, dataStream: Stream): Result
 }
 
-object AspEvaluation {
+object StreamingAspInterpeter {
 
-  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
-    val transformation = StreamingClingoEvaluation(ClingoConversion(program))
+  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): StreamingAspInterpeter = {
+    val transformation = StreamingClingoInterpreter(ClingoConversion(program))
 
     evaluationMode match {
-      case UseFuture(waitingAtMost: Duration) => FutureAspEvaluation(transformation, waitingAtMost)
+      case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpeter(transformation, waitingAtMost)
       case _ => transformation
     }
   }
