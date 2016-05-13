@@ -3,7 +3,7 @@ package engine.examples
 import core.Atom
 import core.lars._
 import engine.{PlainLarsToAsp}
-import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation}
+import engine.implementations.{StreamingClingoEvaluation, AspPullEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -49,7 +49,7 @@ class ZWindowTimeASample extends FlatSpec {
 
 
   def evaluation = {
-    val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))
+    val e = AspPullEvaluation(StreamingClingoEvaluation(aspExpressions))
 
     e.append(t1)(a)
 

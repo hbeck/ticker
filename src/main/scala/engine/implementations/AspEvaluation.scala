@@ -29,7 +29,7 @@ object AspEvaluation {
   }
 
   def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
-    val transformation = StreamingAspEvaluation(ClingoConversion(program))
+    val transformation = StreamingClingoEvaluation(ClingoConversion(program))
 
     evaluationMode match {
       case UseFuture(waitingAtMost: Duration) => FutureAspEvaluation(transformation, waitingAtMost)

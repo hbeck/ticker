@@ -10,7 +10,7 @@ import org.scalatest.Matchers._
 /**
   * Created by FM on 13.05.16.
   */
-class TransformAspToTimePointSpec extends FlatSpec {
+class PinToTimePointSpec extends FlatSpec {
 
   val a = Atom("a")
   val b = Atom("b")

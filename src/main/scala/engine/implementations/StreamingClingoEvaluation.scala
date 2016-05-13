@@ -2,7 +2,6 @@ package engine.implementations
 
 import clingo._
 import clingo.{ClingoExpression, ClingoProgram}
-import core.asp.AspFact
 import core.lars.TimePoint
 import core.{Atom, AtomWithArguments}
 import engine._
@@ -12,12 +11,12 @@ import engine._
   * Created by FM on 22.04.16.
   */
 object StreamingAspToClingo {
-  def apply(time: TimePoint, dataStream: Stream) = {
+  def apply(time: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
     PinToTimePoint(time)(dataStream) map (ClingoConversion(_))
   }
 }
 
-case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
+case class StreamingClingoEvaluation(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends AspEvaluation {
 
   def prepare(time: TimePoint, dataStream: Stream): Result = {
 

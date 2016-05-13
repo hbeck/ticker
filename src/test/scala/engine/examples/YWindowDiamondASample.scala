@@ -4,7 +4,7 @@ import core.asp.AspProgram
 import core.Atom
 import core.lars.TimePoint
 import engine.{PlainLarsToAsp}
-import engine.implementations.{StreamingAspEvaluation, AspPullEvaluation, AspPushEvaluation}
+import engine.implementations.{StreamingClingoEvaluation, AspPullEvaluation, AspPushEvaluation}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -40,7 +40,7 @@ class YWindowDiamondASample extends FlatSpec {
   val t2 = TimePoint(2)
 
   def evaluation = {
-    val e = AspPullEvaluation(StreamingAspEvaluation(aspExpressions))
+    val e = AspPullEvaluation(StreamingClingoEvaluation(aspExpressions))
 
     e.append(t1)(a)
 
@@ -63,7 +63,7 @@ class YWindowDiamondASample extends FlatSpec {
     evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
   }
   it should "still not contain y(1) at t2 with push" in {
-    val e = AspPushEvaluation(StreamingAspEvaluation(aspExpressions))
+    val e = AspPushEvaluation(StreamingClingoEvaluation(aspExpressions))
 
     e.append(t1)(a)
 
