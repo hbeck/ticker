@@ -23,11 +23,9 @@ case class PinToTimePoint(timePoint: TimePoint) {
   def apply(atom: Atom): AspRule = {
     AspFact(atom(timePoint))
   }
-}
 
-object PinAspProgramToTimePoint {
-  def apply(program: AspProgram, dataStream: Stream, timePoint: TimePoint) = {
-    AspProgramAtTimePoint(program, PinToTimePoint(timePoint)(dataStream), timePoint)
+  def apply(program: AspProgram, dataStream: Stream): AspProgramAtTimePoint = {
+    AspProgramAtTimePoint(program, apply(dataStream), timePoint)
   }
 }
 

@@ -11,25 +11,9 @@ import engine._
   *
   * Created by FM on 22.04.16.
   */
-object StreamingAspEvaluation {
-
-  def transform(dataStream: Stream): Set[ClingoExpression] = {
-    dataStream flatMap (x => transformAtoms(x.time, x.atoms))
-  }
-
-
-  def transformAtoms(time: TimePoint, atoms: Set[Atom]) = {
-    val atomsWithT = atoms.map(x => PinAspProgramToTimePoint.atomAtT(time, x))
-
-    atomsWithT map (x => ClingoConversion(x))
-  }
-
-  def transform(currentTime: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
-    val transformedAtoms = transform(dataStream)
-
-    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(PinAspProgramToTimePoint.atomAtT(currentTime, now))
-
-    transformedAtomsAndNow
+object StreamingAspToClingo {
+  def apply(time: TimePoint, dataStream: Stream) = {
+    PinToTimePoint(time)(dataStream) map (ClingoConversion(_))
   }
 }
 
@@ -37,7 +21,7 @@ case class StreamingAspEvaluation(aspExpressions: ClingoProgram, aspEngine: Clin
 
   def prepare(time: TimePoint, dataStream: Stream): Result = {
 
-    val transformed = StreamingAspEvaluation.transform(time, dataStream)
+    val transformed = StreamingAspToClingo(time, dataStream)
 
     val aspResult = aspEngine(aspExpressions ++ transformed).headOption
 
