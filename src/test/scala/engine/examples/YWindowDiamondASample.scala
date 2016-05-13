@@ -3,8 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.Atom
 import core.lars.TimePoint
-import engine.{PlainLarsToAsp}
-import engine.implementations.{StreamingClingoEvaluation, AspPullEvaluation, AspPushEvaluation}
+import engine.asp.{StreamingClingoEvaluation, AspPullEvaluation, AspPushEvaluation, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -28,8 +27,6 @@ class YWindowDiamondASample extends FlatSpec {
   val w1d_a = Atom("w1d_a")
   val a = Atom("a")
   val u = Atom("u")
-
-  val now = engine.now
 
   val program = AspProgram(
     y("T") :- w1d_a("T"),

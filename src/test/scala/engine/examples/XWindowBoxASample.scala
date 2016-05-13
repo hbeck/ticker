@@ -3,8 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.lars._
 import core.{Atom, asp}
-import engine.PlainLarsToAsp
-import engine.implementations.{StreamingClingoEvaluation, AspPullEvaluation}
+import engine.asp.{AspPullEvaluation, PlainLarsToAsp, StreamingClingoEvaluation, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -31,8 +30,6 @@ class XWindowBoxASample extends FlatSpec {
   val spoil_w1b_a = Atom("spoil_w1b_a")
   val a = Atom("a")
   val u = Atom("u")
-
-  val now = engine.now
 
   val program = AspProgram(
     x("T") :- w1b_a("T"),

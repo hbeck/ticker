@@ -1,8 +1,9 @@
-package engine
+package engine.asp
 
 import core.Atom
-import core.asp.{AspRule, AspFact, AspProgram}
-import core.lars.{TimePoint, Time}
+import core.asp.{AspFact, AspProgram, AspRule}
+import core.lars.TimePoint
+import engine._
 
 /**
   * Created by FM on 13.05.16.

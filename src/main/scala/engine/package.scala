@@ -6,8 +6,6 @@ import core.lars.TimePoint
   */
 package object engine {
 
-  // TODO: discuss if now should also be moved into core.lars._
-  val now = Atom("now")
 
   // From an outside perspective we only want to pass in anonymous data
 

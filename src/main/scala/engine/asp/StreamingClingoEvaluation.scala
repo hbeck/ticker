@@ -1,4 +1,4 @@
-package engine.implementations
+package engine.asp
 
 import clingo._
 import clingo.{ClingoExpression, ClingoProgram}

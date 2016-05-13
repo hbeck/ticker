@@ -1,8 +1,9 @@
-package engine
+package engine.asp
 
-import core.asp.{AspFact, AspRule}
+import core.asp.{AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArguments}
+import engine._
 
 /**
   * Created by FM on 05.05.16.
@@ -20,15 +21,15 @@ object PlainLarsToAsp {
     case a: WindowAtom => this.apply(a)
   }
 
-  //main
   def apply(rule: Rule): Set[AspRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): Seq[AspRule] = {
-    program.rules flatMap this.apply
+  def apply(program: Program): AspProgram = {
+    val rules = program.rules flatMap this.apply
+    AspProgram(rules.toList)
   }
 
   def apply(windowAtom: WindowAtom) = {
@@ -108,6 +109,7 @@ object PlainLarsToAsp {
     rules.toSet
   }
 
+  // TODO: use type Duration
   def generateTimeVariable(increment: Int): Time = {
     if (increment == 0)
       return T
@@ -115,6 +117,7 @@ object PlainLarsToAsp {
     TimeVariable(T + "-" + increment)
   }
 
+  // TODO: use type Duration
   def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => Time): Set[Atom] = {
     val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size

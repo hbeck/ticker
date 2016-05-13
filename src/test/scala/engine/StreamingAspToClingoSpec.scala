@@ -2,7 +2,7 @@ package engine
 
 import core.Atom
 import core.lars.{AtTime, TimePoint}
-import engine.implementations.{StreamingClingoEvaluation, StreamingAspToClingo}
+import engine.asp.{StreamingClingoEvaluation, StreamingAspToClingo}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

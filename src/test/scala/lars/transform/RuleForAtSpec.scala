@@ -2,7 +2,7 @@ package lars.transform
 
 import core.{Atom, AtomWithArguments}
 import core.lars.{At, Diamond, SlidingTimeWindow, WindowAtom}
-import engine.PlainLarsToAsp
+import engine.asp.PlainLarsToAsp
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 

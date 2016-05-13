@@ -3,6 +3,7 @@ package engine
 import core.Atom
 import core.asp.{AspFact, AspProgram}
 import core.lars.{Time, TimePoint}
+import engine.asp.{PinToTimePoint, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._

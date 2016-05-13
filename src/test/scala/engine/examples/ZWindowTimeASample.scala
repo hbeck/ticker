@@ -2,8 +2,7 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.{PlainLarsToAsp}
-import engine.implementations.{StreamingClingoEvaluation, AspPullEvaluation}
+import engine.asp.{StreamingClingoEvaluation, AspPullEvaluation, now}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -33,8 +32,6 @@ class ZWindowTimeASample extends FlatSpec {
   val w1d_a = Atom("w1d_a")
   val a = Atom("a")
   val i = Atom("i")
-
-  val now = engine.now
 
   val t0 = TimePoint(0)
   val t1 = TimePoint(1)

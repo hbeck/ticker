@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.lars._
-import engine.PlainLarsToAsp
+import engine.asp.PlainLarsToAsp
 
 /**
   * Created by FM on 05.05.16.

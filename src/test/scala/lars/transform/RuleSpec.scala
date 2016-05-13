@@ -1,9 +1,9 @@
 package lars.transform
 
 import core.Atom
-import core.asp.{AspRule, AspFact}
+import core.asp.{AspFact, AspRule}
 import core.lars._
-import engine.PlainLarsToAsp
+import engine.asp.PlainLarsToAsp
 import org.scalatest.Matchers._
 
 /**

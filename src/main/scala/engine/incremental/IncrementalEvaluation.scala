@@ -1,7 +1,7 @@
-package engine.implementations
+package engine.incremental
 
-import core.asp.{AspFact, AspProgram}
 import core.Atom
+import core.asp.{AspFact, AspProgram}
 import core.lars.TimePoint
 import engine.{Result, _}
 import jtms.ExtendedJTMS
