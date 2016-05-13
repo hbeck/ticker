@@ -11,9 +11,15 @@ object PinAspProgramToTimePoint {
   def apply(program: AspProgram, dataStream: Stream, timePoint: TimePoint) = {
     val nowAtT = atomAtT(timePoint, now)
 
+    val atoms = dataStream flatMap atomsAtT
 
-    val atoms = (dataStream map (x => atomAtT(x.time, x.atoms.head))) + nowAtT
-    AspProgramAtTimePoint(program, atoms, timePoint)
+    AspProgramAtTimePoint(program, atoms + nowAtT, timePoint)
+  }
+
+  def atomsAtT(streamEntry: StreamEntry): Set[AspRule] = atomsAtT(streamEntry.time, streamEntry.atoms)
+
+  def atomsAtT(timePoint: TimePoint, atoms: Set[Atom]): Set[AspRule] = {
+    atoms map (atomAtT(timePoint, _))
   }
 
   def atomAtT(time: TimePoint, atom: Atom): AspRule = {
