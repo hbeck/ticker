@@ -17,12 +17,9 @@ object StreamingAspEvaluation {
     dataStream flatMap (x => transformAtoms(x.time, x.atoms))
   }
 
-  def atomAtT(time: TimePoint, atom: Atom) = {
-    AspFact(atom(time.timePoint))
-  }
 
   def transformAtoms(time: TimePoint, atoms: Set[Atom]) = {
-    val atomsWithT = atoms.map(x => atomAtT(time, x))
+    val atomsWithT = atoms.map(x => TransformAspToTimePoint.atomAtT(time, x))
 
     atomsWithT map (x => ClingoConversion(x))
   }
