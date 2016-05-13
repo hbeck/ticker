@@ -28,7 +28,7 @@ class BuilderHead(val head: Atom) {
 object AspProgramBuilder {
   def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): AspProgram2 = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): ModifiableAspProgram = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)

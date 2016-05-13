@@ -8,7 +8,7 @@ trait AspProgram {
   val atoms = () => this.rules.flatMap(_.atoms)
 }
 
-case class AspProgram2(rules: List[AspRule]) extends AspProgram {
+case class ModifiableAspProgram(rules: List[AspRule]) extends AspProgram {
 
   def +(rule: AspRule) = AspProgram(rules :+ rule)
 
@@ -16,7 +16,7 @@ case class AspProgram2(rules: List[AspRule]) extends AspProgram {
 }
 
 object AspProgram {
-  def apply(rules: AspRule*): AspProgram2 = AspProgram2(rules.toList)
+  def apply(rules: AspRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
 
-  def apply(rules: List[AspRule]): AspProgram2 = AspProgram2(rules)
+  def apply(rules: List[AspRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
 }
