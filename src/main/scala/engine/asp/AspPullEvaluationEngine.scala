@@ -3,20 +3,20 @@ package engine.asp
 import core.Atom
 import core.lars.TimePoint
 import engine._
-import engine.asp.evaluation.StreamingAspInterpeter
+import engine.asp.evaluation.{AspEvaluation, AspEvaluationT, StreamingAspInterpeter}
 
 /**
   * Created by FM on 21.04.16.
   */
 
-case class AspPullEvaluationEngine(private val aspEvaluation: StreamingAspInterpeter) extends EvaluationEngine {
+case class AspPullEvaluationEngine(private val aspEvaluation: AspEvaluationT) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
+    val result = aspEvaluation(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }

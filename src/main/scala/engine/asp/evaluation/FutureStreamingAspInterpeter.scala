@@ -8,14 +8,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-/**
-  * Created by FM on 24.04.16.
-  */
-case class FutureStreamingAspInterpeter(private val aspEvaluation: StreamingAspInterpeter, waitingAtMost: Duration) extends StreamingAspInterpeter {
+// TODO: on which level should this be definied?
+// - AspEvaluation
+// - Interpreter
+// - or even EvaluationEngine?
+case class FutureStreamingAspInterpeter(private val aspEvaluation: AspEvaluationT, waitingAtMost: Duration) extends AspEvaluationT {
 
-  override def prepare(time: TimePoint, dataStream: Stream): Result = {
+  def apply(time: TimePoint, dataStream: Stream): Result = {
     val future = Future {
-      aspEvaluation.prepare(time, dataStream)
+      aspEvaluation(time, dataStream)
     }
 
     FutureResult(future, waitingAtMost)

@@ -37,7 +37,7 @@ class StreamingAspToClingoSpec extends FlatSpec {
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
     val convert = StreamingClingoInterpreter(Set())
-    convert.prepare(t1, Set()).get.value should be(empty)
+    convert(Set()) should be(empty)
   }
 
   // TODO: write test that verifies that all atoms have T as argument

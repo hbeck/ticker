@@ -3,13 +3,13 @@ package engine.asp
 import core.Atom
 import core.lars.TimePoint
 import engine._
-import engine.asp.evaluation.StreamingAspInterpeter
+import engine.asp.evaluation.{AspEvaluation, AspEvaluationT, StreamingAspInterpeter}
 
 /**
   * Created by FM on 21.04.16.
   */
 
-case class AspPushEvaluationEngine(private val aspEvaluation: StreamingAspInterpeter) extends EvaluationEngine {
+case class AspPushEvaluationEngine(private val aspEvaluation: AspEvaluationT) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 
@@ -17,7 +17,7 @@ case class AspPushEvaluationEngine(private val aspEvaluation: StreamingAspInterp
 
   def prepare(time: TimePoint) = {
     // TODO: decide if we want to use evaluateUntil or the whole stream
-    val result = aspEvaluation.prepare(time, atomStream.evaluateUntil(time))
+    val result = aspEvaluation(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
   }

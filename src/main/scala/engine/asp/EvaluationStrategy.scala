@@ -1,7 +1,8 @@
 package engine.asp
 
+import clingo.ClingoConversion
 import core.asp.AspProgram
-import engine.asp.evaluation.{StreamingAspInterpeter}
+import engine.asp.evaluation._
 
 import scala.concurrent.duration._
 
@@ -11,11 +12,20 @@ import scala.concurrent.duration._
 object EvaluationStrategy {
 
   def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPullEvaluationEngine(StreamingAspInterpeter.buildTransformation(program, evaluationMode))
+    AspPullEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
   def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
-    AspPushEvaluationEngine(StreamingAspInterpeter.buildTransformation(program, evaluationMode))
+    AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
+  }
+
+  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluationT = {
+    val evaluation = AspEvaluation(StreamingAspInterpeter.select(program, Clingo))
+
+    evaluationMode match {
+      case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpeter(evaluation, waitingAtMost)
+      case _ => evaluation
+    }
   }
 
 }
