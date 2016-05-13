@@ -19,7 +19,7 @@ object StreamingAspEvaluation {
 
 
   def transformAtoms(time: TimePoint, atoms: Set[Atom]) = {
-    val atomsWithT = atoms.map(x => TransformAspToTimePoint.atomAtT(time, x))
+    val atomsWithT = atoms.map(x => PinAspProgramToTimePoint.atomAtT(time, x))
 
     atomsWithT map (x => ClingoConversion(x))
   }
@@ -27,7 +27,7 @@ object StreamingAspEvaluation {
   def transform(currentTime: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
     val transformedAtoms = transform(dataStream)
 
-    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(TransformAspToTimePoint.atomAtT(currentTime, now))
+    val transformedAtomsAndNow = transformedAtoms + ClingoConversion(PinAspProgramToTimePoint.atomAtT(currentTime, now))
 
     transformedAtomsAndNow
   }

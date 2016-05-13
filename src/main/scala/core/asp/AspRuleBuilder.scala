@@ -28,7 +28,7 @@ class BuilderHead(val head: Atom) {
 object AspProgramBuilder {
   def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): AspProgram = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): AspProgram2 = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)
@@ -42,5 +42,5 @@ class AspProgramBuilder(rules: Set[AspRule]) {
 
   def rule(rule: AspRule) = new AspProgramBuilder(rules + rule)
 
-  def toProgram = new AspProgram(rules.toList)
+  def toProgram = AspProgram(rules.toList)
 }
