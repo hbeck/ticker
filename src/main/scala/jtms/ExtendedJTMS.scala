@@ -46,10 +46,6 @@ case class ExtendedJTMS() {
     if (status(rule.head) == out) return
     if (suppRule(rule.head).get != rule) return
     val ats = repercussions(rule.head) + rule.head
-    //val ats = trans(cons,rule.head) + rule.head
-    /* TODO repercussions do not suffice; but the problem likely is
-       that the support is not computed sufficiently
-    */
     updateBeliefs(ats)
   }
 
@@ -175,7 +171,7 @@ case class ExtendedJTMS() {
     status(a) = out
     //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
     //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a. //TODO
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a. //TODO write up doyle limitation
     suppRule(a) = None
   }
 
@@ -256,7 +252,7 @@ case class ExtendedJTMS() {
 
   def fixIn(unfoundedRule: AspRule) = {
     setIn(unfoundedRule)
-    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO won't set support [check]
+    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO write up currently has setOut
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
@@ -266,8 +262,8 @@ case class ExtendedJTMS() {
   }
 
   def fixOut(a: Atom) = {
-    status(a) = out //TODO write down
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work
+    status(a) = out //TODO write up missing (cyclic dependency)
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work - write up
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
