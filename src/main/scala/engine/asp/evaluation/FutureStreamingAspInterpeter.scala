@@ -12,7 +12,7 @@ import scala.concurrent.{Await, Future}
 // - AspEvaluation
 // - Interpreter
 // - or even EvaluationEngine?
-case class FutureStreamingAspInterpeter(private val aspEvaluation: AspEvaluationT, waitingAtMost: Duration) extends AspEvaluationT {
+case class FutureStreamingAspInterpeter(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val future = Future {

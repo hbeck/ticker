@@ -8,9 +8,11 @@ import engine.{Result, _}
 /**
   * Created by FM on 13.05.16.
   */
-trait AspEvaluationT extends ((TimePoint, Stream) => Result)
+trait AspEvaluation extends ((TimePoint, Stream) => Result)
 
-case class AspEvaluation(interpreter: StreamingAspInterpeter) extends AspEvaluationT {
+
+// TODO: naming
+case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspEvaluation {
 
   // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
   def apply(time: TimePoint, dataStream: Stream): Result = {

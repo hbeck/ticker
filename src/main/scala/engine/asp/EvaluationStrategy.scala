@@ -19,8 +19,8 @@ object EvaluationStrategy {
     AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
-  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluationT = {
-    val evaluation = AspEvaluation(StreamingAspInterpeter.select(program, Clingo))
+  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
+    val evaluation = AspEvaluationEngine(StreamingAspInterpeter.select(program, Clingo))
 
     evaluationMode match {
       case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpeter(evaluation, waitingAtMost)
