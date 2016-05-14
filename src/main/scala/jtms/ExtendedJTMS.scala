@@ -17,7 +17,7 @@ object ExtendedJTMS {
 }
 
 /**
-  * In addition to JTMS, ExtendedJTMS has a remove method.
+  * In addition DO JTMS, ExtendedJTMS has a remove method.
   * Works in two modes, i) according to Doyle/Beierle and ii) stepwise, suitable if remove is used
   *
   */
@@ -173,9 +173,9 @@ case class ExtendedJTMS() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a.
+    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a. //TODO
     suppRule(a) = None
   }
 
@@ -254,13 +254,20 @@ case class ExtendedJTMS() {
     true
   }
 
-  def fixIn(unfoundedValidRule: AspRule) = {
-    unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors
-    setIn(unfoundedValidRule)
+  def fixIn(unfoundedRule: AspRule) = {
+    setIn(unfoundedRule)
+    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO won't set support [check]
+    /* not that setIn here has to be called first. consider
+       a :- not b.
+       b :- not a. ,
+       where the choice is for status(a)=in. then, this status needs to be available
+       when the spoiler for rule b :- not a is sought.
+     */
   }
 
   def fixOut(a: Atom) = {
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work for remove
+    status(a) = out //TODO write down
+    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors
@@ -282,8 +289,6 @@ case class ExtendedJTMS() {
     }
     trans(f)(nextSet)
   }
-
-
 
   def unregister(rule: AspRule): Unit = {
     if (!(rules contains rule)) return
