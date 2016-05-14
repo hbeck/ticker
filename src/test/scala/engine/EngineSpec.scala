@@ -3,8 +3,9 @@ package engine
 import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
 import core.lars.TimePoint
-import engine.asp.EvaluationStrategy
+import engine.asp.{Direct, EvaluationStrategy}
 import engine.asp.evaluation.StreamingAspInterpeter$
+import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -56,6 +57,8 @@ class EngineSpec extends FlatSpec {
 
     engine
   }
+
+//  val e = BuildEngine.withProgram(program).useAsp().withClingo().use(Direct).usePull().start
 
   "The Asp Evaluation" should "return a result for t1" in {
     val engine = engineWithStreams(EvaluationStrategy.pull(program))
