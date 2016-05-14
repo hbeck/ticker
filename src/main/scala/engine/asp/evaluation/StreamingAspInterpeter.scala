@@ -7,7 +7,6 @@ import core.lars.TimePoint
 import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, EvaluationMode, UseFuture}
 import engine.{Result, Stream}
 
-import scala.concurrent.duration._
 
 trait StreamingAspInterpeter extends (Set[PinnedAspRule] => Option[Model])
 

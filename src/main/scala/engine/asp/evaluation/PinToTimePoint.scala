@@ -9,6 +9,7 @@ import engine.asp._
 /**
   * Created by FM on 13.05.16.
   */
+// TODO discuss naming/usage of 'Pin'?
 case class PinToTimePoint(timePoint: TimePoint) {
   def apply(dataStream: Stream): Set[PinnedAspRule] = {
     val nowAtT = apply(now)
@@ -31,12 +32,14 @@ case class PinToTimePoint(timePoint: TimePoint) {
   }
 }
 
+// TODO naming?
 case class PinnedAspRule(rule: AspRule) extends AspRule {
   override val pos: Set[Atom] = rule.pos
   override val neg: Set[Atom] = rule.neg
   override val head: Atom = rule.head
 }
 
+// TODO naming?
 case class AspProgramAtTimePoint(baseProgram: AspProgram, pinnedAtoms: Set[PinnedAspRule], timePoint: TimePoint) extends AspProgram {
   val rules: Seq[AspRule] = baseProgram.rules ++ pinnedAtoms
 }

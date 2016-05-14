@@ -4,7 +4,6 @@ import clingo.{ClingoConversion, ClingoExpression, ClingoProgram, _}
 import core.lars.TimePoint
 import core.{Atom, AtomWithArguments, Model}
 import engine._
-import engine.asp.now
 
 /**
   *

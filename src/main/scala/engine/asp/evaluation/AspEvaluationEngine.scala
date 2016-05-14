@@ -20,6 +20,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 
     val aspResult = interpreter(atoms)
 
+    // TODO: should we also 'unpin' atoms here? (remove (T) ?)
     val result = aspResult match {
       case Some(model) => Some(removeNow(model))
       case None => None
