@@ -2,6 +2,7 @@ package engine.examples
 
 import core.Atom
 import core.lars._
+import engine.EvaluationEngine
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, now}
 import engine.config.BuildEngine
@@ -47,38 +48,40 @@ class ZWindowTimeASample extends FlatSpec {
     z(U + 1) <= WindowAtom(SlidingTimeWindow(2), At(U), a),
     i <= W(1, Diamond, z)
   )
+  
+  def evaluation(evaluation: EvaluationEngine) = {
+    evaluation.append(t1)(a)
 
+    info("Given 't1 -> a' ")
 
-  def evaluation = {
-    //    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
-    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
+    it should "not lead to z at t0" in {
+      evaluation.evaluate(t0).get shouldNot contain(z("0"))
+    }
 
-    e.append(t1)(a)
+    it should "not lead to z at t1" in {
+      evaluation.evaluate(t1).get.value shouldNot contain(z("1"))
+    }
 
-    e
+    it should "lead to z and i at t2" in {
+      evaluation.evaluate(t2).get.value should contain allOf(z("2"), i("2"))
+    }
+    it should "not lead to z but to i at t3" in {
+      val result = evaluation.evaluate(t3).get.value
+
+      result should contain(i("3"))
+      result shouldNot contain(z("3"))
+    }
+
+    it should "not lead to z or i at t4" in {
+      val result = evaluation.evaluate(t4).get.value
+
+      result shouldNot contain allOf(i("4"), z("4"))
+    }
+
   }
 
-  "Given 't1 -> a' " should "not lead to z at t0" in {
-    evaluation.evaluate(t0).get shouldNot contain(z("0"))
-  }
+  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
 
-  it should "not lead to z at t1" in {
-    evaluation.evaluate(t1).get.value shouldNot contain(z("1"))
-  }
-
-  it should "lead to z and i at t2" in {
-    evaluation.evaluate(t2).get.value should contain allOf(z("2"), i("2"))
-  }
-  it should "not lead to z but to i at t3" in {
-    val result = evaluation.evaluate(t3).get.value
-
-    result should contain(i("3"))
-    result shouldNot contain(z("3"))
-  }
-
-  it should "not lead to z or i at t4" in {
-    val result = evaluation.evaluate(t4).get.value
-
-    result shouldNot contain allOf(i("4"), z("4"))
-  }
+  "With pull" should behave like evaluation(baseConfig.usePull().start())
+  "With push" should behave like evaluation(baseConfig.usePush().start())
 }
