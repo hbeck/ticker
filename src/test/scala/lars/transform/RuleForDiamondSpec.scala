@@ -18,7 +18,7 @@ class RuleForDiamondSpec extends TransformLarsSpec {
     forAll(PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.body should contain(now(T)) }
   }
   it should "have head w_1_b_a" in {
-    forAll(PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.head.toString should be("w_1_d_a") }
+    forAll(PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.head.toString should include("w_1_d_a") }
   }
   it should "contain a(T) for one element" in {
     forExactly(1, PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.body should contain(a(T)) }

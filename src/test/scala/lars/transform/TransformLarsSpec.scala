@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.Atom
-import core.lars.{Time, TimePoint}
+import core.lars.{SlidingTimeWindow, Time, TimePoint}
 import org.scalatest.FlatSpec
 
 /**
@@ -18,4 +18,6 @@ class TransformLarsSpec extends FlatSpec {
   val a = Atom("a")
   val b = Atom("b")
   val c = Atom("c")
+
+  val st1 = SlidingTimeWindow(1)
 }

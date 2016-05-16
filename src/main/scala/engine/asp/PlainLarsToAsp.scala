@@ -80,22 +80,22 @@ object PlainLarsToAsp {
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
-    Set(AspRule(Atom(nameFor(windowAtom)), posBody.toSet))
+    Set(AspRule(head(windowAtom), posBody))
   }
 
   def rulesForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
-    val head = Atom(nameFor(windowAtom))
+    val h = head(windowAtom)
 
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
 
-    val rules = generatedAtoms map (a => AspRule(head, Set(now(T), a)))
+    val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
 
     rules.toSet
   }
 
   def rulesForAt(windowAtom: WindowAtom): Set[AspRule] = {
     val at = windowAtom.temporalModality.asInstanceOf[At]
-    val head = Atom(nameFor(windowAtom))
+    val h = head(windowAtom)
 
     val atomAtTime = windowAtom.atom(at.time)
 
@@ -104,10 +104,12 @@ object PlainLarsToAsp {
 
     val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => TimePoint(time.timePoint - x))
 
-    val rules = nowAtoms map (n => AspRule(head, Set(atomAtTime, n)))
+    val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
 
     rules.toSet
   }
+
+  def head(atom: WindowAtom) = Atom(nameFor(atom))(T)
 
   // TODO: use type Duration
   def generateTimeVariable(increment: Int): Time = {

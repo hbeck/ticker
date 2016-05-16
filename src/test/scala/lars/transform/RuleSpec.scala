@@ -27,15 +27,15 @@ class RuleSpec extends TransformLarsSpec {
 
     PlainLarsToAsp(r) should have size 2
   }
-  it should "contain a rule with head w_1_b_a" in {
+  it should "contain a rule with head w_1_b_a(T)" in {
     val r = Rule(b, Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
 
-    PlainLarsToAsp(r).map(_.head) should contain(Atom("w_1_b_a"))
+    PlainLarsToAsp(r).map(_.head) should contain(Atom("w_1_b_a")(T))
   }
-  it should "contain a rule with head w_1_b_a mapped from neg." in {
+  it should "contain a rule with head w_1_b_a(T) mapped from neg." in {
     val r = Rule(b, Set(), Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
 
-    PlainLarsToAsp(r).map(_.head) should contain(Atom("w_1_b_a"))
+    PlainLarsToAsp(r).map(_.head) should contain(Atom("w_1_b_a")(T))
   }
 
   "A rule containing a window atom aˆ1 d a" should "be transformed into 3 rules" in {

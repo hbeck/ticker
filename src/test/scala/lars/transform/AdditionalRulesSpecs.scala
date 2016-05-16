@@ -6,7 +6,7 @@ import engine.asp.PlainLarsToAsp
 /**
   * Created by FM on 05.05.16.
   */
-class RuleForSpecs extends TransformLarsSpec {
+class AdditionalRulesSpecs extends TransformLarsSpec {
 
   "An atom" should "not be transformed into a rule" in {
     assert(PlainLarsToAsp.additionalRules(a).isEmpty)

@@ -30,7 +30,7 @@ class RuleForAtSpec extends TransformLarsSpec {
     forExactly(1, PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(now(t1)) }
   }
   it should "have head w_1_at_1_a" in {
-    forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.head.toString should be("w_1_at_1_a") }
+    forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.head.toString should include("w_1_at_1_a") }
   }
   it should "contain a(t1) for all elements" in {
     forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(a(t1)) }

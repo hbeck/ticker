@@ -15,8 +15,8 @@ class RuleForBoxSpec extends TransformLarsSpec {
   "The rule for w^1 b a" should "contain now(T)" in {
     (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(now(T))
   }
-  it should "have head w_1_b_a" in {
-    PlainLarsToAsp.rulesForBox(w_1_b_a).head.head.toString should be("w_1_b_a")
+  it should "have head w_1_b_a(T)" in {
+    PlainLarsToAsp.rulesForBox(w_1_b_a).head.head.toString should include("w_1_b_a")
   }
   it should "contain a(T)" in {
     (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(a(T))
