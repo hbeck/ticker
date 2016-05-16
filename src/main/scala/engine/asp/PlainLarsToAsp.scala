@@ -37,7 +37,7 @@ object PlainLarsToAsp {
       case AtomWithArguments(_, arg) => arg :+ T.toString
       case a: Atom => Seq(T.toString)
     }
-    val basicAtom = Atom(nameFor(windowAtom))
+    val basicAtom = atomFor(windowAtom)
 
     basicAtom(arguments: _*)
   }
@@ -115,9 +115,6 @@ object PlainLarsToAsp {
   }
 
   def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariable): Set[AspRule] = {
-    val atomName = nameFor(windowAtom)
-
-    val headAtom = Atom(atomName)(timeVariable)
     val reachAtom = Atom("reach_" + nameFor(windowAtom))
 
     // we need the reach atom in the form of atom(T-k,T)
@@ -125,12 +122,20 @@ object PlainLarsToAsp {
 
     val reachRules = reachAtoms map (r => AspRule(r, now(T)))
 
-    val windowRule = AspRule(headAtom(T), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
+    val windowRule = AspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
 
     (reachRules + windowRule).toSet
   }
 
-  def head(atom: WindowAtom) = Atom(nameFor(atom))(T)
+  private def atomFor(windowAtom: WindowAtom) = {
+    val atom = Atom(nameFor(windowAtom))
+    windowAtom.temporalModality match {
+      case At(v: TimeVariable) => atom(v)
+      case _ => atom
+    }
+  }
+
+  def head(atom: WindowAtom) = atomFor(atom)(T)
 
   def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[Atom] = {
     val windowSize: Long = windowFunction match {
