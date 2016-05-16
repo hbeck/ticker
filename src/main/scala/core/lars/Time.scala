@@ -3,7 +3,11 @@ package core.lars
 /**
   * Created by FM on 05.04.16.
   */
-trait Time
+trait Time {
+  def -(duration: Duration): Time
+
+  def +(duration: Duration): Time
+}
 
 object Time {
   implicit def convertToTimePoint(timePoint: Long): Time = TimePoint(timePoint)
@@ -12,6 +16,9 @@ object Time {
 }
 
 case class TimePoint(timePoint: Long) extends Time {
+  def -(duration: Duration) = TimePoint(timePoint - duration)
+
+  def +(duration: Duration) = TimePoint(timePoint + duration)
 
   override def toString = {
     timePoint.toString
@@ -19,6 +26,8 @@ case class TimePoint(timePoint: Long) extends Time {
 }
 
 case class TimeVariable(variable: String, offset: Duration = 0) extends Time {
+
+  // TODO: should ground be part of the Time-trait?
   def ground(timePoint: TimePoint) = TimePoint(timePoint.timePoint + offset)
 
   def +(duration: Duration) = TimeVariable(variable, duration)

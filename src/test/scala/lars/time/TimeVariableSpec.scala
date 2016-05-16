@@ -1,4 +1,4 @@
-package lars
+package lars.time
 
 import core.lars.TimePoint
 import org.scalatest.FlatSpec
