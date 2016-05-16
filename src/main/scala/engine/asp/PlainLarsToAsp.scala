@@ -2,7 +2,7 @@ package engine.asp
 
 import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
-import core.{Atom, AtomWithArguments}
+import core.{Atom, AtomWithArgument, AtomWithArguments}
 import engine._
 
 /**
@@ -33,8 +33,10 @@ object PlainLarsToAsp {
   }
 
   def apply(windowAtom: WindowAtom) = {
+
+    // TODO should not be needed
     val arguments = windowAtom.atom match {
-      case AtomWithArguments(_, arg) => arg :+ T.toString
+      case aa: AtomWithArgument => aa.arguments :+ T.toString
       case a: Atom => Seq(T.toString)
     }
     val basicAtom = atomFor(windowAtom)
@@ -60,7 +62,7 @@ object PlainLarsToAsp {
       case a: At => f"at_${a.time}"
     }
     val atomName = window.atom match {
-      case AtomWithArguments(atom, _) => atom.toString
+      case aa: AtomWithArgument => aa.atom.toString
       case a: Atom => a.toString
     }
     f"${windowFunction}_${operator}_${atomName}"

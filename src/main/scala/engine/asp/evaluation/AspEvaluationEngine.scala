@@ -1,7 +1,7 @@
 package engine.asp.evaluation
 
 import engine.asp.now
-import core.{Atom, AtomWithArguments, Model}
+import core.{Atom, AtomWithArgument, AtomWithArguments, Model}
 import core.lars.TimePoint
 import engine.{Result, _}
 
@@ -37,7 +37,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 object AspEvaluationEngine {
   def removeNow(model: Model): Model = {
     val atoms = model.filterNot {
-      case AtomWithArguments(baseAtom, _) => baseAtom == now
+      case a: AtomWithArgument => a.atom == now
       case _ => false
     }
 

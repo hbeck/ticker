@@ -14,42 +14,66 @@ sealed trait Atom extends HeadAtom {
   }
 
   def apply(time: Time): Atom = {
-    this.apply(time.toString)
+    AtomWithTime(this, time)
   }
 
   def arity = 0
 }
 
-case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends Atom {
+trait AtomWithArgument extends Atom {
+  val atom: Atom
 
-    override def toString = {
-      val sb = new StringBuilder
-      sb.append(atom).append("(")
-
-      arguments.addString(sb, ",")
-
-      sb.append(")")
-
-      sb.toString
-    }
+  val arguments: Seq[String]
 
   override def arity = arguments.size
 
-  def ==(other: AtomWithArguments): Boolean = {
+  override def apply(arguments: String*): Atom = {
+    AtomWithArguments(atom, this.arguments ++ arguments)
+  }
+
+  def ==(other: AtomWithArgument): Boolean = {
     if (this.atom != other.atom) return false
     if (!this.arguments.equals(other.arguments)) return false
     true
   }
 
   override def equals(other: Any): Boolean = other match {
-    case x: AtomWithArguments => this == x
+    case x: AtomWithArgument => this == x
     case _ => false
   }
 
-  override def apply(arguments: String*): Atom = {
-    AtomWithArguments(atom, this.arguments ++ arguments)
+  override def toString = {
+    val sb = new StringBuilder
+
+    sb.append(atom).append("(")
+
+    arguments.addString(sb, ",")
+
+    sb.append(")")
+
+    sb.toString
   }
 }
+
+case class AtomWithTime(timedAtom: Atom, time: Time) extends AtomWithArgument {
+
+  val atom = timedAtom match {
+    case aa: AtomWithArgument => aa.atom
+    case _ => timedAtom
+  }
+
+  override def apply(time: Time): Atom = {
+    // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
+    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
+  }
+
+  override val arguments = timedAtom match {
+    case AtomWithArguments(_, args) => args :+ time.toString
+    case _ => Seq(time.toString)
+  }
+}
+
+case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends AtomWithArgument
 
 object Falsum extends Atom
 
@@ -57,7 +81,7 @@ object Atom {
 
 
   def unapply(arg: Atom): Option[Seq[String]] = arg match {
-    case AtomWithArguments(_, arguments) => Some(arguments)
+    case aa: AtomWithArgument => Some(aa.arguments)
     case _ => None
   }
 
