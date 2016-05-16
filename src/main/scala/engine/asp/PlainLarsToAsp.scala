@@ -2,7 +2,7 @@ package engine.asp
 
 import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
-import core.{Atom, AtomWithArgument, AtomWithArguments}
+import core.{Atom, AtomWithArgument, AtomWithArguments, AtomWithTime}
 import engine._
 
 /**
@@ -12,6 +12,8 @@ object PlainLarsToAsp {
 
   def apply(headAtom: HeadAtom): Atom = headAtom match {
     case AtAtom(t, a) => a(t)
+      // TODO: discuss if this approach is correct
+    case AtomWithTime(a, v: TimeVariable) => a(v)
     case a: Atom => a(T)
   }
 
