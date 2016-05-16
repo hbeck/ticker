@@ -22,7 +22,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 
     // TODO: should we also 'unpin' atoms here? (remove (T) ?)
     val result = aspResult match {
-      case Some(model) => Some(removeNow(model))
+      case Some(model) => Some(AspEvaluationEngine.removeNow(model))
       case None => None
     }
 
@@ -31,6 +31,10 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
     }
   }
 
+
+}
+
+object AspEvaluationEngine {
   def removeNow(model: Model): Model = {
     val atoms = model.filterNot {
       case AtomWithArguments(baseAtom, _) => baseAtom == now

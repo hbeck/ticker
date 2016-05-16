@@ -9,19 +9,13 @@ import engine._
   *
   * Created by FM on 22.04.16.
   */
-object StreamingAspToClingo {
-  def apply(time: TimePoint, dataStream: Stream): Set[ClingoExpression] = {
-    PinToTimePoint(time)(dataStream) map (ClingoConversion(_))
-  }
-}
-
-case class StreamingClingoInterpreter(aspExpressions: ClingoProgram, aspEngine: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpeter {
+case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpeter {
 
   def apply(pinnedAtoms: Set[PinnedAspRule]): Option[Model] = {
 
     val transformed = pinnedAtoms map (ClingoConversion(_))
 
-    val aspResult = aspEngine(aspExpressions ++ transformed).headOption
+    val aspResult = clingoEvaluation(program ++ transformed).headOption
 
     aspResult
   }
