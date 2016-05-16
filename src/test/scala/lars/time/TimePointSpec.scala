@@ -1,17 +1,14 @@
 package lars.time
 
 import core.lars.TimePoint
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 /**
   * Created by FM on 16.05.16.
   */
-class TimePointSpec extends FlatSpec {
-
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
+class TimePointSpec extends FlatSpec with TimeTestFixtures{
 
   "A TimePoint t1" should "be converted to 't1'" in {
     t1.toString should be("1")

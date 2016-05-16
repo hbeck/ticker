@@ -2,6 +2,7 @@ package jtms.asp.examples
 
 import core.asp.{AspFact, AspProgram, AspRule}
 import core.Atom
+import fixtures.AtomTestFixture
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}
 import org.scalatest.FlatSpec
@@ -9,11 +10,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 12.02.16.
   */
-class Deletion extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
+class Deletion extends FlatSpec with AtomTestFixture{
   
   val none = Set[Atom]()
 

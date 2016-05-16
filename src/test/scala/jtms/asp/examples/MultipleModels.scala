@@ -3,16 +3,14 @@ package jtms.asp.examples
 import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspProgram, AspRule}
+import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 12.02.16.
   */
-trait MultipleModelsBehavior {
+trait MultipleModelsBehavior extends AtomTestFixture {
   this: FlatSpec =>
-
-  val a = Atom("a")
-  val b = Atom("b")
 
   val j1 = AspRule.neg(a).head(b)
   val j2 = AspRule.neg(b).head(a)

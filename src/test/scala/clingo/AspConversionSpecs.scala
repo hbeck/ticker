@@ -2,17 +2,13 @@ package clingo
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
+import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 22.02.16.
   */
-class AspConversionSpecs extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-
+class AspConversionSpecs extends FlatSpec with AtomTestFixture {
 
   val Falsum = new ContradictionAtom("n")
 

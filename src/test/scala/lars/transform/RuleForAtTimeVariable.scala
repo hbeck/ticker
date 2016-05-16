@@ -11,8 +11,6 @@ import org.scalatest.Matchers._
   */
 class RuleForAtTimeVariable extends TransformLarsSpec {
 
-
-  val U = TimeVariable("U")
   val w_1_at_U_a = W(1, At(U), a)
 
   "The rule for w^1 at_1 a" should "return 3 rules" in {

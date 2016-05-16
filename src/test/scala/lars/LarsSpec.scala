@@ -2,17 +2,13 @@ package lars
 
 import core.Atom
 import core.lars.{At, Program, _}
+import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 01.05.16.
   */
-class LarsSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
+class LarsSpec extends FlatSpec with AtomTestFixture {
 
   def W = WindowAtom
 

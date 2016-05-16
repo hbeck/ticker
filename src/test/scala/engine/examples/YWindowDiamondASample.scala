@@ -3,10 +3,12 @@ package engine.examples
 import core.asp.AspProgram
 import core.Atom
 import core.lars._
+import engine._
 import engine.EvaluationEngine
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
 import engine.config.BuildEngine
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,7 +16,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends FlatSpec {
+class YWindowDiamondASample extends FlatSpec with TimeTestFixtures{
   val aspProgram =
     """y(T) :- w1d_a(T).
 
@@ -26,18 +28,14 @@ class YWindowDiamondASample extends FlatSpec {
 
   val aspExpressions = aspProgram.split('\n') toSet
 
-  val y = Atom("y")
   val w1d_a = Atom("w1d_a")
-  val a = Atom("a")
+
   val u = Atom("u")
 
   val program = AspProgram(
     y("T") :- w1d_a("T"),
     w1d_a("T") :- a("U") and now("T") and u("U")
   )
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
 
   val larsProgram = Program.from(
     y <= W(1, Diamond, a)

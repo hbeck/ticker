@@ -5,6 +5,7 @@ import core.asp.{AspFact, AspProgram}
 import core.lars.{Time, TimePoint}
 import engine.asp.evaluation.PinToTimePoint
 import engine.asp.now
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -12,14 +13,7 @@ import org.scalatest.Matchers._
 /**
   * Created by FM on 13.05.16.
   */
-class PinToTimePointSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-
-  val t1: TimePoint = 1
-  val t2: TimePoint = 2
+class PinToTimePointSpec extends FlatSpec with TimeTestFixtures{
 
   "An dataStream at t1" should "contain only 'now(t1).'" in {
     val dataStream: Stream = Set()

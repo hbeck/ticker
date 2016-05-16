@@ -5,6 +5,7 @@ import core.lars.AtTime
 import core.Atom
 import engine.asp.{AspPullEvaluationEngine, EvaluationStrategy}
 import engine.asp.evaluation.StreamingAspInterpeter$
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -12,21 +13,12 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 21.04.16.
   */
-class EngineStreamSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
+class EngineStreamSpec extends FlatSpec with TimeTestFixtures {
 
   val program = AspProgram(
     a :- b,
     b :- c  not d
   )
-
-  val t1 = AtTime.second(1)
-  val t2 = AtTime.second(2)
-  val t3 = AtTime.second(3)
 
   def evaluationEngine: EvaluationEngine = EvaluationStrategy.pull(program)
 

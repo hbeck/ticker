@@ -2,10 +2,11 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine.EvaluationEngine
+import engine._
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, now}
 import engine.config.BuildEngine
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -13,7 +14,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends FlatSpec {
+class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
   val aspProgram =
     """
     z(X) :- w2ta(U,T), X = U + 1.
@@ -31,24 +32,15 @@ class ZWindowTimeASample extends FlatSpec {
 
   val aspExpressions = aspProgram.split('\n') toSet
 
-  val z = Atom("z")
   val w1d_a = Atom("w1d_a")
-  val a = Atom("a")
+
   val i = Atom("i")
-
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
-  val t3 = TimePoint(3)
-  val t4 = TimePoint(4)
-
-  val U = TimeVariable("U")
 
   val larsProgram = Program.from(
     z(U + 1) <= WindowAtom(SlidingTimeWindow(2), At(U), a),
     i <= W(1, Diamond, z)
   )
-  
+
   def evaluation(evaluation: EvaluationEngine) = {
     evaluation.append(t1)(a)
 

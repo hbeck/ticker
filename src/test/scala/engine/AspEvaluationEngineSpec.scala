@@ -7,16 +7,12 @@ import org.scalatest.Matchers._
 import engine.asp.now
 import core.lars.{T, TimePoint}
 import engine.asp.evaluation.AspEvaluationEngine
+import fixtures.TimeTestFixtures
 
 /**
   * Created by FM on 16.05.16.
   */
-class AspEvaluationEngineSpec extends FlatSpec {
-
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-
-  val a = Atom("a")
+class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
 
   "An empty model" should "be empty afterwards" in {
     AspEvaluationEngine.removeAtoms(t1, Set()) should have size 0

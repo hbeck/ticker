@@ -2,15 +2,14 @@ package jtms.asp.examples
 
 import core.asp.{AspProgram, AspRule}
 import core.Atom
+import fixtures.AtomTestFixture
 import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 02.03.16.
   */
-class TwoNegationNodes extends FlatSpec {
-  val a = Atom("a")
-  val b = Atom("b")
+class TwoNegationNodes extends FlatSpec with AtomTestFixture {
 
   val r1 = AspRule.neg(a).head(b)
   val r2 = AspRule.neg(b).head(a)

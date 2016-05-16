@@ -6,6 +6,7 @@ import core.lars.TimePoint
 import engine.asp.{Direct, EvaluationStrategy}
 import engine.asp.evaluation.StreamingAspInterpeter$
 import engine.config.BuildEngine
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -13,12 +14,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 10.04.16.
   */
-class EngineSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
+class EngineSpec extends FlatSpec with TimeTestFixtures{
 
   val program = AspProgram(
     a :- b and d not c,
@@ -31,10 +27,6 @@ class EngineSpec extends FlatSpec {
       b :- c not d
     )
   })
-
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
-  val t3 = TimePoint(3)
 
   def engineWithStreams(evaluationEngine: EvaluationEngine) = {
     val engine = Engine(evaluationEngine)

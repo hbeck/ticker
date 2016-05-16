@@ -2,17 +2,14 @@ package clingo
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
+import fixtures.AtomTestFixture
 import jtms.asp.examples.SingleHusbandSample
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 25.02.16.
   */
-class AspSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
+class AspSpec extends FlatSpec with AtomTestFixture{
 
   "An empty program" should "be executed and converted back to empty models" in {
     val program = AspProgram()

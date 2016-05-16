@@ -2,20 +2,14 @@ package jtms.tmn.examples
 
 import core._
 import core.asp.{AspProgram, AspRule}
+import fixtures.AtomTestFixture
 import jtms._
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 05.02.16.
   */
-class JTMSSpec extends FlatSpec {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
-  val e = Atom("e")
-  val f = Atom("f")
+class JTMSSpec extends FlatSpec with AtomTestFixture{
 
   val none = Set[Atom]()
 

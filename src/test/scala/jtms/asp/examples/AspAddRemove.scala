@@ -2,23 +2,16 @@ package jtms.asp.examples
 
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
+import fixtures.AtomTestFixture
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
 /**
   * Created by hb on 2016-04-28
   */
-class AspAddRemove extends FunSuite {
+class AspAddRemove extends FunSuite with AtomTestFixture {
 
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
-  val e = Atom("e")
-  val f = Atom("f")
-  val x = Atom("x")
-  val y = Atom("y")
-  val z = Atom("z")
+
 
   val none = Set[Atom]()
 

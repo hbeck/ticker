@@ -2,15 +2,15 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import core.Atom
+import fixtures.AtomTestFixture
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 02.03.16.
   */
-class TwoSelfSupportingNodes extends FlatSpec {
-  val a = Atom("a")
-  val b = Atom("b")
+class TwoSelfSupportingNodes extends FlatSpec with AtomTestFixture {
+
 
   val r1 = AspRule.pos(a).head(b)
   val r2 = AspRule.pos(b).head(a)

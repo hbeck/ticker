@@ -2,18 +2,15 @@ package engine
 
 import core.Atom
 import core.lars.TimePoint
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 08.04.16.
   */
-class OrderedAtomStreamSpecs extends FlatSpec {
+class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
 
   val atom = Atom("a")
-
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
 
   def stream = {
     new OrderedAtomStream

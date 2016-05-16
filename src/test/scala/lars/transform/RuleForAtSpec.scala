@@ -40,7 +40,6 @@ class RuleForAtSpec extends TransformLarsSpec {
     PlainLarsToAsp.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0), now(t1), now(t2), a(t2))
   }
 
-  val U = TimeVariable("U")
   val w_1_at_U_a = W(1, At(U), a)
 
   "The window atom wˆ at_U a" should "have one rule with head w_1_at_U_a" in {

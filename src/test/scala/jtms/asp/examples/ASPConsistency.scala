@@ -2,20 +2,14 @@ package jtms.asp.examples
 
 import core.asp.AspRule
 import core.{Atom, ContradictionAtom}
+import fixtures.AtomTestFixture
 import jtms.ExtendedJTMS
 import org.scalatest.FunSuite
 
 /**
   * Created by hb on 12.03.16.
   */
-class ASPConsistency extends FunSuite {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
-//  val e = Atom("e")
-  val f = Atom("f")
+class ASPConsistency extends FunSuite with AtomTestFixture{
 
   val n = ContradictionAtom("n")
 

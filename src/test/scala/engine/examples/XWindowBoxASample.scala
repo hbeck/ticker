@@ -7,6 +7,8 @@ import engine.EvaluationEngine
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, PlainLarsToAsp, now}
 import engine.config.BuildEngine
+import engine._
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,7 +16,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 22.04.16.
   */
-class XWindowBoxASample extends FlatSpec {
+class XWindowBoxASample extends FlatSpec with TimeTestFixtures {
   val aspProgram =
     """x(T) :- w1b_a(T).
 
@@ -28,10 +30,9 @@ class XWindowBoxASample extends FlatSpec {
 
   val aspExpressions = aspProgram.split('\n') toSet
 
-  val x = Atom("x")
   val w1b_a = Atom("w1b_a")
   val spoil_w1b_a = Atom("spoil_w1b_a")
-  val a = Atom("a")
+
   val u = Atom("u")
 
   val program = AspProgram(
@@ -43,11 +44,6 @@ class XWindowBoxASample extends FlatSpec {
   val larsProgram = Program.from(
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
-
-
-  val t0 = TimePoint(0)
-  val t1 = TimePoint(1)
-  val t2 = TimePoint(2)
 
   def evaluation(evaluationEngine: EvaluationEngine) = {
 
