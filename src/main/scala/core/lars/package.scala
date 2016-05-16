@@ -5,6 +5,7 @@ package core
   */
 package object lars {
   type WindowSize = Long
+  type Duration = Long
 
   val T = TimeVariable("T")
 

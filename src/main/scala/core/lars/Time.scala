@@ -7,6 +7,7 @@ trait Time
 
 object Time {
   implicit def convertToTimePoint(timePoint: Long): Time = TimePoint(timePoint)
+
   implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
 }
 
@@ -17,9 +18,21 @@ case class TimePoint(timePoint: Long) extends Time {
   }
 }
 
-case class TimeVariable(variable: String) extends Time {
+case class TimeVariable(variable: String, offset: Duration = 0) extends Time {
+  def ground(timePoint: TimePoint) = TimePoint(timePoint.timePoint + offset)
 
-  override def toString = {
+  def +(duration: Duration) = TimeVariable(variable, duration)
+
+  def -(duration: Duration) = TimeVariable(variable, -duration)
+
+  override def toString: String = {
+    // TODO: use match?
+
+    if (offset < 0)
+      return f"$variable - ${math.abs(offset)}"
+    if (offset > 0)
+      return f"$variable + ${math.abs(offset)}"
+
     variable
   }
 }
@@ -28,6 +41,7 @@ object TimePoint {
   implicit val ordering = Ordering.by((time: TimePoint) => time.timePoint)
 
   implicit def convertToTimePoint(timePoint: Long): TimePoint = TimePoint(timePoint)
+
   implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
 }
 
