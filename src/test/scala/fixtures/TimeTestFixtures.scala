@@ -13,4 +13,5 @@ trait TimeTestFixtures extends AtomTestFixture {
   val t4 = TimePoint(4)
 
   val U = TimeVariable("U")
+  val T =  core.lars.T
 }

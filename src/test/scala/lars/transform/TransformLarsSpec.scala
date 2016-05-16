@@ -10,7 +10,6 @@ import org.scalatest.FlatSpec
   */
 class TransformLarsSpec extends FlatSpec with TimeTestFixtures {
 
-  val T = core.lars.T
   val now = engine.asp.now
 
   val st1 = SlidingTimeWindow(1)

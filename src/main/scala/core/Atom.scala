@@ -13,7 +13,7 @@ sealed trait Atom extends HeadAtom {
     AtomWithArguments(this, arguments.toSeq)
   }
 
-  def apply(time: Time): Atom = {
+  def apply(time: Time): AtomWithTime = {
     AtomWithTime(this, time)
   }
 
@@ -62,7 +62,7 @@ case class AtomWithTime(timedAtom: Atom, time: Time) extends AtomWithArgument {
     case _ => timedAtom
   }
 
-  override def apply(time: Time): Atom = {
+  override def apply(time: Time): AtomWithTime = {
     // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
     AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
   }

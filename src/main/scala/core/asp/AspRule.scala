@@ -24,11 +24,11 @@ object AspRule {
 }
 
 // TODO: discuss if sealed is needed (removed beacuse of PinnedRule)
-trait AspRule {
+trait AspRuleT[TAtom <: Atom] {
 
-  val pos: Set[Atom]
-  val neg: Set[Atom]
-  val head: Atom
+  val pos: Set[TAtom]
+  val neg: Set[TAtom]
+  val head: TAtom
 
   lazy val body = pos union neg
   lazy val atoms = body + head

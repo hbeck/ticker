@@ -1,8 +1,8 @@
 package engine.asp.evaluation
 
-import core.Atom
-import core.asp.{AspFact, AspProgram, AspRule}
-import core.lars.TimePoint
+import core.{Atom, AtomWithTime}
+import core.asp._
+import core.lars.{Time, TimePoint}
 import engine._
 import engine.asp._
 
@@ -24,22 +24,18 @@ case class PinToTimePoint(timePoint: TimePoint) {
   }
 
   def apply(atom: Atom): PinnedAspRule = {
-    PinnedAspRule(AspFact(atom(timePoint)))
+    PinnedAspRule(atom(timePoint), Set(), Set())
   }
 
-  def apply(program: AspProgram, dataStream: Stream): AspProgramAtTimePoint = {
+  def apply(program: Seq[PinnedAspRule], dataStream: Stream): AspProgramAtTimePoint = {
     AspProgramAtTimePoint(program, apply(dataStream), timePoint)
   }
 }
 
 // TODO naming?
-case class PinnedAspRule(rule: AspRule) extends AspRule {
-  override val pos: Set[Atom] = rule.pos
-  override val neg: Set[Atom] = rule.neg
-  override val head: Atom = rule.head
-}
+case class PinnedAspRule(head: AtomWithTime, pos: Set[AtomWithTime], neg: Set[AtomWithTime] = Set()) extends AspRuleT[AtomWithTime]
 
 // TODO naming?
-case class AspProgramAtTimePoint(baseProgram: AspProgram, pinnedAtoms: Set[PinnedAspRule], timePoint: TimePoint) extends AspProgram {
-  val rules: Seq[AspRule] = baseProgram.rules ++ pinnedAtoms
+case class AspProgramAtTimePoint(baseProgram: Seq[PinnedAspRule], pinnedAtoms: Set[PinnedAspRule], time: Time) extends AspProgramT[AtomWithTime, PinnedAspRule] {
+  val rules: Seq[PinnedAspRule] = baseProgram ++ pinnedAtoms.toSeq
 }

@@ -4,6 +4,7 @@ import core.Atom
 import core.asp.{AspFact, AspRule}
 import core.lars._
 import engine.asp.PlainLarsToAsp
+import engine.asp.evaluation.PinnedAspRule
 import org.scalatest.Matchers._
 
 /**
@@ -19,7 +20,7 @@ class RuleSpec extends TransformLarsSpec {
   it should "contain the fact a(T)." in {
     val f = Fact(a)
 
-    PlainLarsToAsp(f) should contain(AspRule(a(T), Set(now(T))))
+    PlainLarsToAsp(f) should contain(PinnedAspRule(a(T), Set(now(T))))
   }
 
   "A rule containing a window atom wˆ1 b a" should "be transformed into 2 rules" in {

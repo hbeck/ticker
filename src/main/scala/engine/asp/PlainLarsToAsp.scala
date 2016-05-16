@@ -4,50 +4,51 @@ import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArgument, AtomWithArguments, AtomWithTime}
 import engine._
+import engine.asp.evaluation.{AspProgramAtTimePoint, PinnedAspRule}
 
 /**
   * Created by FM on 05.05.16.
   */
 object PlainLarsToAsp {
 
-  def apply(headAtom: HeadAtom): Atom = headAtom match {
+  def apply(headAtom: HeadAtom): AtomWithTime = headAtom match {
     case AtAtom(t, a) => a(t)
-      // TODO: discuss if this approach is correct
+    // TODO: discuss if this approach is correct
     case AtomWithTime(a, v: TimeVariable) => a(v)
     case a: Atom => a(T)
   }
 
-  def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
+  def apply(extendedAtom: ExtendedAtom): AtomWithTime = extendedAtom match {
     case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
 
-  def apply(rule: Rule): Set[AspRule] = {
+  def apply(rule: Rule): Set[PinnedAspRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): AspProgram = {
+  def apply(program: Program): AspProgramAtTimePoint = {
     val rules = program.rules flatMap this.apply
-    AspProgram(rules.toList)
+    AspProgramAtTimePoint(rules.toList, Set(), T)
   }
 
-  def apply(windowAtom: WindowAtom) = {
+  def apply(windowAtom: WindowAtom): AtomWithTime = {
 
     // TODO should not be needed
     val arguments = windowAtom.atom match {
-      case aa: AtomWithArgument => aa.arguments :+ T.toString
-      case a: Atom => Seq(T.toString)
+      case aa: AtomWithArgument => aa.arguments
+      case a: Atom => Seq()
     }
-    val basicAtom = atomFor(windowAtom)
+    val basicAtom = atomFor(windowAtom)(arguments: _*)
 
-    basicAtom(arguments: _*)
+    basicAtom(T)
   }
 
-  def rule(rule: Rule): AspRule = {
-    AspRule(
+  def rule(rule: Rule): PinnedAspRule = {
+    PinnedAspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
       rule.neg map this.apply
@@ -70,7 +71,7 @@ object PlainLarsToAsp {
     f"${windowFunction}_${operator}_${atomName}"
   }
 
-  def additionalRules(extendedAtom: ExtendedAtom): Set[AspRule] = extendedAtom match {
+  def additionalRules(extendedAtom: ExtendedAtom): Set[PinnedAspRule] = extendedAtom match {
     case w@WindowAtom(_, temporalOperator, _) => temporalOperator match {
       case a: At => rulesForAt(w)
       case Diamond => rulesForDiamond(w)
@@ -79,25 +80,25 @@ object PlainLarsToAsp {
     case _ => Set()
   }
 
-  def rulesForBox(windowAtom: WindowAtom): Set[AspRule] = {
+  def rulesForBox(windowAtom: WindowAtom): Set[PinnedAspRule] = {
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
-    Set(AspRule(head(windowAtom), posBody))
+    Set(PinnedAspRule(head(windowAtom), posBody, Set()))
   }
 
-  def rulesForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
+  def rulesForDiamond(windowAtom: WindowAtom): Set[PinnedAspRule] = {
     val h = head(windowAtom)
 
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
-    val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
+    val rules = generatedAtoms map (a => PinnedAspRule(h, Set(now(T), a)))
 
     rules.toSet
   }
 
-  def rulesForAt(windowAtom: WindowAtom): Set[AspRule] = {
+  def rulesForAt(windowAtom: WindowAtom): Set[PinnedAspRule] = {
     val at = windowAtom.temporalModality.asInstanceOf[At]
 
     at.time match {
@@ -106,27 +107,27 @@ object PlainLarsToAsp {
     }
   }
 
-  def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[AspRule] = {
+  def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[PinnedAspRule] = {
     val h = head(windowAtom)
 
     val atomAtTime = windowAtom.atom(timePoint)
 
     val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, timePoint)
 
-    val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
+    val rules = nowAtoms map (n => PinnedAspRule(h, Set(atomAtTime, n)))
 
     rules.toSet
   }
 
-  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariable): Set[AspRule] = {
+  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariable): Set[PinnedAspRule] = {
     val reachAtom = Atom("reach_" + nameFor(windowAtom))
 
     // we need the reach atom in the form of atom(T-k,T)
     val reachAtoms = generateAtomsOfT(windowAtom.windowFunction, reachAtom, T) map (a => a(T))
 
-    val reachRules = reachAtoms map (r => AspRule(r, now(T)))
+    val reachRules = reachAtoms map (r => PinnedAspRule(r, Set(now(T))))
 
-    val windowRule = AspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
+    val windowRule = PinnedAspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
 
     (reachRules + windowRule).toSet
   }
@@ -141,7 +142,7 @@ object PlainLarsToAsp {
 
   def head(atom: WindowAtom) = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[Atom] = {
+  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[AtomWithTime] = {
     val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size
     }
