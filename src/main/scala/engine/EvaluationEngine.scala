@@ -19,6 +19,9 @@ trait Result {
 }
 
 object EmptyResult extends Result {
-  override def get: Option[Set[Atom]] = None
+  override def get: Option[Set[Atom]] = Some(Set())
 }
 
+object NoResult extends Result {
+  override def get: Option[Set[Atom]] = None
+}

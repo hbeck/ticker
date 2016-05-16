@@ -71,6 +71,6 @@ class YWindowDiamondASample extends FlatSpec {
 
     e.append(t1)(a)
 
-    e.evaluate(t2).get shouldBe None
+    e.evaluate(t2).get should have size 0
   }
 }

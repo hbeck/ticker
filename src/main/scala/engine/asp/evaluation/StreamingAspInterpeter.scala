@@ -8,7 +8,9 @@ import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, EvaluationM
 import engine.{Result, Stream}
 
 
-trait StreamingAspInterpeter extends (Set[PinnedAspRule] => Option[Model])
+trait StreamingAspInterpeter {
+  def apply(pinnedAtoms: Set[PinnedAspRule]): Option[Model]
+}
 
 //{
 //

@@ -64,7 +64,7 @@ class EngineSpec extends FlatSpec {
     val engine = engineWithStreams(EvaluationStrategy.pull(program))
     val result = engine.evaluate(t1).get
 
-    result.value should contain allOf(a(t2.toString), b(t1.toString))
+    result.value should contain only b(t1.toString)
   }
 
   it should "invalidate 'b' for t2" in {

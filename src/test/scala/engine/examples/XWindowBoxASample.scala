@@ -49,29 +49,31 @@ class XWindowBoxASample extends FlatSpec {
   val t1 = TimePoint(1)
   val t2 = TimePoint(2)
 
-  def evaluation = {
+  def evaluation(evaluationEngine: EvaluationEngine) = {
 
-    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
-//    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+    evaluationEngine.append(t1)(a)
+    evaluationEngine.append(t2)(a)
 
-    e.append(t1)(a)
-    e.append(t2)(a)
+    info("Given '{t1 -> a}, {t2 -> a}' ")
 
-    e
+    it should "not lead to x at t0" in {
+      evaluationEngine.evaluate(t0).get shouldNot contain(x("0"))
+    }
+
+    it should "not lead to x at t1" in {
+      evaluationEngine.evaluate(t1).get.value shouldNot contain(x("1"))
+    }
+
+    it should "lead to x at t2" in {
+      evaluationEngine.evaluate(t2).get.value should contain(x("2"))
+    }
+    it should "not contain x(2) at t3" in {
+      val model = evaluationEngine.evaluate(TimePoint(3)).get
+      model.value shouldNot contain(x("2"))
+    }
   }
 
-  "Given '{t1 -> a}, {t2 -> a}' " should "not lead to x at t0" in {
-    evaluation.evaluate(t0).get shouldNot contain(x("0"))
-  }
+  "Using Pull" should behave like evaluation(BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start())
+  "Using Push" should behave like evaluation(BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePush().start())
 
-  it should "not lead to x at t1" in {
-    evaluation.evaluate(t1).get.value shouldNot contain(x("1"))
-  }
-
-  it should "lead to x at t2" in {
-    evaluation.evaluate(t2).get.value should contain(x("2"))
-  }
-  it should "not contain x(2) at t3" in {
-    evaluation.evaluate(TimePoint(3)).get.value shouldNot contain(x("2"))
-  }
 }

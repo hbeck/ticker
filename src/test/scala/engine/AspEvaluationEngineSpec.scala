@@ -50,4 +50,9 @@ class AspEvaluationEngineSpec extends FlatSpec {
   it should "also be removed when the atom is parsed from clingo" in {
     AspEvaluationEngine.removeAtoms(t1, Set(AtomWithArguments(a, Seq(t0.toString)))) should have size 0
   }
+
+  "A model containing a(1), now(0) and a(2)" should "be empty at t0" in {
+    val model = Set(a("1"), now("0"), a("2"))
+    AspEvaluationEngine.removeAtoms(t0, model) should have size 0
+  }
 }

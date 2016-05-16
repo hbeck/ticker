@@ -1,14 +1,20 @@
 package engine.asp.evaluation
 
+import java.lang.Long
+
 import engine.asp.now
 import core._
 import core.lars.TimePoint
 import engine.{Result, _}
 
+import scala.Long
+
 /**
   * Created by FM on 13.05.16.
   */
-trait AspEvaluation extends ((TimePoint, Stream) => Result)
+trait AspEvaluation {
+  def apply(timePoint: TimePoint, dataStream: Stream): Result
+}
 
 
 // TODO: naming
@@ -35,17 +41,29 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 }
 
 object AspEvaluationEngine {
+  val numberFormat = """\d+""".r
+
   def removeAtoms(timePoint: TimePoint, model: Model): Model = {
     val atoms = model.filterNot {
-      case AtomWithArguments(`now`, _) => true
       case AtomWithTime(atom, time) => time != timePoint || atom == now
+      case AtomWithArguments(`now`, _) => true
 
-      case AtomWithArguments(atom, last :: Nil) => last.toLong != timePoint.timePoint
+      // TODO: there should be a more elegant way...
+      case aa: AtomWithArguments => {
+        val lastArgument = aa.arguments.last
 
-
+        numberFormat.findFirstIn(lastArgument) match {
+          case Some(number) => {
+            val l = number.toLong
+            l != timePoint.timePoint
+          }
+          case _ => false
+        }
+      }
       case _ => false
     }
 
     atoms
   }
+
 }
