@@ -1,13 +1,12 @@
-package engine
+package engine.evaluation
 
-import core.{Atom, AtomWithArguments}
-import core.asp.AspFact
+import core.AtomWithArguments
+import core.lars.T
+import engine.asp.evaluation.AspEvaluationEngine
+import engine.asp.now
+import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import engine.asp.now
-import core.lars.{T, TimePoint}
-import engine.asp.evaluation.AspEvaluationEngine
-import fixtures.TimeTestFixtures
 
 /**
   * Created by FM on 16.05.16.

@@ -1,12 +1,9 @@
-package engine
+package engine.evaluation
 
-import core.Atom
-import core.lars.{AtTime, TimePoint}
 import engine.asp.evaluation.StreamingClingoInterpreter
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import org.scalatest.OptionValues._
 
 /**
   * Created by FM on 22.04.16.
