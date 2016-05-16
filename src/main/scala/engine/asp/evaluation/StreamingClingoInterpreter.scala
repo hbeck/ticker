@@ -25,4 +25,5 @@ case class StreamingClingoInterpreter(aspExpressions: ClingoProgram, aspEngine: 
 
     aspResult
   }
+
 }

@@ -5,9 +5,6 @@ import core.asp.AspProgram
 /**
   * Created by FM on 25.02.16.
   */
-trait Evaluation {
-  // TODO: needs to be Program
-  def apply(program: AspProgram): Set[Model]
-}
-
+// TODO: needs to be Program
+trait Evaluation extends (AspProgram => Set[Model])
 
