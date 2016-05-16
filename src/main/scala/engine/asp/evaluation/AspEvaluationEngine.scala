@@ -1,7 +1,7 @@
 package engine.asp.evaluation
 
 import engine.asp.now
-import core.{Atom, AtomWithArgument, AtomWithArguments, Model}
+import core._
 import core.lars.TimePoint
 import engine.{Result, _}
 
@@ -22,7 +22,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 
     // TODO: should we also 'unpin' atoms here? (remove (T) ?)
     val result = aspResult match {
-      case Some(model) => Some(AspEvaluationEngine.removeNow(model))
+      case Some(model) => Some(AspEvaluationEngine.removeAtoms(time, model))
       case None => None
     }
 
@@ -35,9 +35,14 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 }
 
 object AspEvaluationEngine {
-  def removeNow(model: Model): Model = {
+  def removeAtoms(timePoint: TimePoint, model: Model): Model = {
     val atoms = model.filterNot {
-      case a: AtomWithArgument => a.atom == now
+      case AtomWithArguments(`now`, _) => true
+      case AtomWithTime(atom, time) => time != timePoint || atom == now
+
+      case AtomWithArguments(atom, last :: Nil) => last.toLong != timePoint.timePoint
+
+
       case _ => false
     }
 

@@ -3,6 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.lars._
 import core.{Atom, asp}
+import engine.EvaluationEngine
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, PlainLarsToAsp, now}
 import engine.config.BuildEngine
