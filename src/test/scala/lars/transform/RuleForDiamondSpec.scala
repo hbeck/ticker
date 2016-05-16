@@ -24,10 +24,10 @@ class RuleForDiamondSpec extends TransformLarsSpec {
     forExactly(1, PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.body should contain(a(T)) }
   }
   it should "contain a(T - 1)" in {
-    forExactly(1, PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.body should contain(a(T + "-1")) }
+    forExactly(1, PlainLarsToAsp.rulesForDiamond(w_1_d_a)) { rule => rule.body should contain(a(T - 1)) }
   }
 
   "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3), a(T)" in {
-    PlainLarsToAsp.rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T + "-1"), a(T + "-2"), a(T + "-3"))
+    PlainLarsToAsp.rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T - 1), a(T - 2), a(T + -3))
   }
 }

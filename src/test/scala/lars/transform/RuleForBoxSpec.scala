@@ -22,10 +22,10 @@ class RuleForBoxSpec extends TransformLarsSpec {
     (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(a(T))
   }
   it should "contain a(T - 1)" in {
-    (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(a(T + "-1"))
+    (PlainLarsToAsp.rulesForBox(w_1_b_a) flatMap (_.body)) should contain(a(T - 1))
   }
 
   "The rule for w^3 b a" should "contain a(T) a(T -1), a(T -2), a(T -3)" in {
-    (PlainLarsToAsp.rulesForBox(WindowAtom(SlidingTimeWindow(3), Box, a)) flatMap (_.body)) should contain allOf(a(T), a(T + "-1"), a(T + "-2"), a(T + "-3"))
+    (PlainLarsToAsp.rulesForBox(WindowAtom(SlidingTimeWindow(3), Box, a)) flatMap (_.body)) should contain allOf(a(T), a(T - 1), a(T - 2), a(T - 3))
   }
 }

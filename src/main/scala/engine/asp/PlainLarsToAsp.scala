@@ -76,7 +76,7 @@ object PlainLarsToAsp {
   }
 
   def rulesForBox(windowAtom: WindowAtom): Set[AspRule] = {
-    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
+    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
@@ -86,7 +86,7 @@ object PlainLarsToAsp {
   def rulesForDiamond(windowAtom: WindowAtom): Set[AspRule] = {
     val h = head(windowAtom)
 
-    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, generateTimeVariable)
+    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
     val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
 
@@ -98,11 +98,12 @@ object PlainLarsToAsp {
     val h = head(windowAtom)
 
     val atomAtTime = windowAtom.atom(at.time)
+    val referenceTime = at.time match {
+      case t: TimePoint => t
+      case _ => T
+    }
 
-    // TODO implement Timevariable as well
-    val time = at.time.asInstanceOf[TimePoint]
-
-    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, x => TimePoint(time.timePoint - x))
+    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, referenceTime)
 
     val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
 
@@ -111,23 +112,14 @@ object PlainLarsToAsp {
 
   def head(atom: WindowAtom) = Atom(nameFor(atom))(T)
 
-  // TODO: use type Duration
-  def generateTimeVariable(increment: Int): Time = {
-    if (increment == 0)
-      return T
-    // TODO: proper implementation ('GroundableTimeVariable')
-    TimeVariable(T + "-" + increment)
-  }
-
-  // TODO: use type Duration
-  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, increment: Int => Time): Set[Atom] = {
+  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[Atom] = {
     val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size
     }
 
     // TODO: current implementation of (... to ...) only works with ints
     // luck us if we run out of int's on enumerating
-    val generateAtoms = (1 to windowSize.toInt) map increment map (atom(_))
-    (generateAtoms :+ atom(increment(0))).toSet
+    val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
+    (generateAtoms :+ atom(referenceTime)).toSet
   }
 }

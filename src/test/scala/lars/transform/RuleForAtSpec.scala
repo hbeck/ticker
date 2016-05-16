@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.{Atom, AtomWithArguments}
-import core.lars.{At, Diamond, SlidingTimeWindow, WindowAtom}
+import core.lars._
 import engine.asp.PlainLarsToAsp
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -36,7 +36,17 @@ class RuleForAtSpec extends TransformLarsSpec {
     forAll(PlainLarsToAsp.rulesForAt(w_1_a_1_a)) { rule => rule.body should contain(a(t1)) }
   }
 
-  "The rule for w^2 at_2 a" should "contain now(t0), now(t1), a(t2)" in {
-    PlainLarsToAsp.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0), now(t1), now(t2))
+  "The rule for w^2 at_2 a" should "contain now(t0), now(t1), now(t2), a(t2)" in {
+    PlainLarsToAsp.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0), now(t1), now(t2), a(t2))
+  }
+
+  val U = TimeVariable("U")
+  val w_1_at_U_a = W(1, At(U), a)
+
+  "The window atom wˆ at_U a" should "have head w_1_at_U_a" in {
+    forAll(PlainLarsToAsp.rulesForAt(w_1_at_U_a)) { rule => rule.head.toString should include("w_1_at_U_a") }
+  }
+  it should "contain now(T -1), now(T), a(U)" in {
+    PlainLarsToAsp.rulesForAt(w_1_at_U_a) flatMap (_.body) should contain allOf(now(T - 1), now(T), a(U))
   }
 }
