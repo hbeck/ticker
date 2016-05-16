@@ -22,16 +22,16 @@ sealed trait Atom extends HeadAtom {
 
 case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends Atom {
 
-  //  override def toString = {
-  //    val sb = new StringBuilder
-  //    sb.append(atom).append("(")
-  //
-  //    arguments.addString(sb, ",")
-  //
-  //    sb.append(")")
-  //
-  //    sb.toString
-  //  }
+    override def toString = {
+      val sb = new StringBuilder
+      sb.append(atom).append("(")
+
+      arguments.addString(sb, ",")
+
+      sb.append(")")
+
+      sb.toString
+    }
 
   override def arity = arguments.size
 
@@ -54,6 +54,13 @@ case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends Atom {
 object Falsum extends Atom
 
 object Atom {
+
+
+  def unapply(arg: Atom): Option[Seq[String]] = arg match {
+    case AtomWithArguments(_, arguments) => Some(arguments)
+    case _ => None
+  }
+
 
   def apply(caption: String): Atom = UserDefinedAtom(caption)
 

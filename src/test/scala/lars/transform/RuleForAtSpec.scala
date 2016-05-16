@@ -43,10 +43,8 @@ class RuleForAtSpec extends TransformLarsSpec {
   val U = TimeVariable("U")
   val w_1_at_U_a = W(1, At(U), a)
 
-  "The window atom wˆ at_U a" should "have head w_1_at_U_a" in {
-    forAll(PlainLarsToAsp.rulesForAt(w_1_at_U_a)) { rule => rule.head.toString should include("w_1_at_U_a") }
+  "The window atom wˆ at_U a" should "have one rule with head w_1_at_U_a" in {
+    forExactly(1, PlainLarsToAsp.rulesForAt(w_1_at_U_a)) { rule => rule.head.toString should startWith("w_1_at_U_a") }
   }
-  it should "contain now(T -1), now(T), a(U)" in {
-    PlainLarsToAsp.rulesForAt(w_1_at_U_a) flatMap (_.body) should contain allOf(now(T - 1), now(T), a(U))
-  }
+
 }

@@ -1,6 +1,6 @@
 package engine.asp
 
-import core.asp.{AspProgram, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArguments}
 import engine._
@@ -95,19 +95,39 @@ object PlainLarsToAsp {
 
   def rulesForAt(windowAtom: WindowAtom): Set[AspRule] = {
     val at = windowAtom.temporalModality.asInstanceOf[At]
+
+    at.time match {
+      case t: TimePoint => rulesForAtTimePoint(windowAtom, t)
+      case v: TimeVariable => rulesForAtTimeVariable(windowAtom, v)
+    }
+  }
+
+  def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[AspRule] = {
     val h = head(windowAtom)
 
-    val atomAtTime = windowAtom.atom(at.time)
-    val referenceTime = at.time match {
-      case t: TimePoint => t
-      case _ => T
-    }
+    val atomAtTime = windowAtom.atom(timePoint)
 
-    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, referenceTime)
+    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, timePoint)
 
     val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
 
     rules.toSet
+  }
+
+  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariable): Set[AspRule] = {
+    val atomName = nameFor(windowAtom)
+
+    val headAtom = Atom(atomName)(timeVariable)
+    val reachAtom = Atom("reach_" + nameFor(windowAtom))
+
+    // we need the reach atom in the form of atom(T-k,T)
+    val reachAtoms = generateAtomsOfT(windowAtom.windowFunction, reachAtom, T) map (a => a(T))
+
+    val reachRules = reachAtoms map (r => AspRule(r, now(T)))
+
+    val windowRule = AspRule(headAtom(T), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
+
+    (reachRules + windowRule).toSet
   }
 
   def head(atom: WindowAtom) = Atom(nameFor(atom))(T)
