@@ -2,9 +2,10 @@ package engine.examples
 
 import core.asp.AspProgram
 import core.Atom
-import core.lars.TimePoint
+import core.lars._
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
+import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -37,8 +38,13 @@ class YWindowDiamondASample extends FlatSpec {
   val t1 = TimePoint(1)
   val t2 = TimePoint(2)
 
+  val larsProgram = Program.from(
+    y <= W(1, Diamond, a)
+  )
+
   def evaluation = {
-    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
+//    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
 
     e.append(t1)(a)
 

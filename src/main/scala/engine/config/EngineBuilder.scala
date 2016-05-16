@@ -48,9 +48,9 @@ case class EvaluationModeConfiguration(streamingAspInterpeter: StreamingAspInter
 }
 
 case class EvaluationStrategyConfiguration(aspEvaluation: AspEvaluation) {
-  def usePull() = AspPullEvaluationEngine(aspEvaluation)
+  def usePull() = StartableEngineConfiguration(AspPullEvaluationEngine(aspEvaluation))
 
-  def usePush() = AspPushEvaluationEngine(aspEvaluation)
+  def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))
 }
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {

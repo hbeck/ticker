@@ -4,6 +4,7 @@ import core.Atom
 import core.lars._
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, now}
+import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -40,14 +41,17 @@ class ZWindowTimeASample extends FlatSpec {
   val t3 = TimePoint(3)
   val t4 = TimePoint(4)
 
-  // TODO: how are we writing the program in a lars syntax?
+  val U = TimeVariable("U")
+
   val larsProgram = Program.from(
-    z <= WindowAtom(SlidingTimeWindow(2), At(t1), a)
+    z(U + 1) <= WindowAtom(SlidingTimeWindow(2), At(U), a),
+    i <= W(1, Diamond, z)
   )
 
 
   def evaluation = {
-    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+    //    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
 
     e.append(t1)(a)
 

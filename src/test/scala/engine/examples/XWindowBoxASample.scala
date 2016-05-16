@@ -5,6 +5,7 @@ import core.lars._
 import core.{Atom, asp}
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, PlainLarsToAsp, now}
+import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -49,8 +50,8 @@ class XWindowBoxASample extends FlatSpec {
 
   def evaluation = {
 
-//    val convertedLarsProgram = TransformLars(larsProgram)
-    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
+//    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
 
     e.append(t1)(a)
     e.append(t2)(a)
