@@ -3,6 +3,7 @@ package engine.examples
 import core.asp.AspProgram
 import core.Atom
 import core.lars._
+import engine.EvaluationEngine
 import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
 import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
 import engine.config.BuildEngine
@@ -42,35 +43,32 @@ class YWindowDiamondASample extends FlatSpec {
     y <= W(1, Diamond, a)
   )
 
-  def evaluation = {
-    val e = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start()
-//    val e = AspPullEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
+  def evaluation(evaluation: EvaluationEngine) = {
+    evaluation.append(t1)(a)
 
-    e.append(t1)(a)
+    info("Given 't1 -> a' ")
 
-    e
+    it should "not lead to y at t0" in {
+      evaluation.evaluate(t0).get shouldNot contain(y("0"))
+    }
+
+    it should "lead to y at t1" in {
+      evaluation.evaluate(t1).get.value should contain(y("1"))
+    }
+
+    it should "lead to y at t2" in {
+      evaluation.evaluate(t2).get.value should contain(y("2"))
+    }
+
+    it should "not contain y(1) at t2" in {
+      evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
+    }
+
   }
 
-  "Given 't1 -> a' " should "not lead to y at t0" in {
-    evaluation.evaluate(t0).get shouldNot contain(y("0"))
-  }
+  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
 
-  it should "lead to y at t1" in {
-    evaluation.evaluate(t1).get.value should contain(y("1"))
-  }
+  "Using pull" should behave like evaluation(baseConfig.usePull().start())
+  "Using push" should behave like evaluation(baseConfig.usePush().start())
 
-  it should "lead to y at t2" in {
-    evaluation.evaluate(t2).get.value should contain(y("2"))
-  }
-
-  it should "not contain y(1) at t2" in {
-    evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
-  }
-  it should "still not contain y(1) at t2 with push" in {
-    val e = AspPushEvaluationEngine(AspEvaluationEngine(StreamingClingoInterpreter(aspExpressions)))
-
-    e.append(t1)(a)
-
-    e.evaluate(t2).get should have size 0
-  }
 }

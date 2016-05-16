@@ -20,11 +20,14 @@ case class AspPushEvaluationEngine(private val aspEvaluation: AspEvaluation) ext
     val result = aspEvaluation(time, atomStream.evaluateUntil(time))
 
     cachedResults.put(time, result)
+    result
   }
 
   def evaluate(time: TimePoint) = {
     // TODO: which one should be used here?
-    cachedResults.getOrElse(time, EmptyResult)
+//    cachedResults.getOrElse(time, EmptyResult)
+    // needs some value or otherwise samples like y .... will fail
+    cachedResults.getOrElse(time, prepare(time))
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {

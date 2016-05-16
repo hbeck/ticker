@@ -73,7 +73,9 @@ class XWindowBoxASample extends FlatSpec {
     }
   }
 
-  "Using Pull" should behave like evaluation(BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePull().start())
-  "Using Push" should behave like evaluation(BuildEngine.withProgram(larsProgram).useAsp().withClingo().use().usePush().start())
+  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+
+  "Using Pull" should behave like evaluation(baseConfig.usePull().start())
+  "Using Push" should behave like evaluation(baseConfig.usePush().start())
 
 }
