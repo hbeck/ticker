@@ -32,7 +32,7 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
     val convert = StreamingClingoInterpreter(Set())
-    convert(Set()) should be(empty)
+    convert(t0, Set()) should be(empty)
   }
 
 }

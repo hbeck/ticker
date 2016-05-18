@@ -9,7 +9,8 @@ import engine.{Result, Stream}
 
 
 trait StreamingAspInterpeter {
-  def apply(pinnedAtoms: Set[PinnedAspRule]): Option[Model]
+  // TODO: pass timepoint as arguments to streaming interperter? needed for TMS
+  def apply(timePoint: TimePoint, pinnedAtoms: Set[PinnedAspRule]): Option[Model]
 }
 
 //{

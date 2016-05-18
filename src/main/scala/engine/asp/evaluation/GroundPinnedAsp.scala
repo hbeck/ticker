@@ -21,7 +21,7 @@ case class GroundPinnedAsp(timePoint: TimePoint) {
   def apply(program: PinnedAspProgram, dataStream: Set[PinnedAspRule]): GroundedAspProgram = {
     val atoms = dataStream map apply
 
-    GroundedAspProgram(AspProgram(), atoms, timePoint)
+    GroundedAspProgram(program.rules map apply, atoms, timePoint)
   }
 
   def apply(pinnedAspRule: PinnedAspRule): GroundedAspRule = {
@@ -35,7 +35,8 @@ case class GroundPinnedAsp(timePoint: TimePoint) {
 
 // TODO discuss signature/naming
 case class GroundedAspRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRuleT[Atom]
+
 // TODO discuss signature/naming
-case class GroundedAspProgram(baseProgram: AspProgram, groundedAtoms: Set[GroundedAspRule], timePoint: TimePoint) extends AspProgram {
-  val rules: Seq[AspRule] = baseProgram.rules ++ groundedAtoms
+case class GroundedAspProgram(programRules: Seq[GroundedAspRule], groundedAtoms: Set[GroundedAspRule], timePoint: TimePoint) extends AspProgram {
+  val rules: Seq[AspRule] = programRules ++ groundedAtoms
 }

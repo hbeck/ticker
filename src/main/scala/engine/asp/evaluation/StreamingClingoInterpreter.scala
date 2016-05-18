@@ -11,7 +11,7 @@ import engine._
   */
 case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpeter {
 
-  def apply(pinnedAtoms: Set[PinnedAspRule]): Option[Model] = {
+  def apply(timePoint: TimePoint, pinnedAtoms: Set[PinnedAspRule]): Option[Model] = {
 
     val transformed = pinnedAtoms map (ClingoConversion(_))
 

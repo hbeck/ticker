@@ -29,9 +29,8 @@ case class AspEvaluationEngineConfiguration(aspProgram: PinnedAspProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 
-  def withTms() = {
-    // TODO
-  }
+  def withTms() = EvaluationModeConfiguration(TmsEvaluation(aspProgram))
+
 }
 
 case class EvaluationModeConfiguration(streamingAspInterpeter: StreamingAspInterpeter) {

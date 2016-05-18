@@ -27,9 +27,9 @@ case class PinToTimePoint(timePoint: TimePoint) {
     PinnedAspRule(atom(timePoint), Set(), Set())
   }
 
-//  def apply(program: Seq[PinnedAspRule], dataStream: Stream): AspProgramAtTimePoint = {
-//    AspProgramAtTimePoint(program, apply(dataStream), timePoint)
-//  }
+  //  def apply(program: Seq[PinnedAspRule], dataStream: Stream): AspProgramAtTimePoint = {
+  //    AspProgramAtTimePoint(program, apply(dataStream), timePoint)
+  //  }
 }
 
 // TODO naming?

@@ -69,9 +69,11 @@ class XWindowBoxASample extends FlatSpec with TimeTestFixtures {
     }
   }
 
-  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
+  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
 
-  "Using Pull" should behave like evaluation(baseConfig.usePull().start())
-  "Using Push" should behave like evaluation(baseConfig.usePush().start())
-
+  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
+  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
+  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
 }

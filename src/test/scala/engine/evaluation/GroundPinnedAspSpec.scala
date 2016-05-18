@@ -1,6 +1,6 @@
 package engine.evaluation
 
-import core.asp.{AspFact, AspProgram}
+import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars.Fact
 import engine.asp.evaluation.{GroundPinnedAsp, GroundedAspRule, PinnedAspProgram, PinnedAspRule}
 import fixtures.TimeTestFixtures
@@ -18,7 +18,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
     GroundPinnedAsp(t0)(p, Set()).rules should have size 0
   }
 
-  "A program containing only one pinnedAtom" should "contain one rule only" in {
+  "An empty program with one atom in the datastream" should "contain one rule only" in {
     val p = PinnedAspProgram(Seq())
 
     GroundPinnedAsp(t0)(p, Set(PinnedAspRule(a(T), Set()))).rules should have size 1
@@ -27,6 +27,12 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
     val p = PinnedAspProgram(Seq())
 
     GroundPinnedAsp(t0)(p, Set(PinnedAspRule(a(T), Set()))).atoms should contain only (a(t0))
+  }
+
+  "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
+    val r = PinnedAspRule(a(T), Set(b(T + 1)))
+
+    GroundPinnedAsp(t0)(r) should be(GroundedAspRule(a(t0), Set(b(t1))))
   }
 
   "An atom a(T) at t1" should "be grounded to a(t1)" in {

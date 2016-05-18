@@ -24,7 +24,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val atoms = PinToTimePoint(time)(dataStream)
 
-    val aspResult = interpreter(atoms)
+    val aspResult = interpreter(time, atoms)
 
     // TODO: should we also 'unpin' atoms here? (remove (T) ?)
     val result = aspResult match {
