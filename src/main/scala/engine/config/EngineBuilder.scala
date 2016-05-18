@@ -25,7 +25,7 @@ case class EngineEvaluationConfiguration(program: Program) {
 }
 
 
-case class AspEvaluationEngineConfiguration(aspProgram: AspProgramAtTimePoint) {
+case class AspEvaluationEngineConfiguration(aspProgram: PinnedAspProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 

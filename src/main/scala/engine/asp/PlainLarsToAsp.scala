@@ -4,7 +4,7 @@ import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArgument, AtomWithArguments, AtomWithTime}
 import engine._
-import engine.asp.evaluation.{AspProgramAtTimePoint, PinnedAspRule}
+import engine.asp.evaluation.{PinnedAspProgram, PinnedAspRule}
 
 /**
   * Created by FM on 05.05.16.
@@ -30,9 +30,9 @@ object PlainLarsToAsp {
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): AspProgramAtTimePoint = {
+  def apply(program: Program): PinnedAspProgram = {
     val rules = program.rules flatMap this.apply
-    AspProgramAtTimePoint(rules.toList, Set(), T)
+    PinnedAspProgram(rules)
   }
 
   def apply(windowAtom: WindowAtom): AtomWithTime = {

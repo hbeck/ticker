@@ -1,33 +1,41 @@
 package engine.asp.evaluation
 
-import core.Atom
-import core.asp.{AspProgram, AspRule}
-import core.lars.TimePoint
+import core.{Atom, AtomWithTime}
+import core.asp.{AspProgram, AspRule, AspRuleT}
+import core.lars.{TimePoint, TimeVariable}
 
 /**
   * Created by FM on 16.05.16.
   */
 // TODO: naming
-object GroundPinnedAsp {
-  def apply(program: AspProgramAtTimePoint): GroundedAspProgram = {
-    val atoms = program.pinnedAtoms map GroundedAspRule
-
-    GroundedAspProgram(AspProgram(), atoms, 1)
-  }
-}
-
 case class GroundPinnedAsp(timePoint: TimePoint) {
-  def apply(atom: Atom) = {
+  def apply(atom: AtomWithTime) = {
+    // TODO: move into AtomWithTime.ground Function?
+    val groundedTimePoint = atom.time match {
+      case v: TimeVariable => v.ground(timePoint)
+      case t: TimePoint => t
+    }
+    atom.atom(groundedTimePoint)
+  }
 
+  def apply(program: PinnedAspProgram, dataStream: Set[PinnedAspRule]): GroundedAspProgram = {
+    val atoms = dataStream map apply
+
+    GroundedAspProgram(AspProgram(), atoms, timePoint)
+  }
+
+  def apply(pinnedAspRule: PinnedAspRule): GroundedAspRule = {
+    GroundedAspRule(
+      this.apply(pinnedAspRule.head),
+      pinnedAspRule.pos map this.apply,
+      pinnedAspRule.neg map this.apply
+    )
   }
 }
 
-case class GroundedAspRule(rule: PinnedAspRule) extends AspRule {
-  override val pos: Set[Atom] = rule.pos.toSet
-  override val neg: Set[Atom] = rule.neg.toSet
-  override val head: Atom = rule.head
-}
-
+// TODO discuss signature/naming
+case class GroundedAspRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRuleT[Atom]
+// TODO discuss signature/naming
 case class GroundedAspProgram(baseProgram: AspProgram, groundedAtoms: Set[GroundedAspRule], timePoint: TimePoint) extends AspProgram {
   val rules: Seq[AspRule] = baseProgram.rules ++ groundedAtoms
 }
