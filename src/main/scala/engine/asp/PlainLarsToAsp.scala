@@ -36,13 +36,7 @@ object PlainLarsToAsp {
   }
 
   def apply(windowAtom: WindowAtom): AtomWithTime = {
-
-    // TODO should not be needed
-    val arguments = windowAtom.atom match {
-      case aa: AtomWithArgument => aa.arguments
-      case a: Atom => Seq()
-    }
-    val basicAtom = atomFor(windowAtom)(arguments: _*)
+    val basicAtom = atomFor(windowAtom)
 
     basicAtom(T)
   }
@@ -134,9 +128,15 @@ object PlainLarsToAsp {
 
   private def atomFor(windowAtom: WindowAtom) = {
     val atom = Atom(nameFor(windowAtom))
+    val previousArguments = windowAtom.atom match {
+      case aa: AtomWithArgument => aa.arguments
+      case a: Atom => Seq()
+    }
+    val atomsWithArguments = atom(previousArguments: _*)
+
     windowAtom.temporalModality match {
-      case At(v: TimeVariable) => atom(v)
-      case _ => atom
+      case At(v: TimeVariable) => atomsWithArguments(v)
+      case _ => atomsWithArguments
     }
   }
 

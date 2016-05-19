@@ -47,27 +47,27 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
     info("Given 't1 -> a' ")
 
     it should "not lead to z at t0" in {
-      evaluation.evaluate(t0).get shouldNot contain(z("0"))
+      evaluation.evaluate(t0).get shouldNot contain(z(t0))
     }
 
     it should "not lead to z at t1" in {
-      evaluation.evaluate(t1).get.value shouldNot contain(z("1"))
+      evaluation.evaluate(t1).get.value shouldNot contain(z(t1))
     }
 
     it should "lead to z and i at t2" in {
-      evaluation.evaluate(t2).get.value should contain allOf(z("2"), i("2"))
+      evaluation.evaluate(t2).get.value should contain allOf(z(t2), i(t2))
     }
     it should "not lead to z but to i at t3" in {
       val result = evaluation.evaluate(t3).get.value
 
-      result should contain(i("3"))
-      result shouldNot contain(z("3"))
+      result should contain(i(t3))
+      result shouldNot contain(z(t3))
     }
 
     it should "not lead to z or i at t4" in {
       val result = evaluation.evaluate(t4).get.value
 
-      result shouldNot contain allOf(i("4"), z("4"))
+      result shouldNot contain allOf(i(t4), z(t4))
     }
 
   }

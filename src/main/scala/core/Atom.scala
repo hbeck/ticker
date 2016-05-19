@@ -64,11 +64,12 @@ case class AtomWithTime(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
   override def apply(time: Time): AtomWithTime = {
     // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
-    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
+    //    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
+    AtomWithTime(this, time)
   }
 
   override val arguments = timedAtom match {
-    case AtomWithArguments(_, args) => args :+ time.toString
+    case aa: AtomWithArgument => aa.arguments :+ time.toString
     case _ => Seq(time.toString)
   }
 }

@@ -48,4 +48,8 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   "A rule a(T). at t1" should "be grounded to a(t1)." in {
     GroundPinnedAsp(t1)(PinnedAspRule(a(T), Set())) should be(GroundedAspRule(a(t1)))
   }
+
+  "An atom a(T-1,T) at t1" should "be grounded to a(0,1)" in {
+    GroundPinnedAsp(t1)(a(T - 1)(T)) should be(a(t0)(t1))
+  }
 }
