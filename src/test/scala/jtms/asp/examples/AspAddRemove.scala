@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJTMS
+import jtms.{JTMNBeierle, ExtendedJTMS}
 import org.scalatest.FunSuite
 
 /**
@@ -456,5 +456,37 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     tms.remove(AspRule(a))
     assert(m == Set(b,d))
   }
+
+  test("jtms5 essence part") {
+    val tms = ExtendedJTMS(AspProgram(
+      AspRule(a,c), //a :- c
+      AspRule(c,a), //c :- a
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(d,b))) //d :- b)
+
+    def m = tms.getModel.get
+
+    tms.add(AspRule(a))
+    assert(m == Set(a,c))
+
+    tms.remove(AspRule(a))
+    assert(m == Set(b,d))
+  }
+
+  test("beierle tests") {
+    val tms = JTMNBeierle(AspProgram(
+      AspRule(a,c), //a :- c
+      AspRule(c,a), //c :- a
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(d,b), //d :- b
+      AspRule(d,c))) //d :- c
+
+    def m = tms.getModel.get
+
+    tms.add(AspRule(a))
+    assert(m == Set(a,c,d))
+  }
+
+
 
 }

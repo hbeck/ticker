@@ -1,8 +1,8 @@
 package engine.asp.evaluation
 
-import core.{Atom, AtomWithTime}
+import core.{Atom, PinnedAtom}
 import core.asp.{AspProgram, AspRule, AspRuleT}
-import core.lars.{TimePoint, TimeVariable, T}
+import core.lars.{TimePoint, TimeVariableWithOffset, T}
 
 /**
   * Created by FM on 16.05.16.
@@ -31,10 +31,10 @@ import core.lars.{TimePoint, TimeVariable, T}
   *
   */
 // TODO: naming
-case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariable = T) {
-  def apply(atom: AtomWithTime): AtomWithTime = {
+case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
+  def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
-      case t: AtomWithTime => apply(t)
+      case t: PinnedAtom => apply(t)
       case a: Atom => a
     }
 
@@ -42,9 +42,9 @@ case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariable = T) {
     val timeVariable = variable.variable
 
     val groundedTimePoint = atom.time match {
-      case v@TimeVariable(`timeVariable`, _) => v.ground(timePoint)
+      case v@TimeVariableWithOffset(`timeVariable`, _) => v.ground(timePoint)
       // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).)
-      case v: TimeVariable => v.ground(timePoint)
+      case v: TimeVariableWithOffset => v.ground(timePoint)
       case t: TimePoint => t
     }
     groundedBaseAtom(groundedTimePoint)

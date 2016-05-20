@@ -3,8 +3,6 @@ package engine.examples
 import core.Atom
 import core.lars._
 import engine._
-import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
-import engine.asp.{AspPullEvaluationEngine, now}
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -37,7 +35,7 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
   val i = Atom("i")
 
   val larsProgram = Program.from(
-    z(U + 1) <= WindowAtom(SlidingTimeWindow(2), At(U), a),
+    AtAtom(U+1,z) <= W(2, At(U), a),
     i <= W(1, Diamond, z)
   )
 
@@ -57,6 +55,7 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
     it should "lead to z and i at t2" in {
       evaluation.evaluate(t2).get.value should contain allOf(z(t2), i(t2))
     }
+
     it should "not lead to z but to i at t3" in {
       val result = evaluation.evaluate(t3).get.value
 

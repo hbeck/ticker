@@ -25,14 +25,14 @@ case class TimePoint(timePoint: Long) extends Time {
   }
 }
 
-case class TimeVariable(variable: String, offset: Duration = 0) extends Time {
+case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time {
 
   // TODO: should ground be part of the Time-trait?
   def ground(timePoint: TimePoint) = TimePoint(timePoint.timePoint + offset)
 
-  def +(duration: Duration) = TimeVariable(variable, duration)
+  def +(duration: Duration) = TimeVariableWithOffset(variable, duration)
 
-  def -(duration: Duration) = TimeVariable(variable, -duration)
+  def -(duration: Duration) = TimeVariableWithOffset(variable, -duration)
 
   override def toString: String = {
     // TODO: use match?

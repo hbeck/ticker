@@ -1,9 +1,7 @@
 package engine.asp
 
-import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
-import core.{Atom, AtomWithArgument, AtomWithArguments, AtomWithTime}
-import engine._
+import core.{Atom, AtomWithArgument, PinnedAtom}
 import engine.asp.evaluation.{PinnedAspProgram, PinnedAspRule}
 
 /**
@@ -11,14 +9,14 @@ import engine.asp.evaluation.{PinnedAspProgram, PinnedAspRule}
   */
 object PlainLarsToAsp {
 
-  def apply(headAtom: HeadAtom): AtomWithTime = headAtom match {
+  def apply(headAtom: HeadAtom): PinnedAtom = headAtom match {
     case AtAtom(t, a) => a(t)
     // TODO: discuss if this approach is correct
-    case AtomWithTime(a, v: TimeVariable) => a(v)
+    case PinnedAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
   }
 
-  def apply(extendedAtom: ExtendedAtom): AtomWithTime = extendedAtom match {
+  def apply(extendedAtom: ExtendedAtom): PinnedAtom = extendedAtom match {
     case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
@@ -35,7 +33,7 @@ object PlainLarsToAsp {
     PinnedAspProgram(rules)
   }
 
-  def apply(windowAtom: WindowAtom): AtomWithTime = {
+  def apply(windowAtom: WindowAtom): PinnedAtom = {
     val basicAtom = atomFor(windowAtom)
 
     basicAtom(T)
@@ -97,7 +95,7 @@ object PlainLarsToAsp {
 
     at.time match {
       case t: TimePoint => rulesForAtTimePoint(windowAtom, t)
-      case v: TimeVariable => rulesForAtTimeVariable(windowAtom, v)
+      case v: TimeVariableWithOffset => rulesForAtTimeVariable(windowAtom, v)
     }
   }
 
@@ -113,7 +111,7 @@ object PlainLarsToAsp {
     rules.toSet
   }
 
-  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariable): Set[PinnedAspRule] = {
+  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariableWithOffset): Set[PinnedAspRule] = {
     val reachAtom = Atom("reach_" + nameFor(windowAtom))
 
     // we need the reach atom in the form of atom(T-k,T)
@@ -135,14 +133,14 @@ object PlainLarsToAsp {
     val atomsWithArguments = atom(previousArguments: _*)
 
     windowAtom.temporalModality match {
-      case At(v: TimeVariable) => atomsWithArguments(v)
+      case At(v: TimeVariableWithOffset) => atomsWithArguments(v)
       case _ => atomsWithArguments
     }
   }
 
   def head(atom: WindowAtom) = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[AtomWithTime] = {
+  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[PinnedAtom] = {
     val windowSize: Long = windowFunction match {
       case SlidingTimeWindow(size) => size
     }

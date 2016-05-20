@@ -1,13 +1,9 @@
 package engine.asp.evaluation
 
-import java.lang.Long
-
-import engine.asp.now
 import core._
 import core.lars.TimePoint
+import engine.asp.now
 import engine.{Result, _}
-
-import scala.Long
 
 /**
   * Created by FM on 13.05.16.
@@ -45,7 +41,7 @@ object AspEvaluationEngine {
 
   def removeAtoms(timePoint: TimePoint, model: Model): Model = {
     val atoms = model.filterNot {
-      case AtomWithTime(atom, time) => time != timePoint || atom == now
+      case PinnedAtom(atom, time) => time != timePoint || atom == now
       case AtomWithArguments(`now`, _) => true
 
       // TODO: there should be a more elegant way...

@@ -13,8 +13,8 @@ sealed trait Atom extends HeadAtom {
     AtomWithArguments(this, arguments.toSeq)
   }
 
-  def apply(time: Time): AtomWithTime = {
-    AtomWithTime(this, time)
+  def apply(time: Time): PinnedAtom = {
+    PinnedAtom(this, time)
   }
 
   def arity = 0
@@ -55,17 +55,17 @@ trait AtomWithArgument extends Atom {
   }
 }
 
-case class AtomWithTime(timedAtom: Atom, time: Time) extends AtomWithArgument {
+case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument { //TODO PinnedAtom
 
   val atom = timedAtom match {
     case aa: AtomWithArgument => aa.atom
     case _ => timedAtom
   }
 
-  override def apply(time: Time): AtomWithTime = {
+  override def apply(time: Time): PinnedAtom = {
     // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
     //    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
-    AtomWithTime(this, time)
+    PinnedAtom(this, time)
   }
 
   override val arguments = timedAtom match {
@@ -80,12 +80,10 @@ object Falsum extends Atom
 
 object Atom {
 
-
   def unapply(arg: Atom): Option[Seq[String]] = arg match {
     case aa: AtomWithArgument => Some(aa.arguments)
     case _ => None
   }
-
 
   def apply(caption: String): Atom = UserDefinedAtom(caption)
 

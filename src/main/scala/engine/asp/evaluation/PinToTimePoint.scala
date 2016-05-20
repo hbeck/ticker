@@ -1,8 +1,8 @@
 package engine.asp.evaluation
 
-import core.{Atom, AtomWithTime}
 import core.asp._
-import core.lars.{Time, TimePoint}
+import core.lars.TimePoint
+import core.{Atom, PinnedAtom}
 import engine._
 import engine.asp._
 
@@ -33,9 +33,9 @@ case class PinToTimePoint(timePoint: TimePoint) {
 }
 
 // TODO naming?
-case class PinnedAspRule(head: AtomWithTime, pos: Set[AtomWithTime] = Set(), neg: Set[AtomWithTime] = Set()) extends AspRuleT[AtomWithTime]
+case class PinnedAspRule(head: PinnedAtom, pos: Set[PinnedAtom] = Set(), neg: Set[PinnedAtom] = Set()) extends AspRuleT[PinnedAtom]
 
-case class PinnedAspProgram(rules: Seq[PinnedAspRule]) extends AspProgramT[AtomWithTime, PinnedAspRule]
+case class PinnedAspProgram(rules: Seq[PinnedAspRule]) extends AspProgramT[PinnedAtom, PinnedAspRule]
 
 // TODO naming?
 //case class AspProgramAtTimePoint(baseProgram: Seq[PinnedAspRule], pinnedAtoms: Set[PinnedAspRule], time: Time) extends AspProgramT[AtomWithTime, PinnedAspRule] {

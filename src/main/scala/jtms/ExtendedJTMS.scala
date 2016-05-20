@@ -27,7 +27,7 @@ case class ExtendedJTMS() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
+  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
 
   var doSemanticsCheck = true //introduced while debugging remove problems
 
@@ -130,7 +130,9 @@ case class ExtendedJTMS() {
   def updateDoyle(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    //atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    val atomList = (List[Atom]() ++ atoms).sortWith((x,y) => (x.toString=="d")) // TODO
+    atomList foreach fixAndPropagateStatus
   }
 
   def updateStepwise(atoms: Set[Atom]): Unit = {
@@ -169,9 +171,7 @@ case class ExtendedJTMS() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //problematic: a :- not b; b :- not a. //TODO write up doyle limitation
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     suppRule(a) = None
   }
 
@@ -250,9 +250,9 @@ case class ExtendedJTMS() {
     true
   }
 
-  def fixIn(unfoundedRule: AspRule) = {
+  def fixIn(unfoundedRule: AspRule): Unit = {
     setIn(unfoundedRule)
-    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO write up currently has setOut
+    unfoundedRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors TODO write up. currently has setOut
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
@@ -261,9 +261,8 @@ case class ExtendedJTMS() {
      */
   }
 
-  def fixOut(a: Atom) = {
-    status(a) = out //TODO write up missing (cyclic dependency)
-    //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_) == unknown)).get } //TODO doesn't always work - write up
+  def fixOut(a: Atom): Unit = {
+    status(a) = out
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors

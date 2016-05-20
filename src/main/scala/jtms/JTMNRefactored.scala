@@ -25,18 +25,29 @@ object JTMNRefactored {
   */
 case class JTMNRefactored() {
 
-  var rules: List[AspRule] = List()
-
-  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
-  val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
+  //JTMS update algorithm
+  def add(rule: AspRule): Unit = {
+    register(rule)
+    if (status(rule.head) == in) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
+  }
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
+
+  //
+
+  var rules: List[AspRule] = List()
+
+  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
+  val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
@@ -76,14 +87,7 @@ case class JTMNRefactored() {
   def unfounded(rule: AspRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
 
-  //JTMS update algorithm
-  def add(rule: AspRule): Unit = {
-    register(rule)
-    if (status(rule.head) == in) return
-    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val atoms = repercussions(rule.head) + rule.head
-    updateBeliefs(atoms)
-  }
+
 
   def register(rule: AspRule): Unit = {
     if (rules contains rule) return //list representation!
@@ -114,9 +118,9 @@ case class JTMNRefactored() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     suppRule(a) = None
   }
 
@@ -193,6 +197,7 @@ case class JTMNRefactored() {
   }
 
   def fixOut(a: Atom) = {
+    status(a) = out //TODO write up
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
