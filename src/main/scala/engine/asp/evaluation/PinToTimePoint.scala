@@ -24,7 +24,7 @@ case class PinToTimePoint(timePoint: TimePoint) {
   }
 
   def apply(atom: Atom): PinnedAspRule = {
-    PinnedAspRule(atom(timePoint), Set(), Set())
+    AspRule(atom(timePoint), Set(), Set())
   }
 
   //  def apply(program: Seq[PinnedAspRule], dataStream: Stream): AspProgramAtTimePoint = {
@@ -33,9 +33,9 @@ case class PinToTimePoint(timePoint: TimePoint) {
 }
 
 // TODO naming?
-case class PinnedAspRule(head: PinnedAtom, pos: Set[PinnedAtom] = Set(), neg: Set[PinnedAtom] = Set()) extends AspRuleT[PinnedAtom]
+//case class PinnedAspRule(head: PinnedAtom, pos: Set[PinnedAtom] = Set(), neg: Set[PinnedAtom] = Set()) extends AspRuleT[PinnedAtom]
 
-case class PinnedAspProgram(rules: Seq[PinnedAspRule]) extends AspProgramT[PinnedAtom, PinnedAspRule]
+//case class PinnedAspProgram(rules: Seq[PinnedAspRule]) extends AspProgramT[PinnedAtom, PinnedAspRule]
 
 // TODO naming?
 //case class AspProgramAtTimePoint(baseProgram: Seq[PinnedAspRule], pinnedAtoms: Set[PinnedAspRule], time: Time) extends AspProgramT[AtomWithTime, PinnedAspRule] {

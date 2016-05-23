@@ -3,28 +3,28 @@ package core.asp
 import core.Atom
 
 object AspFact {
-  def apply(head: Atom) = AspRule.fact(head)
+  def apply[TAtom <:Atom](head: TAtom) = AspRule.fact(head)
 }
 
 object AspRule {
-  def pos(atoms: Atom*) = new RuleBuilder(atoms.toSet)
+  def pos[TAtom <:Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
 
-  def neg(atoms: Atom*) = new RuleBuilder(Set(), atoms.toSet)
+  def neg[TAtom <:Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
 
-  def fact(head: Atom) = UserDefinedAspRule(head, Set(), Set())
+  def fact[TAtom <:Atom](head: TAtom) = UserDefinedAspRule(head, Set(), Set())
 
-  def apply(head: Atom, pos: Set[Atom], neg: Set[Atom]) = UserDefinedAspRule(head, pos, neg)
+  def apply[TAtom <:Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
 
-  def apply(head: Atom) = UserDefinedAspRule(head, Set(), Set())
+  def apply[TAtom <:Atom](head: TAtom) = UserDefinedAspRule(head, Set(), Set())
 
-  def apply(head: Atom, pos: Atom) = UserDefinedAspRule(head, Set(pos), Set())
+  def apply[TAtom <:Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
 
-  def apply(head: Atom, pos: Set[Atom]) = UserDefinedAspRule(head, pos, Set())
+  def apply[TAtom <:Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
 
 }
 
 // TODO: discuss if sealed is needed (removed beacuse of PinnedRule)
-trait AspRuleT[TAtom <: Atom] {
+trait AspRuleT[TAtom] {
 
   val pos: Set[TAtom]
   val neg: Set[TAtom]
@@ -35,7 +35,7 @@ trait AspRuleT[TAtom <: Atom] {
 
   def isFact: Boolean = pos.isEmpty && neg.isEmpty
 
-  def ==(other: AspRule): Boolean = {
+  def ==(other: AspRuleT[TAtom]): Boolean = {
     if (this.head != other.head) return false
     if (this.pos != other.pos) return false
     if (this.neg != other.neg) return false
@@ -43,10 +43,10 @@ trait AspRuleT[TAtom <: Atom] {
   }
 
   override def equals(other: Any): Boolean = {
-    if (!other.isInstanceOf[AspRule]) {
+    if (!other.isInstanceOf[AspRuleT[TAtom]]) {
       return false
     }
-    val r = other.asInstanceOf[AspRule]
+    val r = other.asInstanceOf[AspRuleT[TAtom]]
     return this == r
   }
 
@@ -69,7 +69,7 @@ trait AspRuleT[TAtom <: Atom] {
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedAspRule(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends AspRule
+case class UserDefinedAspRule[TAtom <:Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRuleT[TAtom]
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends AspRule {
   override def toString = {

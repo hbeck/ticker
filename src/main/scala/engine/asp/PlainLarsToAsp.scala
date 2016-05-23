@@ -1,5 +1,6 @@
 package engine.asp
 
+import core.asp.{AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArgument, PinnedAtom}
 import engine.asp.evaluation.{PinnedAspProgram, PinnedAspRule}
@@ -30,7 +31,7 @@ object PlainLarsToAsp {
 
   def apply(program: Program): PinnedAspProgram = {
     val rules = program.rules flatMap this.apply
-    PinnedAspProgram(rules)
+    AspProgram.pinned(rules.toList)
   }
 
   def apply(windowAtom: WindowAtom): PinnedAtom = {
@@ -40,7 +41,7 @@ object PlainLarsToAsp {
   }
 
   def rule(rule: Rule): PinnedAspRule = {
-    PinnedAspRule(
+    AspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
       rule.neg map this.apply
@@ -77,7 +78,7 @@ object PlainLarsToAsp {
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
-    Set(PinnedAspRule(head(windowAtom), posBody, Set()))
+    Set(AspRule(head(windowAtom), posBody, Set()))
   }
 
   def rulesForDiamond(windowAtom: WindowAtom): Set[PinnedAspRule] = {
@@ -85,7 +86,7 @@ object PlainLarsToAsp {
 
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
-    val rules = generatedAtoms map (a => PinnedAspRule(h, Set(now(T), a)))
+    val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
 
     rules.toSet
   }
@@ -106,7 +107,7 @@ object PlainLarsToAsp {
 
     val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, timePoint)
 
-    val rules = nowAtoms map (n => PinnedAspRule(h, Set(atomAtTime, n)))
+    val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
 
     rules.toSet
   }
@@ -117,9 +118,9 @@ object PlainLarsToAsp {
     // we need the reach atom in the form of atom(T-k,T)
     val reachAtoms = generateAtomsOfT(windowAtom.windowFunction, reachAtom, T) map (a => a(T))
 
-    val reachRules = reachAtoms map (r => PinnedAspRule(r, Set(now(T))))
+    val reachRules = reachAtoms map (r => AspRule(r, Set(now(T))))
 
-    val windowRule = PinnedAspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
+    val windowRule = AspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
 
     (reachRules + windowRule).toSet
   }
