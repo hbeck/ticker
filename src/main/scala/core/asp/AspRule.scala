@@ -2,24 +2,20 @@ package core.asp
 
 import core.Atom
 
-object AspFact {
-  def apply[TAtom <:Atom](head: TAtom) = AspRule.fact(head)
-}
-
 object AspRule {
-  def pos[TAtom <:Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
+  def pos[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
 
-  def neg[TAtom <:Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
+  def neg[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
 
-  def fact[TAtom <:Atom](head: TAtom) = UserDefinedAspRule(head, Set(), Set())
+  def fact[TAtom <: Atom](head: TAtom) = AspFact(head)
 
-  def apply[TAtom <:Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
+  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
 
-  def apply[TAtom <:Atom](head: TAtom) = UserDefinedAspRule(head, Set(), Set())
+  def apply[TAtom <: Atom](head: TAtom) :AspFact[TAtom]= AspFact(head)
 
-  def apply[TAtom <:Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
+  def apply[TAtom <: Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
 
-  def apply[TAtom <:Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
+  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
 
 }
 
@@ -69,11 +65,20 @@ trait AspRuleT[TAtom] {
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedAspRule[TAtom <:Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRuleT[TAtom]
+case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRuleT[TAtom]
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends AspRule {
   override def toString = {
     super.toString.replaceAll("<-", "<--")
+  }
+}
+
+case class AspFact[TAtom <: Atom](head: TAtom) extends AspRuleT[TAtom] {
+  val pos: Set[TAtom] = Set()
+  val neg: Set[TAtom] = Set()
+
+  override def toString = {
+    head.toString
   }
 }
 

@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom}
 import jtms.JTMNRefactored
 import org.scalatest.FunSuite
@@ -33,7 +33,7 @@ class JTMNConsistency extends FunSuite {
     var model = tmn.getModel.get
     assert(model.isEmpty)
 
-    tmn.add(AspRule(a))
+    tmn.add(AspFact(a))
     model = tmn.getModel.get
     assert(model.size == 1)
     assert(model contains a)
@@ -158,7 +158,7 @@ class JTMNConsistency extends FunSuite {
   //inconsistent
   test("a. :- a.") {
     val tmn = JTMNRefactored()
-    tmn.add(AspRule(a))
+    tmn.add(AspFact(a))
     tmn.add(AspRule(n,a))
     assert(tmn.getModel == None)
   }
@@ -167,13 +167,13 @@ class JTMNConsistency extends FunSuite {
   test("a. a :- not a.") {
 
     val tmnFactFirst = JTMNRefactored()
-    tmnFactFirst.add(AspRule(a))
+    tmnFactFirst.add(AspFact(a))
     tmnFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(tmnFactFirst.getModel.get == Set(a))
 
     val tmnRuleFirst = JTMNRefactored()
     tmnRuleFirst.add(AspRule(a,Set(),Set(a)))
-    tmnRuleFirst.add(AspRule(a))
+    tmnRuleFirst.add(AspFact(a))
     assert(tmnRuleFirst.getModel.get == Set(a))
   }
 

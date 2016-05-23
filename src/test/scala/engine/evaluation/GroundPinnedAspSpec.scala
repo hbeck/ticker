@@ -21,12 +21,12 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   "An empty program with one atom in the datastream" should "contain one rule only" in {
     val p =  AspProgram.pinned()
 
-    GroundPinnedAsp(t0)(p, Set(AspRule(a(T)))).rules should have size 1
+    GroundPinnedAsp(t0)(p, Set(AspFact(a(T)))).rules should have size 1
   }
   it should "be grounded to t0" in {
     val p =  AspProgram.pinned()
 
-    GroundPinnedAsp(t0)(p, Set(AspRule(a(T)))).atoms should contain only (a(t0))
+    GroundPinnedAsp(t0)(p, Set(AspFact(a(T)))).atoms should contain only (a(t0))
   }
 
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
@@ -46,7 +46,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "A rule a(T). at t1" should "be grounded to a(t1)." in {
-    GroundPinnedAsp(t1)(AspRule(a(T))) should be(GroundedAspRule(a(t1)))
+    GroundPinnedAsp(t1)(AspFact(a(T))) should be(GroundedAspRule(a(t1)))
   }
 
   "An atom a(T-1,T) at t1" should "be grounded to a(0,1)" in {

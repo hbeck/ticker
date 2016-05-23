@@ -17,12 +17,12 @@ class Deletion extends FlatSpec with AtomTestFixture{
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
     val net = new ExtendedJTMS()
-    net.add(AspRule(a))
+    net.add(AspFact(a))
 
     assume(net.getModel.get == Set(a))
     assume(net.status(a) == in)
 
-    net.remove(AspRule(a))
+    net.remove(AspFact(a))
 
     assert(net.allAtoms.isEmpty)
     assert(net.status.isEmpty)

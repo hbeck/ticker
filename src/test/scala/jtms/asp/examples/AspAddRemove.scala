@@ -76,7 +76,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     tms.add(AspRule(b,a))
     tms.add(AspRule(b,Set(c))) //,Set(d)))
     tms.add(AspRule(c,none,Set(e)))
-    tms.add(AspRule(e))
+    tms.add(AspFact(e))
     /*
     the problem is that after this step, the support of a is empty, but it should be b.
     if supp(a)=b, then we can compute the correct solution with repercussions, which is desired.
@@ -84,7 +84,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     obs: it should not be the case that the support of an atom, that is not (only) a fact, has an empty
     support.
      */
-    tms.remove(AspRule(e))
+    tms.remove(AspFact(e))
     assert(m == Set(a,b,c))
   }
 
@@ -105,17 +105,17 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     tms.add(AspRule(c,none,Set(e)))
     assert(m == Set(a,b,c))
 
-    tms.add(AspRule(e))
+    tms.add(AspFact(e))
     assert(m == Set(e))
 
-    tms.remove(AspRule(e))
+    tms.remove(AspFact(e))
     assert(m == Set(a,b,c)) //
 
-    tms.add(AspRule(e))
+    tms.add(AspFact(e))
     tms.remove(AspRule(b,Set(c),Set(d)))
     assert(m == Set(e))
 
-    tms.remove(AspRule(e))
+    tms.remove(AspFact(e))
     assert(m == Set(c))
 
     tms.remove(AspRule(a,b))
@@ -127,7 +127,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     tms.add(AspRule(a,b))
     assert(m == Set(a,b,c))
 
-    tms.add(AspRule(e))
+    tms.add(AspFact(e))
     assert(m == Set(e))
 
   }
@@ -418,7 +418,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     val r3 = AspRule(c, a)
     val r4a = AspRule(d, b)
     val r4b = AspRule(d, c)
-    val r5 = AspRule(e)
+    val r5 = AspFact(e)
     val r6 = AspRule(f, Set(c, e))
     val r0 = AspFact(a)
 
@@ -450,10 +450,10 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     assert(m == Set(b,d))
 
-    tms.add(AspRule(a))
+    tms.add(AspFact(a))
     assert(m == Set(a,c,d))
 
-    tms.remove(AspRule(a))
+    tms.remove(AspFact(a))
     assert(m == Set(b,d))
   }
 
@@ -466,10 +466,10 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     def m = tms.getModel.get
 
-    tms.add(AspRule(a))
+    tms.add(AspFact(a))
     assert(m == Set(a,c))
 
-    tms.remove(AspRule(a))
+    tms.remove(AspFact(a))
     assert(m == Set(b,d))
   }
 
@@ -483,7 +483,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     def m = tms.getModel.get
 
-    tms.add(AspRule(a))
+    tms.add(AspFact(a))
     assert(m == Set(a,c,d))
   }
 

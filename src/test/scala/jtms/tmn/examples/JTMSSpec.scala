@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import core._
-import core.asp.{AspProgram, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms._
 import org.scalatest.FlatSpec
@@ -18,7 +18,7 @@ class JTMSSpec extends FlatSpec with AtomTestFixture{
   val j3 = AspRule(c, a)
   val j4a = AspRule(d, b)
   val j4b = AspRule(d, c)
-  val j5 = AspRule(e)
+  val j5 = AspFact(e)
   val j6 = AspRule(f, Set(c, e))
 
   val program = AspProgram(j1, j2, j3, j4a, j4b, j5, j6)
