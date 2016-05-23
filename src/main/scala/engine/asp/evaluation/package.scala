@@ -2,7 +2,7 @@ package engine.asp
 
 
 import core.PinnedAtom
-import core.asp.{AspFact, AspProgramT, AspRuleT, FixedAspProgram}
+import core.asp.{AspFact, AspRuleT, FixedAspProgram}
 
 /**
   * Created by FM on 20.05.16.

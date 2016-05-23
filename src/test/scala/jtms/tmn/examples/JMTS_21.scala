@@ -1,9 +1,7 @@
 package jtms.tmn.examples
 
-import clingo.ClingoEvaluation
 import core._
-import core.asp.AspRule
-import jtms.JTMNRefactored
+import core.asp.{AspRule, PlainAspRule}
 import jtms.asp.examples.EvaluateJTMNImplementations
 import org.scalatest.FlatSpec
 
@@ -14,7 +12,7 @@ trait JTMS_21Behavior extends JTMSSpec {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
-  val j7: AspRule = AspRule.pos(b).neg(c).head(Falsum)
+  val j7: PlainAspRule = AspRule.pos(b).neg(c).head(Falsum)
 
   def p = {
     val p = program + j7

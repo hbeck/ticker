@@ -1,11 +1,8 @@
 package engine
 
-import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
-import core.lars.TimePoint
-import engine.asp.{Direct, EvaluationStrategy}
-import engine.asp.evaluation.StreamingAspInterpeter$
-import engine.config.BuildEngine
+import core.asp.{AspProgram, AspProgramBuilder}
+import engine.asp.EvaluationStrategy
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

@@ -1,7 +1,7 @@
 package jtms.evaluation
 
 import core.Evaluation
-import core.asp.AspProgram
+import core.asp.PlainAspProgram
 import jtms.JTMNBeierle
 
 /**
@@ -9,7 +9,7 @@ import jtms.JTMNBeierle
   */
 class JTMNBeierleEvaluation extends Evaluation {
 
-  def apply(program: AspProgram) = {
+  def apply(program: PlainAspProgram) = {
     val tmn = JTMNBeierle(program)
 
     val singleModel = tmn.getModel.get

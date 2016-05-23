@@ -67,7 +67,7 @@ trait AspRuleT[TAtom] {
   */
 case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRuleT[TAtom]
 
-case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends AspRule {
+case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends PlainAspRule {
   override def toString = {
     super.toString.replaceAll("<-", "<--")
   }

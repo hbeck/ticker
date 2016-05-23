@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import core.asp.{AspFact, AspProgramBuilder, AspRule, AspRuleT}
+import core.asp._
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 

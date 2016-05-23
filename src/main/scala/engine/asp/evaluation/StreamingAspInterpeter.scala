@@ -2,10 +2,8 @@ package engine.asp.evaluation
 
 import clingo.ClingoConversion
 import core.Model
-import core.asp.AspProgram
+import core.asp.PlainAspProgram
 import core.lars.TimePoint
-import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, EvaluationMode, UseFuture}
-import engine.{Result, Stream}
 
 
 trait StreamingAspInterpeter {
@@ -20,7 +18,7 @@ trait StreamingAspInterpeter {
 
 object StreamingAspInterpeter {
 
-  def select(program: AspProgram, interpretationMode: InterpretationMode): StreamingAspInterpeter = interpretationMode match {
+  def select(program: PlainAspProgram, interpretationMode: InterpretationMode): StreamingAspInterpeter = interpretationMode match {
     case Clingo => StreamingClingoInterpreter(ClingoConversion(program))
   }
 }

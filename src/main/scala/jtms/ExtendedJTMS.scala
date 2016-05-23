@@ -1,14 +1,14 @@
 package jtms
 
 import core._
-import core.asp.{AspProgram, AspRule}
+import core.asp.{PlainAspProgram, PlainAspRule}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
 object ExtendedJTMS {
 
-  def apply(P: AspProgram): ExtendedJTMS = {
+  def apply(P: PlainAspProgram): ExtendedJTMS = {
     val net = new ExtendedJTMS()
     P.rules foreach net.add
     net
@@ -32,7 +32,7 @@ case class ExtendedJTMS() {
   var doSemanticsCheck = true //introduced while debugging remove problems
 
   //based on JTMS update algorithm
-  def add(rule: AspRule): Unit = {
+  def add(rule: PlainAspRule): Unit = {
     register(rule)
     if (status(rule.head) == in) return
     if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
@@ -40,7 +40,7 @@ case class ExtendedJTMS() {
     updateBeliefs(ats)
   }
 
-  def remove(rule: AspRule): Unit = {
+  def remove(rule: PlainAspRule): Unit = {
     unregister(rule)
     if (!(allAtoms contains rule.head)) return
     if (status(rule.head) == out) return
@@ -59,11 +59,11 @@ case class ExtendedJTMS() {
   //
   //
 
-  var rules: List[AspRule] = List()
+  var rules: List[PlainAspRule] = List()
 
   val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
+  val suppRule: Map[Atom, Option[PlainAspRule]] = new HashMap[Atom, Option[PlainAspRule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   //
@@ -96,16 +96,16 @@ case class ExtendedJTMS() {
 
   def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
-  def valid(rule: AspRule) =
+  def valid(rule: PlainAspRule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def invalid(rule: AspRule) =
+  def invalid(rule: PlainAspRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfounded(rule: AspRule) =
+  def unfounded(rule: PlainAspRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
-  def register(rule: AspRule): Unit = {
+  def register(rule: PlainAspRule): Unit = {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
@@ -163,7 +163,7 @@ case class ExtendedJTMS() {
     }
   }
 
-  def setIn(rule: AspRule) = {
+  def setIn(rule: PlainAspRule) = {
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
     suppRule(rule.head) = Some(rule)
@@ -181,7 +181,7 @@ case class ExtendedJTMS() {
     suppRule(atom) = None
   }
 
-  def findSpoiler(rule: AspRule): Option[Atom] = {
+  def findSpoiler(rule: PlainAspRule): Option[Atom] = {
     if (math.random < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
@@ -250,7 +250,7 @@ case class ExtendedJTMS() {
     true
   }
 
-  def fixIn(unfoundedRule: AspRule): Unit = {
+  def fixIn(unfoundedRule: PlainAspRule): Unit = {
     setIn(unfoundedRule)
     unfoundedRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors TODO write up. currently has setOut
     /* not that setIn here has to be called first. consider
@@ -285,7 +285,7 @@ case class ExtendedJTMS() {
     trans(f)(nextSet)
   }
 
-  def unregister(rule: AspRule): Unit = {
+  def unregister(rule: PlainAspRule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filterNot (_ == rule)
     //unregister deprecated rule atoms
@@ -315,7 +315,7 @@ case class ExtendedJTMS() {
   def set(M: collection.immutable.Set[Atom]): Boolean = {
   val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val rule: Option[AspRule] = findSuppRule(m, i)
+      val rule: Option[PlainAspRule] = findSuppRule(m, i)
       if (rule.isEmpty) {
         return false
       }
@@ -335,14 +335,14 @@ case class ExtendedJTMS() {
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSuppRule(M: List[Atom], idx: Int): Option[AspRule] = {
+  def findSuppRule(M: List[Atom], idx: Int): Option[PlainAspRule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
     val rules = justifications(n) filter (rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
-  def selectRule(rules: List[AspRule]): Option[AspRule] = {
+  def selectRule(rules: List[PlainAspRule]): Option[PlainAspRule] = {
     if (rules.isEmpty)
       return None
     Some(rules.head)

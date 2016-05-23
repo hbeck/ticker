@@ -1,7 +1,6 @@
 package engine
 
 import core.Atom
-import core.lars.TimePoint
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 

@@ -1,8 +1,7 @@
 package engine.evaluation
 
-import core.asp.{AspFact, AspProgram, AspRule}
-import core.lars.Fact
-import engine.asp.evaluation.{GroundPinnedAsp, GroundedAspRule, PinnedAspProgram, PinnedAspRule}
+import core.asp._
+import engine.asp.evaluation.{GroundPinnedAsp, GroundedAspRule}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

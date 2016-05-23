@@ -1,7 +1,7 @@
 package core
 
-import core.asp.{AspFact, AspRule, BuilderHead}
-import core.lars.{Time, HeadAtom}
+import core.asp.{AspFact, BuilderHead}
+import core.lars.{HeadAtom, Time}
 
 /**
   * Created by hb on 12/22/15.

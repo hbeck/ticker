@@ -1,8 +1,8 @@
 package engine.asp.evaluation
 
+import core.Atom
 import core.asp._
 import core.lars.TimePoint
-import core.{Atom, PinnedAtom}
 import engine._
 import engine.asp._
 

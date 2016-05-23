@@ -1,7 +1,6 @@
 package engine.evaluation
 
 import core.AtomWithArguments
-import core.lars.T
 import engine.asp.evaluation.AspEvaluationEngine
 import engine.asp.now
 import fixtures.TimeTestFixtures

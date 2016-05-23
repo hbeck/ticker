@@ -1,9 +1,9 @@
 package jtms.asp.examples
 
 import core.Atom
-import core.asp.{AspFact, AspProgram, AspRule}
+import core.asp._
 import fixtures.AtomTestFixture
-import jtms.{JTMNBeierle, ExtendedJTMS}
+import jtms.{ExtendedJTMS, JTMNBeierle}
 import org.scalatest.FunSuite
 
 /**

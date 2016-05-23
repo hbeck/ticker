@@ -1,9 +1,9 @@
 package jtms.tmn
 
 import core.Atom
-import core.asp.AspRule
+import core.asp.PlainAspRule
 import jtms.{JTMNRefactored, Status}
-import org.scalatest.{FlatSpec, GivenWhenThen}
+import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
@@ -32,14 +32,14 @@ trait AtomValidation {
       }
     }
 
-    def Rules(rules: AspRule*) = {
+    def Rules(rules: PlainAspRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
         assert(tmn.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 
-    def SJ(j: Option[AspRule]) = {
+    def SJ(j: Option[PlainAspRule]) = {
 
       var text: String = ""
       if (j.isDefined)

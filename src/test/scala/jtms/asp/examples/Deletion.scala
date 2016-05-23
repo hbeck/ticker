@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
-import core.asp.{AspFact, AspProgram, AspRule}
 import core.Atom
+import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}

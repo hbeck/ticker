@@ -23,19 +23,19 @@ trait AspProgramT[TAtom <: Atom, TAspRule <: AspRuleT[TAtom]] {
 //  lazy val atoms = this.rules.flatMap(_.atoms).toSet
 //}
 
-case class ModifiableAspProgram(rules: List[AspRule]) extends AspProgram {
+case class ModifiableAspProgram(rules: List[PlainAspRule]) extends PlainAspProgram {
 
-  def +(rule: AspRule) = AspProgram(rules :+ rule)
+  def +(rule: PlainAspRule) = AspProgram(rules :+ rule)
 
-  def ++(rules: List[AspRule]) = AspProgram(this.rules ++ rules)
+  def ++(rules: List[PlainAspRule]) = AspProgram(this.rules ++ rules)
 }
 
 case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRuleT[TAtom]](rules: Seq[TAspRule]) extends AspProgramT[TAtom, TAspRule]
 
 object AspProgram {
-  def apply(rules: AspRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
+  def apply(rules: PlainAspRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
 
-  def apply(rules: List[AspRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
+  def apply(rules: List[PlainAspRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
 
   // TODO: this should be generic?
   //  def apply[TAspRule <: AspRuleT[_]](rules: TAspRule*) = FixedAspProgram(rules.toList)

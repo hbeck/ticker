@@ -1,9 +1,8 @@
 package engine.asp.evaluation
 
-import clingo.{ClingoConversion, ClingoExpression, ClingoProgram, _}
+import clingo.{ClingoConversion, ClingoProgram, _}
+import core.Model
 import core.lars.TimePoint
-import core.{Atom, AtomWithArguments, Model}
-import engine._
 
 /**
   *

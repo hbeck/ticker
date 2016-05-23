@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.{Atom, AtomWithArgument, AtomWithArguments}
+import core.AtomWithArgument
 import core.lars._
 import engine.asp.PlainLarsToAsp
 import org.scalatest.Inspectors._

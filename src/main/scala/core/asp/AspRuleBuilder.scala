@@ -1,7 +1,6 @@
 package core.asp
 
 import core._
-import core.lars.{ExtendedAtom, HeadAtom}
 
 import scala.language.implicitConversions
 
@@ -26,9 +25,9 @@ class BuilderHead(val head: Atom) {
 
 
 object AspProgramBuilder {
-  def rule(rule: AspRule) = new AspProgramBuilder(Set(rule))
+  def rule(rule: PlainAspRule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[AspRule]]): ModifiableAspProgram = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[PlainAspRule]]): ModifiableAspProgram = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)
@@ -37,10 +36,10 @@ object AspProgramBuilder {
   }
 }
 
-class AspProgramBuilder(rules: Set[AspRule]) {
-  def apply(rule: AspRule) = new AspProgramBuilder(rules + rule)
+class AspProgramBuilder(rules: Set[PlainAspRule]) {
+  def apply(rule: PlainAspRule) = new AspProgramBuilder(rules + rule)
 
-  def rule(rule: AspRule) = new AspProgramBuilder(rules + rule)
+  def rule(rule: PlainAspRule) = new AspProgramBuilder(rules + rule)
 
   def toProgram = AspProgram(rules.toList)
 }

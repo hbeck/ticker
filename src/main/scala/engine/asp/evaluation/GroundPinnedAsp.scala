@@ -1,8 +1,8 @@
 package engine.asp.evaluation
 
+import core.asp.{AspRuleT, PlainAspProgram, PlainAspRule}
+import core.lars.{T, TimePoint, TimeVariableWithOffset}
 import core.{Atom, PinnedAtom}
-import core.asp.{AspProgram, AspRule, AspRuleT}
-import core.lars.{TimePoint, TimeVariableWithOffset, T}
 
 /**
   * Created by FM on 16.05.16.
@@ -70,6 +70,6 @@ case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariableWithOffse
 case class GroundedAspRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRuleT[Atom]
 
 // TODO discuss signature/naming
-case class GroundedAspProgram(programRules: Seq[GroundedAspRule], groundedAtoms: Set[GroundedAspRule], timePoint: TimePoint) extends AspProgram {
-  val rules: Seq[AspRule] = programRules ++ groundedAtoms
+case class GroundedAspProgram(programRules: Seq[GroundedAspRule], groundedAtoms: Set[GroundedAspRule], timePoint: TimePoint) extends PlainAspProgram {
+  val rules: Seq[PlainAspRule] = programRules ++ groundedAtoms
 }

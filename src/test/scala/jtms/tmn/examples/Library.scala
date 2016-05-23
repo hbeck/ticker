@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import clingo.ClingoEvaluation
 import core._
-import core.asp.{AspFact, AspProgram, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule, PlainAspRule}
 import jtms._
 import jtms.asp.examples.EvaluateJTMNImplementations
 import jtms.tmn.AtomValidation
@@ -37,7 +37,7 @@ trait LibraryBehavior {
   val j8 = AspRule.pos(H).head(A_not)
   val j9 = AspRule.pos(A, A_not).head(Falsum)
 
-  val jExclusionA: AspRule = AspRule.pos(A).head(Falsum)
+  val jExclusionA: PlainAspRule = AspRule.pos(A).head(Falsum)
 
   val program = AspProgram(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 

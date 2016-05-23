@@ -1,12 +1,10 @@
 package engine.examples
 
-import core.asp.AspProgram
 import core.Atom
+import core.asp.AspProgram
 import core.lars._
-import engine._
 import engine.EvaluationEngine
-import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
-import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
+import engine.asp.now
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec

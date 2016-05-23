@@ -1,7 +1,6 @@
 package engine.config
 
-import clingo.{ClingoConversion, ClingoProgram}
-import core.asp.AspProgram
+import clingo.ClingoConversion
 import core.lars.Program
 import engine.EvaluationEngine
 import engine.asp._

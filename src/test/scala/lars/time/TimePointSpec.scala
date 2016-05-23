@@ -1,6 +1,5 @@
 package lars.time
 
-import core.lars.TimePoint
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
