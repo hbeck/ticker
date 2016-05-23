@@ -86,7 +86,7 @@ class AspBuilderTests extends FlatSpec {
     assert(program.size == 6)
   }
 
-  val testProgram: PartialFunction[Seq[Atom], Set[AspRuleT[Atom]]] = {
+  val testProgram: PartialFunction[Seq[Atom], Set[AspRule[Atom]]] = {
     case a #:: b #:: c #:: d #:: e #:: f #:: atoms => Set(
       AspRule.fact(a),
       AspRule.fact(b),

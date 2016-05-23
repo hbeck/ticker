@@ -20,7 +20,7 @@ object AspRule {
 }
 
 // TODO: discuss if sealed is needed (removed beacuse of PinnedRule)
-trait AspRuleT[TAtom] {
+trait AspRule[TAtom] {
 
   val pos: Set[TAtom]
   val neg: Set[TAtom]
@@ -31,7 +31,7 @@ trait AspRuleT[TAtom] {
 
   def isFact: Boolean = pos.isEmpty && neg.isEmpty
 
-  def ==(other: AspRuleT[TAtom]): Boolean = {
+  def ==(other: AspRule[TAtom]): Boolean = {
     if (this.head != other.head) return false
     if (this.pos != other.pos) return false
     if (this.neg != other.neg) return false
@@ -39,10 +39,10 @@ trait AspRuleT[TAtom] {
   }
 
   override def equals(other: Any): Boolean = {
-    if (!other.isInstanceOf[AspRuleT[TAtom]]) {
+    if (!other.isInstanceOf[AspRule[TAtom]]) {
       return false
     }
-    val r = other.asInstanceOf[AspRuleT[TAtom]]
+    val r = other.asInstanceOf[AspRule[TAtom]]
     return this == r
   }
 
@@ -65,7 +65,7 @@ trait AspRuleT[TAtom] {
 /**
   * Created by hb on 12/22/15.
   */
-case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRuleT[TAtom]
+case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends PlainAspRule {
   override def toString = {
@@ -73,7 +73,7 @@ case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) e
   }
 }
 
-case class AspFact[TAtom <: Atom](head: TAtom) extends AspRuleT[TAtom] {
+case class AspFact[TAtom <: Atom](head: TAtom) extends AspRule[TAtom] {
   val pos: Set[TAtom] = Set()
   val neg: Set[TAtom] = Set()
 

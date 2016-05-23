@@ -1,18 +1,18 @@
 package clingo
 
 import core._
-import core.asp.{AspProgramT, AspRuleT}
+import core.asp.{AspProgram, AspRule}
 
 /**
   * Created by FM on 22.02.16.
   */
 object ClingoConversion {
 
-  def apply[TAtom <: Atom, TRule <: AspRuleT[TAtom]](program: AspProgramT[TAtom, TRule]): ClingoProgram = {
+  def apply[TAtom <: Atom, TRule <: AspRule[TAtom]](program: AspProgram[TAtom, TRule]): ClingoProgram = {
     program.rules.map(apply[TAtom]).toSet
   }
 
-  def apply[TAtom <: Atom](rule: AspRuleT[TAtom]): ClingoExpression = {
+  def apply[TAtom <: Atom](rule: AspRule[TAtom]): ClingoExpression = {
     if (rule.body.isEmpty) {
       apply(rule.head) + '.'
     } else {

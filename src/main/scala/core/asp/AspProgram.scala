@@ -6,7 +6,7 @@ import engine.asp.evaluation.PinnedAspRule
 /**
   * Created by FM on 25.02.16.
   */
-trait AspProgramT[TAtom <: Atom, TAspRule <: AspRuleT[TAtom]] {
+trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
   val rules: Seq[TAspRule]
   lazy val atoms = this.rules.flatMap(_.atoms)
 }
@@ -30,7 +30,7 @@ case class ModifiableAspProgram(rules: List[PlainAspRule]) extends PlainAspProgr
   def ++(rules: List[PlainAspRule]) = AspProgram(this.rules ++ rules)
 }
 
-case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRuleT[TAtom]](rules: Seq[TAspRule]) extends AspProgramT[TAtom, TAspRule]
+case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]](rules: Seq[TAspRule]) extends AspProgram[TAtom, TAspRule]
 
 object AspProgram {
   def apply(rules: PlainAspRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
