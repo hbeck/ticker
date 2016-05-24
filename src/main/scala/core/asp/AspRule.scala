@@ -19,7 +19,7 @@ object AspRule {
 
 }
 
-// TODO: discuss if sealed is needed (removed beacuse of PinnedRule)
+// TODO: discuss if sealed is needed (removed beacuse of GroundedRule)
 trait AspRule[TAtom] {
 
   val pos: Set[TAtom]

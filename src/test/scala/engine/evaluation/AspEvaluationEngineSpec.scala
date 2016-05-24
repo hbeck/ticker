@@ -27,7 +27,6 @@ class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
   }
 
   "An atom 'a(t0)'" should "not be part of the result at t1" in {
-    // TODO: how can we be sure that the last argument is a time-paramter - currently its only an assumption?
     AspEvaluationEngine.removeAtoms(t1, Set(a(t0))) should have size 0
   }
 

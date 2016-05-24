@@ -24,6 +24,7 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
     StreamingClingoInterpreter.asPinnedAtom(Set(a("bar")), t1) should contain only (a("bar")(t1))
   }
 
+  // TODO: how can we be sure that the last argument is a time-paramter - currently its only an assumption?
   "An atom 'a(0)'" should "be converted to a(t0)" in {
     StreamingClingoInterpreter.asPinnedAtom(Set(AtomWithArguments(a, Seq(t0.toString))), t1) should contain(a(t0))
   }

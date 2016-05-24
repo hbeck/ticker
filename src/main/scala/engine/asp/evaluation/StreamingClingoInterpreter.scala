@@ -32,6 +32,7 @@ object StreamingClingoInterpreter {
 
   val numberFormat = """\d+""".r
 
+  // TODO: how can we be sure that the last argument is a time-paramter - currently its only an assumption?
   def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = {
     // TODO: there should be a more elegant way...
     // should probably go to clingo-parser?

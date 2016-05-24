@@ -146,8 +146,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => size
     }
 
-    // TODO: current implementation of (... to ...) only works with ints
-    // luck us if we run out of int's on enumerating
+    // TODO: current implementation of (... to ...) only works with integer
     val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }
