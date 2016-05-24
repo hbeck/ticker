@@ -2,7 +2,7 @@ package engine.asp.evaluation
 
 import clingo.{ClingoConversion, ClingoProgram, _}
 import core.lars.TimePoint
-import core.{AtomWithArguments, Model, PinnedAtom}
+import core.{Atom, AtomWithArguments, Model, PinnedAtom}
 
 /**
   *
@@ -26,13 +26,13 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 object StreamingClingoInterpreter {
   def asPinnedAtom(model: Model, timePoint: TimePoint) = model map {
     case aa: AtomWithArguments => convertToPinnedAtom(aa, timePoint)
+    case a: Atom => throw new IllegalArgumentException(f"Cannot convert '$a' into a PinnedAtom")
   }
 
   val numberFormat = """\d+""".r
 
   def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = {
     // TODO: there should be a more elegant way...
-    // should probably go to clingo-parser?
 
     val lastArgument = atom.arguments.last
 
@@ -47,8 +47,7 @@ object StreamingClingoInterpreter {
 
         PinnedAtom(atomWithoutTime, l)
       }
-      // TODO: what todo when non matching number?
-      case None => atom(timePoint)
+      case None => throw new IllegalArgumentException(f"Cannot convert '$lastArgument' into a TimePoint for a PinnedAtom")
     }
 
     converted

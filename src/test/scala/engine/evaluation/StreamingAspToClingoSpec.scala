@@ -17,11 +17,8 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
     convert(t0, Set()) should be(empty)
   }
 
-  "An atom 'a'" should "be converted to result a(t1)" in {
-    StreamingClingoInterpreter.asPinnedAtom(Set(a), t1) should contain only (a(t1))
-  }
-  "An atom 'a(bar)'" should "be converted to result a(bar, t1)" in {
-    StreamingClingoInterpreter.asPinnedAtom(Set(a("bar")), t1) should contain only (a("bar")(t1))
+  "An atom 'a(bar, 1)'" should "be converted to result a(bar, t1)" in {
+    StreamingClingoInterpreter.asPinnedAtom(Set(a("bar", "1")), t2) should contain only (a("bar")(t1))
   }
 
   "An atom 'a(0)'" should "be converted to a(t0)" in {
