@@ -16,7 +16,6 @@ trait AspEvaluation {
 // TODO: naming
 case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspEvaluation {
 
-  // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val atoms = PinToTimePoint(time)(dataStream)
 

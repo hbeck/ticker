@@ -8,7 +8,7 @@ import jtms.ExtendedJTMS
   * Created by FM on 18.05.16.
   */
 case class TmsEvaluation(pinnedAspProgram: PinnedAspProgram) extends StreamingAspInterpeter {
-  def apply(timePoint: TimePoint, pinnedAtoms: Set[PinnedAspRule]): Option[Model] = {
+  def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[Model] = {
 
     val groundedProgram = GroundPinnedAsp(timePoint)(pinnedAspProgram, pinnedAtoms)
 

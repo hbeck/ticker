@@ -55,7 +55,7 @@ trait AtomWithArgument extends Atom {
   }
 }
 
-case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument { //TODO PinnedAtom
+case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
   val atom = timedAtom match {
     case aa: AtomWithArgument => aa.atom

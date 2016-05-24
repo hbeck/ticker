@@ -8,13 +8,10 @@ import core.lars.TimePoint
 
 trait StreamingAspInterpeter {
   // TODO: pass timepoint as arguments to streaming interperter? needed for TMS
-  def apply(timePoint: TimePoint, pinnedAtoms: Set[PinnedAspRule]): Option[Model]
+  // decide  if we always should pin the data-stream first to a variable and then ground it
+  // (wouldn't be needed for the clingo-case)
+  def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[Model]
 }
-
-//{
-//
-//  def prepare(pinnedAtoms: Set[PinnedAspRule]):
-//}
 
 object StreamingAspInterpeter {
 

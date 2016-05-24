@@ -9,9 +9,8 @@ import engine.asp._
 /**
   * Created by FM on 13.05.16.
   */
-// TODO discuss naming/usage of 'Pin'?
 case class PinToTimePoint(timePoint: TimePoint) {
-  def apply(dataStream: Stream): Set[PinnedAspRule] = {
+  def apply(dataStream: Stream): PinnedStream = {
     val nowAtT = apply(now)
 
     val pinnedAtoms = dataStream flatMap (x => PinToTimePoint(x.time).atoms(x.atoms))
@@ -19,25 +18,15 @@ case class PinToTimePoint(timePoint: TimePoint) {
     pinnedAtoms + nowAtT
   }
 
-  def atoms(atoms: Set[Atom]): Set[PinnedAspRule] = {
+  def atoms(atoms: Set[Atom]): PinnedStream = {
     atoms map (apply(_))
   }
 
-  def apply(atom: Atom): PinnedAspRule = {
-    AspRule(atom(timePoint), Set(), Set())
+  def apply(atom: Atom): PinnedAspFact = {
+    AspFact(atom(timePoint))
   }
 
   //  def apply(program: Seq[PinnedAspRule], dataStream: Stream): AspProgramAtTimePoint = {
   //    AspProgramAtTimePoint(program, apply(dataStream), timePoint)
   //  }
 }
-
-// TODO naming?
-//case class PinnedAspRule(head: PinnedAtom, pos: Set[PinnedAtom] = Set(), neg: Set[PinnedAtom] = Set()) extends AspRuleT[PinnedAtom]
-
-//case class PinnedAspProgram(rules: Seq[PinnedAspRule]) extends AspProgramT[PinnedAtom, PinnedAspRule]
-
-// TODO naming?
-//case class AspProgramAtTimePoint(baseProgram: Seq[PinnedAspRule], pinnedAtoms: Set[PinnedAspRule], time: Time) extends AspProgramT[AtomWithTime, PinnedAspRule] {
-//  val rules: Seq[PinnedAspRule] = baseProgram ++ pinnedAtoms.toSeq
-//}
