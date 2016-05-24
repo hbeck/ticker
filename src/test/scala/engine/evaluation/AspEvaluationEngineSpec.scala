@@ -30,15 +30,13 @@ class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
   }
 
   "An atom 'a(t1)'" should "be part of the result" in {
-    // TODO: discuss if we want to get rid of the time-parameter as well
-    AspEvaluationEngine.removeAtoms(t1, Set(a(t1))) should contain only (a(t1))
+    AspEvaluationEngine.removeAtoms(t1, Set(a(t1))) should contain only a
   }
   it should "be part of the result when parsed from clingo" in {
-    // TODO: discuss if we want to get rid of the time-parameter as well
-    AspEvaluationEngine.removeAtoms(t1, Set(AtomWithArguments(a, Seq(t1.toString)))) should contain only (a(t1))
+    AspEvaluationEngine.removeAtoms(t1, Set(AtomWithArguments(a, Seq(t1.toString)))) should contain only a
   }
   "An atom 'a(t0)'" should "not be part of the result at t1" in {
-    // TODO: how can we be sure that the last argument is a time-paramter?
+    // TODO: how can we be sure that the last argument is a time-paramter - currently its only an assumption?
     AspEvaluationEngine.removeAtoms(t1, Set(a(t0))) should have size 0
   }
   it should "also be removed when the atom is parsed from clingo" in {
@@ -46,7 +44,7 @@ class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
   }
 
   "A model containing a(1), now(0) and a(2)" should "be empty at t0" in {
-    val model = Set(a("1"), now("0"), a("2"))
-    AspEvaluationEngine.removeAtoms(t0, model) should have size 0
+    val modelAfterClingoParsing = Set(a("1"), now("0"), a("2"))
+    AspEvaluationEngine.removeAtoms(t0, modelAfterClingoParsing) should have size 0
   }
 }

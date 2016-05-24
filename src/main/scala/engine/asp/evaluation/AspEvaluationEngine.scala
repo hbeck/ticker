@@ -38,27 +38,48 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
 object AspEvaluationEngine {
   val numberFormat = """\d+""".r
 
-  def removeAtoms(timePoint: TimePoint, model: Model): Model = {
-    val atoms = model.filterNot {
-      case PinnedAtom(atom, time) => time != timePoint || atom == now
-      case AtomWithArguments(`now`, _) => true
+  def convertToPinnedAtom(atom: AtomWithArguments) = {
+    // TODO: there should be a more elegant way...
+    // should probably go to clingo-parser?
 
-      // TODO: there should be a more elegant way...
-      case aa: AtomWithArguments => {
-        val lastArgument = aa.arguments.last
+    val lastArgument = atom.arguments.last
 
-        numberFormat.findFirstIn(lastArgument) match {
-          case Some(number) => {
-            val l = number.toLong
-            l != timePoint.timePoint
-          }
-          case _ => false
+    val converted = numberFormat.findFirstIn(lastArgument) match {
+      case Some(number) => {
+        val l = number.toLong
+
+        val atomWithoutTime = atom.arguments.init match {
+          case Nil => atom.atom
+          case remainingArguments => AtomWithArguments(atom.atom, remainingArguments)
         }
+
+        PinnedAtom(atomWithoutTime, l)
       }
+      case _ => atom
+    }
+
+    converted
+  }
+
+  def removeAtoms(timePoint: TimePoint, model: Model): Model = {
+    val convertedAtoms = model map {
+      case p: PinnedAtom => p
+      case aa: AtomWithArguments => convertToPinnedAtom(aa)
+      case a: Atom => a
+    }
+
+    val filtered = convertedAtoms filterNot {
+      case AtomWithArguments(`now`, _) => true
+      case PinnedAtom(atom, time) => time != timePoint || atom == now
       case _ => false
     }
 
-    atoms
+    val unpinned = filtered map {
+      case PinnedAtom(a, _) => a
+      case a: Atom => a
+    }
+
+    unpinned
   }
 
 }

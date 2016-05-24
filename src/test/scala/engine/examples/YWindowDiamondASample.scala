@@ -45,19 +45,19 @@ class YWindowDiamondASample extends FlatSpec with TimeTestFixtures {
     info("Given 't1 -> a' ")
 
     it should "not lead to y at t0" in {
-      evaluation.evaluate(t0).get shouldNot contain(y("0"))
+      evaluation.evaluate(t0).get shouldNot contain(y)
     }
 
     it should "lead to y at t1" in {
-      evaluation.evaluate(t1).get.value should contain(y("1"))
+      evaluation.evaluate(t1).get.value should contain(y)
     }
 
     it should "lead to y at t2" in {
-      evaluation.evaluate(t2).get.value should contain(y("2"))
+      evaluation.evaluate(t2).get.value should contain(y)
     }
 
-    it should "not contain y(1) at t2" in {
-      evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
+    it should "not contain y at t3" in {
+      evaluation.evaluate(t3).get.value shouldNot contain(y)
     }
 
   }
