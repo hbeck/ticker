@@ -16,4 +16,6 @@ package object evaluation {
   type PinnedStream = Set[PinnedAspFact]
 
   type GroundedStream = Set[GroundedAspRule]
+
+  type PinnedModel = Set[PinnedAtom]
 }
