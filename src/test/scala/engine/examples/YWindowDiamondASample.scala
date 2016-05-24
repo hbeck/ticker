@@ -1,12 +1,10 @@
 package engine.examples
 
-import core.asp.AspProgram
 import core.Atom
+import core.asp.AspProgram
 import core.lars._
-import engine._
 import engine.EvaluationEngine
-import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
-import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, now}
+import engine.asp.now
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -16,7 +14,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends FlatSpec with TimeTestFixtures{
+class YWindowDiamondASample extends FlatSpec with TimeTestFixtures {
   val aspProgram =
     """y(T) :- w1d_a(T).
 
@@ -47,26 +45,28 @@ class YWindowDiamondASample extends FlatSpec with TimeTestFixtures{
     info("Given 't1 -> a' ")
 
     it should "not lead to y at t0" in {
-      evaluation.evaluate(t0).get shouldNot contain(y("0"))
+      evaluation.evaluate(t0).get shouldNot contain(y)
     }
 
     it should "lead to y at t1" in {
-      evaluation.evaluate(t1).get.value should contain(y("1"))
+      evaluation.evaluate(t1).get.value should contain(y)
     }
 
     it should "lead to y at t2" in {
-      evaluation.evaluate(t2).get.value should contain(y("2"))
+      evaluation.evaluate(t2).get.value should contain(y)
     }
 
-    it should "not contain y(1) at t2" in {
-      evaluation.evaluate(t2).get.value shouldNot contain(y("1"))
+    it should "not contain y at t3" in {
+      evaluation.evaluate(t3).get.value shouldNot contain(y)
     }
 
   }
 
-  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
+  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
 
-  "Using pull" should behave like evaluation(baseConfig.usePull().start())
-  "Using push" should behave like evaluation(baseConfig.usePush().start())
-
+  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
+  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
+  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
 }

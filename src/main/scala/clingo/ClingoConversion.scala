@@ -8,16 +8,16 @@ import core.asp.{AspProgram, AspRule}
   */
 object ClingoConversion {
 
-  def apply(program: AspProgram): ClingoProgram = {
-    program.rules.map(apply).toSet
+  def apply[TAtom <: Atom, TRule <: AspRule[TAtom]](program: AspProgram[TAtom, TRule]): ClingoProgram = {
+    program.rules.map(apply[TAtom]).toSet
   }
 
-  def apply(rule: AspRule): ClingoExpression = {
+  def apply[TAtom <: Atom](rule: AspRule[TAtom]): ClingoExpression = {
     if (rule.body.isEmpty) {
       apply(rule.head) + '.'
     } else {
-      val iParts = rule.pos.map(apply)
-      val oParts = rule.neg.map(apply).map("not " + _)
+      val iParts = rule.pos.map(apply[TAtom])
+      val oParts = rule.neg.map(apply[TAtom]).map("not " + _)
 
       val parts = iParts ++ oParts
 
@@ -27,11 +27,11 @@ object ClingoConversion {
     }
   }
 
-  def apply(atom: Atom): ClingoAtom = {
+  def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case UserDefinedAtom(caption) => (caption, "")
-      case aa:AtomWithArgument => (aa.atom.toString, aa.arguments.map(_.toString).mkString("(", ",", ")"))
+      case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(_.toString).mkString("(", ",", ")"))
       case _ => (atom.toString, "")
     }
 

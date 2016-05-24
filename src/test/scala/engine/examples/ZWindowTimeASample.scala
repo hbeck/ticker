@@ -3,8 +3,6 @@ package engine.examples
 import core.Atom
 import core.lars._
 import engine._
-import engine.asp.evaluation.{AspEvaluationEngine, StreamingClingoInterpreter}
-import engine.asp.{AspPullEvaluationEngine, now}
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -37,7 +35,7 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
   val i = Atom("i")
 
   val larsProgram = Program.from(
-    z(U + 1) <= WindowAtom(SlidingTimeWindow(2), At(U), a),
+    AtAtom(U+1,z) <= W(2, At(U), a),
     i <= W(1, Diamond, z)
   )
 
@@ -47,33 +45,36 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
     info("Given 't1 -> a' ")
 
     it should "not lead to z at t0" in {
-      evaluation.evaluate(t0).get shouldNot contain(z("0"))
+      evaluation.evaluate(t0).get shouldNot contain(z)
     }
 
     it should "not lead to z at t1" in {
-      evaluation.evaluate(t1).get.value shouldNot contain(z("1"))
+      evaluation.evaluate(t1).get.value shouldNot contain(z)
     }
 
     it should "lead to z and i at t2" in {
-      evaluation.evaluate(t2).get.value should contain allOf(z("2"), i("2"))
+      evaluation.evaluate(t2).get.value should contain allOf(z, i)
     }
+
     it should "not lead to z but to i at t3" in {
       val result = evaluation.evaluate(t3).get.value
 
-      result should contain(i("3"))
-      result shouldNot contain(z("3"))
+      result should contain(i)
+      result shouldNot contain(z)
     }
 
     it should "not lead to z or i at t4" in {
       val result = evaluation.evaluate(t4).get.value
 
-      result shouldNot contain allOf(i("4"), z("4"))
+      result shouldNot contain allOf(i, z)
     }
 
   }
+  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
+  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
+  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
 
-  val baseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
-
-  "With pull" should behave like evaluation(baseConfig.usePull().start())
-  "With push" should behave like evaluation(baseConfig.usePush().start())
+  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
+  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
+  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
 }

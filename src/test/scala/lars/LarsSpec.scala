@@ -1,6 +1,5 @@
 package lars
 
-import core.Atom
 import core.lars.{At, Program, _}
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec

@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
-import core.asp.{AspFact, AspProgram, AspRule}
 import core.Atom
+import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJTMS, in}
@@ -17,12 +17,12 @@ class Deletion extends FlatSpec with AtomTestFixture{
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
     val net = new ExtendedJTMS()
-    net.add(AspRule(a))
+    net.add(AspFact(a))
 
     assume(net.getModel.get == Set(a))
     assume(net.status(a) == in)
 
-    net.remove(AspRule(a))
+    net.remove(AspFact(a))
 
     assert(net.allAtoms.isEmpty)
     assert(net.status.isEmpty)

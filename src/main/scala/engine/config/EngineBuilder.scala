@@ -1,7 +1,6 @@
 package engine.config
 
-import clingo.{ClingoConversion, ClingoProgram}
-import core.asp.AspProgram
+import clingo.ClingoConversion
 import core.lars.Program
 import engine.EvaluationEngine
 import engine.asp._
@@ -25,13 +24,12 @@ case class EngineEvaluationConfiguration(program: Program) {
 }
 
 
-case class AspEvaluationEngineConfiguration(aspProgram: AspProgram) {
+case class AspEvaluationEngineConfiguration(aspProgram: PinnedAspProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 
-  def withTms() = {
-    // TODO
-  }
+  def withTms() = EvaluationModeConfiguration(TmsEvaluation(aspProgram))
+
 }
 
 case class EvaluationModeConfiguration(streamingAspInterpeter: StreamingAspInterpeter) {

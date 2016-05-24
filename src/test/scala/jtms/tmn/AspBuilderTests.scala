@@ -1,7 +1,7 @@
 package jtms.tmn
 
 import core._
-import core.asp.{AspFact, AspProgramBuilder, AspRule}
+import core.asp._
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec
 
@@ -86,7 +86,7 @@ class AspBuilderTests extends FlatSpec {
     assert(program.size == 6)
   }
 
-  val testProgram: PartialFunction[Seq[Atom], Set[AspRule]] = {
+  val testProgram: PartialFunction[Seq[Atom], Set[AspRule[Atom]]] = {
     case a #:: b #:: c #:: d #:: e #:: f #:: atoms => Set(
       AspRule.fact(a),
       AspRule.fact(b),

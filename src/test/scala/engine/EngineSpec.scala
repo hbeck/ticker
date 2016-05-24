@@ -1,11 +1,8 @@
 package engine
 
-import core.asp.{AspFact, AspProgram, AspProgramBuilder}
 import core._
-import core.lars.TimePoint
-import engine.asp.{Direct, EvaluationStrategy}
-import engine.asp.evaluation.StreamingAspInterpeter$
-import engine.config.BuildEngine
+import core.asp.{AspProgram, AspProgramBuilder}
+import engine.asp.EvaluationStrategy
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -14,7 +11,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 10.04.16.
   */
-class EngineSpec extends FlatSpec with TimeTestFixtures{
+class EngineSpec extends FlatSpec with TimeTestFixtures {
 
   val program = AspProgram(
     a :- b and d not c,
@@ -50,13 +47,13 @@ class EngineSpec extends FlatSpec with TimeTestFixtures{
     engine
   }
 
-//  val e = BuildEngine.withProgram(program).useAsp().withClingo().use(Direct).usePull().start
+  //  val e = BuildEngine.withProgram(program).useAsp().withClingo().use(Direct).usePull().start
 
   "The Asp Evaluation" should "return a result for t1" in {
     val engine = engineWithStreams(EvaluationStrategy.pull(program))
     val result = engine.evaluate(t1).get
 
-    result.value should contain only b(t1.toString)
+    result.value should contain only b
   }
 
   it should "invalidate 'b' for t2" in {
@@ -64,7 +61,7 @@ class EngineSpec extends FlatSpec with TimeTestFixtures{
 
     val result = engine.evaluate(t2).get
 
-    result.value should contain allOf(a(t2.toString), c(t2.toString), d(t2.toString))
+    result.value should contain allOf(a, c, d)
   }
 }
 

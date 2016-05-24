@@ -2,24 +2,20 @@ package engine.asp.evaluation
 
 import clingo.ClingoConversion
 import core.Model
-import core.asp.AspProgram
+import core.asp.PlainAspProgram
 import core.lars.TimePoint
-import engine.asp.{AspPullEvaluationEngine, AspPushEvaluationEngine, EvaluationMode, UseFuture}
-import engine.{Result, Stream}
 
 
 trait StreamingAspInterpeter {
-  def apply(pinnedAtoms: Set[PinnedAspRule]): Option[Model]
+  // TODO: pass timepoint as arguments to streaming interperter? needed for TMS
+  // decide  if we always should pin the data-stream first to a variable and then ground it
+  // (wouldn't be needed for the clingo-case)
+  def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel]
 }
-
-//{
-//
-//  def prepare(pinnedAtoms: Set[PinnedAspRule]):
-//}
 
 object StreamingAspInterpeter {
 
-  def select(program: AspProgram, interpretationMode: InterpretationMode): StreamingAspInterpeter = interpretationMode match {
+  def select(program: PlainAspProgram, interpretationMode: InterpretationMode): StreamingAspInterpeter = interpretationMode match {
     case Clingo => StreamingClingoInterpreter(ClingoConversion(program))
   }
 }

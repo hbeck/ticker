@@ -1,7 +1,6 @@
 package lars.transform
 
-import core.Atom
-import core.lars.{SlidingTimeWindow, Time, TimePoint}
+import core.lars.SlidingTimeWindow
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 
@@ -10,7 +9,6 @@ import org.scalatest.FlatSpec
   */
 class TransformLarsSpec extends FlatSpec with TimeTestFixtures {
 
-  val T = core.lars.T
   val now = engine.asp.now
 
   val st1 = SlidingTimeWindow(1)

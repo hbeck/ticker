@@ -1,7 +1,7 @@
 package jtms.asp
 
 import core.Atom
-import core.asp.AspRule
+import core.asp.PlainAspRule
 import jtms.{ExtendedJTMS, Status}
 import org.scalatest.FlatSpec
 
@@ -32,14 +32,14 @@ trait AtomValidationASP {
       }
     }
 
-    def rules(rules: AspRule*) = {
+    def rules(rules: PlainAspRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
         assert(net.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 
-    def suppRule(rule: Option[AspRule]) = {
+    def suppRule(rule: Option[PlainAspRule]) = {
 
       var text: String = ""
       if (rule.isDefined)

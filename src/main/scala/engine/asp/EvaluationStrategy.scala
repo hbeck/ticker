@@ -1,7 +1,6 @@
 package engine.asp
 
-import clingo.ClingoConversion
-import core.asp.AspProgram
+import core.asp.PlainAspProgram
 import engine.asp.evaluation._
 
 import scala.concurrent.duration._
@@ -11,15 +10,15 @@ import scala.concurrent.duration._
   */
 object EvaluationStrategy {
 
-  def pull(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
+  def pull(program: PlainAspProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPullEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
-  def push(program: AspProgram, evaluationMode: EvaluationMode = Direct) = {
+  def push(program: PlainAspProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
-  def buildTransformation(program: AspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
+  def buildTransformation(program: PlainAspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
     val evaluation = AspEvaluationEngine(StreamingAspInterpeter.select(program, Clingo))
 
     evaluationMode match {

@@ -4,10 +4,11 @@ package core
   * Created by FM on 29.04.16.
   */
 package object lars {
+  type TimeVariable = String
   type WindowSize = Long
   type Duration = Long
 
-  val T = TimeVariable("T")
+  val T = TimeVariableWithOffset("T")
 
   def STW(windowSize: WindowSize) = SlidingTimeWindow(windowSize)
 

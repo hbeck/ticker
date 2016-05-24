@@ -1,6 +1,5 @@
-import core.{not, Atom}
 import core.lars._
-import engine.{Stream, TimePoint$}
+import core.{Atom, not}
 
 
 val a = Atom("a")

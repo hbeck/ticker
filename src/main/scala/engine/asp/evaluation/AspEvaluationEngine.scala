@@ -1,13 +1,9 @@
 package engine.asp.evaluation
 
-import java.lang.Long
-
-import engine.asp.now
 import core._
 import core.lars.TimePoint
+import engine.asp.now
 import engine.{Result, _}
-
-import scala.Long
 
 /**
   * Created by FM on 13.05.16.
@@ -16,17 +12,14 @@ trait AspEvaluation {
   def apply(timePoint: TimePoint, dataStream: Stream): Result
 }
 
-
-// TODO: naming
+// TODO: naming?
 case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspEvaluation {
 
-  // TODO: discuss if only timepoint makes sense here (guess TimeVariable not???)
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val atoms = PinToTimePoint(time)(dataStream)
 
-    val aspResult = interpreter(atoms)
+    val aspResult = interpreter(time, atoms)
 
-    // TODO: should we also 'unpin' atoms here? (remove (T) ?)
     val result = aspResult match {
       case Some(model) => Some(AspEvaluationEngine.removeAtoms(time, model))
       case None => None
@@ -36,34 +29,24 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspE
       override def get: Option[Model] = result
     }
   }
-
-
 }
 
 object AspEvaluationEngine {
-  val numberFormat = """\d+""".r
 
-  def removeAtoms(timePoint: TimePoint, model: Model): Model = {
-    val atoms = model.filterNot {
-      case AtomWithTime(atom, time) => time != timePoint || atom == now
-      case AtomWithArguments(`now`, _) => true
+  def removeAtoms(timePoint: TimePoint, model: PinnedModel): Model = {
 
-      // TODO: there should be a more elegant way...
-      case aa: AtomWithArguments => {
-        val lastArgument = aa.arguments.last
-
-        numberFormat.findFirstIn(lastArgument) match {
-          case Some(number) => {
-            val l = number.toLong
-            l != timePoint.timePoint
-          }
-          case _ => false
-        }
-      }
+    val filtered = model filterNot {
+      case PinnedAtom(`now`, _) => true
+      case PinnedAtom(atom, time) => time != timePoint
       case _ => false
     }
 
-    atoms
+    val unpinned = filtered map {
+      case PinnedAtom(a, _) => a
+      case a: Atom => a
+    }
+
+    unpinned
   }
 
 }

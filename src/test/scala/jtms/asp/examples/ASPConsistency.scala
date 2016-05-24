@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom}
 import fixtures.AtomTestFixture
 import jtms.ExtendedJTMS
@@ -21,10 +21,10 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     val net = ExtendedJTMS()
     assert(net.getModel.get.isEmpty)
 
-    net.add(AspRule(a))
+    net.add(AspFact(a))
     assert(net.getModel.get == Set(a))
 
-    net.remove(AspRule(a))
+    net.remove(AspFact(a))
     assert(net.getModel.get.isEmpty)
   }
 
@@ -34,10 +34,10 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     net.add(AspRule(a,none,Set(b)))
     assert(net.getModel.get == Set(a))
 
-    net.add(AspRule(b))
+    net.add(AspFact(b))
     assert(net.getModel.get == Set(b))
 
-    net.remove(AspRule(b))
+    net.remove(AspFact(b))
     assert(net.getModel.get == Set(a))
   }
 
@@ -48,10 +48,10 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     net.add(AspRule(b,none,Set(a)))
     assert(net.getModel.get == Set(a))
 
-    net.add(AspRule(b))
+    net.add(AspFact(b))
     assert(net.getModel.get == Set(b))
 
-    net.remove(AspRule(b))
+    net.remove(AspFact(b))
     assert(net.getModel.get == Set(a) || net.getModel.get == Set(b)) //!
   }
 
@@ -157,13 +157,13 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
   test("a. a :- not a.") {
 
     val netFactFirst = ExtendedJTMS()
-    netFactFirst.add(AspRule(a))
+    netFactFirst.add(AspFact(a))
     netFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(netFactFirst.getModel.get == Set(a))
 
     val netRuleFirst = ExtendedJTMS()
     netRuleFirst.add(AspRule(a,Set(),Set(a)))
-    netRuleFirst.add(AspRule(a))
+    netRuleFirst.add(AspFact(a))
     assert(netRuleFirst.getModel.get == Set(a))
   }
 

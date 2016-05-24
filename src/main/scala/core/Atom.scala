@@ -1,7 +1,7 @@
 package core
 
-import core.asp.{AspFact, AspRule, BuilderHead}
-import core.lars.{Time, HeadAtom}
+import core.asp.{AspFact, BuilderHead}
+import core.lars.{HeadAtom, Time}
 
 /**
   * Created by hb on 12/22/15.
@@ -13,8 +13,8 @@ sealed trait Atom extends HeadAtom {
     AtomWithArguments(this, arguments.toSeq)
   }
 
-  def apply(time: Time): Atom = {
-    AtomWithTime(this, time)
+  def apply(time: Time): PinnedAtom = {
+    PinnedAtom(this, time)
   }
 
   def arity = 0
@@ -55,20 +55,21 @@ trait AtomWithArgument extends Atom {
   }
 }
 
-case class AtomWithTime(timedAtom: Atom, time: Time) extends AtomWithArgument {
+case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
   val atom = timedAtom match {
     case aa: AtomWithArgument => aa.atom
     case _ => timedAtom
   }
 
-  override def apply(time: Time): Atom = {
+  override def apply(time: Time): PinnedAtom = {
     // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
-    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
+    //    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
+    PinnedAtom(this, time)
   }
 
   override val arguments = timedAtom match {
-    case AtomWithArguments(_, args) => args :+ time.toString
+    case aa: AtomWithArgument => aa.arguments :+ time.toString
     case _ => Seq(time.toString)
   }
 }
@@ -79,18 +80,16 @@ object Falsum extends Atom
 
 object Atom {
 
-
   def unapply(arg: Atom): Option[Seq[String]] = arg match {
     case aa: AtomWithArgument => Some(aa.arguments)
     case _ => None
   }
 
-
   def apply(caption: String): Atom = UserDefinedAtom(caption)
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 
-  implicit def headAtomToFact(atom: Atom): AspRule = AspFact(atom)
+  implicit def headAtomToFact(atom: Atom): AspFact[Atom] = AspFact[Atom](atom)
 
 }
 

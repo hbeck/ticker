@@ -3,8 +3,6 @@ package engine
 import core.Atom
 import core.lars.TimePoint
 
-import scala.collection.mutable
-
 /**
   * Created by FM on 10.04.16.
   */

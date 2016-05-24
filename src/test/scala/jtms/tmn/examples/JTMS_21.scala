@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import core.ContradictionAtom
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 
 /**
   * Created by FM on 11.02.16.
@@ -21,7 +21,7 @@ class JTMS_21 extends JTMSSpec {
 
   def JTMS_DDB_addA = {
     val tmn = JTMS_DDB
-    tmn.add(AspRule(a))
+    tmn.add(AspFact(a))
     tmn
   }
 

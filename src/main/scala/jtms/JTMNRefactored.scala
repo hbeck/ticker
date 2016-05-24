@@ -1,14 +1,14 @@
 package jtms
 
 import core._
-import core.asp.{AspProgram, AspRule, AspRuleFromBacktracking}
+import core.asp.{AspRuleFromBacktracking, PlainAspProgram, PlainAspRule}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
 object JTMNRefactored {
 
-  def apply(P: AspProgram): JTMNRefactored = {
+  def apply(P: PlainAspProgram): JTMNRefactored = {
     val tmn = new JTMNRefactored()
     P.rules foreach tmn.add
     tmn
@@ -25,18 +25,29 @@ object JTMNRefactored {
   */
 case class JTMNRefactored() {
 
-  var rules: List[AspRule] = List()
-
-  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val suppRule: Map[Atom, Option[AspRule]] = new HashMap[Atom, Option[AspRule]]
-  val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
+  //JTMS update algorithm
+  def add(rule: PlainAspRule): Unit = {
+    register(rule)
+    if (status(rule.head) == in) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
+  }
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
+
+  //
+
+  var rules: List[PlainAspRule] = List()
+
+  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  val suppRule: Map[Atom, Option[PlainAspRule]] = new HashMap[Atom, Option[PlainAspRule]]
+  val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
@@ -67,25 +78,18 @@ case class JTMNRefactored() {
 
   def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
-  def valid(rule: AspRule) =
+  def valid(rule: PlainAspRule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def invalid(rule: AspRule) =
+  def invalid(rule: PlainAspRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfounded(rule: AspRule) =
+  def unfounded(rule: PlainAspRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in))) && (rule.neg exists (status(_) == unknown))
 
-  //JTMS update algorithm
-  def add(rule: AspRule): Unit = {
-    register(rule)
-    if (status(rule.head) == in) return
-    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val atoms = repercussions(rule.head) + rule.head
-    updateBeliefs(atoms)
-  }
 
-  def register(rule: AspRule): Unit = {
+
+  def register(rule: PlainAspRule): Unit = {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
@@ -106,7 +110,7 @@ case class JTMNRefactored() {
     tryEnsureConsistency
   }
 
-  def setIn(rule: AspRule) = {
+  def setIn(rule: PlainAspRule) = {
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
     suppRule(rule.head) = Some(rule)
@@ -114,9 +118,9 @@ case class JTMNRefactored() {
 
   def setOut(a: Atom) = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
-    //Supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    //val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    //supp(a) = Set() ++ (maybeAtoms filter (_.isDefined)) map (_.get)
+    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
     suppRule(a) = None
   }
 
@@ -126,7 +130,7 @@ case class JTMNRefactored() {
     suppRule(atom) = None
   }
 
-  def findSpoiler(rule: AspRule): Option[Atom] = {
+  def findSpoiler(rule: PlainAspRule): Option[Atom] = {
     if (math.random < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
@@ -187,12 +191,13 @@ case class JTMNRefactored() {
     true
   }
 
-  def fixIn(unfoundedValidRule: AspRule) = {
+  def fixIn(unfoundedValidRule: PlainAspRule) = {
     unfoundedValidRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors
     setIn(unfoundedValidRule)
   }
 
   def fixOut(a: Atom) = {
+    status(a) = out //TODO write up
     //val unknownPosAtoms = justifications(a) map { r => (r.pos find (status(_)==unknown)).get }
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
@@ -264,7 +269,7 @@ case class JTMNRefactored() {
   def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
   val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val rule: Option[AspRule] = findSuppRule(m, i)
+      val rule: Option[PlainAspRule] = findSuppRule(m, i)
       if (rule.isEmpty) {
         return false
       }
@@ -279,14 +284,14 @@ case class JTMNRefactored() {
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSuppRule(M: List[Atom], idx: Int): Option[AspRule] = {
+  def findSuppRule(M: List[Atom], idx: Int): Option[PlainAspRule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
     val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
-  def selectRule(rules: List[AspRule]): Option[AspRule] = {
+  def selectRule(rules: List[PlainAspRule]): Option[PlainAspRule] = {
     if (rules.isEmpty)
       return None
     Some(rules.head)

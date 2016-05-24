@@ -1,7 +1,6 @@
 package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
-import core.Atom
 import fixtures.AtomTestFixture
 import jtms.JTMNRefactored
 import org.scalatest.FlatSpec

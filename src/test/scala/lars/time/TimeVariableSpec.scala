@@ -1,6 +1,5 @@
 package lars.time
 
-import core.lars.TimePoint
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -8,8 +7,7 @@ import org.scalatest.Matchers._
 /**
   * Created by FM on 16.05.16.
   */
-class TimeVariableSpec extends FlatSpec with TimeTestFixtures{
-  val T = core.lars.T
+class TimeVariableSpec extends FlatSpec with TimeTestFixtures {
 
   "A TimeVariable T" should "be converted to 'T'" in {
     T.toString should be("T")

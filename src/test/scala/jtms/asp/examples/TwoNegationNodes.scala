@@ -1,7 +1,6 @@
 package jtms.asp.examples
 
 import core.asp.{AspProgram, AspRule}
-import core.Atom
 import fixtures.AtomTestFixture
 import jtms.ExtendedJTMS
 import org.scalatest.FlatSpec

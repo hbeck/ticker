@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
-import core.Atom
 import common.sets.symmdiff
+import core.Atom
 import core.asp.AspFact
 
 /**
