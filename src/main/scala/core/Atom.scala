@@ -1,23 +1,13 @@
 package core
 
 import core.asp.{AspFact, BuilderHead}
-import core.lars.{HeadAtom, Time}
+import core.lars.{ExtendedAtom, HeadAtom, Time}
 
 /**
   * Created by hb on 12/22/15.
   */
 
 sealed trait Atom extends HeadAtom {
-
-  def apply(arguments: String*): Atom = {
-    AtomWithArguments(this, arguments.toSeq)
-  }
-
-  //TODO use implicit instead
-  def apply(time: Time): PinnedAtom = {
-    PinnedAtom(this, time)
-  }
-
   def arity = 0
 }
 
@@ -27,10 +17,6 @@ trait AtomWithArgument extends Atom {
   val arguments: Seq[String]
 
   override def arity = arguments.size
-
-  override def apply(arguments: String*): Atom = {
-    AtomWithArguments(atom, this.arguments ++ arguments)
-  }
 
   def ==(other: AtomWithArgument): Boolean = {
     if (this.atom != other.atom) return false
@@ -86,7 +72,30 @@ object Atom {
 
   implicit def headAtomToFact(atom: Atom): AspFact[Atom] = AspFact[Atom](atom)
 
+  implicit def toPinnedAtom(atom: Atom): AtomModification = AtomModification(atom)
+
 }
+
+trait AsPinnableAtom {
+  val atom: Atom
+
+  def apply(time: Time) = PinnedAtom(atom, time)
+}
+
+trait AsAtomWithArgument {
+  val atom: Atom
+
+  def apply(arguments: String*): Atom = {
+    val appliedArguments: Seq[String] = atom match {
+      case AtomWithArguments(_, args) => args ++ arguments.toSeq
+      case a: Atom => arguments.toSeq
+    }
+    AtomWithArguments(atom, appliedArguments)
+  }
+}
+
+case class AtomModification(atom: Atom) extends AsPinnableAtom with AsAtomWithArgument
+
 
 case class UserDefinedAtom(caption: String) extends Atom {
   override def toString = caption

@@ -31,7 +31,7 @@ class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
   }
 
   "A model containing a(1), now(0) and a(2)" should "be empty at t0" in {
-    val model = Set(a(1), now(0), a(2))
+    val model = Set(a(t1), now(t0), a(t2))
     AspEvaluationEngine.removeAtoms(t0, model) should have size 0
   }
 }
