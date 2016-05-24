@@ -19,8 +19,8 @@ object AspRule {
 
 }
 
-// TODO: discuss if sealed is needed (removed beacuse of GroundedRule)
-trait AspRule[TAtom] {
+// TODO: discuss if sealed is needed (removed because of GroundedRule)
+trait AspRule[TAtom <: Atom] {
 
   val pos: Set[TAtom]
   val neg: Set[TAtom]
@@ -67,7 +67,7 @@ trait AspRule[TAtom] {
   */
 case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]
 
-case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends PlainAspRule {
+case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends NormalRule {
   override def toString = {
     super.toString.replaceAll("<-", "<--")
   }

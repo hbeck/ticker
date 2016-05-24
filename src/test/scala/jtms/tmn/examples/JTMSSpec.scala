@@ -25,7 +25,7 @@ class JTMSSpec extends FlatSpec with AtomTestFixture{
 
 
   def JTMS = {
-    val tmn = JTMNRefactored(program)
+    val tmn = JtmsRefactored(program)
 
     tmn
   }

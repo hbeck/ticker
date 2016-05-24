@@ -1,6 +1,6 @@
 package engine.asp.evaluation
 
-import core.asp.{AspRule, PlainAspProgram, PlainAspRule}
+import core.asp.{AspRule, NormalProgram, NormalRule}
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
 import core.{Atom, PinnedAtom}
 
@@ -30,8 +30,7 @@ import core.{Atom, PinnedAtom}
   * e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).
   *
   */
-// TODO: naming
-case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
+case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
       case t: PinnedAtom => apply(t)
@@ -51,14 +50,14 @@ case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariableWithOffse
   }
 
 
-  def apply(program: PinnedAspProgram, dataStream: PinnedStream): GroundedAspProgram = {
+  def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
     val atoms = dataStream map apply
 
-    GroundedAspProgram(program.rules map apply, atoms, timePoint)
+    GroundedNormalProgram(program.rules map apply, atoms, timePoint)
   }
 
-  def apply(pinnedAspRule: PinnedAspRule): GroundedAspRule = {
-    GroundedAspRule(
+  def apply(pinnedAspRule: PinnedRule): GroundedNormalRule = {
+    GroundedNormalRule(
       this.apply(pinnedAspRule.head),
       pinnedAspRule.pos map this.apply,
       pinnedAspRule.neg map this.apply
@@ -66,14 +65,12 @@ case class GroundPinnedAsp(timePoint: TimePoint, variable: TimeVariableWithOffse
   }
 }
 
-// TODO discuss signature/naming - use PinnedAtom instead?
-case class GroundedAspRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRule[Atom]
+case class GroundedNormalRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRule[Atom]
 //case class GroundedAspFact(head: Atom) extends AspRule[Atom]{
 //  val pos = Set()
 //  val neg = Set()
 //}
 
-// TODO discuss signature/naming - use PinnedAtom instead?
-case class GroundedAspProgram(programRules: Seq[GroundedAspRule], groundedAtoms: GroundedStream, timePoint: TimePoint) extends PlainAspProgram {
-  val rules: Seq[PlainAspRule] = programRules ++ groundedAtoms
+case class GroundedNormalProgram(programRules: Seq[GroundedNormalRule], groundedAtoms: GroundedStream, timePoint: TimePoint) extends NormalProgram {
+  val rules: Seq[NormalRule] = programRules ++ groundedAtoms
 }

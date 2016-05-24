@@ -8,14 +8,13 @@ import core.asp.{AspFact, AspRule, FixedAspProgram}
   * Created by FM on 20.05.16.
   */
 package object evaluation {
-  type PinnedAspFact = AspFact[PinnedAtom]
-  type PinnedAspRule = AspRule[PinnedAtom]
-  type PinnedAspProgram = FixedAspProgram[PinnedAtom, PinnedAspRule]
+  type PinnedFact = AspFact[PinnedAtom]
+  type PinnedRule = AspRule[PinnedAtom]
+  type PinnedProgram = FixedAspProgram[PinnedAtom, PinnedRule]
 
-  // TODO: naming?
-  type PinnedStream = Set[PinnedAspFact]
+  type PinnedStream = Set[PinnedFact]
 
-  type GroundedStream = Set[GroundedAspRule]
+  type GroundedStream = Set[GroundedNormalRule]
 
   type PinnedModel = Set[PinnedAtom]
 }

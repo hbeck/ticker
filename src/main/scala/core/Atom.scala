@@ -13,6 +13,7 @@ sealed trait Atom extends HeadAtom {
     AtomWithArguments(this, arguments.toSeq)
   }
 
+  //TODO use implicit instead
   def apply(time: Time): PinnedAtom = {
     PinnedAtom(this, time)
   }
@@ -60,12 +61,6 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
   val atom = timedAtom match {
     case aa: AtomWithArgument => aa.atom
     case _ => timedAtom
-  }
-
-  override def apply(time: Time): PinnedAtom = {
-    // TODO: We currently only model the last time-parameter explicitly. Guess this is enough?
-    //    AtomWithTime(AtomWithArguments(this.atom, Seq(this.time.toString())), time)
-    PinnedAtom(this, time)
   }
 
   override val arguments = timedAtom match {

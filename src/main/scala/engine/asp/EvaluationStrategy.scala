@@ -1,6 +1,6 @@
 package engine.asp
 
-import core.asp.PlainAspProgram
+import core.asp.NormalProgram
 import engine.asp.evaluation._
 
 import scala.concurrent.duration._
@@ -10,19 +10,19 @@ import scala.concurrent.duration._
   */
 object EvaluationStrategy {
 
-  def pull(program: PlainAspProgram, evaluationMode: EvaluationMode = Direct) = {
+  def pull(program: NormalProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPullEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
-  def push(program: PlainAspProgram, evaluationMode: EvaluationMode = Direct) = {
+  def push(program: NormalProgram, evaluationMode: EvaluationMode = Direct) = {
     AspPushEvaluationEngine(buildTransformation(program, evaluationMode))
   }
 
-  def buildTransformation(program: PlainAspProgram, evaluationMode: EvaluationMode): AspEvaluation = {
-    val evaluation = AspEvaluationEngine(StreamingAspInterpeter.select(program, Clingo))
+  def buildTransformation(program: NormalProgram, evaluationMode: EvaluationMode): AspEvaluation = {
+    val evaluation = AspEvaluationEngine(StreamingAspInterpreter.select(program, Clingo))
 
     evaluationMode match {
-      case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpeter(evaluation, waitingAtMost)
+      case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(evaluation, waitingAtMost)
       case _ => evaluation
     }
   }

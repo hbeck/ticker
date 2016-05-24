@@ -2,14 +2,14 @@ package clingo
 
 
 import core._
-import core.asp.PlainAspProgram
+import core.asp.NormalProgram
 
 /**
   * Created by FM on 25.02.16.
   */
 
 object ClingoEvaluation {
-  def apply(program: PlainAspProgram): Set[Model] = {
+  def apply(program: NormalProgram): Set[Model] = {
     val asp = new ClingoEvaluation(ClingoWrapper())
 
     asp(program)
@@ -41,7 +41,7 @@ object ClingoEvaluation {
 
 class ClingoEvaluation(val clingo: ClingoWrapper) extends Evaluation {
 
-  def apply(program: PlainAspProgram): Set[Model] = {
+  def apply(program: NormalProgram): Set[Model] = {
     apply(ClingoConversion(program))
   }
 

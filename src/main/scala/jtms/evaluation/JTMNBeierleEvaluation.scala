@@ -1,16 +1,16 @@
 package jtms.evaluation
 
 import core.Evaluation
-import core.asp.PlainAspProgram
-import jtms.JTMNBeierle
+import core.asp.NormalProgram
+import jtms.JtmsBeierle
 
 /**
   * Created by FM on 25.02.16.
   */
 class JTMNBeierleEvaluation extends Evaluation {
 
-  def apply(program: PlainAspProgram) = {
-    val tmn = JTMNBeierle(program)
+  def apply(program: NormalProgram) = {
+    val tmn = JtmsBeierle(program)
 
     val singleModel = tmn.getModel.get
 

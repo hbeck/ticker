@@ -8,11 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-// TODO: on which level should this be definied?
-// - AspEvaluation
-// - Interpreter
-// - or even EvaluationEngine?
-case class FutureStreamingAspInterpeter(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
+case class FutureStreamingAspInterpreter(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val future = Future {

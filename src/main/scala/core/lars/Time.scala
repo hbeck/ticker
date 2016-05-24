@@ -15,27 +15,25 @@ object Time {
   implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
 }
 
-case class TimePoint(timePoint: Long) extends Time {
-  def -(duration: Duration) = TimePoint(timePoint - duration)
+case class TimePoint(value: Long) extends Time {
+  def -(duration: Duration) = TimePoint(value - duration)
 
-  def +(duration: Duration) = TimePoint(timePoint + duration)
+  def +(duration: Duration) = TimePoint(value + duration)
 
   override def toString = {
-    timePoint.toString
+    value.toString
   }
 }
 
 case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time {
 
-  // TODO: should ground be part of the Time-trait?
-  def ground(timePoint: TimePoint) = TimePoint(timePoint.timePoint + offset)
+  def ground(timePoint: TimePoint) = TimePoint(timePoint.value + offset)
 
   def +(duration: Duration) = TimeVariableWithOffset(variable, duration)
 
   def -(duration: Duration) = TimeVariableWithOffset(variable, -duration)
 
   override def toString: String = {
-    // TODO: use match?
 
     if (offset < 0)
       return f"$variable - ${math.abs(offset)}"
@@ -47,7 +45,7 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) 
 }
 
 object TimePoint {
-  implicit val ordering = Ordering.by((time: TimePoint) => time.timePoint)
+  implicit val ordering = Ordering.by((time: TimePoint) => time.value)
 
   implicit def convertToTimePoint(timePoint: Long): TimePoint = TimePoint(timePoint)
 

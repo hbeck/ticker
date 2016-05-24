@@ -22,7 +22,7 @@ case class PinToTimePoint(timePoint: TimePoint) {
     atoms map (apply(_))
   }
 
-  def apply(atom: Atom): PinnedAspFact = {
+  def apply(atom: Atom): PinnedFact = {
     AspFact(atom(timePoint))
   }
 

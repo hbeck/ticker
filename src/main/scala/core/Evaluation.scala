@@ -1,10 +1,10 @@
 package core
 
-import core.asp.PlainAspProgram
+import core.asp.NormalProgram
 
 /**
   * Created by FM on 25.02.16.
   */
 // TODO: needs to be Program
-trait Evaluation extends (PlainAspProgram => Set[Model])
+trait Evaluation extends (NormalProgram => Set[Model])
 

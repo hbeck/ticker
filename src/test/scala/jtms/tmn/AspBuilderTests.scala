@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp._
-import jtms.JTMNRefactored
+import jtms.JtmsRefactored
 import org.scalatest.FlatSpec
 
 import scala.collection.immutable.Stream.#::
@@ -75,7 +75,7 @@ class AspBuilderTests extends FlatSpec {
       )
     })
 
-    val tmn = JTMNRefactored(program)
+    val tmn = JtmsRefactored(program)
 
     assert(tmn.getModel().isDefined)
   }

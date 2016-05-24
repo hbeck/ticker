@@ -24,7 +24,7 @@ case class EngineEvaluationConfiguration(program: Program) {
 }
 
 
-case class AspEvaluationEngineConfiguration(aspProgram: PinnedAspProgram) {
+case class AspEvaluationEngineConfiguration(aspProgram: PinnedProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 
@@ -32,15 +32,15 @@ case class AspEvaluationEngineConfiguration(aspProgram: PinnedAspProgram) {
 
 }
 
-case class EvaluationModeConfiguration(streamingAspInterpeter: StreamingAspInterpeter) {
+case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
 
   def use(evaluationMode: EvaluationMode = Direct) = {
-    val aspEvaluation = buildEvaluationMode(AspEvaluationEngine(streamingAspInterpeter), evaluationMode)
+    val aspEvaluation = buildEvaluationMode(AspEvaluationEngine(streamingAspInterpreter), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }
 
   private def buildEvaluationMode(aspEvaluation: AspEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
-    case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpeter(aspEvaluation, waitingAtMost)
+    case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(aspEvaluation, waitingAtMost)
     case _ => aspEvaluation
   }
 }

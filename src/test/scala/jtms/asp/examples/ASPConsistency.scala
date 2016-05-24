@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJTMS
+import jtms.ExtendedJtms
 import org.scalatest.FunSuite
 
 /**
@@ -18,7 +18,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
   val times = 100
 
   test("a") {
-    val net = ExtendedJTMS()
+    val net = ExtendedJtms()
     assert(net.getModel.get.isEmpty)
 
     net.add(AspFact(a))
@@ -30,7 +30,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
 
   test("a :- not b. then b.") {
 
-    val net = ExtendedJTMS()
+    val net = ExtendedJtms()
     net.add(AspRule(a,none,Set(b)))
     assert(net.getModel.get == Set(a))
 
@@ -43,7 +43,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
 
   test("a :- not b. b :- not a.  b.") {
 
-    val net = ExtendedJTMS()
+    val net = ExtendedJtms()
     net.add(AspRule(a,none,Set(b)))
     net.add(AspRule(b,none,Set(a)))
     assert(net.getModel.get == Set(a))
@@ -156,12 +156,12 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
 
-    val netFactFirst = ExtendedJTMS()
+    val netFactFirst = ExtendedJtms()
     netFactFirst.add(AspFact(a))
     netFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(netFactFirst.getModel.get == Set(a))
 
-    val netRuleFirst = ExtendedJTMS()
+    val netRuleFirst = ExtendedJtms()
     netRuleFirst.add(AspRule(a,Set(),Set(a)))
     netRuleFirst.add(AspFact(a))
     assert(netRuleFirst.getModel.get == Set(a))

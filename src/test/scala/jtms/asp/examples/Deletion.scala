@@ -4,7 +4,7 @@ import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{ExtendedJTMS, in}
+import jtms.{ExtendedJtms, in}
 import org.scalatest.FlatSpec
 
 /**
@@ -16,7 +16,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
-    val net = new ExtendedJTMS()
+    val net = new ExtendedJtms()
     net.add(AspFact(a))
 
     assume(net.getModel.get == Set(a))
@@ -40,7 +40,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     val program = AspProgram(r1, r2)
 
-    val net = ExtendedJTMS(program)
+    val net = ExtendedJtms(program)
 
     assume(net.cons(c) == Set(a))
 
@@ -54,7 +54,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r0 = AspRule(b,a)
     val r1 = AspRule(a,none,none)
 
-    val net = new ExtendedJTMS()
+    val net = new ExtendedJtms()
 
     net.add(r0)
     net.add(r1)
@@ -81,7 +81,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r1 = AspRule(b,a)
     val r2 = AspFact(a)
 
-    val net = new ExtendedJTMS()
+    val net = new ExtendedJtms()
 
     net.add(r1)
     net.add(r2)
@@ -108,7 +108,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r1 = AspFact(a)
     val r2 = AspRule.pos(b).head(c)
 
-    val net = new ExtendedJTMS()
+    val net = new ExtendedJtms()
 
     net.add(r0)
     net.add(r1)
@@ -135,7 +135,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r2 = AspRule.pos(b).head(c)
     val r3 = AspRule.pos(a).head(c)
 
-    val net = new ExtendedJTMS()
+    val net = new ExtendedJtms()
 
     net.add(r0)
     net.add(r1)
@@ -181,7 +181,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     val setup = new Tweety
 
-    val net = ExtendedJTMS(setup.program)
+    val net = ExtendedJtms(setup.program)
 
     net.add(setup.j5)
 

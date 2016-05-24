@@ -3,7 +3,7 @@ package engine.asp
 import core.asp.{AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArgument, PinnedAtom}
-import engine.asp.evaluation.{PinnedAspProgram, PinnedAspRule}
+import engine.asp.evaluation.{PinnedProgram, PinnedRule}
 
 /**
   * Created by FM on 05.05.16.
@@ -23,13 +23,13 @@ object PlainLarsToAsp {
     case a: WindowAtom => this.apply(a)
   }
 
-  def apply(rule: Rule): Set[PinnedAspRule] = {
+  def apply(rule: Rule): Set[PinnedRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): PinnedAspProgram = {
+  def apply(program: Program): PinnedProgram = {
     val rules = program.rules flatMap this.apply
     AspProgram.pinned(rules.toList)
   }
@@ -40,7 +40,7 @@ object PlainLarsToAsp {
     basicAtom(T)
   }
 
-  def rule(rule: Rule): PinnedAspRule = {
+  def rule(rule: Rule): PinnedRule = {
     AspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
@@ -64,7 +64,7 @@ object PlainLarsToAsp {
     f"${windowFunction}_${operator}_${atomName}"
   }
 
-  def additionalRules(extendedAtom: ExtendedAtom): Set[PinnedAspRule] = extendedAtom match {
+  def additionalRules(extendedAtom: ExtendedAtom): Set[PinnedRule] = extendedAtom match {
     case w@WindowAtom(_, temporalOperator, _) => temporalOperator match {
       case a: At => rulesForAt(w)
       case Diamond => rulesForDiamond(w)
@@ -73,7 +73,7 @@ object PlainLarsToAsp {
     case _ => Set()
   }
 
-  def rulesForBox(windowAtom: WindowAtom): Set[PinnedAspRule] = {
+  def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
@@ -81,7 +81,7 @@ object PlainLarsToAsp {
     Set(AspRule(head(windowAtom), posBody, Set()))
   }
 
-  def rulesForDiamond(windowAtom: WindowAtom): Set[PinnedAspRule] = {
+  def rulesForDiamond(windowAtom: WindowAtom): Set[PinnedRule] = {
     val h = head(windowAtom)
 
     val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
@@ -91,7 +91,7 @@ object PlainLarsToAsp {
     rules.toSet
   }
 
-  def rulesForAt(windowAtom: WindowAtom): Set[PinnedAspRule] = {
+  def rulesForAt(windowAtom: WindowAtom): Set[PinnedRule] = {
     val at = windowAtom.temporalModality.asInstanceOf[At]
 
     at.time match {
@@ -100,7 +100,7 @@ object PlainLarsToAsp {
     }
   }
 
-  def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[PinnedAspRule] = {
+  def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[PinnedRule] = {
     val h = head(windowAtom)
 
     val atomAtTime = windowAtom.atom(timePoint)
@@ -112,7 +112,7 @@ object PlainLarsToAsp {
     rules.toSet
   }
 
-  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariableWithOffset): Set[PinnedAspRule] = {
+  def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariableWithOffset): Set[PinnedRule] = {
     val reachAtom = Atom("reach_" + nameFor(windowAtom))
 
     // we need the reach atom in the form of atom(T-k,T)

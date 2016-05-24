@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJTMS
+import jtms.ExtendedJtms
 import org.scalatest.FlatSpec
 
 /**
@@ -15,7 +15,7 @@ class TwoSelfSupportingNodes extends FlatSpec with AtomTestFixture {
 
   val program = AspProgram(r1, r2)
 
-  val net = ExtendedJTMS(program)
+  val net = ExtendedJtms(program)
 
 
   "A program containing only two self supporting nodes" should "have no model" in {

@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import jtms.ExtendedJTMS
+import jtms.ExtendedJtms
 import org.scalatest.FunSuite
 
 /**
@@ -35,19 +35,19 @@ class LibrarySimple extends FunSuite {
   val program = AspProgram(j1, j2, j3, j4, j5, j6, j7, j8, j9)
 
   test("1") {
-    assert(ExtendedJTMS(program).getModel.get == Set(V, P, A))
+    assert(ExtendedJtms(program).getModel.get == Set(V, P, A))
   }
 
   test("2") {
-    assert(ExtendedJTMS(program + AspFact(H)).getModel.get == Set(V, P, A_not, H))
+    assert(ExtendedJtms(program + AspFact(H)).getModel.get == Set(V, P, A_not, H))
   }
 
   test("3") {
-    assert(ExtendedJTMS(program + AspRule(Falsum,Set(A))).getModel == None)
+    assert(ExtendedJtms(program + AspRule(Falsum,Set(A))).getModel == None)
   }
 
   test("4") {
-    assert(ExtendedJTMS(program + AspRule(Falsum,Set(P),Set[Atom]())).getModel == None)
+    assert(ExtendedJtms(program + AspRule(Falsum,Set(P),Set[Atom]())).getModel == None)
   }
 
 }

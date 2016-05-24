@@ -13,7 +13,7 @@ trait AspEvaluation {
 }
 
 // TODO: naming?
-case class AspEvaluationEngine(interpreter: StreamingAspInterpeter) extends AspEvaluation {
+case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends AspEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val atoms = PinToTimePoint(time)(dataStream)

@@ -1,8 +1,8 @@
 package jtms.tmn
 
 import core.Atom
-import core.asp.PlainAspRule
-import jtms.{JTMNRefactored, Status}
+import core.asp.NormalRule
+import jtms.{JtmsRefactored, Status}
 import org.scalatest.FlatSpec
 
 /**
@@ -12,7 +12,7 @@ import org.scalatest.FlatSpec
 trait AtomValidation {
   this: FlatSpec =>
 
-  def atomValidation(tmn: JTMNRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
+  def atomValidation(tmn: JtmsRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 
     def atomCheckTestCallback(check: (AtomValidator) => Any) = {
@@ -22,7 +22,7 @@ trait AtomValidation {
     return atomCheckTestCallback
   }
 
-  class AtomValidator(tmn: JTMNRefactored, atom: Atom) {
+  class AtomValidator(tmn: JtmsRefactored, atom: Atom) {
 
     info(atom.toString)
 
@@ -32,14 +32,14 @@ trait AtomValidation {
       }
     }
 
-    def Rules(rules: PlainAspRule*) = {
+    def Rules(rules: NormalRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
         assert(tmn.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 
-    def SJ(j: Option[PlainAspRule]) = {
+    def SJ(j: Option[NormalRule]) = {
 
       var text: String = ""
       if (j.isDefined)

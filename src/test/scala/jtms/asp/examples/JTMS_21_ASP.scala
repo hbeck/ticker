@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core._
-import core.asp.{AspRule, PlainAspRule}
+import core.asp.{AspRule, NormalRule}
 import org.scalatest.FlatSpec
 
 /**
@@ -11,7 +11,7 @@ trait JTMS_21Behavior_ASP extends JTMSSpecASP {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
-  val j7: PlainAspRule = AspRule(Falsum,Set(b),Set(c))
+  val j7: NormalRule = AspRule(Falsum,Set(b),Set(c))
 
   val p = program + j7
 

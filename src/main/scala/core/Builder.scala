@@ -1,6 +1,6 @@
 package core
 
-import core.asp.{PlainAspRule, UserDefinedAspRule}
+import core.asp.{NormalRule, UserDefinedAspRule}
 import core.lars.{ExtendedAtom, HeadAtom}
 
 /**
@@ -16,7 +16,7 @@ class BuilderCollection[TAtom <: ExtendedAtom, THead <: HeadAtom](val head: THea
 }
 
 object BuilderCollection {
-  implicit def toRule(builder: BuilderCollection[Atom, Atom]): PlainAspRule = new UserDefinedAspRule(builder.head, builder.positiveBody, builder.negativeBody)
+  implicit def toRule(builder: BuilderCollection[Atom, Atom]): NormalRule = new UserDefinedAspRule(builder.head, builder.positiveBody, builder.negativeBody)
 
   implicit def toLarsRule(builder: BuilderCollection[ExtendedAtom, HeadAtom]): core.lars.Rule = new core.lars.Rule(builder.head, builder.positiveBody, builder.negativeBody)
 }

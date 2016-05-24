@@ -1,15 +1,15 @@
 package jtms
 
 import core._
-import core.asp.{AspRuleFromBacktracking, PlainAspProgram, PlainAspRule}
+import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
-object JTMNBeierle {
+object JtmsBeierle {
 
-  def apply(P: PlainAspProgram): JTMNRefactored = {
-    val tmn = new JTMNRefactored()
+  def apply(P: NormalProgram): JtmsRefactored = {
+    val tmn = new JtmsRefactored()
     P.rules foreach tmn.add
     tmn
   }
@@ -24,13 +24,13 @@ object JTMNBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-case class JTMNBeierle() {
+case class JtmsBeierle() {
 
-  var rules: List[PlainAspRule] = List()
+  var rules: List[NormalRule] = List()
 
   val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SuppRule: Map[Atom, Option[PlainAspRule]] = new HashMap[Atom, Option[PlainAspRule]]
+  val SuppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -45,7 +45,7 @@ case class JTMNBeierle() {
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
 
-  def add(rule: PlainAspRule): Unit = {
+  def add(rule: NormalRule): Unit = {
     updateSteps1to5(rule)
     //6
     for (n <- atoms()) {
@@ -56,7 +56,7 @@ case class JTMNBeierle() {
     //7 would just concern returning the diff (omitted here)
   }
 
-  def updateSteps1to5(rule: PlainAspRule): Unit = {
+  def updateSteps1to5(rule: NormalRule): Unit = {
     //1
     register(rule)
     if (status(rule.head) == in) return
@@ -149,7 +149,7 @@ case class JTMNBeierle() {
     }
   }
 
-  def setIn(rule: PlainAspRule) = {
+  def setIn(rule: NormalRule) = {
     status(rule.head) = in
     Supp(rule.head) = Set() ++ rule.body
     SuppRule(rule.head) = Some(rule)
@@ -165,7 +165,7 @@ case class JTMNBeierle() {
     //SuppRule(a) = None //is not set in beierle [!]
   }
 
-  def findSpoiler(rule: PlainAspRule): Option[Atom] = {
+  def findSpoiler(rule: NormalRule): Option[Atom] = {
     if (math.random < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
@@ -210,7 +210,7 @@ case class JTMNBeierle() {
 
   }
 
-  def register(rule: PlainAspRule): Unit = {
+  def register(rule: NormalRule): Unit = {
     if (rules contains rule) return //list representation!
     rules = rules :+ rule
     rule.atoms foreach register
@@ -224,7 +224,7 @@ case class JTMNBeierle() {
     if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
   }
 
-  def invalid(rule: PlainAspRule) = findSpoiler(rule) match {
+  def invalid(rule: NormalRule) = findSpoiler(rule) match {
     case Some(spoiler) => Supp(rule.head) += spoiler; true
     case None => false
   }
@@ -249,13 +249,13 @@ case class JTMNBeierle() {
 
   def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
 
-  def foundedValid(rule: PlainAspRule) =
+  def foundedValid(rule: NormalRule) =
     (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
 
-  def foundedInvalid(rule: PlainAspRule) =
+  def foundedInvalid(rule: NormalRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfoundedValid(rule: PlainAspRule) =
+  def unfoundedValid(rule: NormalRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
@@ -278,7 +278,7 @@ case class JTMNBeierle() {
   def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
   val m = M.toList
     for (i <- 0 to M.size - 1) {
-      val rule: Option[PlainAspRule] = findSuppRule(m, i)
+      val rule: Option[NormalRule] = findSuppRule(m, i)
       if (rule.isEmpty) {
         return false
       }
@@ -297,14 +297,14 @@ case class JTMNBeierle() {
   /** takes atoms at list M index idx and tries to find a valid rule
     * that is founded wrt indexes 0..idx-1
     */
-  def findSuppRule(M: List[Atom], idx: Int): Option[PlainAspRule] = {
+  def findSuppRule(M: List[Atom], idx: Int): Option[NormalRule] = {
     val n = M(idx)
     val MSub = M.take(idx).toSet
     val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
     selectRule(rules)
   }
 
-  def selectRule(rules: List[PlainAspRule]): Option[PlainAspRule] = {
+  def selectRule(rules: List[NormalRule]): Option[NormalRule] = {
     if (rules.isEmpty)
       return None
     Some(rules.head)

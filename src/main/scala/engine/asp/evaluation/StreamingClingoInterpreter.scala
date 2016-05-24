@@ -1,14 +1,14 @@
 package engine.asp.evaluation
 
 import clingo.{ClingoConversion, ClingoProgram, _}
-import core.{Atom, AtomWithArguments, Model, PinnedAtom}
 import core.lars.TimePoint
+import core.{AtomWithArguments, Model, PinnedAtom}
 
 /**
   *
   * Created by FM on 22.04.16.
   */
-case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpeter {
+case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpreter {
 
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel] = {
 
@@ -26,13 +26,10 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 object StreamingClingoInterpreter {
   def asPinnedAtom(model: Model, timePoint: TimePoint) = model map {
     case aa: AtomWithArguments => convertToPinnedAtom(aa, timePoint)
-    // TODO: this should not be possible?
-    case a: Atom => PinnedAtom(a, timePoint)
   }
 
   val numberFormat = """\d+""".r
 
-  // TODO: how can we be sure that the last argument is a time-paramter - currently its only an assumption?
   def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = {
     // TODO: there should be a more elegant way...
     // should probably go to clingo-parser?

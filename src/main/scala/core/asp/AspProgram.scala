@@ -1,7 +1,7 @@
 package core.asp
 
 import core.{Atom, PinnedAtom}
-import engine.asp.evaluation.PinnedAspRule
+import engine.asp.evaluation.PinnedRule
 
 /**
   * Created by FM on 25.02.16.
@@ -23,22 +23,22 @@ trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
 //  lazy val atoms = this.rules.flatMap(_.atoms).toSet
 //}
 
-case class ModifiableAspProgram(rules: List[PlainAspRule]) extends PlainAspProgram {
+case class ModifiableAspProgram(rules: List[NormalRule]) extends NormalProgram {
 
-  def +(rule: PlainAspRule) = AspProgram(rules :+ rule)
+  def +(rule: NormalRule) = AspProgram(rules :+ rule)
 
-  def ++(rules: List[PlainAspRule]) = AspProgram(this.rules ++ rules)
+  def ++(rules: List[NormalRule]) = AspProgram(this.rules ++ rules)
 }
 
 case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]](rules: Seq[TAspRule]) extends AspProgram[TAtom, TAspRule]
 
 object AspProgram {
-  def apply(rules: PlainAspRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
+  def apply(rules: NormalRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
 
-  def apply(rules: List[PlainAspRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
+  def apply(rules: List[NormalRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
 
   // TODO: this should be generic?
   //  def apply[TAspRule <: AspRuleT[_]](rules: TAspRule*) = FixedAspProgram(rules.toList)
-  def pinned(rules: PinnedAspRule*) :FixedAspProgram[PinnedAtom, PinnedAspRule]= FixedAspProgram[PinnedAtom, PinnedAspRule](rules.toList)
-  def pinned(rules: List[PinnedAspRule]):FixedAspProgram[PinnedAtom, PinnedAspRule] = FixedAspProgram[PinnedAtom, PinnedAspRule](rules)
+  def pinned(rules: PinnedRule*): FixedAspProgram[PinnedAtom, PinnedRule]= FixedAspProgram[PinnedAtom, PinnedRule](rules.toList)
+  def pinned(rules: List[PinnedRule]): FixedAspProgram[PinnedAtom, PinnedRule] = FixedAspProgram[PinnedAtom, PinnedRule](rules)
 }

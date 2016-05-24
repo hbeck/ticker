@@ -1,16 +1,16 @@
 package jtms.evaluation
 
 import core.Evaluation
-import core.asp.PlainAspProgram
-import jtms.JTMNRefactored
+import core.asp.NormalProgram
+import jtms.JtmsRefactored
 
 /**
   * Created by FM on 25.02.16.
   */
 class JTMNRefactoredEvaluation extends Evaluation {
 
-  def apply(program: PlainAspProgram) = {
-    val tmn = JTMNRefactored(program)
+  def apply(program: NormalProgram) = {
+    val tmn = JtmsRefactored(program)
 
     val singleModel = tmn.getModel.get
 

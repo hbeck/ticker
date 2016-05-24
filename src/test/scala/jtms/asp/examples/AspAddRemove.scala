@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
-import jtms.{ExtendedJTMS, JTMNBeierle}
+import jtms.{ExtendedJtms, JtmsBeierle}
 import org.scalatest.FunSuite
 
 /**
@@ -21,7 +21,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     val r2 = AspRule(b,none,Set(c))
     val r3 = AspRule(c,none,Set(d))
         
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(r1)
@@ -69,7 +69,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
   }
 
   test("remove case repercussion vs cons-star") {
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(AspRule(a,b))
@@ -90,7 +90,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("a :- b. b :- a. b :- c, not d. c :- not e. e.") {
 
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(AspRule(a,b))
@@ -139,7 +139,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     val x__not_y = AspRule(x,none,Set(y))
     val y__not_x = AspRule(y,none,Set(x))
 
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(a__x_not_b)
@@ -186,7 +186,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     val c__not_d = AspRule(c,none,Set(d))
     val d__not_c = AspRule(d,none,Set(c))
 
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(x__a_c)
@@ -243,7 +243,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("mess") {
 
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
     def m = tms.getModel.get
 
     tms.add(AspRule(a,Set(b,c),Set(d,e))) //1
@@ -333,7 +333,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
        reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
     */
 
-    val tms = ExtendedJTMS()
+    val tms = ExtendedJtms()
 
     val a = "a"
     val b = "b"
@@ -422,7 +422,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     val r6 = AspRule(f, Set(c, e))
     val r0 = AspFact(a)
 
-    val tms = ExtendedJTMS(AspProgram(r1,r2,r3,r4a,r4b,r5,r6))
+    val tms = ExtendedJtms(AspProgram(r1,r2,r3,r4a,r4b,r5,r6))
     def m = tms.getModel.get
 
     assert(m == Set(e,b,d))
@@ -439,7 +439,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     //works with doyle if c and b are replaced (i.e., a :- b. b :- a. etc.)
 
-    val tms = ExtendedJTMS(AspProgram(
+    val tms = ExtendedJtms(AspProgram(
       AspRule(a,c), //a :- c
       AspRule(c,a), //c :- a
       AspRule(b,none,Set(a)), //b :- not a
@@ -458,7 +458,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
   }
 
   test("jtms5 essence part") {
-    val tms = ExtendedJTMS(AspProgram(
+    val tms = ExtendedJtms(AspProgram(
       AspRule(a,c), //a :- c
       AspRule(c,a), //c :- a
       AspRule(b,none,Set(a)), //b :- not a
@@ -474,7 +474,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
   }
 
   test("beierle tests") {
-    val tms = JTMNBeierle(AspProgram(
+    val tms = JtmsBeierle(AspProgram(
       AspRule(a,c), //a :- c
       AspRule(c,a), //c :- a
       AspRule(b,none,Set(a)), //b :- not a
