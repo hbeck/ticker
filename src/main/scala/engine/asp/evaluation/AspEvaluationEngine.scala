@@ -41,11 +41,8 @@ object AspEvaluationEngine {
       case _ => false
     }
 
-    val unpinned = filtered map {
-      case PinnedAtom(a, _) => a
-      case a: Atom => a
-    }
-
+    val unpinned = filtered map (_.atom)
+    
     unpinned
   }
 
