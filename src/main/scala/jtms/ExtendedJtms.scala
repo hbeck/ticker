@@ -27,7 +27,7 @@ case class ExtendedJtms() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
   var doSemanticsCheck = true //introduced while debugging remove problems
 
@@ -130,9 +130,9 @@ case class ExtendedJtms() {
   def updateDoyle(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
-    //atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
-    val atomList = (List[Atom]() ++ atoms).sortWith((x,y) => (x.toString=="d")) // TODO
-    atomList foreach fixAndPropagateStatus
+    atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
+    //val atomList = (List[Atom]() ++ atoms).sortWith((x,y) => (x.toString=="d")) // TODO
+    //atomList foreach fixAndPropagateStatus
   }
 
   def updateStepwise(atoms: Set[Atom]): Unit = {
@@ -252,7 +252,7 @@ case class ExtendedJtms() {
 
   def fixIn(unfoundedRule: NormalRule): Unit = {
     setIn(unfoundedRule)
-    unfoundedRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors TODO write up. currently has setOut
+    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO: write up has setOut, need fixOut
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
