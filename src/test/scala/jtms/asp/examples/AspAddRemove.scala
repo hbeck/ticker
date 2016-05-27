@@ -11,8 +11,6 @@ import org.scalatest.FunSuite
   */
 class AspAddRemove extends FunSuite with AtomTestFixture {
 
-
-
   val none = Set[Atom]()
 
   test("a :- b. b :- not c. c :- not d.") {
@@ -508,7 +506,5 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     tms.add(AspFact(a))
     assert(m == Set(a,c,d))
   }
-
-
 
 }

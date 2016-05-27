@@ -8,8 +8,8 @@ import scala.collection.mutable.{HashMap, Map, Set}
 
 object JtmsBeierle {
 
-  def apply(P: NormalProgram): JtmsRefactored = {
-    val tmn = new JtmsRefactored()
+  def apply(P: NormalProgram): JtmsBeierle = {
+    val tmn = new JtmsBeierle()
     P.rules foreach tmn.add
     tmn
   }
@@ -138,7 +138,6 @@ case class JtmsBeierle() {
           if (n.isEmpty) {
             throw new RuntimeException("did not find rule.pos atom with status unknown in rule "+rule+" for atom "+atom)
           }
-          status(n.get) = out //vs setOut [!]
         }
         setOut(atom)
         val unk = Cons(atom) filter (status(_) == unknown)

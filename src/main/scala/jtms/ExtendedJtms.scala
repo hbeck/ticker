@@ -102,7 +102,7 @@ case class ExtendedJtms() {
   def invalid(rule: NormalRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfounded(rule: NormalRule) =
+  def unfounded(rule: NormalRule) = //TODO rename, maybe 'partiallyValid'
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
   def register(rule: NormalRule): Unit = {
@@ -263,7 +263,7 @@ case class ExtendedJtms() {
 
   def fixOut(a: Atom): Unit = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) } //TODO check write-up
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut?
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
