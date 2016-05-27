@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms._
+import jtms.ExtendedJtms
 import org.scalatest.FlatSpec
 
 /**

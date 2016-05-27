@@ -27,7 +27,7 @@ case class ExtendedJtms() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise //TODO
 
   var doSemanticsCheck = true //introduced while debugging remove problems
 
@@ -225,7 +225,7 @@ case class ExtendedJtms() {
     if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
-      val affected = aff(a) + a
+      val affected = aff(a) + a //TODO no test coverage
       affected foreach setUnknown
       affected foreach fixAndPropagateStatus
     }
@@ -235,15 +235,15 @@ case class ExtendedJtms() {
     if (fix(a)) {
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
-      aff(a) foreach setUnknown
+      aff(a) foreach setUnknown //TODO no test coverage
     }
   }
 
   def fix(a: Atom): Boolean = {
     justifications(a) find unfounded match {
       case Some(rule) => {
-          if (aff(a).isEmpty) fixIn(rule)
-          else return false
+        if (aff(a).isEmpty) fixIn(rule)
+        else return false
       }
       case None => fixOut(a)
     }
@@ -263,9 +263,9 @@ case class ExtendedJtms() {
 
   def fixOut(a: Atom): Unit = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) } //TODO check write-up
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //fix ancestors
+    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut?
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOut(a)

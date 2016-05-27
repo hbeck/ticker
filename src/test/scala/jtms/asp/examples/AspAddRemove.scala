@@ -444,7 +444,8 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       AspRule(c,a), //c :- a
       AspRule(b,none,Set(a)), //b :- not a
       AspRule(d,b), //d :- b
-      AspRule(d,c))) //d :- c
+      AspRule(d,c)) //d :- c
+    )
 
     def m = tms.getModel.get
 
@@ -471,6 +472,27 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     tms.remove(AspFact(a))
     assert(m == Set(b,d))
+  }
+
+  test("jtms5-like problem for add") {
+
+    val tms = ExtendedJtms(AspProgram(
+      AspRule(a,c), //a :- c
+      AspRule(c,a), //c :- a
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(d,b), //d :- b
+      AspRule(d,c)) //d :- c
+    )
+
+    def m = tms.getModel.get
+
+    assert(m == Set(b,d))
+
+    tms.add(AspRule(a,none,Set(e))) //instead of AspFact(a)
+    assert(m == Set(a,c,d))
+
+    tms.add(AspFact(e)) //instead of removing fact a directly
+    assert(m == Set(e,b,d))
   }
 
   test("beierle tests") {
