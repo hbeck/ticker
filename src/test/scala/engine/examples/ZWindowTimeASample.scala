@@ -35,11 +35,11 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
   val i = Atom("i")
 
   val larsProgram = Program.from(
-    AtAtom(U+1,z) <= W(2, At(U), a),
+    AtAtom(U + 1, z) <= W(2, At(U), a),
     i <= W(1, Diamond, z)
   )
 
-  def evaluation(evaluation: EvaluationEngine) = {
+  def evaluation(evaluation:  EvaluationEngine) = {
     evaluation.append(t1)(a)
 
     info("Given 't1 -> a' ")
@@ -70,6 +70,7 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
     }
 
   }
+
   val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
   "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
   "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
@@ -77,4 +78,5 @@ class ZWindowTimeASample extends FlatSpec with TimeTestFixtures {
   val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
   "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
   "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
+
 }

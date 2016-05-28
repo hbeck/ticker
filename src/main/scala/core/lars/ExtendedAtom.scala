@@ -18,4 +18,4 @@ object HeadAtom {
 
 case class WindowAtom(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) extends ExtendedAtom
 
-case class AtAtom(val time: Time, val atom: Atom) extends HeadAtom
+case class AtAtom(time: Time, atom: Atom) extends HeadAtom
