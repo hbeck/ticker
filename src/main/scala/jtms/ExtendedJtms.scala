@@ -131,19 +131,29 @@ case class ExtendedJtms() {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach determineAndPropagateStatus // Evaluating the nodes' justifications
     atoms foreach fixAndPropagateStatus // Relaxing circularities (might lead to contradictions)
-    //val atomList = (List[Atom]() ++ atoms).sortWith((x,y) => (x.toString=="d")) // TODO
-    //atomList foreach fixAndPropagateStatus
   }
 
   def updateStepwise(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown
+    var lastAtom: Option[Atom] = None
     while (hasUnknown) {
       unknownAtoms foreach determineAndPropagateStatus
-      val atom = unknownAtoms.headOption
+      val atom = getOptOtherThan(unknownAtoms,lastAtom) //ensure that the same atom is not tried consecutively
       if (atom.isDefined) {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
+      lastAtom = atom
     }
+  }
+
+  def getOptOtherThan(atoms: collection.Set[Atom], atom: Option[Atom]): Option[Atom] = {
+    if (atoms.isEmpty) return None
+    val head = atoms.head
+    if (atom == None) return Some(head)
+    if (atoms.size == 1) return Some(head)
+    val other = atom.get
+    if (head != other) return Some(head)
+    return atoms find (_ != other)
   }
 
   def hasUnknown = allAtoms exists (status(_) == unknown)

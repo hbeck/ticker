@@ -493,6 +493,28 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     assert(m == Set(e,b,d))
   }
 
+  test("Beierle: jtms5-like problem for add") {
+
+    val tms = JtmsBeierle(AspProgram(
+      AspRule(a,c), //a :- c
+      AspRule(c,a), //c :- a
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(d,b), //d :- b
+      AspRule(d,c)) //d :- c
+    )
+
+    def m = tms.getModel.get
+
+    assert(m == Set(b,d))
+
+    tms.add(AspRule(a,none,Set(e))) //instead of AspFact(a)
+    assert(m == Set(a,c,d))
+
+    //this one reveals a bug:
+//    tms.add(AspFact(e)) //instead of removing fact a directly
+//    assert(m == Set(e,b,d))
+  }
+
   test("beierle tests") {
     val tms = JtmsBeierle(AspProgram(
       AspRule(a,c), //a :- c

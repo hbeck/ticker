@@ -132,7 +132,7 @@ case class JtmsBeierle() {
         }
       }
       case None => { //all justifications(atom) are unfounded invalid
-        //do status(atom)=out as part of setOut below
+        status(atom)=out
         for (rule <- justifications(atom)) {
           val n: Option[Atom] = rule.pos find (status(_) == unknown) //in general, rule.pos might be empty! [!]
           if (n.isEmpty) {
