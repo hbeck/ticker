@@ -2,7 +2,9 @@ package engine
 
 import core._
 import core.asp.{AspProgram, AspProgramBuilder}
-import engine.asp.EvaluationStrategy
+import core.lars.Program
+import engine.asp.{Direct, EvaluationStrategy}
+import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -13,9 +15,9 @@ import org.scalatest.OptionValues._
   */
 class EngineSpec extends FlatSpec with TimeTestFixtures {
 
-  val program = AspProgram(
-    a :- b and d not c,
-    b :- c not d
+  val program = Program.from(
+    a <= b and d not c,
+    b <= c not d
   )
   // TODO: figure out how to correctly name the atoms in the builder
   val programWithBuilder = AspProgramBuilder({
@@ -47,17 +49,17 @@ class EngineSpec extends FlatSpec with TimeTestFixtures {
     engine
   }
 
-  //  val e = BuildEngine.withProgram(program).useAsp().withClingo().use(Direct).usePull().start
+    val engineConfig = BuildEngine.withProgram(program).useAsp().withClingo().use(Direct).usePull()
 
   "The Asp Evaluation" should "return a result for t1" in {
-    val engine = engineWithStreams(EvaluationStrategy.pull(program))
+    val engine = engineWithStreams(engineConfig.start())
     val result = engine.evaluate(t1).get
 
     result.value should contain only b
   }
 
   it should "invalidate 'b' for t2" in {
-    val engine = engineWithStreams(EvaluationStrategy.pull(program))
+    val engine = engineWithStreams(engineConfig.start())
 
     val result = engine.evaluate(t2).get
 
