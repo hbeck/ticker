@@ -1,9 +1,7 @@
 package jtms.asp.examples
 
-import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJtms
 import org.scalatest.FunSuite
 
 /**
@@ -14,46 +12,6 @@ class Constraints extends FunSuite with AtomTestFixture{
   val n = ContradictionAtom("n")
 
   val none = Set[Atom]()
-
-  val times = 100
-
-  test("a") {
-    val net = ExtendedJtms()
-    assert(net.getModel.get.isEmpty)
-
-    net.add(AspFact(a))
-    assert(net.getModel.get == Set(a))
-
-    net.remove(AspFact(a))
-    assert(net.getModel.get.isEmpty)
-  }
-
-  test("a :- not b. then b.") {
-
-    val net = ExtendedJtms()
-    net.add(AspRule(a,none,Set(b)))
-    assert(net.getModel.get == Set(a))
-
-    net.add(AspFact(b))
-    assert(net.getModel.get == Set(b))
-
-    net.remove(AspFact(b))
-    assert(net.getModel.get == Set(a))
-  }
-
-  test("a :- not b. b :- not a.  b.") {
-
-    val net = ExtendedJtms()
-    net.add(AspRule(a,none,Set(b)))
-    net.add(AspRule(b,none,Set(a)))
-    assert(net.getModel.get == Set(a))
-
-    net.add(AspFact(b))
-    assert(net.getModel.get == Set(b))
-
-    net.remove(AspFact(b))
-    assert(net.getModel.get == Set(a) || net.getModel.get == Set(b)) //!
-  }
 
   //constraints not implemented
 //  test("P1: a :- not b.  b :- not a.  n :- a.") {
@@ -153,45 +111,6 @@ class Constraints extends FunSuite with AtomTestFixture{
 //    assert(net.getModel == None)
 //  }
 
-  //consistent: 'inactive' odd loop
-  test("a. a :- not a.") {
-
-    val netFactFirst = ExtendedJtms()
-    netFactFirst.add(AspFact(a))
-    netFactFirst.add(AspRule(a,Set(),Set(a)))
-    assert(netFactFirst.getModel.get == Set(a))
-
-    val netRuleFirst = ExtendedJtms()
-    netRuleFirst.add(AspRule(a,Set(),Set(a)))
-    netRuleFirst.add(AspFact(a))
-    assert(netRuleFirst.getModel.get == Set(a))
-  }
-
-  //inconsistent: indirect odd loop
-//  test("a :- b. b :- c. c :- not a.") {
-//    val net = AnswerUpdateNetwork()
-//    net.add(Rule(a, b))
-//    net.add(Rule(b, c))
-//    net.add(Rule(c, none, Set(a)))
-//    assert(net.getModel == None)
-//
-//    net.add(Rule(c))
-//    assert(net.getModel.get == Set[Atom](a, b, c))
-//  }
-
-  //inconsistent: indirect odd loop
-//  test("a :- b. b :- c. c :- d. d :- not a.") {
-//    val net = AnswerUpdateNetwork()
-//    net.add(Rule(a, b))
-//    net.add(Rule(b, c))
-//    net.add(Rule(c, d))
-//    net.add(Rule(d, none, Set(a)))
-//    assert(net.getModel == None)
-//
-//    net.add(Rule(d))
-//    assert(net.getModel.get == Set[Atom](a, b, c, d))
-//  }
-
   //constraints not implemented
 //  test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 //
@@ -253,7 +172,7 @@ class Constraints extends FunSuite with AtomTestFixture{
 //
 //  }
 
-  //constraints not implemetned
+  //constraints not implemented
 //  test("elkan p228") {
 //    val net = AnswerUpdateNetwork()
 //    net.add(Rule(f,none,Set(a,c)))

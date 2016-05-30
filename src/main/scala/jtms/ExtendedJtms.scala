@@ -44,7 +44,7 @@ case class ExtendedJtms() {
     unregister(rule)
     if (!(allAtoms contains rule.head)) return
     if (status(rule.head) == out) return
-    if (suppRule(rule.head).get != rule) return
+    if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
     val ats = repercussions(rule.head) + rule.head
     updateBeliefs(ats)
   }
@@ -52,6 +52,7 @@ case class ExtendedJtms() {
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None //not dealt with
+    if (hasUnknown) return None
     Some(atoms.toSet)
   }
 
@@ -72,13 +73,19 @@ case class ExtendedJtms() {
 
   def allAtoms() = cons.keySet
 
+  def facts() = rules filter (_.isFact) map (_.head) toSet
+
+  def ruleHeads() = rules map (_.head) toSet
+
+  def atomsNeedingSupp() = ruleHeads diff facts
+
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
   def inAtoms() = allAtoms filter (status(_) == in)
 
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
-  //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
+  //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
   def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
   def repercussions(a: Atom) = trans(affected, a)
@@ -120,11 +127,21 @@ case class ExtendedJtms() {
   }
 
   def updateBeliefs(atoms: Set[Atom]): Unit = {
-    updateStrategy match {
-      case `UpdateStrategyDoyle` => updateDoyle(atoms)
-      case `UpdateStrategyStepwise` => updateStepwise(atoms)
+    try {
+      updateStrategy match {
+        case `UpdateStrategyDoyle` => updateDoyle(atoms)
+        case `UpdateStrategyStepwise` => updateStepwise(atoms)
+      }
+      checkSemantics()
+    } catch {
+      case e:IncrementalUpdateFailureException => {
+        invalidateModel()
+      }
     }
-    checkSemantics()
+  }
+
+  def invalidateModel(): Unit = {
+    atomsNeedingSupp foreach setUnknown
   }
 
   def updateDoyle(atoms: Set[Atom]): Unit = {
@@ -160,15 +177,16 @@ case class ExtendedJtms() {
 
   def checkSemantics(): Unit = {
     if (!doSemanticsCheck) return
-    val ruleHeads = rules map (_.head) toSet
-    val facts = rules filter (_.isFact) map (_.head) toSet
-    val atomsNeedingSupp = ruleHeads diff facts
     val badAtoms = atomsNeedingSupp filter (supp(_).isEmpty)
     if (!badAtoms.isEmpty) {
       println("the following atoms need but do not have a support")
-      for (a <- badAtoms) {
-        println(a)
-      }
+      badAtoms foreach println
+      println("\nrules:")
+      rules foreach println
+      println("\ninAtoms (Model):")
+      inAtoms foreach println
+      println("\natomsNeedingSupp:")
+      atomsNeedingSupp() foreach println
       throw new RuntimeException("no support for atoms "+badAtoms)
     }
   }
@@ -179,9 +197,15 @@ case class ExtendedJtms() {
     suppRule(rule.head) = Some(rule)
   }
 
+  //return success
   def setOut(a: Atom) = {
     status(a) = out
-    supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get))
+    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing:
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    if (maybeAtoms exists (_.isEmpty)) {
+      throw new IncrementalUpdateFailureException()
+    }
+    supp(a) = Set() ++ maybeAtoms map (_.get)
     suppRule(a) = None
   }
 
@@ -271,11 +295,11 @@ case class ExtendedJtms() {
      */
   }
 
-  def fixOut(a: Atom): Unit = {
+  def fixOut(a: Atom) = {
     status(a) = out
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut? - can'd it be the case that two rules are set, where one would be a deterministic consequence of the other?
+    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOut(a)
