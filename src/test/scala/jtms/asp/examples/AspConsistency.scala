@@ -9,9 +9,9 @@ import org.scalatest.FunSuite
 /**
   * Created by hb on 12.03.16.
   */
-class ASPConsistency extends FunSuite with AtomTestFixture{
+class AspConsistency extends FunSuite with AtomTestFixture{
 
-  val none = Set[Atom]()
+  val O = Set[Atom]()
 
   test("a") {
 
@@ -32,7 +32,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     val tms = ExtendedJtms()
     def m = tms.getModel
 
-    tms.add(AspRule(a,none,Set(b)))
+    tms.add(AspRule(a,O,Set(b)))
     assert(m.get == Set(a))
 
     tms.add(AspFact(b))
@@ -47,8 +47,8 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     val tms = ExtendedJtms()
     def m = tms.getModel
 
-    tms.add(AspRule(a,none,Set(b)))
-    tms.add(AspRule(b,none,Set(a)))
+    tms.add(AspRule(a,O,Set(b)))
+    tms.add(AspRule(b,O,Set(a)))
     assert(m.get == Set(a))
 
     tms.add(AspFact(b))
@@ -79,7 +79,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     val tms = ExtendedJtms()
     def m = tms.getModel
 
-    tms.add(AspRule(a,none,Set(b)))
+    tms.add(AspRule(a,O,Set(b)))
     assert(m.get == Set(a))
 
     tms.add(AspRule(b,a))
@@ -87,7 +87,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
 
     tms.remove(AspRule(b,a))
     assert(m.get == Set(a))
-    
+
   }
 
   test("inc2: a :- not b. b :- not c. c :- not a") {
@@ -95,16 +95,16 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     val tms = ExtendedJtms()
     def m = tms.getModel
 
-    tms.add(AspRule(a,none,Set(b)))
+    tms.add(AspRule(a,O,Set(b)))
     assert(m.get == Set(a))
 
-    tms.add(AspRule(b,none,Set(c)))
+    tms.add(AspRule(b,O,Set(c)))
     assert(m.get == Set(b))
 
-    tms.add(AspRule(c,none,Set(a)))
+    tms.add(AspRule(c,O,Set(a)))
     assert(m == None)
 
-    tms.remove(AspRule(c,none,Set(a)))
+    tms.remove(AspRule(c,O,Set(a)))
     assert(m.get == Set(b))
 
   }
@@ -119,7 +119,7 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
     tms.add(AspRule(b,Set(a,d)))
     assert(m.get == Set())
 
-    tms.add(AspRule(d,none,Set(e)))
+    tms.add(AspRule(d,O,Set(e)))
     assert(m == None)
 
     tms.add(AspFact(e))
@@ -127,6 +127,42 @@ class ASPConsistency extends FunSuite with AtomTestFixture{
 
     tms.remove(AspFact(e))
     assert(m == None)
+  }
+
+  test("inc4") {
+    val tms = ExtendedJtms()
+    def m = tms.getModel
+
+    tms.add(AspRule(a,Set(b,c)))
+    tms.add(AspRule(b,Set(d),Set(e)))
+    tms.add(AspRule(c,Set(b),Set(f)))
+
+    assert(m.get == Set())
+
+    tms.add(AspRule(d,O,Set(c)))
+    assert(m == None)
+
+    tms.add(AspFact(b))
+    assert(m.get == Set(a,b,c))
+
+    tms.remove(AspRule(c,Set(b),Set(f)))
+    assert(m.get == Set(b,d))
+
+    tms.add(AspRule(c,Set(b),Set(a)))
+    assert(m == None)
+
+    tms.add(AspFact(a))
+    assert(m.get == Set(a,b,d))
+  }
+
+  test("odd loop 1: a :- not a") {
+
+    val tms = ExtendedJtms()
+    def m = tms.getModel
+
+    tms.add(AspRule(a,O,Set(a)))
+    assert(m == None)
+
   }
 
   //inconsistent: indirect odd loop
