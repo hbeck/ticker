@@ -79,9 +79,9 @@ case class ExtendedJtms() {
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def aff(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
+  def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
-  def repercussions(a: Atom) = trans(aff, a)
+  def repercussions(a: Atom) = trans(affected, a)
 
   def antecedents(a: Atom): Set[Atom] = {
     if (status(a) == in) return supp(a)
@@ -235,9 +235,9 @@ case class ExtendedJtms() {
     if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
-      val affected = aff(a) + a //TODO no test coverage
-      affected foreach setUnknown
-      affected foreach fixAndPropagateStatus
+      val aff = affected(a) + a //TODO no test coverage
+      aff foreach setUnknown
+      aff foreach fixAndPropagateStatus
     }
   }
 
@@ -245,14 +245,14 @@ case class ExtendedJtms() {
     if (fix(a)) {
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
-      aff(a) foreach setUnknown //TODO no test coverage
+      affected(a) foreach setUnknown //TODO no test coverage
     }
   }
 
   def fix(a: Atom): Boolean = {
     justifications(a) find unfounded match {
       case Some(rule) => {
-        if (aff(a).isEmpty) fixIn(rule)
+        if (affected(a).isEmpty) fixIn(rule)
         else return false
       }
       case None => fixOut(a)
@@ -275,7 +275,7 @@ case class ExtendedJtms() {
     status(a) = out
     val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut?
+    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut? - can'd it be the case that two rules are set, where one would be a deterministic consequence of the other?
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOut(a)

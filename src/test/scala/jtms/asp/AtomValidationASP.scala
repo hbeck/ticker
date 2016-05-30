@@ -84,7 +84,7 @@ trait AtomValidationASP {
 
     def aff(atoms: Atom*) = {
       it should "have ACons " + atoms.toSet in {
-        assert(net.aff(atom) == atoms.toSet)
+        assert(net.affected(atom) == atoms.toSet)
       }
     }
 

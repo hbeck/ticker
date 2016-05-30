@@ -493,6 +493,26 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     assert(m == Set(e,b,d))
   }
 
+  test("jtms5 variant with direct dependency of body atoms for same head") {
+
+    val tms = ExtendedJtms(AspProgram(
+      AspRule(d,b), //d :- b
+      AspRule(d,c), //d :- c
+      AspRule(c,none,Set(b)), //c :- not b. these are the crucial three rules,
+      // the other exist only to make them initially unknown s.t. fixOut kicks in for d
+      AspRule(b,none,Set(c)), //b :- not c. his rule is only needed s.t. b is not determined after the input "a" later
+      AspRule(b,none,Set(a)), //b :- not a
+      AspRule(c,none,Set(a))) //c :- not a
+    )
+
+    def m = tms.getModel.get
+
+    assert(m == Set(b,c,d))
+
+    tms.add(AspFact(a))
+    assert(m == Set(a,b,d) || m == Set(a,c,d))
+  }
+
   test("Beierle: jtms5-like problem for add") {
 
     val tms = JtmsBeierle(AspProgram(
