@@ -27,9 +27,11 @@ case class ExtendedJtms() {
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
   object UpdateStrategyStepwise extends UpdateStrategy
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise //TODO
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
-  var doSemanticsCheck = true //introduced while debugging remove problems
+  var doTmsSemanticsCheck = true //introduced while debugging remove problems
+  var doSelfSupportCheck = true
+  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
 
   //based on JTMS update algorithm
   def add(rule: NormalRule): Unit = {
@@ -85,6 +87,8 @@ case class ExtendedJtms() {
 
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
+  def hasUnknown = allAtoms exists (status(_) == unknown)
+
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
   def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
@@ -132,7 +136,9 @@ case class ExtendedJtms() {
         case `UpdateStrategyDoyle` => updateDoyle(atoms)
         case `UpdateStrategyStepwise` => updateStepwise(atoms)
       }
-      checkSemantics()
+      checkTmsSemantics()
+      checkSelfSupport()
+      checkConsistency()
     } catch {
       case e:IncrementalUpdateFailureException => {
         invalidateModel()
@@ -171,24 +177,6 @@ case class ExtendedJtms() {
     val other = atom.get
     if (head != other) return Some(head)
     return atoms find (_ != other)
-  }
-
-  def hasUnknown = allAtoms exists (status(_) == unknown)
-
-  def checkSemantics(): Unit = {
-    if (!doSemanticsCheck) return
-    val badAtoms = atomsNeedingSupp filter (supp(_).isEmpty)
-    if (!badAtoms.isEmpty) {
-      println("the following atoms need but do not have a support")
-      badAtoms foreach println
-      println("\nrules:")
-      rules foreach println
-      println("\ninAtoms (Model):")
-      inAtoms foreach println
-      println("\natomsNeedingSupp:")
-      atomsNeedingSupp() foreach println
-      throw new RuntimeException("no support for atoms "+badAtoms)
-    }
   }
 
   def setIn(rule: NormalRule) = {
@@ -341,6 +329,34 @@ case class ExtendedJtms() {
     cons remove a
     supp remove a
     suppRule remove a
+  }
+
+  def checkTmsSemantics(): Unit = {
+    if (!doTmsSemanticsCheck) return
+    if (atomsNeedingSupp exists (supp(_).isEmpty)) {
+      throw new RuntimeException("no support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
+    }
+  }
+
+  def checkSelfSupport(): Unit = {
+    if (!doSelfSupportCheck) return
+    if (inAtoms exists unfoundedSelfSupport) {
+      invalidateModel()
+    }
+  }
+
+  def checkConsistency(): Unit = {
+    if (!doConsistencyCheck) return
+    if (inAtoms exists (a => !(justifications(a) exists valid))) {
+      invalidateModel()
+    }
+  }
+
+  def selfSupport(a:Atom): Boolean = supp(a) contains a
+
+  def unfoundedSelfSupport(a: Atom): Boolean = {
+    if (!selfSupport(a)) return false
+    justifications(a) filter valid exists (r => !(r.pos contains a))
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------

@@ -368,40 +368,40 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       }
     }
 
-    def m = tms.getModel.get
+    def m = tms.getModel
 
-    assert(m contains reach(a,b))
-    assert(m contains reach(b,c))
-    assert(m contains reach(c,d))
-    assert(m contains reach(d,e))
-    assert(m contains reach(a,c))
-    assert(m contains reach(a,d))
-    assert(m contains reach(a,e))
-    assert(m contains reach(b,c))
-    assert(m contains reach(b,d))
-    assert(m contains reach(b,e))
-    assert(m contains reach(c,d))
-    assert(m contains reach(c,e))
-    assert(m contains reach(d,e))
+    assert(m.get contains reach(a,b))
+    assert(m.get contains reach(b,c))
+    assert(m.get contains reach(c,d))
+    assert(m.get contains reach(d,e))
+    assert(m.get contains reach(a,c))
+    assert(m.get contains reach(a,d))
+    assert(m.get contains reach(a,e))
+    assert(m.get contains reach(b,c))
+    assert(m.get contains reach(b,d))
+    assert(m.get contains reach(b,e))
+    assert(m.get contains reach(c,d))
+    assert(m.get contains reach(c,e))
+    assert(m.get contains reach(d,e))
 
     tms.add(blocked(b,c))
-    assert(!(m contains reach(b,d)))
-    assert(m contains reach(b,e))
-    assert(m contains reach(c,d))
-    assert(m contains reach(c,e))
-    assert(m contains reach(a,e))
+    assert(!(m.get contains reach(b,d)))
+    assert(m.get contains reach(b,e))
+    assert(m.get contains reach(c,d))
+    assert(m.get contains reach(c,e))
+    assert(m.get contains reach(a,e))
 
     tms.add(blocked(b,e))
-    assert(!(m contains reach(b,e)))
-    assert(m contains reach(d,e))
-    assert(m contains reach(c,e))
-    assert(!(m contains reach(a,e)))
+    assert(!(m.get contains reach(b,e)))
+    assert(m.get contains reach(d,e))
+    assert(m.get contains reach(c,e))
+    assert(!(m.get contains reach(a,e)))
 
     tms.remove(blocked(b,c))
-    assert(m contains reach(b,c))
-    assert(m contains reach(b,d))
-    assert(m contains reach(b,e))
-    assert(m contains reach(a,e))
+    assert(m.get contains reach(b,c))
+    assert(m.get contains reach(b,d))
+    assert(m.get contains reach(b,e))
+    assert(m.get contains reach(a,e))
 
   }
 
