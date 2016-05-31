@@ -13,248 +13,303 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
   val O = Set[Atom]()
 
+  val times = 1 to 100
+
   test("a") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    assert(m.get.isEmpty)
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspFact(a))
-    assert(m.get == Set(a))
+      assert(m.get.isEmpty)
 
-    tms.remove(AspFact(a))
-    assert(m.get == Set())
+      tms.add(AspFact(a))
+      assert(m.get == Set(a))
+
+      tms.remove(AspFact(a))
+      assert(m.get == Set())
+
+    }
   }
 
   test("a :- not b. then b.") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,O,Set(b)))
-    assert(m.get == Set(a))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspFact(b))
-    assert(m.get == Set(b))
+      tms.add(AspRule(a, O, Set(b)))
+      assert(m.get == Set(a))
 
-    tms.remove(AspFact(b))
-    assert(m.get == Set(a))
+      tms.add(AspFact(b))
+      assert(m.get == Set(b))
+
+      tms.remove(AspFact(b))
+      assert(m.get == Set(a))
+
+    }
   }
 
   test("a :- not b. b :- not a.  b.") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,O,Set(b)))
-    tms.add(AspRule(b,O,Set(a)))
-    assert(m.get == Set(a))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspFact(b))
-    assert(m.get == Set(b))
+      tms.add(AspRule(a, O, Set(b)))
+      tms.add(AspRule(b, O, Set(a)))
+      assert(m.get == Set(a))
 
-    tms.remove(AspFact(b))
-    assert(m.get == Set(a) || m.get == Set(b)) //!
+      tms.add(AspFact(b))
+      assert(m.get == Set(b))
+
+      tms.remove(AspFact(b))
+      assert(m.get == Set(a) || m.get == Set(b)) //!
+
+    }
   }
 
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
 
-    var tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspFact(a))
-    tms.add(AspRule(a,Set(),Set(a)))
-    assert(m.get == Set(a))
+      var tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms = ExtendedJtms()
-    tms.add(AspRule(a,Set(),Set(a)))
-    tms.add(AspFact(a))
-    assert(m.get == Set(a))
+      tms.add(AspFact(a))
+      tms.add(AspRule(a, Set(), Set(a)))
+      assert(m.get == Set(a))
+
+      tms = ExtendedJtms()
+      tms.add(AspRule(a, Set(), Set(a)))
+      tms.add(AspFact(a))
+      assert(m.get == Set(a))
+
+    }
   }
 
   test("inc1: a :- not b. b :- a") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,O,Set(b)))
-    assert(m.get == Set(a))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspRule(b,a))
-    assert(m == None)
+      tms.add(AspRule(a, O, Set(b)))
+      assert(m.get == Set(a))
 
-    tms.remove(AspRule(b,a))
-    assert(m.get == Set(a))
+      tms.add(AspRule(b, a))
+      assert(m == None)
 
+      tms.remove(AspRule(b, a))
+      assert(m.get == Set(a))
+
+    }
   }
 
   test("inc2: a :- not b. b :- not c. c :- not a") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,O,Set(b)))
-    assert(m.get == Set(a))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspRule(b,O,Set(c)))
-    assert(m.get == Set(b))
+      tms.add(AspRule(a, O, Set(b)))
+      assert(m.get == Set(a))
 
-    tms.add(AspRule(c,O,Set(a)))
-    assert(m == None)
+      tms.add(AspRule(b, O, Set(c)))
+      assert(m.get == Set(b))
 
-    tms.remove(AspRule(c,O,Set(a)))
-    assert(m.get == Set(b))
+      tms.add(AspRule(c, O, Set(a)))
+      assert(m == None)
 
+      tms.remove(AspRule(c, O, Set(a)))
+      assert(m.get == Set(b))
+
+    }
   }
 
   test("inc3: a :- d, not b, not c. b :- a, d. d :- not e. e.") {
-    val tms = ExtendedJtms()
-    def m = tms.getModel
 
-    tms.add(AspRule(a,Set(d),Set(b,c)))
-    assert(m.get == Set())
+    times foreach { _ =>
 
-    tms.add(AspRule(b,Set(a,d)))
-    assert(m.get == Set())
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspRule(d,O,Set(e)))
-    assert(m == None)
+      tms.add(AspRule(a, Set(d), Set(b, c)))
+      assert(m.get == Set())
 
-    tms.add(AspFact(e))
-    assert(m.get == Set(e))
+      tms.add(AspRule(b, Set(a, d)))
+      assert(m.get == Set())
 
-    tms.remove(AspFact(e))
-    assert(m == None)
+      tms.add(AspRule(d, O, Set(e)))
+      assert(m == None)
+
+      tms.add(AspFact(e))
+      assert(m.get == Set(e))
+
+      tms.remove(AspFact(e))
+      assert(m == None)
+
+    }
   }
 
   test("inc4") {
-    val tms = ExtendedJtms()
-    def m = tms.getModel
 
-    tms.add(AspRule(a,Set(b,c)))
-    tms.add(AspRule(b,Set(d),Set(e)))
-    tms.add(AspRule(c,Set(b),Set(f)))
+    times foreach { _ =>
 
-    assert(m.get == Set())
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspRule(d,O,Set(c)))
-    assert(m == None)
+      tms.add(AspRule(a, Set(b, c)))
+      tms.add(AspRule(b, Set(d), Set(e)))
+      tms.add(AspRule(c, Set(b), Set(f)))
 
-    tms.add(AspFact(b))
-    assert(m.get == Set(a,b,c))
+      assert(m.get == Set())
 
-    tms.remove(AspRule(c,Set(b),Set(f)))
-    assert(m.get == Set(b,d))
+      tms.add(AspRule(d, O, Set(c)))
+      assert(m == None)
 
-    tms.add(AspRule(c,Set(b),Set(a)))
-    assert(m == None)
+      tms.add(AspFact(b))
+      assert(m.get == Set(a, b, c))
 
-    tms.add(AspFact(a))
-    assert(m.get == Set(a,b,d))
+      tms.remove(AspRule(c, Set(b), Set(f)))
+      assert(m.get == Set(b, d))
+
+      tms.add(AspRule(c, Set(b), Set(a)))
+      assert(m == None)
+
+      tms.add(AspFact(a))
+      assert(m.get == Set(a, b, d))
+
+    }
   }
 
   test("inc5") {
-    val tms = ExtendedJtms()
-    def m = tms.getModel
 
-    tms.add(AspRule(a,Set(b),Set(c)))
-    tms.add(AspRule(c,Set(a),Set(d)))
-    tms.add(AspRule(b,O,Set(c)))
-    assert(m == None)
+    times foreach { _ =>
 
-    tms.add(AspRule(d,O,Set(e)))
-    assert(m.get == Set(a,b,d))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspRule(e,a))
-    assert(m == None)
+      tms.add(AspRule(a, Set(b), Set(c)))
+      tms.add(AspRule(c, Set(a), Set(d)))
+      tms.add(AspRule(b, O, Set(c)))
+      assert(m == None)
 
-    tms.remove(AspRule(b,O,Set(c)))
-    assert(m.get == Set(d))
+      tms.add(AspRule(d, O, Set(e)))
+      assert(m.get == Set(a, b, d))
+
+      tms.add(AspRule(e, a))
+      assert(m == None)
+
+      tms.remove(AspRule(b, O, Set(c)))
+      assert(m.get == Set(d))
+
+    }
   }
 
   test("inc6") {
-    val tms = ExtendedJtms()
-    def m = tms.getModel
 
-    tms.add(AspRule(a,Set(d),Set(c)))
-    tms.add(AspRule(b,Set(d),Set(c)))
-    tms.add(AspRule(c,Set(a,b)))
-    tms.add(AspRule(d,O,Set(e)))
-    assert(m == None)
+    times foreach { _ =>
 
-    //notably, this will not work, due to the internal order
-    //tms.add(AspRule(e,O,Set(d)))
-    //assert(m.get == Set(e))
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    //so we can simulate the switch to the right guess:
-    tms.remove(AspRule(d,O,Set(e)))
-    tms.add(AspRule(e,O,Set(d)))
-    assert(m.get == Set(e))
+      tms.add(AspRule(a, Set(d), Set(c)))
+      tms.add(AspRule(b, Set(d), Set(c)))
+      tms.add(AspRule(c, Set(a, b)))
+      tms.add(AspRule(d, O, Set(e)))
+      assert(m == None)
 
-    //now adding the former rule will have no effect
-    tms.add(AspRule(d,O,Set(e)))
-    assert(m.get == Set(e))
+      //notably, this will not work, due to the internal order
+      //tms.add(AspRule(e,O,Set(d)))
+      //assert(m.get == Set(e))
+
+      //so we can simulate the switch to the right guess:
+      tms.remove(AspRule(d, O, Set(e)))
+      tms.add(AspRule(e, O, Set(d)))
+      assert(m.get == Set(e))
+
+      //now adding the former rule will have no effect
+      tms.add(AspRule(d, O, Set(e)))
+      assert(m.get == Set(e))
+
+    }
   }
 
   test("inc7: choice a,b, force b.") {
-    //illustrates the essence of inc6 more clearly
-    val tms = ExtendedJtms()
-    def m = tms.getModel
 
-    tms.add(AspRule(a,O,Set(b)))
-    tms.add(AspRule(b,O,Set(a)))
-    assert(m.get == Set(a)) //due the order in which rules are inserted
+    times foreach { _ =>
+      //illustrates the essence of inc6 more clearly
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    //due to the order, this update does not work:
-    //tms.add(AspRule(b,a))
-    //assert(m == None)
+      tms.add(AspRule(a, O, Set(b)))
+      tms.add(AspRule(b, O, Set(a)))
+      assert(m.get == Set(a)) //due the order in which rules are inserted
 
-    //we can simulate the switch to model by as follows:
-    tms.remove(AspRule(a,O,Set(b)))
-    assert(m.get == Set(b))
-    tms.add(AspRule(a,O,Set(b)))
-    assert(m.get == Set(b))
-    tms.add(AspRule(b,a))
-    assert(m.get == Set(b))
+      //due to the order, this update does not work:
+      //tms.add(AspRule(b,a))
+      //assert(m == None)
 
+      //we can simulate the switch to model by as follows:
+      tms.remove(AspRule(a, O, Set(b)))
+      assert(m.get == Set(b))
+      tms.add(AspRule(a, O, Set(b)))
+      assert(m.get == Set(b))
+      tms.add(AspRule(b, a))
+      assert(m.get == Set(b))
+
+    }
   }
 
   test("odd loop 1: a :- not a.") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,O,Set(a)))
-    assert(m == None)
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspFact(a))
-    assert(m.get == Set(a))
+      tms.add(AspRule(a, O, Set(a)))
+      assert(m == None)
 
+      tms.add(AspFact(a))
+      assert(m.get == Set(a))
+
+    }
   }
 
   test("odd loop 2: a :- b. b :- not a.") {
 
-    val tms = ExtendedJtms()
-    def m = tms.getModel
+    times foreach { _ =>
 
-    tms.add(AspRule(a,b))
-    tms.add(AspRule(b,O,Set(a)))
-    assert(m == None)
+      val tms = ExtendedJtms()
+      def m = tms.getModel
 
-    tms.add(AspFact(b))
-    assert(m.get == Set(a,b))
+      tms.add(AspRule(a, b))
+      tms.add(AspRule(b, O, Set(a)))
+      assert(m == None)
 
-    tms.remove(AspFact(b))
-    assert(m == None)
+      tms.add(AspFact(b))
+      assert(m.get == Set(a, b))
 
-    //tms.add(AspRule(a,O,Set(b)))
-    //assert(m.get == Set(a)) -- not computed if b is picked first
+      tms.remove(AspFact(b))
+      assert(m == None)
 
+      //tms.add(AspRule(a,O,Set(b)))
+      //assert(m.get == Set(a)) -- not computed if b is picked first
+
+    }
   }
 
   test("odd loop 3: a :- b. b :- c. c :- not a.") {
+
+    times foreach { _ =>
 
     val tms = ExtendedJtms()
     def m = tms.getModel
@@ -266,7 +321,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     tms.remove(AspRule(a,b))
     assert(m.get == Set(b,c))
-
+    }
   }
 
 }

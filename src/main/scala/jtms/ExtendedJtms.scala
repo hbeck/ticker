@@ -32,6 +32,7 @@ case class ExtendedJtms() {
   var doTmsSemanticsCheck = true //introduced while debugging remove problems
   var doSelfSupportCheck = true
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
+  var shuffle = true
 
   //based on JTMS update algorithm
   def add(rule: NormalRule): Unit = {
@@ -171,12 +172,16 @@ case class ExtendedJtms() {
 
   def getOptOtherThan(atoms: collection.Set[Atom], atom: Option[Atom]): Option[Atom] = {
     if (atoms.isEmpty) return None
-    val head = atoms.head
-    if (atom == None) return Some(head)
-    if (atoms.size == 1) return Some(head)
-    val other = atom.get
-    if (head != other) return Some(head)
-    return atoms find (_ != other)
+    if (atoms.size == 1) return Some(atoms.head)
+
+    val list = List[Atom]() ++ atoms
+    val idx = if (shuffle) { util.Random.nextInt(list.size) } else 0
+    val elem = list(idx)
+
+    if (atom == None) return Some(elem)
+    val elemToAvoid = atom.get
+    if (elem != elemToAvoid) return Some(elem)
+    return list find (_ != elemToAvoid)
   }
 
   def setIn(rule: NormalRule) = {
@@ -274,7 +279,7 @@ case class ExtendedJtms() {
 
   def fixIn(unfoundedRule: NormalRule): Unit = {
     setIn(unfoundedRule)
-    unfoundedRule.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO: write up has setOut, need fixOut
+    unfoundedRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors TODO: write up has setOut, need fixOut
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
