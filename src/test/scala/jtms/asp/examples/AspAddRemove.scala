@@ -6,6 +6,7 @@ import fixtures.AtomTestFixture
 import jtms.{ExtendedJtms, JtmsBeierle}
 import org.scalatest.FunSuite
 import jtms.ExtendedJtms.{UpdateStrategyDoyle,UpdateStrategyStepwise}
+import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 
 /**
   * Created by hb on 2016-04-28
@@ -466,23 +467,6 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
         )
       }
 
-    }
-  }
-
-  def assertModelWithKnownLimitation(tms: ExtendedJtms, model: Set[Atom], knownLimitation: => Boolean): Unit = {
-    assertModelWithKnownLimitation(tms, tms.getModel.get == model, knownLimitation)
-  }
-
-  def assertModelWithKnownLimitation(tms: ExtendedJtms, modelCondition: => Boolean, knownLimitation: => Boolean): Unit = {
-    if (tms.getModel == None) {
-      if (!knownLimitation) { //known limitation
-        println("rules: "+tms.rules)
-        println("statusSeq: "+tms.statusSeq)
-        println("choiceSeq: "+tms.choiceSeq)
-        assert(false)
-      }
-    } else {
-      assert(modelCondition)
     }
   }
 

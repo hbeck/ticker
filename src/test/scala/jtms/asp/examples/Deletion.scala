@@ -3,6 +3,8 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
+import jtms.ExtendedJtms.{UpdateStrategyDoyle, UpdateStrategyStepwise}
+import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.tmn.examples.TweetyBehavior
 import jtms.{ExtendedJtms, in}
 import org.scalatest.FlatSpec
@@ -164,15 +166,22 @@ class Deletion extends FlatSpec with AtomTestFixture{
   "Removing an additional rule form the JTMS 5 sample" should "result in the original model" in {
     // arrange
     val setup = new JTMS_5_ASP
-    val net = setup.net
+    val tms = setup.net
 
-    assert(net.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
+    assert(tms.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
 
     // act
-    net.remove(setup.j0)
+    tms.remove(setup.j0)
 
     // assert
-    assert(net.getModel.get == Set(setup.e, setup.b, setup.d))
+    // assert(net.getModel.get == Set(setup.e, setup.b, setup.d))
+    tms.updateStrategy match {
+      case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+      case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
+        tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
+      )
+    }
+
   }
 
   "Removing the Penguin premise from the Tweety sample" should "result in the Model V, F" in {
