@@ -464,7 +464,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("jtms5 essence") {
 
-    times foreach { _ =>
+    //times foreach { _ =>
 
       //works with doyle if c and b are replaced (i.e., a :- b. b :- a. etc.)
 
@@ -476,17 +476,25 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
         AspRule(d, c)) //d :- c
       )
 
-      def m = tms.getModel.get
-
-      assert(m == Set(b, d))
+      def m = tms.getModel
+      assert(m.get == Set(b, d))
 
       tms.add(AspFact(a))
-      assert(m == Set(a, c, d))
+      assert(m.get == Set(a, c, d))
+
+      //tms.forceChoiceOrder(Seq(b,d,c,a))
+      tms.forceChoiceOrder(Seq(d,b,c,a))
 
       tms.remove(AspFact(a))
-      assert(m == Set(b, d))
+      if (m == None) {
+        println("rules: "+tms.rules)
+        println("choiceSeq: "+tms.choiceSeq)
+        assert(false)
+      } else {
+        assert(m.get == Set(b, d))
+      }
 
-    }
+    //}
   }
 
   test("jtms5 essence part") {

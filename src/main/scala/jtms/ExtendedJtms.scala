@@ -33,6 +33,9 @@ case class ExtendedJtms() {
   var doSelfSupportCheck = true
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
   var shuffle = true
+  var recordChoiceSeq = true
+
+  var choiceSeq = Seq[Atom]()
 
   //based on JTMS update algorithm
   def add(rule: NormalRule): Unit = {
@@ -114,7 +117,7 @@ case class ExtendedJtms() {
   def invalid(rule: NormalRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def unfounded(rule: NormalRule) = //TODO rename, maybe 'partiallyValid'
+  def posValidNegOpen(rule: NormalRule) = //TODO write-up renaming
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
   def register(rule: NormalRule): Unit = {
@@ -132,6 +135,11 @@ case class ExtendedJtms() {
   }
 
   def updateBeliefs(atoms: Set[Atom]): Unit = {
+
+    if (recordChoiceSeq) {
+      choiceSeq = Seq[Atom]()
+    }
+
     try {
       updateStrategy match {
         case `UpdateStrategyDoyle` => updateDoyle(atoms)
@@ -145,6 +153,7 @@ case class ExtendedJtms() {
         invalidateModel()
       }
     }
+
   }
 
   def invalidateModel(): Unit = {
@@ -173,6 +182,10 @@ case class ExtendedJtms() {
   def getOptOtherThan(atoms: collection.Set[Atom], atom: Option[Atom]): Option[Atom] = {
     if (atoms.isEmpty) return None
     if (atoms.size == 1) return Some(atoms.head)
+
+    if (choiceOrderForced) {
+      return choiceOrder find (status(_) == unknown)
+    }
 
     val list = List[Atom]() ++ atoms
     val idx = if (shuffle) { util.Random.nextInt(list.size) } else 0
@@ -267,7 +280,12 @@ case class ExtendedJtms() {
   }
 
   def fix(a: Atom): Boolean = {
-    justifications(a) find unfounded match {
+
+    if (recordChoiceSeq) {
+      choiceSeq = choiceSeq :+ a
+    }
+
+    justifications(a) find posValidNegOpen match {
       case Some(rule) => {
         if (affected(a).isEmpty) fixIn(rule)
         else return false
@@ -275,11 +293,12 @@ case class ExtendedJtms() {
       case None => fixOut(a)
     }
     true
+
   }
 
-  def fixIn(unfoundedRule: NormalRule): Unit = {
-    setIn(unfoundedRule)
-    unfoundedRule.neg filter (status(_) == unknown) foreach setOut //fix ancestors TODO: write up has setOut, need fixOut
+  def fixIn(rulePosValidNegOpen: NormalRule): Unit = {
+    setIn(rulePosValidNegOpen)
+    rulePosValidNegOpen.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO: write up has setOut, need fixOut
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
@@ -288,15 +307,20 @@ case class ExtendedJtms() {
      */
   }
 
-  def fixOut(a: Atom) = {
+  def fixOut(a: Atom): Unit = {
     status(a) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    /*
+      TODO write-up next line openJustifications - in recursive call some justifications might have been set invalid already (>= 2 body atoms)
+     */
+    val maybeAtoms: List[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach setOut //fix ancestors //TODO setOut vs fixOut
+    unknownPosAtoms foreach fixOut //fix ancestors //TODO write-up setOut vs fixOut -- needs to be fixOut
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOut(a)
   }
+
+  def openJustifications(a: Atom) = justifications(a) filter (!invalid(_))
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
     trans(f)(f(t))
@@ -360,6 +384,13 @@ case class ExtendedJtms() {
   def unfoundedSelfSupport(a: Atom): Boolean = {
     if (!selfSupport(a)) return false
     justifications(a) filter valid exists (r => !(r.pos contains a))
+  }
+
+  var choiceOrderForced = false
+  var choiceOrder = Seq[Atom]()
+  def forceChoiceOrder(seq: Seq[Atom]) = {
+    choiceOrderForced=true
+    choiceOrder = seq
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------
