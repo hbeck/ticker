@@ -73,7 +73,7 @@ case class ExtendedJtms() {
 
   def justifications(h: Atom) = rules filter (_.head == h)
 
-  def allAtoms() = cons.keySet
+  def allAtoms() = (rules flatMap (_.atoms)) toSet
 
   def facts() = rules filter (_.isFact) map (_.head) toSet
 
@@ -309,18 +309,16 @@ case class ExtendedJtms() {
 
   def unregister(rule: NormalRule): Unit = {
     if (!(rules contains rule)) return
-    rules = rules filterNot (_ == rule)
-    //unregister deprecated rule atoms
-    val A = (rules flatMap (r => r.body + r.head)).toSet //atoms() based on cons keys which is not yet updated
-    for (a <- (rule.atoms diff A)) {
-      unregister(a)
-    }
-    //remove deprecated cons information
-    for (a <- (rule.body intersect A)) { //body atoms still in use
-      //efficiency - better use data structure
-      if (!(justifications(rule.head) exists (_.body contains a))) {
-        cons(a) -= rule.head
-      }
+    rules = rules filter (_ != rule)
+    val remainingAtoms = allAtoms()
+    (rule.atoms diff remainingAtoms) foreach unregister
+    (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
+  }
+
+  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
+    //efficiency - better use data structure
+    if (!(justifications(rule.head) exists (_.body contains a))) {
+      cons(a) -= rule.head
     }
   }
 
@@ -347,7 +345,7 @@ case class ExtendedJtms() {
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if (inAtoms exists (a => !(justifications(a) exists valid))) {
+    if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
       invalidateModel()
     }
   }
