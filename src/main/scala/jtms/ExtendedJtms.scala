@@ -17,8 +17,11 @@ object ExtendedJtms {
 }
 
 /**
-  * In addition DO JTMS, ExtendedJTMS has a remove method.
-  * Works in two modes, i) according to Doyle/Beierle and ii) stepwise, suitable if remove is used
+  * In addition to JTMS, ExtendedJTMS has a remove method.
+  * Works in two update modes,
+  *
+  * i) according to Doyle/Beierle and
+  * ii) stepwise, where a deterministic step succeeds very choice (fix).
   *
   */
 case class ExtendedJtms() {
@@ -29,6 +32,7 @@ case class ExtendedJtms() {
 
   var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
+  //for inspection:
   var doTmsSemanticsCheck = true //introduced while debugging remove problems
   var doSelfSupportCheck = true
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
@@ -44,8 +48,8 @@ case class ExtendedJtms() {
     register(rule)
     if (status(rule.head) == in) return
     if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val ats = repercussions(rule.head) + rule.head
-    updateBeliefs(ats)
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
   }
 
   def remove(rule: NormalRule): Unit = {
@@ -53,8 +57,8 @@ case class ExtendedJtms() {
     if (!(allAtoms contains rule.head)) return
     if (status(rule.head) == out) return
     if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
-    val ats = repercussions(rule.head) + rule.head
-    updateBeliefs(ats)
+    val atoms = repercussions(rule.head) + rule.head
+    updateBeliefs(atoms)
   }
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {

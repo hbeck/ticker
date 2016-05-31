@@ -457,18 +457,26 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       assert(m == Set(a, c, d, e, f))
 
       tms.remove(r0)
-      if (tms.getModel == None) {
-        if (tms.choiceSeq.head != d) { //known limitation
-          assert(false)
-        }
-        //        println("rules: "+tms.rules)
-        //        println("statusSeq: "+tms.statusSeq)
-        //        println("choiceSeq: "+tms.choiceSeq)
-        //        assert(false)
-      } else {
-        assert(m == Set(e, b, d))
-      }
 
+      assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+
+    }
+  }
+
+  def assertModelWithKnownLimitation(tms: ExtendedJtms, model: Set[Atom], knownLimitation: => Boolean): Unit = {
+    assertModelWithKnownLimitation(tms, tms.getModel.get == model, knownLimitation)
+  }
+
+  def assertModelWithKnownLimitation(tms: ExtendedJtms, modelCondition: => Boolean, knownLimitation: => Boolean): Unit = {
+    if (tms.getModel == None) {
+      if (!knownLimitation) { //known limitation
+        println("rules: "+tms.rules)
+        println("statusSeq: "+tms.statusSeq)
+        println("choiceSeq: "+tms.choiceSeq)
+        assert(false)
+      }
+    } else {
+      assert(modelCondition)
     }
   }
 
@@ -496,17 +504,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       //tms.forceChoiceOrder(Seq(d,b,c,a))
 
       tms.remove(AspFact(a))
-      if (m == None) {
-        if (tms.choiceSeq.head != d) { //known limitation
-          assert(false)
-        }
-//        println("rules: "+tms.rules)
-//        println("statusSeq: "+tms.statusSeq)
-//        println("choiceSeq: "+tms.choiceSeq)
-//        assert(false)
-      } else {
-        assert(m.get == Set(b, d))
-      }
+      assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
 
     }
   }
@@ -527,17 +525,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       assert(m == Set(a, c))
 
       tms.remove(AspFact(a))
-      if (tms.getModel == None) {
-        if (tms.choiceSeq.head != d) { //known limitation
-          assert(false)
-        }
-        //        println("rules: "+tms.rules)
-        //        println("statusSeq: "+tms.statusSeq)
-        //        println("choiceSeq: "+tms.choiceSeq)
-        //        assert(false)
-      } else {
-        assert(m == Set(b, d))
-      }
+      assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
 
     }
   }
@@ -563,18 +551,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       //tms.forceChoiceOrder(Seq(d)) //just saying "d first"
       tms.add(AspFact(e)) //instead of removing fact a directly
-
-      if (m == None) {
-        if (tms.choiceSeq.head != d) { //known limitation
-          assert(false)
-        }
-//        println("rules: "+tms.rules)
-//        println("statusSeq: "+tms.statusSeq)
-//        println("choiceSeq: "+tms.choiceSeq)
-//        assert(false)
-      } else {
-        assert(m.get == Set(e, b, d))
-      }
+      assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
 
     }
   }
@@ -598,18 +575,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       assert(m == Set(b, c, d))
 
       tms.add(AspFact(a))
-      if (tms.getModel == None) {
-        if (tms.choiceSeq.head != d) { //known limitation
-          assert(false)
-        }
-        //        println("rules: "+tms.rules)
-        //        println("statusSeq: "+tms.statusSeq)
-        //        println("choiceSeq: "+tms.choiceSeq)
-        //        assert(false)
-      } else {
-        assert(m == Set(a, b, d) || m == Set(a, c, d))
-      }
-
+      assertModelWithKnownLimitation(tms, tms.getModel.get == Set(a,b,d) || tms.getModel.get == Set(a,c,d), tms.choiceSeq.head == d)
 
     }
   }
