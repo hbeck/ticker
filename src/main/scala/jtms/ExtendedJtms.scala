@@ -34,8 +34,10 @@ case class ExtendedJtms() {
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
   var shuffle = true
   var recordChoiceSeq = true
+  var recordStatusSeq = true
 
   var choiceSeq = Seq[Atom]()
+  var statusSeq = Seq[(Atom,Status,String)]()
 
   //based on JTMS update algorithm
   def add(rule: NormalRule): Unit = {
@@ -136,9 +138,8 @@ case class ExtendedJtms() {
 
   def updateBeliefs(atoms: Set[Atom]): Unit = {
 
-    if (recordChoiceSeq) {
-      choiceSeq = Seq[Atom]()
-    }
+    if (recordChoiceSeq) choiceSeq = Seq[Atom]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
 
     try {
       updateStrategy match {
@@ -171,7 +172,7 @@ case class ExtendedJtms() {
     var lastAtom: Option[Atom] = None
     while (hasUnknown) {
       unknownAtoms foreach determineAndPropagateStatus
-      val atom = getOptOtherThan(unknownAtoms,lastAtom) //ensure that the same atom is not tried consecutively
+      val atom = getOptUnknownOtherThan(lastAtom) //ensure that the same atom is not tried consecutively
       if (atom.isDefined) {
         fixAndDetermineAndPropagateStatus(atom.get)
       }
@@ -179,12 +180,18 @@ case class ExtendedJtms() {
     }
   }
 
-  def getOptOtherThan(atoms: collection.Set[Atom], atom: Option[Atom]): Option[Atom] = {
+  def getOptUnknownOtherThan(atom: Option[Atom]): Option[Atom] = {
+
+    val atoms = unknownAtoms
+
     if (atoms.isEmpty) return None
     if (atoms.size == 1) return Some(atoms.head)
 
-    if (choiceOrderForced) {
-      return choiceOrder find (status(_) == unknown)
+    if (doForceChoiceOrder) {
+      val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
+      if (maybeAtom.isDefined) {
+        return maybeAtom
+      }
     }
 
     val list = List[Atom]() ++ atoms
@@ -201,11 +208,14 @@ case class ExtendedJtms() {
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
     suppRule(rule.head) = Some(rule)
+
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
   }
 
   //return success
   def setOut(a: Atom) = {
     status(a) = out
+    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
     //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing:
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
@@ -215,10 +225,12 @@ case class ExtendedJtms() {
     suppRule(a) = None
   }
 
-  def setUnknown(atom: Atom) = {
-    status(atom) = unknown
-    supp(atom) = Set()
-    suppRule(atom) = None
+  def setUnknown(a: Atom) = {
+    status(a) = unknown
+    supp(a) = Set()
+    suppRule(a) = None
+
+    //if (recordStatusSeq) statusSeq = statusSeq :+ (a,unknown,"set")
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -272,6 +284,9 @@ case class ExtendedJtms() {
   }
 
   def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
+    if (status(a) != unknown)
+      return
+
     if (fix(a)) {
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
@@ -281,9 +296,7 @@ case class ExtendedJtms() {
 
   def fix(a: Atom): Boolean = {
 
-    if (recordChoiceSeq) {
-      choiceSeq = choiceSeq :+ a
-    }
+    if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
     justifications(a) find posValidNegOpen match {
       case Some(rule) => {
@@ -297,6 +310,7 @@ case class ExtendedJtms() {
   }
 
   def fixIn(rulePosValidNegOpen: NormalRule): Unit = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValidNegOpen.head,in,"fix")
     setIn(rulePosValidNegOpen)
     rulePosValidNegOpen.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO: write up has setOut, need fixOut
     /* not that setIn here has to be called first. consider
@@ -309,6 +323,7 @@ case class ExtendedJtms() {
 
   def fixOut(a: Atom): Unit = {
     status(a) = out
+    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"fix")
     /*
       TODO write-up next line openJustifications - in recursive call some justifications might have been set invalid already (>= 2 body atoms)
      */
@@ -386,11 +401,11 @@ case class ExtendedJtms() {
     justifications(a) filter valid exists (r => !(r.pos contains a))
   }
 
-  var choiceOrderForced = false
-  var choiceOrder = Seq[Atom]()
+  private var doForceChoiceOrder = false
+  var forcedChoiceSeq = Seq[Atom]()
   def forceChoiceOrder(seq: Seq[Atom]) = {
-    choiceOrderForced=true
-    choiceOrder = seq
+    doForceChoiceOrder=true
+    forcedChoiceSeq = seq
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------
