@@ -5,6 +5,7 @@ import core.asp._
 import fixtures.AtomTestFixture
 import jtms.{ExtendedJtms, JtmsBeierle}
 import org.scalatest.FunSuite
+import jtms.ExtendedJtms.{UpdateStrategyDoyle,UpdateStrategyStepwise}
 
 /**
   * Created by hb on 2016-04-28
@@ -458,7 +459,12 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms.remove(r0)
 
-      assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+      tms.updateStrategy match {
+        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
+          tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
+        )
+      }
 
     }
   }
@@ -502,9 +508,16 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       //tms.forceChoiceOrder(Seq(b,d,c,a))
       //tms.forceChoiceOrder(Seq(d,b,c,a))
+      //tms.forceChoiceOrder(Seq(c,d))
 
       tms.remove(AspFact(a))
-      assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+
+      tms.updateStrategy match {
+        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b,d),
+          tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
+        )
+      }
 
     }
   }
@@ -525,7 +538,11 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       assert(m == Set(a, c))
 
       tms.remove(AspFact(a))
-      assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+
+      tms.updateStrategy match {
+        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b,d),tms.choiceSeq.head == d)
+      }
 
     }
   }
@@ -551,7 +568,13 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       //tms.forceChoiceOrder(Seq(d)) //just saying "d first"
       tms.add(AspFact(e)) //instead of removing fact a directly
-      assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+
+      tms.updateStrategy match {
+        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
+          tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
+        )
+      }
 
     }
   }

@@ -2,11 +2,16 @@ package jtms
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
+import jtms.ExtendedJtms.{UpdateStrategy, UpdateStrategyDoyle, UpdateStrategyStepwise}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
 object ExtendedJtms {
+
+  sealed trait UpdateStrategy
+  object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
+  object UpdateStrategyStepwise extends UpdateStrategy
 
   def apply(P: NormalProgram): ExtendedJtms = {
     val net = new ExtendedJtms()
@@ -26,16 +31,13 @@ object ExtendedJtms {
   */
 case class ExtendedJtms() {
 
-  sealed trait UpdateStrategy
-  object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
-  object UpdateStrategyStepwise extends UpdateStrategy
+  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
+  var doSelfSupportCheck = true
+  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
 
   //for inspection:
   var doTmsSemanticsCheck = true //introduced while debugging remove problems
-  var doSelfSupportCheck = true
-  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
   var shuffle = true
   var recordChoiceSeq = true
   var recordStatusSeq = true
