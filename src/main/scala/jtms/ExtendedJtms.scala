@@ -119,7 +119,7 @@ case class ExtendedJtms() {
   def invalid(rule: NormalRule) =
     (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
 
-  def posValidNegOpen(rule: NormalRule) = //TODO write-up renaming
+  def posValid(rule: NormalRule) =
     (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
 
   def register(rule: NormalRule): Unit = {
@@ -216,7 +216,7 @@ case class ExtendedJtms() {
   def setOut(a: Atom) = {
     status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
-    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing:
+    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException()
@@ -229,7 +229,6 @@ case class ExtendedJtms() {
     status(a) = unknown
     supp(a) = Set()
     suppRule(a) = None
-
     //if (recordStatusSeq) statusSeq = statusSeq :+ (a,unknown,"set")
   }
 
@@ -298,7 +297,7 @@ case class ExtendedJtms() {
 
     if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
-    justifications(a) find posValidNegOpen match {
+    justifications(a) find posValid match {
       case Some(rule) => {
         if (affected(a).isEmpty) fixIn(rule)
         else return false
@@ -309,10 +308,10 @@ case class ExtendedJtms() {
 
   }
 
-  def fixIn(rulePosValidNegOpen: NormalRule): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValidNegOpen.head,in,"fix")
-    setIn(rulePosValidNegOpen)
-    rulePosValidNegOpen.neg filter (status(_) == unknown) foreach fixOut //fix ancestors TODO: write up has setOut, need fixOut
+  def fixIn(rulePosValid: NormalRule): Unit = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head,in,"fix")
+    setIn(rulePosValid)
+    rulePosValid.neg filter (status(_) == unknown) foreach fixOut //fix ancestors
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
@@ -324,12 +323,9 @@ case class ExtendedJtms() {
   def fixOut(a: Atom): Unit = {
     status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"fix")
-    /*
-      TODO write-up next line openJustifications - in recursive call some justifications might have been set invalid already (>= 2 body atoms)
-     */
     val maybeAtoms: List[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach fixOut //fix ancestors //TODO write-up setOut vs fixOut -- needs to be fixOut
+    unknownPosAtoms foreach fixOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOut(a)
