@@ -547,11 +547,11 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       assert(m.get == Set(b, d))
 
-      tms.add(AspRule(a, none, Set(e))) //instead of AspFact(a)
+      tms.add(AspRule(a, none, Set(e))) //a :- not e.  instead of AspFact(a)
       assert(m.get == Set(a, c, d))
 
-      //tms.forceChoiceOrder(Seq(d)) //just saying "d first"
-      tms.add(AspFact(e)) //instead of removing fact a directly
+      tms.forceChoiceOrder(Seq(d)) //just saying "d first"
+      tms.add(AspFact(e)) //e.  instead of removing fact a directly
 
       tms.updateStrategy match {
         case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)

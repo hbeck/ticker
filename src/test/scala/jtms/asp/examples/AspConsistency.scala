@@ -102,9 +102,19 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.add(AspRule(a, O, Set(b)))
       assert(m.get == Set(a))
 
+      tms.forceChoiceOrder(Seq(a,b))
       tms.add(AspRule(b, a))
       assert(m == None)
 
+      tms.removeChoiceOrder()
+      tms.remove(AspRule(b, a))
+      assert(m.get == Set(a))
+
+      tms.forceChoiceOrder(Seq(b,a))
+      tms.add(AspRule(b,a))
+      assert(m == None)
+
+      tms.removeChoiceOrder()
       tms.remove(AspRule(b, a))
       assert(m.get == Set(a))
 
@@ -253,7 +263,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.add(AspRule(b, O, Set(a)))
       assert(m.get == Set(a)) //due the order in which rules are inserted
 
-      //due to the order, this update does not work:
+      //due to the order, this update does not work: //TODO write-up
       //tms.add(AspRule(b,a))
       //assert(m == None)
 

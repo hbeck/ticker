@@ -31,7 +31,7 @@ object ExtendedJtms {
   */
 case class ExtendedJtms() {
 
-  var updateStrategy: UpdateStrategy = UpdateStrategyDoyle
+  var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
   var doSelfSupportCheck = true
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
@@ -96,7 +96,7 @@ case class ExtendedJtms() {
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
   def inAtoms() = allAtoms filter (status(_) == in)
-
+  def outAtoms() = allAtoms filter (status(_) == out)
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
   def hasUnknown = allAtoms exists (status(_) == unknown)
@@ -218,7 +218,6 @@ case class ExtendedJtms() {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
   }
 
-  //return success
   def setOut(a: Atom) = {
     status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
@@ -385,7 +384,7 @@ case class ExtendedJtms() {
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
     if (inAtoms exists unfoundedSelfSupport) {
-      invalidateModel()
+      invalidateModel() //TODO can this happen?
     }
   }
 
@@ -393,6 +392,9 @@ case class ExtendedJtms() {
     if (!doConsistencyCheck) return
     if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
       invalidateModel()
+    }
+    if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
+      invalidateModel() //TODO can this happen?
     }
   }
 
@@ -406,8 +408,13 @@ case class ExtendedJtms() {
   private var doForceChoiceOrder = false
   var forcedChoiceSeq = Seq[Atom]()
   def forceChoiceOrder(seq: Seq[Atom]) = {
-    doForceChoiceOrder=true
+    doForceChoiceOrder = true
     forcedChoiceSeq = seq
+  }
+
+  def removeChoiceOrder() = {
+    doForceChoiceOrder = false
+    forcedChoiceSeq = Seq[Atom]()
   }
 
   // ----------------- test stuff or stuff that might not be needed ----------------
