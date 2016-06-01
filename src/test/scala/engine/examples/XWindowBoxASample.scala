@@ -6,7 +6,7 @@ import core.lars._
 import engine.EvaluationEngine
 import engine.asp.now
 import engine.config.BuildEngine
-import fixtures.TimeTestFixtures
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,8 +14,8 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 22.04.16.
   */
-class XWindowBoxASample extends FlatSpec with TimeTestFixtures {
-  val aspProgram =
+class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+  val aspStringProgram =
     """x(T) :- w1b_a(T).
 
        w1b_a(T) :- now(T), not spoil_w1b_a(T).
@@ -26,54 +26,46 @@ class XWindowBoxASample extends FlatSpec with TimeTestFixtures {
       #show x/1.
     """
 
-  val aspExpressions = aspProgram.split('\n') toSet
+  val aspExpressions = aspStringProgram.split('\n') toSet
 
   val w1b_a = Atom("w1b_a")
   val spoil_w1b_a = Atom("spoil_w1b_a")
 
   val u = Atom("u")
 
-  val program = AspProgram(
+  val aspProgram = AspProgram(
     x("T") :- w1b_a("T"),
     w1b_a("T") :- now("T") not (spoil_w1b_a("T")),
     spoil_w1b_a("T") :- now("T") and u("U") not (a("U"))
   )
 
-  val larsProgram = Program.from(
+  val program = Program.from(
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 
-  def evaluation(evaluationEngine: EvaluationEngine) = {
+  def engineWithStream = {
+    info("Given '{t1 -> a}, {t2 -> a}' ")
 
     evaluationEngine.append(t1)(a)
     evaluationEngine.append(t2)(a)
 
-    info("Given '{t1 -> a}, {t2 -> a}' ")
-
-    it should "not lead to x at t0" in {
-      evaluationEngine.evaluate(t0).get shouldNot contain(x)
-    }
-
-    it should "not lead to x at t1" in {
-      evaluationEngine.evaluate(t1).get.value shouldNot contain(x)
-    }
-
-    it should "lead to x at t2" in {
-      evaluationEngine.evaluate(t2).get.value should contain(x)
-    }
-    it should "not contain x(2) at t3" in {
-      val model = evaluationEngine.evaluate(TimePoint(3)).get
-      model.value shouldNot contain(x)
-    }
+    evaluationEngine
   }
 
 
-  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
-  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
-  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
+  it should "not lead to x at t0" in {
+    engineWithStream.evaluate(t0).get shouldNot contain(x)
+  }
 
+  it should "not lead to x at t1" in {
+    engineWithStream.evaluate(t1).get.value shouldNot contain(x)
+  }
 
-  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
-  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
-  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
+  it should "lead to x at t2" in {
+    engineWithStream.evaluate(t2).get.value should contain(x)
+  }
+  it should "not contain x(2) at t3" in {
+    val model = engineWithStream.evaluate(TimePoint(3)).get
+    model.value shouldNot contain(x)
+  }
 }

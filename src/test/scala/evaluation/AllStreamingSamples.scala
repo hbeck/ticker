@@ -1,6 +1,7 @@
 package evaluation
 
 import engine.EngineStreamSpec
+import engine.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
 import fixtures.{ClingoPullEngine, ClingoPushEngine, ConfigurableEvaluationSuite, TmsPushEngine}
 import org.scalatest.Suites
 
@@ -9,7 +10,10 @@ import org.scalatest.Suites
   */
 abstract class AllStreamingSamples extends Suites(
   // TODO: add all specs here
-  new EngineStreamSpec
+  new EngineStreamSpec,
+  new ZWindowTimeASample,
+  new XWindowBoxASample,
+  new YWindowDiamondASample
 ) with ConfigurableEvaluationSuite
 
 

@@ -13,17 +13,18 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
   val program: Program
 
-  private var engineCache: Option[EvaluationEngine] = None
+  private var engineCache: EvaluationEngine = null
 
-  def evaluationEngine: EvaluationEngine = engineCache.getOrElse(defaultEngine(program))
+  def evaluationEngine: EvaluationEngine = engineCache
 
   override def withFixture(test: NoArgTest): Outcome = {
 
     val engineConfig = test.configMap.get("engine")
 
     engineConfig match {
-      case Some(builder: EngineBuilder) => this.engineCache = Some(builder(program))
-      case _ => this.engineCache = None
+        // TODO: is there a way to make this type safe?
+      case Some(builder: EngineBuilder) => this.engineCache = builder(program)
+      case _ => this.engineCache = defaultEngine(program)
     }
 
     ConfigurableEvaluationSpec.super.withFixture(test)
