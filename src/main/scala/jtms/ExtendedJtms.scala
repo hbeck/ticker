@@ -314,9 +314,16 @@ case class ExtendedJtms() {
   }
 
   def fixIn(rulePosValid: NormalRule): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head,in,"fix")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"fix")
     setIn(rulePosValid)
-    rulePosValid.neg filter (status(_) == unknown) foreach fixOut //fix ancestors
+    //rulePosValid.neg filter (status(_) == unknown) foreach fixOut //fix ancestors
+    rulePosValid.neg foreach { a =>
+      status(a) match {
+        case `unknown` => fixOut(a)
+        case `in` => throw new IncrementalUpdateFailureException()
+        case `out` => //nothing to be done
+      }
+    }
     /* not that setIn here has to be called first. consider
        a :- not b.
        b :- not a. ,
@@ -391,7 +398,7 @@ case class ExtendedJtms() {
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
     if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
-      invalidateModel()
+      invalidateModel() //TODO can this happen?
     }
     if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
       invalidateModel() //TODO can this happen?
