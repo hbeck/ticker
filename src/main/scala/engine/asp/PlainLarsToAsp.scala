@@ -3,7 +3,7 @@ package engine.asp
 import core.asp.{AspProgram, AspRule}
 import core.lars._
 import core.{Atom, AtomWithArgument, PinnedAtom}
-import engine.asp.evaluation.{PinnedProgram, PinnedRule}
+import engine.asp.evaluation.{MappedRule, PinnedProgram, PinnedRule}
 
 /**
   * Created by FM on 05.05.16.
@@ -29,9 +29,10 @@ object PlainLarsToAsp {
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): PinnedProgram = {
-    val rules = program.rules flatMap this.apply
-    AspProgram.pinned(rules.toList)
+  def apply(program: Program): MappedProgram = {
+    val rules: Seq[MappedRule] = program.rules map (r => (r, this.apply(r)))
+    MappedProgram(rules)
+    //    AspProgram.pinned(rules.toList)
   }
 
   def apply(windowAtom: WindowAtom): PinnedAtom = {
@@ -150,4 +151,8 @@ object PlainLarsToAsp {
     val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }
+}
+
+case class MappedProgram(mappedRules: Seq[MappedRule]) extends PinnedProgram {
+  override val rules = mappedRules.flatMap(_._2)
 }

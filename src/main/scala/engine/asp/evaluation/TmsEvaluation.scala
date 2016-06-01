@@ -2,12 +2,13 @@ package engine.asp.evaluation
 
 import core._
 import core.lars.TimePoint
+import engine.asp.MappedProgram
 import jtms.ExtendedJtms
 
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluation(pinnedAspProgram: PinnedProgram) extends StreamingAspInterpreter {
+case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspInterpreter {
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel] = {
 
     val groundedProgram = GroundPinned(timePoint)(pinnedAspProgram, pinnedAtoms)

@@ -27,7 +27,7 @@ object ClingoWrapper {
 
     val clingoVersion = parseVersion(versionOutput)
 
-    new ClingoWrapper(Process(executable, List("--verbose=0", "--models=0")), clingoVersion)
+    new ClingoWrapper(Process(executable, List("--warn=no-atom-undefined", "--verbose=0", "--models=0")), clingoVersion)
   }
 }
 
@@ -68,7 +68,6 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
     if (result.endsWith("SATISFIABLE")) {
       val lines = result.linesWithSeparators
         // clingo outputs warnings for undefined atoms
-        // TODO check if we should use --warn no-atom-undefined for the clingo execution
         .filterNot(line => line.startsWith("-:") || line.startsWith(" ") || line.trim.isEmpty)
         .map(_.stripLineEnd)
         .toList

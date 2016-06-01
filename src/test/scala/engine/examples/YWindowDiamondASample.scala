@@ -6,7 +6,7 @@ import core.lars._
 import engine.EvaluationEngine
 import engine.asp.now
 import engine.config.BuildEngine
-import fixtures.TimeTestFixtures
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,8 +14,8 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends FlatSpec with TimeTestFixtures {
-  val aspProgram =
+class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+  val aspStringProgram =
     """y(T) :- w1d_a(T).
 
       w1d_a(T) :- a(U), now(T), U >= T - 1000, U <= T.
@@ -24,49 +24,43 @@ class YWindowDiamondASample extends FlatSpec with TimeTestFixtures {
       #show y/1.
     """
 
-  val aspExpressions = aspProgram.split('\n') toSet
+  val aspExpressions = aspStringProgram.split('\n') toSet
 
   val w1d_a = Atom("w1d_a")
 
   val u = Atom("u")
 
-  val program = AspProgram(
+  val aspProgram = AspProgram(
     y("T") :- w1d_a("T"),
     w1d_a("T") :- a("U") and now("T") and u("U")
   )
 
-  val larsProgram = Program.from(
+  val program = Program.from(
     y <= W(1, Diamond, a)
   )
 
-  def evaluation(evaluation: EvaluationEngine) = {
-    evaluation.append(t1)(a)
-
+  def engineWithStream = {
     info("Given 't1 -> a' ")
 
-    it should "not lead to y at t0" in {
-      evaluation.evaluate(t0).get shouldNot contain(y)
-    }
+    evaluationEngine.append(t1)(a)
 
-    it should "lead to y at t1" in {
-      evaluation.evaluate(t1).get.value should contain(y)
-    }
-
-    it should "lead to y at t2" in {
-      evaluation.evaluate(t2).get.value should contain(y)
-    }
-
-    it should "not contain y at t3" in {
-      evaluation.evaluate(t3).get.value shouldNot contain(y)
-    }
-
+    evaluationEngine
   }
 
-  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
-  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
-  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
+  it should "not lead to y at t0" in {
+    engineWithStream.evaluate(t0).get shouldNot contain(y)
+  }
 
-  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
-  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
-  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
+  it should "lead to y at t1" in {
+    engineWithStream.evaluate(t1).get.value should contain(y)
+  }
+
+  it should "lead to y at t2" in {
+    engineWithStream.evaluate(t2).get.value should contain(y)
+  }
+
+  it should "not contain y at t3" in {
+    engineWithStream.evaluate(t3).get.value shouldNot contain(y)
+  }
+
 }
