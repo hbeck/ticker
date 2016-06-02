@@ -1,7 +1,7 @@
 package core
 
 import core.asp.{NormalRule, UserDefinedAspRule}
-import core.lars.{ExtendedAtom, HeadAtom}
+import core.lars.{ExtendedAtom, HeadAtom, WindowAtom}
 
 /**
   * Created by FM on 04.05.16.
@@ -21,4 +21,8 @@ object BuilderCollection {
   implicit def toLarsRule(builder: BuilderCollection[ExtendedAtom, HeadAtom]): core.lars.Rule = new core.lars.Rule(builder.head, builder.positiveBody, builder.negativeBody)
 }
 
-case class not(val atom: Atom)
+case class not[TAtom <: ExtendedAtom](atom: TAtom)
+
+object not {
+  def apply(w: WindowAtom) = not[ExtendedAtom](w)
+}

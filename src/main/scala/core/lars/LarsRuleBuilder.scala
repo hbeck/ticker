@@ -8,7 +8,7 @@ import core._
 class LarsBuilderHead(val head: HeadAtom) {
   def <=(extendedAtom: ExtendedAtom) = new BuilderCollection(head, Set(extendedAtom), Set[ExtendedAtom]())
 
-  def <=(notAtom: not) = new BuilderCollection(head, Set(), Set(notAtom.atom))
+  def <=(notAtom: not[ExtendedAtom]) = new BuilderCollection(head, Set(), Set(notAtom.atom))
 }
 
 
