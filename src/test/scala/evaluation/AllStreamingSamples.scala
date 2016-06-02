@@ -13,7 +13,10 @@ abstract class AllStreamingSamples extends Suites(
   new EngineStreamSpec,
   new ZWindowTimeASample,
   new XWindowBoxASample,
-  new YWindowDiamondASample
+  new YWindowDiamondASample,
+
+
+  new JtmsEssenceSimpleWindowSample
 ) with ConfigurableEvaluationSuite
 
 
