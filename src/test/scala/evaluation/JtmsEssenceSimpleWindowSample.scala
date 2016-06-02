@@ -2,7 +2,7 @@ package evaluation
 
 import core.lars.{Diamond, Program, Rule}
 import core.{BuilderCollection, not}
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
 import core.lars._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -12,7 +12,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsPushEngine {
   val program = Program.from(
     a <= W(1, Diamond, c),
     c <= W(1, Diamond, a),
@@ -45,3 +45,5 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with Time
   }
 
 }
+
+class JtmsEssenceTests extends  RunWithAllImplementations(new JtmsEssenceSimpleWindowSample)
