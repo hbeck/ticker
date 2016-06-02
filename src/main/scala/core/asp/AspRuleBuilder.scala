@@ -20,7 +20,7 @@ class BuilderHead(val head: Atom) {
 
   def :-(atom: Atom) = new BuilderCollection(head, Set(atom), Set[Atom]())
 
-  def :-(notAtom: not) = new BuilderCollection(head, Set(), Set(notAtom.atom))
+  def :-(notAtom: not[Atom]) = new BuilderCollection(head, Set(), Set(notAtom.atom))
 }
 
 
