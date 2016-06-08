@@ -9,11 +9,15 @@ import jtms.ExtendedJtms
   * Created by FM on 18.05.16.
   */
 case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspInterpreter {
-  val incrementalAsp = PinnedAspToIncrementalAsp(pinnedAspProgram)
+  val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
+  val (fixedRules, incrementalRules) = PinnedAspToIncrementalAsp.findFixPoint(incrementalProgram)
 
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel] = {
+    val atTimePoint = GroundPinned(timePoint)
 
-    val groundedProgram = GroundPinned(timePoint).groundIfNeeded(incrementalAsp, pinnedAtoms)
+    val groundedRules = atTimePoint.groundIfNeeded(incrementalRules)
+
+    val groundedProgram = GroundedNormalProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)) ++ groundedRules, atTimePoint.groundIfNeeded(pinnedAtoms), timePoint)
 
     //TODO add and remove instead of naive recalling
     val tms = ExtendedJtms(groundedProgram)

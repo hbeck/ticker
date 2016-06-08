@@ -3,7 +3,7 @@ package engine.asp
 import core.{Atom, PinnedAtom}
 import core.asp._
 import core.lars.{ExtendedAtom, WindowAtom}
-import engine.asp.evaluation.{MappedRule, PinnedRule}
+import engine.asp.evaluation.{GroundPinned, MappedRule, PinnedRule}
 
 /**
   * Created by FM on 08.06.16.
@@ -35,5 +35,13 @@ object PinnedAspToIncrementalAsp {
     val strippedRules = p.rules.map(x => this.apply(x, headAtoms))
 
     AspProgram(strippedRules.toList)
+  }
+
+  def findFixPoint(normalProgram: NormalProgram) = {
+    val g0 = GroundPinned(0).groundIfNeeded(normalProgram, Set())
+
+    val fixedParts = normalProgram.rules.intersect(g0.rules)
+
+    (fixedParts, normalProgram.rules.diff(fixedParts))
   }
 }

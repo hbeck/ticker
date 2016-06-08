@@ -68,16 +68,18 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
     )
   }
 
-  def groundIfNeeded(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
-    val atoms = dataStream map  apply map groundIfNeeded
+  def groundIfNeeded(dataStream: PinnedStream): Set[GroundedNormalRule] = apply(dataStream) map groundIfNeeded
 
-    GroundedNormalProgram(program.rules map groundIfNeeded, atoms, timePoint)
+  def groundIfNeeded(rules: Seq[NormalRule]): Seq[GroundedNormalRule] = rules map groundIfNeeded
+
+  def groundIfNeeded(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
+    GroundedNormalProgram(program.rules map groundIfNeeded, groundIfNeeded(dataStream), timePoint)
   }
 
-  def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
-    val atoms = dataStream map apply
+  def apply(dataStream: PinnedStream): Set[GroundedNormalRule] = dataStream map apply
 
-    GroundedNormalProgram(program.rules map apply, atoms, timePoint)
+  def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
+    GroundedNormalProgram(program.rules map apply, apply(dataStream), timePoint)
   }
 
   def apply(pinnedAspRule: PinnedRule): GroundedNormalRule = {
