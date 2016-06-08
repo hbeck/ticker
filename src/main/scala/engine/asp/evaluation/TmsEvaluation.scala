@@ -1,6 +1,7 @@
 package engine.asp.evaluation
 
 import core._
+import core.asp._
 import core.lars.TimePoint
 import engine.asp.{MappedProgram, PinnedAspToIncrementalAsp}
 import jtms.ExtendedJtms
@@ -10,22 +11,33 @@ import jtms.ExtendedJtms
   */
 case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspInterpreter {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
-  val (fixedRules, incrementalRules) = PinnedAspToIncrementalAsp.findFixPoint(incrementalProgram)
+  val (fixedRules, incrementalRules) = findFixPoint(incrementalProgram)
 
-  def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel] = {
+  val tms = {
+    val fixedProgram = AspProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)).toList)
+
+    ExtendedJtms(fixedProgram)
+  }
+
+
+  def apply(timePoint: TimePoint, pinnedStream: PinnedStream): Option[PinnedModel] = {
     val atTimePoint = GroundPinned(timePoint)
 
     val groundedRules = atTimePoint.groundIfNeeded(incrementalRules)
+    val groundedStream = atTimePoint.groundIfNeeded(pinnedStream)
 
-    val groundedProgram = GroundedNormalProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)) ++ groundedRules, atTimePoint.groundIfNeeded(pinnedAtoms), timePoint)
+    groundedRules foreach tms.add
+    groundedStream foreach tms.add
 
-    //TODO add and remove instead of naive recalling
-    val tms = ExtendedJtms(groundedProgram)
-
-    tms.getModel() match {
+    val resultingModel = tms.getModel() match {
       case Some(model) => Some(asPinnedAtoms(model, timePoint))
       case None => None
     }
+
+    groundedRules foreach tms.remove
+    groundedStream foreach tms.remove
+
+    resultingModel
   }
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint) = model map {
@@ -33,6 +45,14 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspIn
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
     //    case a: Atom => throw new IllegalArgumentException(f"The atom $a is an invalid result (it cannot be converted into a PinnedAtom)")
+  }
+
+  def findFixPoint(normalProgram: NormalProgram) = {
+    val g0 = GroundPinned(0).groundIfNeeded(normalProgram, Set())
+
+    val fixedParts = normalProgram.rules.intersect(g0.rules)
+
+    (fixedParts, normalProgram.rules.diff(fixedParts))
   }
 
 }

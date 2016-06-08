@@ -36,12 +36,4 @@ object PinnedAspToIncrementalAsp {
 
     AspProgram(strippedRules.toList)
   }
-
-  def findFixPoint(normalProgram: NormalProgram) = {
-    val g0 = GroundPinned(0).groundIfNeeded(normalProgram, Set())
-
-    val fixedParts = normalProgram.rules.intersect(g0.rules)
-
-    (fixedParts, normalProgram.rules.diff(fixedParts))
-  }
 }
