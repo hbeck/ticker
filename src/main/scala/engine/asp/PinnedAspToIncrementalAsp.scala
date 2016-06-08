@@ -18,21 +18,17 @@ object PinnedAspToIncrementalAsp {
       case false => pinned
     }
 
-    AspRule(unpin(rule.head), rule.pos.filterNot(_.atom == now).map(unpinIfNeeded), rule.neg.map(unpinIfNeeded))
+    AspRule(
+      unpin(rule.head),
+      rule.pos filterNot (_.atom == now) map unpinIfNeeded,
+      rule.neg map unpinIfNeeded
+    )
   }
 
-
-  //  def apply(rule: MappedRule, headAtoms: Set[ExtendedAtom]): Set[AspRule[Atom]] = {
-  //    // TODO: better way to find window-atoms?
-  //    val windowAtoms = rule._1.body.filter(x => headAtoms.contains(x)).map(PlainLarsToAsp.apply)
-  //
-  //    rule._2.map(this.apply(_, windowAtoms))
-  //  }
-
   def apply(p: MappedProgram): NormalProgram = {
-    val headAtoms = p.mappedRules.flatMap(_._2.map(_.head)).toSet[ExtendedAtom]
+    val headAtoms = p.mappedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom]
 
-    val strippedRules = p.rules.map(x => this.apply(x, headAtoms))
+    val strippedRules = p.rules map (r => apply(r, headAtoms))
 
     AspProgram(strippedRules.toList)
   }

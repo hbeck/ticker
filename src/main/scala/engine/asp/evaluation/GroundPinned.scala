@@ -31,6 +31,7 @@ import core.{Atom, PinnedAtom}
   *
   */
 case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
+
   def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
       case t: PinnedAtom => apply(t)
@@ -46,6 +47,7 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
       case v: TimeVariableWithOffset => v.ground(timePoint)
       case t: TimePoint => t
     }
+
     groundedBaseAtom(groundedTimePoint)
   }
 
@@ -55,7 +57,7 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
       if (g.time == timePoint)
         return g.atom
 
-      return g
+      g
     }
     case a: Atom => a
   }
@@ -73,13 +75,21 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
   def groundIfNeeded(rules: Seq[NormalRule]): Seq[GroundedNormalRule] = rules map groundIfNeeded
 
   def groundIfNeeded(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
-    GroundedNormalProgram(program.rules map groundIfNeeded, groundIfNeeded(dataStream), timePoint)
+    GroundedNormalProgram(
+      program.rules map groundIfNeeded,
+      groundIfNeeded(dataStream),
+      timePoint
+    )
   }
 
   def apply(dataStream: PinnedStream): Set[GroundedNormalRule] = dataStream map apply
 
   def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
-    GroundedNormalProgram(program.rules map apply, apply(dataStream), timePoint)
+    GroundedNormalProgram(
+      program.rules map apply,
+      apply(dataStream),
+      timePoint
+    )
   }
 
   def apply(pinnedAspRule: PinnedRule): GroundedNormalRule = {

@@ -42,8 +42,10 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspIn
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint) = model map {
     case p: PinnedAtom => p
+
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
+      
     //    case a: Atom => throw new IllegalArgumentException(f"The atom $a is an invalid result (it cannot be converted into a PinnedAtom)")
   }
 
