@@ -2,7 +2,7 @@ package engine.asp
 
 import core.{Atom, PinnedAtom}
 import core.asp._
-import core.lars.WindowAtom
+import core.lars.{ExtendedAtom, WindowAtom}
 import engine.asp.evaluation.{MappedRule, PinnedRule}
 
 /**
@@ -11,9 +11,9 @@ import engine.asp.evaluation.{MappedRule, PinnedRule}
 object PinnedAspToIncrementalAsp {
   def unpin(pinned: PinnedAtom) = pinned.atom
 
-  def apply(rule: PinnedRule, windowAtoms: Set[PinnedAtom]): AspRule[Atom] = {
+  def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {
 
-    def unpinIfNeeded(pinned: PinnedAtom) = windowAtoms.contains(pinned) match {
+    def unpinIfNeeded(pinned: PinnedAtom) = atomsToUnpin.contains(pinned) match {
       case true => unpin(pinned)
       case false => pinned
     }
@@ -22,15 +22,18 @@ object PinnedAspToIncrementalAsp {
   }
 
 
-  def apply(rule: MappedRule): Set[AspRule[Atom]] = {
-    // TODO: better way to find window-atoms?
-    val windowAtoms = rule._1.body.filter(_.isInstanceOf[WindowAtom]).map(PlainLarsToAsp.apply)
-
-    rule._2.map(this.apply(_, windowAtoms))
-  }
+  //  def apply(rule: MappedRule, headAtoms: Set[ExtendedAtom]): Set[AspRule[Atom]] = {
+  //    // TODO: better way to find window-atoms?
+  //    val windowAtoms = rule._1.body.filter(x => headAtoms.contains(x)).map(PlainLarsToAsp.apply)
+  //
+  //    rule._2.map(this.apply(_, windowAtoms))
+  //  }
 
   def apply(p: MappedProgram): NormalProgram = {
-    val strippedRules = p.mappedRules.flatMap(this.apply)
+    val headAtoms = p.mappedRules.flatMap(_._2.map(_.head)).toSet[ExtendedAtom]
+
+    val strippedRules = p.rules.map(x => this.apply(x, headAtoms))
+
     AspProgram(strippedRules.toList)
   }
 }

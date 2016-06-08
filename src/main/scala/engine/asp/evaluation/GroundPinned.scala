@@ -12,18 +12,18 @@ import core.{Atom, PinnedAtom}
   * - given a time-point t  , and a time-variable v = 'T'
   *
   * groundRule(r, t, v) = {
-  *   r' = g(h) <- g(e_1), ..., g(e_n), not g(e_{n+1), ..., not g(e_m)
+  * r' = g(h) <- g(e_1), ..., g(e_n), not g(e_{n+1), ..., not g(e_m)
   *
-  *   g(a) = {
-  *      b = base(a)
+  * g(a) = {
+  * b = base(a)
   *
-  *      case b(x, v) =>  b'(x, t)
-  *      case b(x, v_i) => b'(x, v_i)
-  *   }
-  *   base(a) = {
-  *     case a(x, v_1, ..., v_n) => g(a(x, v_1, ... v_{n-1}))
-  *     case a(x, v) => a'(x)
-  *   }
+  * case b(x, v) =>  b'(x, t)
+  * case b(x, v_i) => b'(x, v_i)
+  * }
+  * base(a) = {
+  * case a(x, v_1, ..., v_n) => g(a(x, v_1, ... v_{n-1}))
+  * case a(x, v) => a'(x)
+  * }
   * }
   *
   * Discuss: how are we grounding other time-variables (unequal to T)?
@@ -49,6 +49,30 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
     groundedBaseAtom(groundedTimePoint)
   }
 
+  def groundIfNeeded(atom: Atom): Atom = atom match {
+    case p: PinnedAtom => {
+      val g = this.apply(p)
+      if (g.time == timePoint)
+        return g.atom
+
+      return g
+    }
+    case a: Atom => a
+  }
+
+  def groundIfNeeded(rule: NormalRule): GroundedNormalRule = {
+    GroundedNormalRule(
+      this.groundIfNeeded(rule.head),
+      rule.pos map this.groundIfNeeded,
+      rule.neg map this.groundIfNeeded
+    )
+  }
+
+  def groundIfNeeded(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
+    val atoms = dataStream map  apply map groundIfNeeded
+
+    GroundedNormalProgram(program.rules map groundIfNeeded, atoms, timePoint)
+  }
 
   def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
     val atoms = dataStream map apply
@@ -66,6 +90,7 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
 }
 
 case class GroundedNormalRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRule[Atom]
+
 //case class GroundedAspFact(head: Atom) extends AspRule[Atom]{
 //  val pos = Set()
 //  val neg = Set()

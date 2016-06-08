@@ -50,4 +50,19 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
     forAll(converted.rules)(r => r.body should not contain (PlainLarsToAsp.apply(windowAtom)))
   }
 
+  "A rule where an atom is part of the head of another rule" should "be unpinned" in {
+    val p = Program.from(
+      a <= b,
+      c <= a
+    )
+
+    val mappedProgram = PlainLarsToAsp(p)
+
+    val converted = PinnedAspToIncrementalAsp(mappedProgram)
+
+    forAll(converted.rules)(r => r.body should not contain PlainLarsToAsp.apply(a))
+
+  }
+
+
 }
