@@ -31,7 +31,7 @@ object ClingoConversion {
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
-      case UserDefinedAtom(caption) => (caption, "")
+      case Predicate(caption) => (caption, "")
       case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(_.toString).mkString("(", ",", ")"))
       case _ => (atom.toString, "")
     }

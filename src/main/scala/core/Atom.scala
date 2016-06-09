@@ -1,7 +1,7 @@
 package core
 
 import core.asp.{AspFact, BuilderHead}
-import core.lars.{ExtendedAtom, HeadAtom, Time}
+import core.lars.{HeadAtom, Time, TimePoint}
 
 /**
   * Created by hb on 12/22/15.
@@ -9,6 +9,7 @@ import core.lars.{ExtendedAtom, HeadAtom, Time}
 
 sealed trait Atom extends HeadAtom {
   def arity = 0
+  def isGround():Boolean = true
 }
 
 trait AtomWithArgument extends Atom {
@@ -40,6 +41,11 @@ trait AtomWithArgument extends Atom {
 
     sb.toString
   }
+
+  override def isGround(): Boolean = {
+    arguments forall ( s => s.isEmpty || s.charAt(0).isLower )
+  }
+
 }
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
@@ -53,11 +59,15 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
     case aa: AtomWithArgument => aa.arguments :+ time.toString
     case _ => Seq(time.toString)
   }
+
+  override def isGround(): Boolean = time.isInstanceOf[TimePoint]
 }
 
 case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends AtomWithArgument
 
-object Falsum extends Atom
+object Falsum extends Atom {
+  override def isGround = true
+}
 
 object Atom {
 
@@ -66,7 +76,7 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = UserDefinedAtom(caption)
+  def apply(caption: String): Atom = Predicate(caption)
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 
@@ -97,7 +107,7 @@ trait AsAtomWithArgument {
 case class AtomModification(atom: Atom) extends AsPinnableAtom with AsAtomWithArgument
 
 
-case class UserDefinedAtom(caption: String) extends Atom {
+case class Predicate(caption: String) extends Atom {
   override def toString = caption
 }
 

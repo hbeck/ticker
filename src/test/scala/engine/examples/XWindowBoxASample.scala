@@ -39,7 +39,7 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
     spoil_w1b_a("T") :- now("T") and u("U") not (a("U"))
   )
 
-  val program = Program.from(
+  val program = LarsProgram.from(
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 

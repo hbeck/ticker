@@ -1,6 +1,6 @@
 package evaluation
 
-import core.lars.{Diamond, Program, W}
+import core.lars.{Diamond, LarsProgram$, W}
 import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -10,7 +10,7 @@ import org.scalatest.Inspectors._
   * Created by FM on 09.06.16.
   */
 class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsPushEngine {
-  val program = Program.from(
+  val program = LarsProgram.from(
     a <= b,
     b <= c,
     c <= d,

@@ -1,7 +1,7 @@
 package engine.config
 
 import clingo.ClingoConversion
-import core.lars.Program
+import core.lars.LarsProgram$
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.evaluation._
@@ -14,10 +14,10 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: Program) = EngineEvaluationConfiguration(program)
+  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(program: Program) {
+case class EngineEvaluationConfiguration(program: LarsProgram) {
   def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(program))
 
   def useIncremental() = {

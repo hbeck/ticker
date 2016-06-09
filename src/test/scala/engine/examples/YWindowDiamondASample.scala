@@ -35,7 +35,7 @@ class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixt
     w1d_a("T") :- a("U") and now("T") and u("U")
   )
 
-  val program = Program.from(
+  val program = LarsProgram.from(
     y <= W(1, Diamond, a)
   )
 

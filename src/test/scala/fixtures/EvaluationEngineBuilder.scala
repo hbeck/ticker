@@ -1,6 +1,6 @@
 package fixtures
 
-import core.lars.Program
+import core.lars.LarsProgram$
 import engine.EvaluationEngine
 import engine.config.BuildEngine
 
@@ -12,18 +12,18 @@ import scala.util.Random
 
 
 trait EvaluationEngineBuilder {
-  type EngineBuilder = ((Program) => EvaluationEngine)
+  type EngineBuilder = ((LarsProgram) => EvaluationEngine)
   val defaultEngine: EngineBuilder
 }
 
 trait ClingoPullEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: Program) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePull().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePull().start()
 }
 
 trait ClingoPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: Program) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePush().start()
 }
 
 trait TmsPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: Program) => BuildEngine.withProgram(p).useAsp().withTms(new Random(1)).use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms(new Random(1)).use().usePush().start()
 }

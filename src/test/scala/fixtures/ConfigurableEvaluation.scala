@@ -1,6 +1,6 @@
 package fixtures
 
-import core.lars.Program
+import core.lars.LarsProgram$
 import engine.EvaluationEngine
 import org.scalatest._
 
@@ -11,7 +11,7 @@ import org.scalatest._
 
 trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
-  val program: Program
+  val program: LarsProgram
 
   private var engineCache: EvaluationEngine = null
 
@@ -36,7 +36,7 @@ trait ConfigurableEvaluationSuite extends Suite with EvaluationEngineBuilder {
 
   protected override def runNestedSuites(args: Args): Status = {
 
-    val c = args.configMap +("engine", (p: Program) => this.defaultEngine(p))
+    val c = args.configMap +("engine", (p: LarsProgram) => this.defaultEngine(p))
 
     val argumentsWithEngine = Args(args.reporter, configMap = c)
 

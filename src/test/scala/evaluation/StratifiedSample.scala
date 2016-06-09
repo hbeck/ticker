@@ -11,7 +11,7 @@ import org.scalatest.Inspectors._
   * Created by FM on 02.06.16.
   */
 class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsPushEngine {
-  val program = Program.from(
+  val program = LarsProgram.from(
     a <= b and c not d,
 
     d <= e and W(1, Diamond, f),

@@ -1,9 +1,9 @@
 package engine.asp
 
-import core.asp.{AspProgram, AspRule}
+import core.asp.AspRule
 import core.lars._
 import core.{Atom, AtomWithArgument, PinnedAtom}
-import engine.asp.evaluation.{MappedRule, PinnedProgram, PinnedRule}
+import engine.asp.evaluation.{LarsRuleMapping, PinnedProgram, PinnedRule}
 
 /**
   * Created by FM on 05.05.16.
@@ -23,14 +23,14 @@ object PlainLarsToAsp {
     case a: WindowAtom => this.apply(a)
   }
 
-  def apply(rule: Rule): Set[PinnedRule] = {
+  def apply(rule: LarsRule): Set[PinnedRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: Program): MappedProgram = {
-    val rules: Seq[MappedRule] = program.rules map (r => (r, this.apply(r)))
+  def apply(program: LarsProgram): MappedProgram = {
+    val rules: Seq[LarsRuleMapping] = program.rules map (r => (r, this.apply(r)))
     MappedProgram(rules)
     //    AspProgram.pinned(rules.toList)
   }
@@ -41,7 +41,7 @@ object PlainLarsToAsp {
     basicAtom(T)
   }
 
-  def rule(rule: Rule): PinnedRule = {
+  def rule(rule: LarsRule): PinnedRule = {
     AspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
@@ -153,6 +153,9 @@ object PlainLarsToAsp {
   }
 }
 
-case class MappedProgram(mappedRules: Seq[MappedRule]) extends PinnedProgram {
+/*
+ * we keep the original lars rule for potential later optimizations
+ */
+case class MappedProgram(mappedRules: Seq[LarsRuleMapping]) extends PinnedProgram {
   override val rules = mappedRules.flatMap(_._2)
 }

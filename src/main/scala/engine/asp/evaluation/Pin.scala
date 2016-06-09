@@ -30,7 +30,7 @@ import core.{Atom, PinnedAtom}
   * e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).
   *
   */
-case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
+case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
   def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
@@ -51,7 +51,7 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def groundIfNeeded(atom: Atom): Atom = atom match {
+  def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
       if (g.time == timePoint)
@@ -62,22 +62,22 @@ case class GroundPinned(timePoint: TimePoint, variable: TimeVariableWithOffset =
     case a: Atom => a
   }
 
-  def groundIfNeeded(rule: NormalRule): GroundedNormalRule = {
+  def ground(rule: NormalRule): GroundedNormalRule = {
     GroundedNormalRule(
-      this.groundIfNeeded(rule.head),
-      rule.pos map this.groundIfNeeded,
-      rule.neg map this.groundIfNeeded
+      this.ground(rule.head),
+      rule.pos map this.ground,
+      rule.neg map this.ground
     )
   }
 
-  def groundIfNeeded(dataStream: PinnedStream): Set[GroundedNormalRule] = apply(dataStream) map groundIfNeeded
+  def ground(dataStream: PinnedStream): Set[GroundedNormalRule] = apply(dataStream) map ground
 
-  def groundIfNeeded(rules: Seq[NormalRule]): Seq[GroundedNormalRule] = rules map groundIfNeeded
+  def ground(rules: Seq[NormalRule]): Seq[GroundedNormalRule] = rules map ground
 
-  def groundIfNeeded(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
+  def ground(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
     GroundedNormalProgram(
-      program.rules map groundIfNeeded,
-      groundIfNeeded(dataStream),
+      program.rules map ground,
+      ground(dataStream),
       timePoint
     )
   }

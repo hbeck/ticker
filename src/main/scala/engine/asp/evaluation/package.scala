@@ -2,8 +2,8 @@ package engine.asp
 
 
 import core.PinnedAtom
-import core.asp.{AspFact, AspProgram, AspRule, FixedAspProgram}
-import core.lars.{Program, Rule}
+import core.asp.{AspFact, AspProgram, AspRule}
+import core.lars.LarsRule
 
 /**
   * Created by FM on 20.05.16.
@@ -16,7 +16,7 @@ package object evaluation {
   type PinnedModel = Set[PinnedAtom]
   type PinnedStream = Set[PinnedFact]
 
-  type MappedRule = (Rule, Set[PinnedRule])
+  type LarsRuleMapping = (LarsRule, Set[PinnedRule])
 
   type GroundedStream = Set[GroundedNormalRule]
 

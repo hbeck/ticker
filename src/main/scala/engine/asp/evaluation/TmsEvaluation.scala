@@ -1,7 +1,6 @@
 package engine.asp.evaluation
 
 import core._
-import core.asp._
 import core.lars.TimePoint
 import engine.asp.{MappedProgram, PinnedAspToIncrementalAsp}
 import jtms.ExtendedJtms
@@ -11,22 +10,19 @@ import jtms.ExtendedJtms
   */
 case class TmsEvaluation(pinnedAspProgram: MappedProgram, extendedJtms: ExtendedJtms = ExtendedJtms()) extends StreamingAspInterpreter {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
-  val (fixedRules, incrementalRules) = findFixPoint(incrementalProgram)
+
+  val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
   val tms = {
-    val fixedProgram = AspProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)).toList)
-
-    fixedProgram.rules foreach extendedJtms.add
-
+    groundRules foreach extendedJtms.add
     extendedJtms
   }
 
-
   def apply(timePoint: TimePoint, pinnedStream: PinnedStream): Option[PinnedModel] = {
-    val atTimePoint = GroundPinned(timePoint)
+    val pin = Pin(timePoint)
 
-    val groundedRules = atTimePoint.groundIfNeeded(incrementalRules)
-    val groundedStream = atTimePoint.groundIfNeeded(pinnedStream)
+    val groundedRules = pin.ground(nonGroundRules)
+    val groundedStream = pin.ground(pinnedStream) //TODO pinnedStream map (_.toNormal) oder so
 
     groundedRules foreach tms.add
     groundedStream foreach tms.add
@@ -49,14 +45,6 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram, extendedJtms: Extended
     case a: Atom => a(timePoint)
 
     //    case a: Atom => throw new IllegalArgumentException(f"The atom $a is an invalid result (it cannot be converted into a PinnedAtom)")
-  }
-
-  def findFixPoint(normalProgram: NormalProgram) = {
-    val g0 = GroundPinned(0).groundIfNeeded(normalProgram, Set())
-
-    val fixedParts = normalProgram.rules.intersect(g0.rules)
-
-    (fixedParts, normalProgram.rules.diff(fixedParts))
   }
 
 }

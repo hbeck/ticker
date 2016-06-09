@@ -36,11 +36,11 @@ object Format {
     case at: AtAtom => apply(At(at.time)) + " " + at.atom
   }
 
-  def apply(rule: Rule): String = {
+  def apply(rule: LarsRule): String = {
     f"${apply(rule.head)} :- ${rule.pos map apply mkString ", "}${rule.neg map apply mkString(", not ", ", not ", "")}. "
   }
 
-  def apply(program: Program): Seq[String] = {
+  def apply(program: LarsProgram): Seq[String] = {
     program.rules map apply
   }
 

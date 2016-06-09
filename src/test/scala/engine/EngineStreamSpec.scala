@@ -2,7 +2,7 @@ package engine
 
 import core.Atom
 import core.asp.AspProgram
-import core.lars.Program
+import core.lars.LarsProgram$
 import engine.asp.EvaluationStrategy
 import engine.config.{AspEvaluationEngineConfiguration, BuildEngine, EngineEvaluationConfiguration}
 import fixtures._
@@ -19,7 +19,7 @@ import org.scalatest.tools.StandardOutReporter
   */
 class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
 
-  val program = Program.from(
+  val program = LarsProgram.from(
     a <= b,
     b <= c not d
   )

@@ -3,6 +3,7 @@ package core.asp
 import core.Atom
 
 object AspRule {
+
   def pos[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
 
   def neg[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
@@ -30,6 +31,8 @@ trait AspRule[TAtom <: Atom] {
   lazy val atoms = body + head
 
   def isFact: Boolean = pos.isEmpty && neg.isEmpty
+
+  def isGround: Boolean = atoms forall (_.isGround)
 
   def ==(other: AspRule[TAtom]): Boolean = {
     if (this.head != other.head) return false

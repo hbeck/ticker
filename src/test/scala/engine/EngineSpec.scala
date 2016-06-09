@@ -2,7 +2,7 @@ package engine
 
 import core._
 import core.asp.{AspProgram, AspProgramBuilder}
-import core.lars.Program
+import core.lars.LarsProgram$
 import engine.asp.{Direct, EvaluationStrategy}
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
@@ -15,7 +15,7 @@ import org.scalatest.OptionValues._
   */
 class EngineSpec extends FlatSpec with TimeTestFixtures {
 
-  val program = Program.from(
+  val program = LarsProgram.from(
     a <= b and d not c,
     b <= c not d
   )

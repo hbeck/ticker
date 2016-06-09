@@ -1,6 +1,6 @@
 package lars
 
-import core.lars.{At, Program, _}
+import core.lars.{At, LarsProgram$, _}
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
@@ -13,8 +13,8 @@ class LarsSpec extends FlatSpec with AtomTestFixture {
 
   def STW = SlidingTimeWindow
 
-  val r1 = Rule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), d), Set(b))
-  val r2 = Rule(AtAtom(TimePoint(1), c), Set(W(STW(5), Box, b)), Set(W(STW(3), Diamond, a), W(STW(1), At(TimePoint(3)), a)))
+  val r1 = LarsRule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), d), Set(b))
+  val r2 = LarsRule(AtAtom(TimePoint(1), c), Set(W(STW(5), Box, b)), Set(W(STW(3), Diamond, a), W(STW(1), At(TimePoint(3)), a)))
 
   val rb1 = c <= WindowAtom(SlidingTimeWindow(3), Diamond, a) and d not (b)
   val rb2 = AtAtom(TimePoint(1), c) <= W(STW(5), Box, b) not W(STW(3), Diamond, a) not W(STW(1), At(TimePoint(3)), a)
@@ -24,7 +24,7 @@ class LarsSpec extends FlatSpec with AtomTestFixture {
     //val r = c :- WindowAtom(SlidingTimeWindow(3), Diamond, a) and not(b)
     //val r2 = c :- WindowAtom(SlidingTimeWindow(5), Box, b) and not(WindowAtom(SlidingTimeWindow(3), Diamond, a)) and not(WindowAtom(SlidingTimeWindow(1), At(Time(3)), a))
 
-    val program = Program.from(r1, r2)
+    val program = LarsProgram.from(r1, r2)
 
     val formatted = Format(program)
 

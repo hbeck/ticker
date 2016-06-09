@@ -18,7 +18,7 @@ class BuilderCollection[TAtom <: ExtendedAtom, THead <: HeadAtom](val head: THea
 object BuilderCollection {
   implicit def toRule(builder: BuilderCollection[Atom, Atom]): NormalRule = new UserDefinedAspRule(builder.head, builder.positiveBody, builder.negativeBody)
 
-  implicit def toLarsRule(builder: BuilderCollection[ExtendedAtom, HeadAtom]): core.lars.Rule = new core.lars.Rule(builder.head, builder.positiveBody, builder.negativeBody)
+  implicit def toLarsRule(builder: BuilderCollection[ExtendedAtom, HeadAtom]): core.lars.LarsRule = new core.lars.LarsRule(builder.head, builder.positiveBody, builder.negativeBody)
 }
 
 case class not[TAtom <: ExtendedAtom](atom: TAtom)

@@ -1,12 +1,14 @@
 package engine.asp
 
-import core.{Atom, PinnedAtom}
 import core.asp._
-import core.lars.{ExtendedAtom, WindowAtom}
-import engine.asp.evaluation.{GroundPinned, MappedRule, PinnedRule}
+import core.lars.ExtendedAtom
+import core.{Atom, PinnedAtom}
+import engine.asp.evaluation.PinnedRule
 
 /**
   * Created by FM on 08.06.16.
+  *
+  * Remove temporal information (the pinned part, so to speak) from intensional atoms.
   */
 object PinnedAspToIncrementalAsp {
   def unpin(pinned: PinnedAtom) = pinned.atom
@@ -26,10 +28,10 @@ object PinnedAspToIncrementalAsp {
   }
 
   def apply(p: MappedProgram): NormalProgram = {
-    val headAtoms = p.mappedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom]
+    val headAtoms = p.mappedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
 
-    val strippedRules = p.rules map (r => apply(r, headAtoms))
+    val semiPinnedRules = p.rules map (r => apply(r, headAtoms))
 
-    AspProgram(strippedRules.toList)
+    AspProgram(semiPinnedRules.toList)
   }
 }
