@@ -9,14 +9,16 @@ import jtms.ExtendedJtms
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspInterpreter {
+case class TmsEvaluation(pinnedAspProgram: MappedProgram, initialTms: ExtendedJtms = ExtendedJtms()) extends StreamingAspInterpreter {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
   val (fixedRules, incrementalRules) = findFixPoint(incrementalProgram)
 
   val tms = {
     val fixedProgram = AspProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)).toList)
 
-    ExtendedJtms(fixedProgram)
+    fixedProgram.rules foreach initialTms.add
+
+    initialTms
   }
 
 
@@ -45,7 +47,7 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram) extends StreamingAspIn
 
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
-      
+
     //    case a: Atom => throw new IllegalArgumentException(f"The atom $a is an invalid result (it cannot be converted into a PinnedAtom)")
   }
 

@@ -5,8 +5,10 @@ import core.lars.Program
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.evaluation._
+import jtms.ExtendedJtms
 
 import scala.concurrent.duration.Duration
+import scala.util.Random
 
 /**
   * Created by FM on 14.05.16.
@@ -28,7 +30,7 @@ case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 
-  def withTms() = EvaluationModeConfiguration(TmsEvaluation(aspProgram))
+  def withTms(random: Random = new Random()) = EvaluationModeConfiguration(TmsEvaluation(aspProgram, ExtendedJtms(random)))
 
 }
 

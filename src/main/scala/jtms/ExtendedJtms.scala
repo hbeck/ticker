@@ -5,6 +5,7 @@ import core.asp.{NormalProgram, NormalRule}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
+import scala.util.Random
 
 object ExtendedJtms {
 
@@ -21,7 +22,7 @@ object ExtendedJtms {
   * Works in two modes, i) according to Doyle/Beierle and ii) stepwise, suitable if remove is used
   *
   */
-case class ExtendedJtms() {
+case class ExtendedJtms(random: Random = new Random()) {
 
   sealed trait UpdateStrategy
   object UpdateStrategyDoyle extends UpdateStrategy //only works for add()
@@ -233,7 +234,7 @@ case class ExtendedJtms() {
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
-    if (math.random < 0.5) {
+    if (random.nextDouble() < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
         case opt => opt
