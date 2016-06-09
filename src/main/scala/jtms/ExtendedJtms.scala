@@ -65,7 +65,7 @@ case class ExtendedJtms() {
 
   def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
-    if (atoms exists contradictionAtom) return None //not dealt with
+    if (atoms exists contradictionAtom) return None //not dealt with; left for old test-cases
     if (hasUnknown) return None
     Some(atoms.toSet)
   }
@@ -135,14 +135,14 @@ case class ExtendedJtms() {
     rule.body foreach (cons(_) += rule.head)
   }
 
-  def register(a: Atom): Unit = {
+  def register(a: Atom) {
     if (!status.isDefinedAt(a)) status(a) = out
     if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
     if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
     if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
-  def updateBeliefs(atoms: Set[Atom]): Unit = {
+  def updateBeliefs(atoms: Set[Atom]) {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
@@ -316,10 +316,9 @@ case class ExtendedJtms() {
   def fixIn(rulePosValid: NormalRule): Unit = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"fix")
     setIn(rulePosValid)
-    //rulePosValid.neg filter (status(_) == unknown) foreach fixOut //fix ancestors
     rulePosValid.neg foreach { a =>
       status(a) match {
-        case `unknown` => fixOut(a)
+        case `unknown` => fixOut(a) //fix ancestors
         case `in` => throw new IncrementalUpdateFailureException()
         case `out` => //nothing to be done
       }
@@ -413,7 +412,8 @@ case class ExtendedJtms() {
   }
 
   private var doForceChoiceOrder = false
-  var forcedChoiceSeq = Seq[Atom]()
+  private var forcedChoiceSeq = Seq[Atom]()
+
   def forceChoiceOrder(seq: Seq[Atom]) = {
     doForceChoiceOrder = true
     forcedChoiceSeq = seq

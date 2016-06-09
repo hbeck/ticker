@@ -83,9 +83,12 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.add(AspFact(a))
       tms.add(AspRule(a, Set(), Set(a)))
       assert(m.get == Set(a))
+      tms.remove(AspFact(a))
+      assert(m == None)
 
       tms = ExtendedJtms()
       tms.add(AspRule(a, Set(), Set(a)))
+      assert(m == None)
       tms.add(AspFact(a))
       assert(m.get == Set(a))
 

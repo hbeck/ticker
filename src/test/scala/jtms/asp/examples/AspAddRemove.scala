@@ -632,4 +632,31 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     }
   }
 
+  test("a :- not b, not c. b :- not c.") {
+
+    times foreach { _ =>
+
+      val tms = ExtendedJtms(AspProgram())
+
+      def m = tms.getModel
+
+      tms add AspRule(a, none, Set(b, c)) //central rule 1
+      assert(m.get == Set(a))
+
+      tms add AspRule(b, none, Set(e))
+      tms add AspRule(c, none, Set(f))
+      tms add AspRule(e, f)
+      tms add AspRule(f, e)
+
+      tms invalidateModel() //simulate that choice among {a,b,c} occurs due to further rules
+      tms add AspRule(b, none, Set(c)) //central rule 2
+
+      tms.updateStrategy match {
+        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+      }
+
+    }
+  }
+
 }
