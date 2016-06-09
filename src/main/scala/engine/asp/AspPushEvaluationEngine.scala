@@ -24,9 +24,6 @@ case class AspPushEvaluationEngine(private val aspEvaluation: AspEvaluation) ext
   }
 
   def evaluate(time: TimePoint) = {
-    // TODO: which one should be used here?
-    //    cachedResults.getOrElse(time, EmptyResult)
-    // needs some value or otherwise samples like y .... will fail
     cachedResults.getOrElse(time, prepare(time))
   }
 

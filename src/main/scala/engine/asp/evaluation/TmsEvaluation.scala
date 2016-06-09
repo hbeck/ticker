@@ -9,16 +9,16 @@ import jtms.ExtendedJtms
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluation(pinnedAspProgram: MappedProgram, initialTms: ExtendedJtms = ExtendedJtms()) extends StreamingAspInterpreter {
+case class TmsEvaluation(pinnedAspProgram: MappedProgram, extendedJtms: ExtendedJtms = ExtendedJtms()) extends StreamingAspInterpreter {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
   val (fixedRules, incrementalRules) = findFixPoint(incrementalProgram)
 
   val tms = {
     val fixedProgram = AspProgram(fixedRules.map(x => GroundedNormalRule(x.head, x.pos, x.neg)).toList)
 
-    fixedProgram.rules foreach initialTms.add
+    fixedProgram.rules foreach extendedJtms.add
 
-    initialTms
+    extendedJtms
   }
 
 

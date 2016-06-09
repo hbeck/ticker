@@ -15,7 +15,7 @@ abstract class AllStreamingSamples extends Suites(
   new XWindowBoxASample,
   new YWindowDiamondASample,
 
-
+  new StratifiedSample,
   new JtmsEssenceSimpleWindowSample
 ) with ConfigurableEvaluationSuite
 
