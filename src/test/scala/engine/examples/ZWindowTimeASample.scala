@@ -32,8 +32,6 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
 
   val w1d_a = Atom("w1d_a")
 
-  val i = Atom("i")
-
   val program = Program.from(
     AtAtom(U + 1, z) <= W(2, At(U), a),
     i <= W(1, Diamond, z)

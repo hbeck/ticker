@@ -4,6 +4,8 @@ import core.lars.Program
 import engine.EvaluationEngine
 import engine.config.BuildEngine
 
+import scala.util.Random
+
 /**
   * Created by FM on 01.06.16.
   */
@@ -23,5 +25,5 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
 }
 
 trait TmsPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: Program) => BuildEngine.withProgram(p).useAsp().withTms().use().usePush().start()
+  val defaultEngine = (p: Program) => BuildEngine.withProgram(p).useAsp().withTms(new Random(1)).use().usePush().start()
 }

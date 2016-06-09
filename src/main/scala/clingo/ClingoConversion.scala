@@ -2,6 +2,7 @@ package clingo
 
 import core._
 import core.asp.{AspProgram, AspRule}
+import engine.asp.evaluation.PinnedProgram
 
 /**
   * Created by FM on 22.02.16.

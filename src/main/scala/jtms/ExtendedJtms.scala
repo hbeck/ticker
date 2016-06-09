@@ -6,6 +6,7 @@ import jtms.ExtendedJtms.{UpdateStrategy, UpdateStrategyDoyle, UpdateStrategySte
 
 import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
+import scala.util.Random
 
 object ExtendedJtms {
 
@@ -29,7 +30,7 @@ object ExtendedJtms {
   * ii) stepwise, where a deterministic step succeeds very choice (fix).
   *
   */
-case class ExtendedJtms() {
+case class ExtendedJtms(random: Random = new Random()) {
 
   var updateStrategy: UpdateStrategy = UpdateStrategyStepwise
 
@@ -238,7 +239,7 @@ case class ExtendedJtms() {
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
-    if (math.random < 0.5) {
+    if (random.nextDouble() < 0.5) {
       rule.pos find (status(_) == out) match {
         case None => rule.neg find (status(_) == in)
         case opt => opt

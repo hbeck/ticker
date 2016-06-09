@@ -3,7 +3,9 @@ package core.lars
 /**
   * Created by FM on 01.05.16.
   */
-case class Rule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set())
+case class Rule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) {
+  val body = pos ++ neg
+}
 
 object Fact {
   def apply(head: HeadAtom) = Rule(head, Set())
