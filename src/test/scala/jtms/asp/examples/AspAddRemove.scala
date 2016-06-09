@@ -339,12 +339,6 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     }
   }
 
-  val g = Atom("g")
-  val h = Atom("h")
-  val i = Atom("i")
-  val j = Atom("j")
-  val k = Atom("k")
-  val l = Atom("l")
   val n = Atom("n")
 
   test("reach") {
