@@ -48,7 +48,7 @@ case class JtmsBeierle() extends JtmsAbstraction {
     //1
     register(rule)
     if (status(rule.head) == in) return
-    if (invalid(rule)) return
+    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
     //2
     if (ACons(rule.head).isEmpty) {
       setIn(rule)
@@ -88,16 +88,14 @@ case class JtmsBeierle() extends JtmsAbstraction {
     justifications(atom) find foundedValid match {
       case Some(rule) => {
         setIn(rule)
-        val unk = cons(atom) filter (status(_) == unknown)
-        for (u <- unk){
+        for (u <- unknownCons(atom)){
           step4a(u)
         }
       }
       case None => {
         if (justifications(atom) forall foundedInvalid) {
           setOut(atom)
-          val unk = cons(atom) filter (status(_) == unknown)
-          for (u <- unk){
+          for (u <- unknownCons(atom)){
             step4a(u)
           }
         }
@@ -121,11 +119,10 @@ case class JtmsBeierle() extends JtmsAbstraction {
           setIn(rule) //TODO log as "fix"
           for (n <- rule.neg) {
             if (status(n) == unknown) {
-              status(n) = out //vs setOutOriginal [!]
+              status(n) = out //vs setOutOriginal [!]; support never set!
             }
           }
-          val unk = cons(atom) filter (status(_) == unknown) //* here other variant is chosen. deliberately? [1]
-          for (u <- unk){
+          for (u <- unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
             step5a(u)
           }
         }
@@ -139,8 +136,7 @@ case class JtmsBeierle() extends JtmsAbstraction {
           }
         }
         setOut(atom)
-        val unk = cons(atom) filter (status(_) == unknown)
-        for (u <- unk){
+        for (u <- unknownCons(atom)) {
           step5a(u)
         }
       }
