@@ -1,6 +1,6 @@
 package lars
 
-import core.lars.{At, LarsProgram$, _}
+import core.lars.{At, LarsProgram, _}
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 

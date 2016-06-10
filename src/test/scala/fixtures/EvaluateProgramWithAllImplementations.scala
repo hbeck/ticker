@@ -1,6 +1,6 @@
 package fixtures
 
-import core.lars.{LarsProgram, LarsProgram$}
+import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.config.BuildEngine
 import org.scalatest.FlatSpec

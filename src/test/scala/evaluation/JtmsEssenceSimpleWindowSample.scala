@@ -1,6 +1,6 @@
 package evaluation
 
-import core.lars.{Diamond, LarsProgram$, LarsRule}
+import core.lars.{Diamond, LarsProgram, LarsRule}
 import core.{BuilderCollection, not}
 import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
 import core.lars._

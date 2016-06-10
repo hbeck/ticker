@@ -1,7 +1,7 @@
 package engine.config
 
 import clingo.ClingoConversion
-import core.lars.{LarsProgram, LarsProgram$}
+import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.evaluation._
