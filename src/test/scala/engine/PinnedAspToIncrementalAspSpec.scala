@@ -1,14 +1,13 @@
 package engine
 
-import core.{Atom, PinnedAtom, Predicate}
-import core.asp.{AspFact, AspRule}
-import core.lars.{Diamond, LarsProgram$, LarsRule, W}
-import engine.asp.now
-import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp}
+import core.asp.AspRule
+import core.lars._
+import core.{PinnedAtom, Predicate}
+import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp, now}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
-import org.scalatest.Matchers._
 import org.scalatest.Inspectors._
+import org.scalatest.Matchers._
 
 /**
   * Created by FM on 08.06.16.

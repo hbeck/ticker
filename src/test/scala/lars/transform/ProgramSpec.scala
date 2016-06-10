@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.asp.AspRule
-import core.lars.{LarsFact, LarsProgram$}
+import core.lars.{LarsProgram, LarsFact, LarsProgram$}
 import engine.asp.PlainLarsToAsp
 import org.scalatest.Matchers._
 

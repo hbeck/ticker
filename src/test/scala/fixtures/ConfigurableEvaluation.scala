@@ -1,6 +1,6 @@
 package fixtures
 
-import core.lars.LarsProgram$
+import core.lars.LarsProgram
 import engine.EvaluationEngine
 import org.scalatest._
 
@@ -13,7 +13,7 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
   val program: LarsProgram
 
-  private var engineCache: EvaluationEngine = null
+  private var engineCache: EvaluationEngine = null //TODO: null nicht die art der feinen scala leute
 
   def evaluationEngine: EvaluationEngine = engineCache
 
@@ -22,7 +22,7 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
     val engineConfig = test.configMap.get("engine")
 
     engineConfig match {
-        // TODO: is there a way to make this type safe?
+      // TODO: is there a way to make this type safe?
       case Some(builder: EngineBuilder) => this.engineCache = builder(program)
       case _ => this.engineCache = defaultEngine(program)
     }
