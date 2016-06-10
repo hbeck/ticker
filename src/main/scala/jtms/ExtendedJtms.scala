@@ -212,22 +212,26 @@ case class ExtendedJtms(random: Random = new Random()) {
   }
 
   def setIn(rule: NormalRule) = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
+
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
     //suppRule(rule.head) = Some(rule)
-
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
   }
 
-  def setOut(a: Atom) = {
-    status(a) = out
+  def setOut(a: Atom) = { //TODO there is only one occurrence; in the other, the two lines appear separated. keep setOut?
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
+
+    status(a) = out
     //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing
+    /*
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException()
     }
     supp(a) = Set() ++ maybeAtoms map (_.get)
+    */
+    setOutSupport(a)
     //suppRule(a) = None
   }
 
@@ -269,7 +273,7 @@ case class ExtendedJtms(random: Random = new Random()) {
 
   def invalidation(a: Atom): Boolean = {
     if (justifications(a) forall invalid) {
-      setOut(a)
+      setOut(a) //TODO this is the only usage. keep it?
       return true
     }
     false
@@ -282,7 +286,7 @@ case class ExtendedJtms(random: Random = new Random()) {
     if (fix(a)) {
       unknownCons(a) foreach fixAndPropagateStatus
     } else {
-      val aff = affected(a) + a //TODO no test coverage
+      val aff = affected(a) + a //TODO no test coverage - cannot occur, can it? (status unknown)
       aff foreach setUnknown
       aff foreach fixAndPropagateStatus
     }
@@ -292,11 +296,22 @@ case class ExtendedJtms(random: Random = new Random()) {
     if (status(a) != unknown)
       return
 
+    if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
+
+    justifications(a) find posValid match { //TODO write-up
+      case Some(rule) => fixIn(rule)
+      case None => fixOut(a)
+    }
+
+    unknownCons(a) foreach determineAndPropagateStatus
+
+    /*
     if (fix(a)) {
       unknownCons(a) foreach determineAndPropagateStatus
     } else {
       affected(a) foreach setUnknown //TODO no test coverage
     }
+    */
   }
 
   def fix(a: Atom): Boolean = {
@@ -335,12 +350,14 @@ case class ExtendedJtms(random: Random = new Random()) {
   def fixOut(a: Atom): Unit = {
     status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"fix")
+
     val maybeAtoms: List[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach fixOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
-    setOut(a)
+    //setOut(a)
+    setOutSupport(a: Atom) //TODO write-up; non-redundant now
   }
 
   def openJustifications(a: Atom) = justifications(a) filter (!invalid(_))
@@ -425,43 +442,40 @@ case class ExtendedJtms(random: Random = new Random()) {
     forcedChoiceSeq = Seq[Atom]()
   }
 
-  // ----------------- test stuff or stuff that might not be needed ----------------
-
-  /** @return true if M is admissible **/
-  def set(M: collection.immutable.Set[Atom]): Boolean = {
-  val m = M.toList
-    for (i <- 0 to M.size - 1) {
-      val rule: Option[NormalRule] = findSuppRule(m, i)
-      if (rule.isEmpty) {
+  def set(model: collection.immutable.Set[Atom]): Boolean = {
+    invalidateModel()
+    model foreach (status(_) = in)
+    (allAtoms diff model) foreach (status(_) = out)
+    try {
+      atomsNeedingSupp() foreach setSupport
+    } catch {
+      case e: IncrementalUpdateFailureException => {
+        invalidateModel()
         return false
       }
-      setIn(rule.get)
-    }
-    for (n <- allAtoms diff M) {
-      setOut(n)
     }
     true
   }
 
-  def isFounded(atoms: scala.collection.immutable.Set[Atom])={
-    false
+  def setSupport(a: Atom) {
+    status(a) match {
+      case `in` => setInSupport(a)
+      case `out` => setOutSupport(a)
+      case `unknown` => supp(a) = Set()
+    }
   }
 
-
-  /** takes atoms at list M index idx and tries to find a valid rule
-    * that is founded wrt indexes 0..idx-1
-    */
-  def findSuppRule(M: List[Atom], idx: Int): Option[NormalRule] = {
-    val n = M(idx)
-    val MSub = M.take(idx).toSet
-    val rules = justifications(n) filter (rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
-    selectRule(rules)
+  def setInSupport(a: Atom) = justifications(a) find valid match {
+    case Some(rule) => supp(a) = Set() ++ rule.body
+    case _ => throw new IncrementalUpdateFailureException()
   }
 
-  def selectRule(rules: List[NormalRule]): Option[NormalRule] = {
-    if (rules.isEmpty)
-      return None
-    Some(rules.head)
+  def setOutSupport(a: Atom) {
+    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    if (maybeAtoms exists (_.isEmpty)) {
+      throw new IncrementalUpdateFailureException()
+    }
+    supp(a) = Set() ++ maybeAtoms map (_.get)
   }
 
 }
