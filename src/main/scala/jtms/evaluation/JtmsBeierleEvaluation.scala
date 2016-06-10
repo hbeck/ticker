@@ -7,7 +7,7 @@ import jtms.JtmsBeierle
 /**
   * Created by FM on 25.02.16.
   */
-class JTMNBeierleEvaluation extends Evaluation {
+class JtmsBeierleEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
     val tmn = JtmsBeierle(program)

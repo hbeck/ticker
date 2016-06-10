@@ -7,7 +7,7 @@ import core.asp.AspFact
 /**
   * Created by FM on 06.02.16.
   */
-class JTMS_5 extends JTMSSpec {
+class Jtms_5 extends JtmsSpec {
 
   val j0 = AspFact(a)
 

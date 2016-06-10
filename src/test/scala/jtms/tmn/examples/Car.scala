@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**
@@ -80,7 +80,7 @@ trait CarBehavior {
   }
 }
 
-class Car extends FlatSpec with CarBehavior with EvaluateJTMNImplementations{
+class Car extends FlatSpec with CarBehavior with EvaluateJtmsImplementations{
   "The car sample" should behave like theSame(theCar)
 }
 

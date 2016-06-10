@@ -2,7 +2,7 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsRefactored
+import jtms.{JtmsDoyleRefactored, JtmsDoyleRefactored$}
 import org.scalatest.FlatSpec
 
 /**
@@ -15,21 +15,17 @@ class TwoNegationNodes extends FlatSpec with AtomTestFixture{
 
   val program = AspProgram(r1, r2)
 
-  def tmn = JtmsRefactored(program)
+  def tmn = JtmsDoyleRefactored(program) //TODO
 
   val modelA = {
     val t = tmn
-
     t.set(Set(a))
-
     t
   }
 
   val modelB = {
     val t = tmn
-
     t.set(Set(b))
-
     t
   }
 
@@ -41,12 +37,4 @@ class TwoNegationNodes extends FlatSpec with AtomTestFixture{
     assert(modelB.getModel.get == Set(b))
   }
 
-  /* TODO
-  "The model a" should "be founded" in {
-    assert(modelA.isFounded(modelA.getModel.get))
-  }
-  "The model b" should "be founded" in {
-    assert(modelB.isFounded(modelB.getModel.get))
-  }
-  */
 }

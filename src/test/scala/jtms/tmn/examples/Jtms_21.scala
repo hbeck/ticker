@@ -6,7 +6,7 @@ import core.asp.{AspFact, AspRule}
 /**
   * Created by FM on 11.02.16.
   */
-class JTMS_21 extends JTMSSpec {
+class Jtms_21 extends JtmsSpec {
   val N_contr = ContradictionAtom("N_contr")
 
   val j7 = AspRule(N_contr, Set(b), Set(c))

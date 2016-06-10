@@ -2,13 +2,13 @@ package jtms.tmn.examples
 
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom}
-import jtms.JtmsRefactored
+import jtms.JtmsDoyleRefactored
 import org.scalatest.FunSuite
 
 /**
   * Created by hb on 12.03.16.
   */
-class JTMNConsistency extends FunSuite {
+class JtmsConsistency extends FunSuite {
 
   val a = Atom("a")
   val b = Atom("b")
@@ -29,7 +29,7 @@ class JTMNConsistency extends FunSuite {
   val times = 100
 
   test("a") {
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored() //TODO
     var model = tmn.getModel.get
     assert(model.isEmpty)
 
@@ -41,7 +41,7 @@ class JTMNConsistency extends FunSuite {
 
   test("a :- not b. then b.") {
 
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspRule(a,none,Set(b)))
     var model = tmn.getModel.get
     assert(model.size == 1)
@@ -56,7 +56,7 @@ class JTMNConsistency extends FunSuite {
 
   test("a :- not b. b :- not a.  b.") {
 
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspRule(a,none,Set(b)))
     tmn.add(AspRule(b,none,Set(a)))
     var model = tmn.getModel.get
@@ -70,7 +70,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P1: a :- not b.  b :- not a.  n :- a.") {
     for (i <- 1 to times) {
-      val tmn = JtmsRefactored()
+      val tmn = JtmsDoyleRefactored()
       tmn.add(AspRule(a, none, Set(b)))
       tmn.add(AspRule(b, none, Set(a))) //-> {a}
 
@@ -85,7 +85,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P2: b :- not a.  n :- b, not c.") { //JTMS_21 base case
     for (i <- 1 to times) {
-      val tmn0 = JtmsRefactored()
+      val tmn0 = JtmsDoyleRefactored()
 
       tmn0.add(AspRule(n, Set(b), Set(c)))
       assert(tmn0.getModel.get == Set[Atom]())
@@ -93,7 +93,7 @@ class JTMNConsistency extends FunSuite {
       tmn0.add(AspRule(b, none, Set(a)))
       assert(tmn0.getModel.get == Set(a)) //diff to ASP, which has None
 
-      val tmn1 = JtmsRefactored()
+      val tmn1 = JtmsDoyleRefactored()
 
       tmn1.add(AspRule(b, none, Set(a)))
       assert(tmn1.getModel.get == Set(b))
@@ -105,7 +105,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P3: a :- c.  c :- a.  b :- not a.  n :- b, not c.") {
     for (i <- 1 to times) {
-      val tmn = JtmsRefactored()
+      val tmn = JtmsDoyleRefactored()
       tmn.add(AspRule(a, c))
 
       assert(tmn.getModel.get.isEmpty)
@@ -124,7 +124,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P4:  a :- c.  c :- a.  b :- not a.  n :- b, not c.  a.") {
     for (i <- 1 to times) {
-      val tmnBefore = JtmsRefactored()
+      val tmnBefore = JtmsDoyleRefactored()
       tmnBefore.add(AspRule(a, c)) //{}
       tmnBefore.add(AspRule(c, a)) //{}
       tmnBefore.add(AspRule(b, none, Set(a))) //{b}
@@ -135,7 +135,7 @@ class JTMNConsistency extends FunSuite {
       assert(tmnBefore.getModel.get == Set[Atom](a,c))
 
 
-      val tmnAfter = JtmsRefactored()
+      val tmnAfter = JtmsDoyleRefactored()
       tmnAfter.add(AspRule(a, c)) //{}
       tmnAfter.add(AspRule(c, a)) //{}
       tmnAfter.add(AspRule(b, none, Set(a))) //{b}
@@ -150,14 +150,14 @@ class JTMNConsistency extends FunSuite {
 
   //inconsistent
   test(":- not a") {
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspRule(n,none,Set(a)))
     assert(tmn.getModel == None)
   }
 
   //inconsistent
   test("a. :- a.") {
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspFact(a))
     tmn.add(AspRule(n,a))
     assert(tmn.getModel == None)
@@ -166,12 +166,12 @@ class JTMNConsistency extends FunSuite {
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
 
-    val tmnFactFirst = JtmsRefactored()
+    val tmnFactFirst = JtmsDoyleRefactored()
     tmnFactFirst.add(AspFact(a))
     tmnFactFirst.add(AspRule(a,Set(),Set(a)))
     assert(tmnFactFirst.getModel.get == Set(a))
 
-    val tmnRuleFirst = JtmsRefactored()
+    val tmnRuleFirst = JtmsDoyleRefactored()
     tmnRuleFirst.add(AspRule(a,Set(),Set(a)))
     tmnRuleFirst.add(AspFact(a))
     assert(tmnRuleFirst.getModel.get == Set(a))
@@ -180,7 +180,7 @@ class JTMNConsistency extends FunSuite {
   //inconsistent: direct odd loop
 //  test("a :- not a.") {
 //
-//    val tmn = JTMNRefactored()
+//    val tmn = JtmsRefactored()
 //    tmn.add(Rule(a,Set(),Set(a)))
 //    assert(tmn.getModel == None)
 //
@@ -220,7 +220,7 @@ class JTMNConsistency extends FunSuite {
   test("even loop. a :- b not. b :- not c. c :- not d. d :- not a.") { //{a,c} or {b,d}
 
     for (i <- 1 to times) {
-      val tmn = JtmsRefactored()
+      val tmn = JtmsDoyleRefactored()
       tmn.add(AspRule(a, none, Set(b)))
       tmn.add(AspRule(b, none, Set(c)))
       tmn.add(AspRule(c, none, Set(d)))
@@ -235,7 +235,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
-    val tmn1 = JtmsRefactored()
+    val tmn1 = JtmsDoyleRefactored()
     tmn1.add(AspRule(a,b))
     tmn1.add(AspRule(b,none,Set(c)))
     assert(tmn1.getModel.get == Set(a,b))
@@ -248,7 +248,7 @@ class JTMNConsistency extends FunSuite {
     assert(tmn1.getModel.get == Set(a,b))
 
     //other insertion order of last two
-    val tmn2 = JtmsRefactored()
+    val tmn2 = JtmsDoyleRefactored()
     tmn2.add(AspRule(a,b)) //a :- b
     tmn2.add(AspRule(c,none,Set(a))) //c :- not a
     assert(tmn2.getModel.get == Set(c)) //{c}
@@ -264,7 +264,7 @@ class JTMNConsistency extends FunSuite {
 
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
-    val net1 = JtmsRefactored()
+    val net1 = JtmsDoyleRefactored()
     net1.add(AspRule(a,b)) //a :- b
     assert(net1.getModel.get == Set())
 
@@ -291,9 +291,9 @@ class JTMNConsistency extends FunSuite {
     assert(net1.cons(b)==Set(a))
     assert(net1.cons(c)==Set(b))
     //
-    assert(net1.aff(a)==Set(c))
-    assert(net1.aff(b)==Set(a))
-    assert(net1.aff(c)==Set(b))
+    assert(net1.affected(a)==Set(c))
+    assert(net1.affected(b)==Set(a))
+    assert(net1.affected(c)==Set(b))
     //
     assert(net1.repercussions(a)==Set(a,b,c))
     assert(net1.repercussions(b)==Set(a,b,c))
@@ -314,7 +314,7 @@ class JTMNConsistency extends FunSuite {
 
     //TODO
     //other insertion order
-    val net2 = JtmsRefactored()
+    val net2 = JtmsDoyleRefactored()
     net2.add(AspRule(a,b)) //a :- b
     net2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}
     assert(net2.getModel.get == Set(a,b)) //{a,b}
@@ -328,7 +328,7 @@ class JTMNConsistency extends FunSuite {
   }
 
   test("doyle time room") {
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspRule(t1,none,Set(t2)))
     tmn.add(AspRule(r1,none,Set(r2)))
     assert(tmn.getModel.get == Set(t1,r1))
@@ -338,7 +338,7 @@ class JTMNConsistency extends FunSuite {
   }
 
   test("elkan p228") {
-    val tmn = JtmsRefactored()
+    val tmn = JtmsDoyleRefactored()
     tmn.add(AspRule(f,none,Set(a,c)))
     tmn.add(AspRule(b,none,Set(a)))
     tmn.add(AspRule(a,none,Set(b)))

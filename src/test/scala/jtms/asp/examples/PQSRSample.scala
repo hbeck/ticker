@@ -8,7 +8,7 @@ import org.scalatest.FlatSpec
   * Created by FM on 26.02.16.
   */
 
-class PQSRSample extends FlatSpec with EvaluateASPImplementations {
+class PQSRSample extends FlatSpec with EvaluateAspImplementations {
   //  this: FlatSpec =>
 
   val none = Set[Atom]()

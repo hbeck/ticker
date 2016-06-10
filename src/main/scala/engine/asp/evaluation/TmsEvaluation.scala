@@ -3,12 +3,12 @@ package engine.asp.evaluation
 import core._
 import core.lars.TimePoint
 import engine.asp.{MappedProgram, PinnedAspToIncrementalAsp}
-import jtms.ExtendedJtms
+import jtms.JtmsExtended
 
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluation(pinnedAspProgram: MappedProgram, extendedJtms: ExtendedJtms = ExtendedJtms()) extends StreamingAspInterpreter {
+case class TmsEvaluation(pinnedAspProgram: MappedProgram, extendedJtms: JtmsExtended = JtmsExtended()) extends StreamingAspInterpreter {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)

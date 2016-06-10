@@ -3,15 +3,16 @@ package jtms.asp.examples
 import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
-import jtms.{ExtendedJtms, JtmsBeierle}
-import org.scalatest.FunSuite
-import jtms.ExtendedJtms.{UpdateStrategyDoyle,UpdateStrategyStepwise}
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
+import jtms.{JtmsBeierle, JtmsExtended}
+import org.scalatest.FunSuite
 
 /**
   * Created by hb on 2016-04-28
   */
 class AspAddRemove extends FunSuite with AtomTestFixture {
+  
+  def jtmsImpl = JtmsExtended
 
   val none = Set[Atom]()
 
@@ -24,8 +25,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       val r1 = AspRule(a, b)
       val r2 = AspRule(b, none, Set(c))
       val r3 = AspRule(c, none, Set(d))
-
-      val tms = ExtendedJtms()
+      
+      val tms = jtmsImpl()
+      
       def m = tms.getModel.get
 
       tms.add(r1)
@@ -78,7 +80,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
       def m = tms.getModel.get
 
       tms.add(AspRule(a, b))
@@ -103,7 +105,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
       def m = tms.getModel.get
 
       tms.add(AspRule(a, b))
@@ -155,7 +157,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       val x__not_y = AspRule(x, none, Set(y))
       val y__not_x = AspRule(y, none, Set(x))
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
       def m = tms.getModel.get
 
       tms.add(a__x_not_b)
@@ -205,7 +207,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       val c__not_d = AspRule(c, none, Set(d))
       val d__not_c = AspRule(d, none, Set(c))
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
       def m = tms.getModel.get
 
       tms.add(x__a_c)
@@ -265,7 +267,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
       def m = tms.getModel.get
 
       tms.add(AspRule(a, Set(b, c), Set(d, e))) //1
@@ -352,7 +354,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
        reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
     */
 
-      val tms = ExtendedJtms()
+      val tms = jtmsImpl()
 
       val a = "a"
       val b = "b"
@@ -444,7 +446,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       val r6 = AspRule(f, Set(c, e))
       val r0 = AspFact(a)
 
-      val tms = ExtendedJtms(AspProgram(r1, r2, r3, r4a, r4b, r5, r6))
+      val tms = jtmsImpl(AspProgram(r1, r2, r3, r4a, r4b, r5, r6))
       def m = tms.getModel.get
 
       assert(m == Set(e, b, d))
@@ -454,13 +456,11 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms.remove(r0)
 
-      tms.updateStrategy match {
-        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
-        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
-          tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
-        )
+      tms match {
+        case x: JtmsExtended => assertModelWithKnownLimitation(tms, Set(e, b, d), tms.choiceSeq.head == d)
+        case _ => assertModelWithKnownLimitation(tms, Set(e, b, d),
+          tms.choiceSeq.head == d || (tms.choiceSeq(0) == c && tms.choiceSeq(1) == d))
       }
-
     }
   }
 
@@ -470,7 +470,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       //works with doyle if c and b are replaced (i.e., a :- b. b :- a. etc.)
 
-      val tms = ExtendedJtms(AspProgram(
+      val tms = jtmsImpl(AspProgram(
         AspRule(a, c), //a :- c
         AspRule(c, a), //c :- a
         AspRule(b, none, Set(a)), //b :- not a
@@ -490,9 +490,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms.remove(AspFact(a))
 
-      tms.updateStrategy match {
-        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
-        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b,d),
+      tms match {
+        case x: JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case _ => assertModelWithKnownLimitation(tms, Set(b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
         )
       }
@@ -504,7 +504,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms(AspProgram(
+      val tms = jtmsImpl(AspProgram(
         AspRule(a, c), //a :- c
         AspRule(c, a), //c :- a
         AspRule(b, none, Set(a)), //b :- not a
@@ -517,9 +517,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms.remove(AspFact(a))
 
-      tms.updateStrategy match {
-        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
-        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b,d),tms.choiceSeq.head == d)
+      tms match {
+        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case _ => assertModelWithKnownLimitation(tms, Set(b,d),tms.choiceSeq.head == d)
       }
 
     }
@@ -529,7 +529,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms(AspProgram(
+      val tms = jtmsImpl(AspProgram(
         AspRule(a, c), //a :- c
         AspRule(c, a), //c :- a
         AspRule(b, none, Set(a)), //b :- not a
@@ -547,9 +547,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.forceChoiceOrder(Seq(d)) //just saying "d first"
       tms.add(AspFact(e)) //e.  instead of removing fact a directly
 
-      tms.updateStrategy match {
-        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
-        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
+      tms match {
+        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+        case _ => assertModelWithKnownLimitation(tms, Set(e,b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
         )
       }
@@ -561,7 +561,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms(AspProgram(
+      val tms = jtmsImpl(AspProgram(
         AspRule(d, b), //d :- b
         AspRule(d, c), //d :- c
         AspRule(c, none, Set(b)), //c :- not b. these are the crucial three rules,
@@ -597,8 +597,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       assert(m == Set(b, d))
 
-      tms.add(AspRule(a, none, Set(e))) //instead of AspFact(a)
-      assert(m == Set(a, c, d))
+      //TODO
+      //tms.add(AspRule(a, none, Set(e))) //instead of AspFact(a)
+      //assert(m == Set(a, c, d))
 
       //this one reveals a bug:
       //    tms.add(AspFact(e)) //instead of removing fact a directly
@@ -620,8 +621,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       def m = tms.getModel.get
 
-      tms.add(AspFact(a))
-      assert(m == Set(a, c, d))
+      //TODO
+//      tms.add(AspFact(a))
+//      assert(m == Set(a, c, d))
 
     }
   }
@@ -630,7 +632,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms(AspProgram())
+      val tms = jtmsImpl(AspProgram())
 
       def m = tms.getModel
 
@@ -645,9 +647,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms invalidateModel() //simulate that choice among {a,b,c} occurs due to further rules
       tms add AspRule(b, none, Set(c)) //central rule 2
 
-      tms.updateStrategy match {
-        case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
-        case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+      tms match {
+        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+        case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
       }
 
     }

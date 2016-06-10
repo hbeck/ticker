@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{JtmsRefactored, Status}
+import jtms.{JtmsDoyleRefactored, Status}
 import org.scalatest.FlatSpec
 
 /**
@@ -12,7 +12,8 @@ import org.scalatest.FlatSpec
 trait AtomValidation {
   this: FlatSpec =>
 
-  def atomValidation(tmn: JtmsRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
+  //TODO
+  def atomValidation(tmn: JtmsDoyleRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 
     def atomCheckTestCallback(check: (AtomValidator) => Any) = {
@@ -22,7 +23,7 @@ trait AtomValidation {
     return atomCheckTestCallback
   }
 
-  class AtomValidator(tmn: JtmsRefactored, atom: Atom) {
+  class AtomValidator(tmn: JtmsDoyleRefactored, atom: Atom) {
 
     info(atom.toString)
 
@@ -47,9 +48,9 @@ trait AtomValidation {
       else
         text = "have no supporting rules";
 
-      it should text in {
-        assert(tmn.suppRule(atom) == j)
-      }
+//      it should text in {
+//        assert(tmn.suppRule(atom) == j)
+//      }
     }
 
     def Supp(atoms: Atom*) = {
@@ -83,8 +84,8 @@ trait AtomValidation {
     }
 
     def ACons(atoms: Atom*) = {
-      it should "have ACons " + atoms.toSet in {
-        assert(tmn.ACons(atom) == atoms.toSet)
+      it should "have affected " + atoms.toSet in {
+        assert(tmn.affected(atom) == atoms.toSet)
       }
     }
 

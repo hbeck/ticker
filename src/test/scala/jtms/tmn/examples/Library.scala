@@ -4,7 +4,7 @@ import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import jtms._
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
 
@@ -95,13 +95,13 @@ trait LibraryBehavior {
   }
 }
 
-class Library extends FlatSpec with LibraryBehavior with EvaluateJTMNImplementations {
+class Library extends FlatSpec with LibraryBehavior with EvaluateJtmsImplementations {
   "The Library Sample" should behave like theSame(library)
 }
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = JtmsRefactored(program)
+  def Tmn = JtmsDoyleRefactored(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)

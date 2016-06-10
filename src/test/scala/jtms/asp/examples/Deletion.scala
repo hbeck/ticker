@@ -3,10 +3,9 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJtms.{UpdateStrategyDoyle, UpdateStrategyStepwise}
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{ExtendedJtms, in}
+import jtms.{JtmsExtended, in}
 import org.scalatest.FlatSpec
 
 /**
@@ -18,7 +17,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
-    val net = new ExtendedJtms()
+    val net = new JtmsExtended()
     net.add(AspFact(a))
 
     assume(net.getModel.get == Set(a))
@@ -42,7 +41,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     val program = AspProgram(r1, r2)
 
-    val net = ExtendedJtms(program)
+    val net = JtmsExtended(program)
 
     assume(net.cons(c) == Set(a))
 
@@ -56,7 +55,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r0 = AspRule(b,a)
     val r1 = AspRule(a,none,none)
 
-    val net = new ExtendedJtms()
+    val net = new JtmsExtended()
 
     net.add(r0)
     net.add(r1)
@@ -83,7 +82,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r1 = AspRule(b,a)
     val r2 = AspFact(a)
 
-    val net = new ExtendedJtms()
+    val net = new JtmsExtended()
 
     net.add(r1)
     net.add(r2)
@@ -110,7 +109,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r1 = AspFact(a)
     val r2 = AspRule.pos(b).head(c)
 
-    val net = new ExtendedJtms()
+    val net = new JtmsExtended()
 
     net.add(r0)
     net.add(r1)
@@ -137,7 +136,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     val r2 = AspRule.pos(b).head(c)
     val r3 = AspRule.pos(a).head(c)
 
-    val net = new ExtendedJtms()
+    val net = new JtmsExtended()
 
     net.add(r0)
     net.add(r1)
@@ -165,7 +164,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
   "Removing an additional rule form the JTMS 5 sample" should "result in the original model" in {
     // arrange
-    val setup = new JTMS_5_ASP
+    val setup = new Jtms_5_Asp
     val tms = setup.net
 
     assert(tms.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
@@ -175,9 +174,9 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     // assert
     // assert(net.getModel.get == Set(setup.e, setup.b, setup.d))
-    tms.updateStrategy match {
-      case `UpdateStrategyStepwise` => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
-      case `UpdateStrategyDoyle` => assertModelWithKnownLimitation(tms, Set(e,b,d),
+    tms match {
+      case x:JtmsExtended => assertModelWithKnownLimitation(x, Set(e,b,d), x.choiceSeq.head == d)
+      case _ => assertModelWithKnownLimitation(tms, Set(e,b,d),
         tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
       )
     }
@@ -190,7 +189,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     val setup = new Tweety
 
-    val net = ExtendedJtms(setup.program)
+    val net = JtmsExtended(setup.program)
 
     net.add(setup.j5)
 

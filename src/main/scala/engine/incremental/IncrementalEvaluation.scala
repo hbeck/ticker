@@ -4,7 +4,7 @@ import core.Atom
 import core.asp.{AspFact, NormalProgram}
 import core.lars.TimePoint
 import engine.{Result, _}
-import jtms.ExtendedJtms
+import jtms.JtmsExtended
 
 /**
   * Created by FM on 05.04.16.
@@ -12,7 +12,7 @@ import jtms.ExtendedJtms
 case class IncrementalEvaluation(private val program: NormalProgram) extends EvaluationEngine {
   val intensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
-  val answerUpdateNetwork = ExtendedJtms(program)
+  val answerUpdateNetwork = JtmsExtended(program)
 
   def append(time: TimePoint)(atoms: Atom*): Unit = {
     intensionalAtomStream.append(time)(atoms.toSet)

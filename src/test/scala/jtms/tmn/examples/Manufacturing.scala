@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**
@@ -44,6 +44,6 @@ trait ManufacturingBehavior {
 
 }
 
-class Manufacturing extends FlatSpec with ManufacturingBehavior with EvaluateJTMNImplementations {
+class Manufacturing extends FlatSpec with ManufacturingBehavior with EvaluateJtmsImplementations {
   "The Manufacturing sample" should behave like theSame(manufacturing)
 }

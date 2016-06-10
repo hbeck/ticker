@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.ExtendedJtms
+import jtms.JtmsExtended
 import org.scalatest.FunSuite
 
 /**
@@ -19,7 +19,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       assert(m.get.isEmpty)
@@ -37,7 +37,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -56,7 +56,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -77,7 +77,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      var tms = ExtendedJtms()
+      var tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspFact(a))
@@ -86,7 +86,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.remove(AspFact(a))
       assert(m == None)
 
-      tms = ExtendedJtms()
+      tms = JtmsExtended()
       tms.add(AspRule(a, Set(), Set(a)))
       assert(m == None)
       tms.add(AspFact(a))
@@ -99,7 +99,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -128,7 +128,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -150,7 +150,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(d), Set(b, c)))
@@ -175,7 +175,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(b, c)))
@@ -206,7 +206,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(b), Set(c)))
@@ -230,7 +230,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(d), Set(c)))
@@ -259,7 +259,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
       //illustrates the essence of inc6 more clearly
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -285,7 +285,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(a)))
@@ -301,7 +301,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = ExtendedJtms()
+      val tms = JtmsExtended()
       def m = tms.getModel
 
       tms.add(AspRule(a, b))
@@ -324,7 +324,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-    val tms = ExtendedJtms()
+    val tms = JtmsExtended()
     def m = tms.getModel
 
     tms.add(AspRule(a,b))

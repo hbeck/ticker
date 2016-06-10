@@ -2,15 +2,15 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.JtmsRefactored
+import jtms.{JtmsDoyleRefactored, JtmsDoyleRefactored$}
 
 /**
   * Created by FM on 25.02.16.
   */
-class JTMNRefactoredEvaluation extends Evaluation {
+class JtmsRefactoredEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
-    val tmn = JtmsRefactored(program)
+    val tmn = JtmsDoyleRefactored(program)
 
     val singleModel = tmn.getModel.get
 

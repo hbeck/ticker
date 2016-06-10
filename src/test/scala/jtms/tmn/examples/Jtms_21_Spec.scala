@@ -2,13 +2,13 @@ package jtms.tmn.examples
 
 import core._
 import core.asp.{AspRule, NormalRule}
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-trait JTMS_21Behavior extends JTMSSpec {
+trait Jtms_21_Behavior extends JtmsSpec {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
@@ -38,7 +38,7 @@ trait JTMS_21Behavior extends JTMSSpec {
   }
 }
 
-class JMTS_21 extends JTMSSpec with JTMS_21Behavior with EvaluateJTMNImplementations {
+class Jtms_21_Spec extends JtmsSpec with Jtms_21_Behavior with EvaluateJtmsImplementations {
   "The example 21" should behave like theSame(example21)
 
 }

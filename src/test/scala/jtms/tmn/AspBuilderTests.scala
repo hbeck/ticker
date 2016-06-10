@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp._
-import jtms.JtmsRefactored
+import jtms.JtmsDoyleRefactored
 import org.scalatest.FlatSpec
 
 import scala.collection.immutable.Stream.#::
@@ -75,7 +75,7 @@ class AspBuilderTests extends FlatSpec {
       )
     })
 
-    val tmn = JtmsRefactored(program)
+    val tmn = JtmsDoyleRefactored(program) //TODO
 
     assert(tmn.getModel().isDefined)
   }

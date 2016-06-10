@@ -1,18 +1,18 @@
 package jtms.asp
 
 import core.Atom
-import jtms.ExtendedJtms
+import jtms.{ChoiceControl, Jtms}
 
 /**
   * Created by hb on 5/31/16.
   */
 object LimitationHandling {
 
-  def assertModelWithKnownLimitation(tms: ExtendedJtms, model: Set[Atom], knownLimitation: => Boolean): Unit = {
+  def assertModelWithKnownLimitation[T <: Jtms with ChoiceControl](tms: T, model: Set[Atom], knownLimitation: => Boolean): Unit = {
     assertModelWithKnownLimitation(tms, tms.getModel.get == model, knownLimitation)
   }
 
-  def assertModelWithKnownLimitation(tms: ExtendedJtms, modelCondition: => Boolean, knownLimitation: => Boolean): Unit = {
+  def assertModelWithKnownLimitation[T <: Jtms with ChoiceControl](tms: T, modelCondition: => Boolean, knownLimitation: => Boolean): Unit = {
     if (tms.getModel == None) {
       if (!knownLimitation) { //known limitation
         println("rules: "+tms.rules)

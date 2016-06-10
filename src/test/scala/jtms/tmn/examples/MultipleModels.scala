@@ -3,7 +3,7 @@ package jtms.tmn.examples
 import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspProgram, AspRule}
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**
@@ -45,6 +45,6 @@ trait MultipleModelsBehavior {
   }
 }
 
-class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateJTMNImplementations {
+class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateJtmsImplementations {
   "Multiple Models" should behave like theSame(multipleModels)
 }

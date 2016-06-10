@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import core._
 import core.asp.{AspProgram, AspRule}
-import jtms.JtmsRefactored
+import jtms.JtmsDoyleRefactored
 import org.scalatest.FlatSpec
 
 /**
@@ -27,20 +27,20 @@ class Scheduling extends FlatSpec {
   )
 
   "The model" should "be Time1000, Room813" in {
-    val tmn = JtmsRefactored(program)
+    val tmn = JtmsDoyleRefactored(program) //TODO
 
     assert(tmn.getModel.get == Set(Time1000, Room813))
   }
 
   "Adding a contradiction :- Time1000,Room813" should "lead to model notTime1000, Room813" in {
-    val tmn = JtmsRefactored(program)
+    val tmn = JtmsDoyleRefactored(program)
     tmn.add(AspRule(contradiction, Set(Time1000, Room813), Set()))
 
     assert(tmn.getModel.get == Set(NotTime1000, Room813)) //diff to ASP, which has None
   }
 
   "Adding a contradiction :- notTime1000" should "lead to model time1000, Room801" in {
-    val tmn = JtmsRefactored(
+    val tmn = JtmsDoyleRefactored(
       program +
         AspRule(contradiction, Set(Time1000, Room813), Set()) +
         AspRule(contradiction, Set(NotTime1000), Set())

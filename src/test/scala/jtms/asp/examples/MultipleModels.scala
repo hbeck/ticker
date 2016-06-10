@@ -42,6 +42,6 @@ trait MultipleModelsBehavior extends AtomTestFixture {
   }
 }
 
-class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateASPImplementations {
+class MultipleModels extends FlatSpec with MultipleModelsBehavior with EvaluateAspImplementations {
   "Multiple Models" should behave like theSame(multipleModels)
 }

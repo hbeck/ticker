@@ -3,7 +3,6 @@ package jtms
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 
-import scala.annotation.tailrec
 import scala.collection.mutable.{HashMap, Map, Set}
 
 object JtmsBeierle {
@@ -24,31 +23,20 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-case class JtmsBeierle() {
+case class JtmsBeierle() extends JtmsAbstraction {
 
-  var rules: List[NormalRule] = List()
+  val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
 
-  val Cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val Supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val SuppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
-  val status: Map[Atom, Status] = new HashMap[Atom, Status] //at least 'in' consequence of SuppRule
-
-  def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
+  override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None
     Some(atoms.toSet)
   }
 
-  def atoms() = Cons.keySet
-
-  def inAtoms() = status.keys filter (status(_) == in)
-
-  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom]
-
-  def add(rule: NormalRule): Unit = {
+  override def add(rule: NormalRule): Unit = {
     updateSteps1to5(rule)
     //6
-    for (n <- atoms()) {
+    for (n <- allAtoms()) {
       if (contradictionAtom(n) && status(n) == in) {
         DDBBeierleOriginal(n) //there is no need to continue iteration after first unsolvable contradiction [!]
       }
@@ -66,8 +54,19 @@ case class JtmsBeierle() {
       setIn(rule)
       return
     }
-    //3
+    //3 (first part)
     val L = repercussions(rule.head) + rule.head
+
+    update(L)
+  }
+
+  //extracted at this position for remove case
+  override def update(L: Set[Atom]) {
+
+    if (recordChoiceSeq) choiceSeq = Seq[Atom]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
+
+    //3 (second part)
     for (atom <- L) {
       status(atom) = unknown //vs setUnknown [!]
     }
@@ -89,7 +88,7 @@ case class JtmsBeierle() {
     justifications(atom) find foundedValid match {
       case Some(rule) => {
         setIn(rule)
-        val unk = Cons(atom) filter (status(_) == unknown)
+        val unk = cons(atom) filter (status(_) == unknown)
         for (u <- unk){
           step4a(u)
         }
@@ -97,7 +96,7 @@ case class JtmsBeierle() {
       case None => {
         if (justifications(atom) forall foundedInvalid) {
           setOut(atom)
-          val unk = Cons(atom) filter (status(_) == unknown)
+          val unk = cons(atom) filter (status(_) == unknown)
           for (u <- unk){
             step4a(u)
           }
@@ -119,13 +118,13 @@ case class JtmsBeierle() {
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
-          setIn(rule)
+          setIn(rule) //TODO log as "fix"
           for (n <- rule.neg) {
             if (status(n) == unknown) {
               status(n) = out //vs setOutOriginal [!]
             }
           }
-          val unk = Cons(atom) filter (status(_) == unknown) //* here other variant is chosen. deliberately? [1]
+          val unk = cons(atom) filter (status(_) == unknown) //* here other variant is chosen. deliberately? [1]
           for (u <- unk){
             step5a(u)
           }
@@ -140,7 +139,7 @@ case class JtmsBeierle() {
           }
         }
         setOut(atom)
-        val unk = Cons(atom) filter (status(_) == unknown)
+        val unk = cons(atom) filter (status(_) == unknown)
         for (u <- unk){
           step5a(u)
         }
@@ -148,34 +147,28 @@ case class JtmsBeierle() {
     }
   }
 
-  def setIn(rule: NormalRule) = {
+  //TODO there's no such method in the book!
+  override def setIn(rule: NormalRule) = {
+
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
+
     status(rule.head) = in
-    Supp(rule.head) = Set() ++ rule.body
-    SuppRule(rule.head) = Some(rule)
+    supp(rule.head) = Set() ++ rule.body
+    suppRule(rule.head) = Some(rule)
   }
 
-  def setOut(atom: Atom): Unit = {
+  //TODO there's no such method in the book!
+  override def setOut(atom: Atom): Unit = {
+
+    if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")
+
     status(atom) = out
     val maybeAtoms: List[Option[Atom]] = justifications(atom) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
       throw new RuntimeException("could not find spoiler for every SuppRule of atom "+atom)
     }
-    Supp(atom) = Set() ++ maybeAtoms map (_.get)
+    supp(atom) = Set() ++ maybeAtoms map (_.get)
     //SuppRule(a) = None //is not set in beierle [!]
-  }
-
-  def findSpoiler(rule: NormalRule): Option[Atom] = {
-    if (math.random < 0.5) {
-      rule.pos find (status(_) == out) match {
-        case None => rule.neg find (status(_) == in)
-        case opt => opt
-      }
-    } else {
-      rule.neg find (status(_) == in) match {
-        case None => rule.pos find (status(_) == out)
-        case opt => opt
-      }
-    }
   }
 
   def DDBBeierleOriginal(n: Atom): Unit = {
@@ -191,10 +184,10 @@ case class JtmsBeierle() {
 
     //2
     val na = maxAssumptions.head //culprit
-    val nStar = SuppRule(na).get.neg.head //(all .neg have status out at this point)
+    val nStar = suppRule(na).get.neg.head //(all .neg have status out at this point)
 
     //3
-    val suppRules = maxAssumptions map (SuppRule(_).get) //J_\bot
+    val suppRules = maxAssumptions map (suppRule(_).get) //J_\bot
     val pos = suppRules flatMap (_.pos) //I_\bot
     val neg = (suppRules flatMap (_.neg)) - nStar //O_\bot
     val rule = AspRuleFromBacktracking(pos, neg, nStar)
@@ -209,104 +202,76 @@ case class JtmsBeierle() {
 
   }
 
-  def register(rule: NormalRule): Unit = {
-    if (rules contains rule) return //list representation!
-    rules = rules :+ rule
-    rule.atoms foreach register
-    rule.body foreach (Cons(_) += rule.head)
+  override def register(a: Atom): Unit = {
+    super.register(a)
+    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
-
-  def register(a: Atom): Unit = {
-    if (!status.isDefinedAt(a)) status(a) = out
-    if (!Cons.isDefinedAt(a)) Cons(a) = Set[Atom]()
-    if (!Supp.isDefinedAt(a)) Supp(a) = Set[Atom]()
-    if (!SuppRule.isDefinedAt(a)) SuppRule(a) = None
-  }
-
-  def invalid(rule: NormalRule) = findSpoiler(rule) match {
-    case Some(spoiler) => Supp(rule.head) += spoiler; true
-    case None => false
-  }
-
-  def justifications(h: Atom) = rules filter (_.head == h)
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
-  def ACons(a: Atom): Set[Atom] = Cons(a) filter (Supp(_) contains a)
+  def ACons(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
 
-  def repercussions(a: Atom) = trans(ACons, a)
+  def isAssumption(a: Atom) = (status(a) == in) && !suppRule(a).get.neg.isEmpty
 
-  def antecedents(a: Atom): Set[Atom] = {
-    if (status(a) == in) return Supp(a)
-    Set()
+  def foundedValid(rule: NormalRule) = valid(rule)
+
+  def foundedInvalid(rule: NormalRule) = invalid(rule)
+
+  def unfoundedValid(rule: NormalRule) = posValid(rule)
+
+
+  //
+
+  override def unregister(a: Atom): Unit = {
+    super.unregister(a)
+    suppRule remove a
   }
 
-  def foundations(a: Atom) = trans(antecedents, a)
-
-  def ancestors(a: Atom) = trans(Supp, a)
-
-  def isAssumption(a: Atom) = (status(a) == in) && !SuppRule(a).get.neg.isEmpty
-
-  def unknownCons(a: Atom) = Cons(a) filter (status(_) == unknown)
-
-  def foundedValid(rule: NormalRule) =
-    (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
-
-  def foundedInvalid(rule: NormalRule) =
-    (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
-
-  def unfoundedValid(rule: NormalRule) =
-    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
-
-  def trans[T](f: T => Set[T], t: T): Set[T] = {
-    trans(f)(f(t))
-  }
-
-  @tailrec
-  final def trans[T](f: T => Set[T])(s: Set[T]): Set[T] = {
-    val next = s.flatMap(f)
-    val nextSet = next ++ s
-    if (s == nextSet || next.isEmpty) {
-      return s
+  override def setInSupport(a: Atom) = justifications(a) find foundedValid match {
+    case Some(rule) => {
+      supp(a) = Set() ++ rule.body
+      suppRule(a) = Some(rule)
     }
-    trans(f)(nextSet)
+    case _ => throw new IncrementalUpdateFailureException()
   }
 
-  // ----------------- test stuff -------------------
+  override def setOutSupport(a: Atom) {
+    super.setOutSupport(a)
+    suppRule(a) = None
+  }
 
-  /** @return true if M is admissible **/
-  def set(M: collection.immutable.Set[Atom]): Boolean = { //TODO (HB) Set vs List. Always list for order?
-  val m = M.toList
-    for (i <- 0 to M.size - 1) {
-      val rule: Option[NormalRule] = findSuppRule(m, i)
-      if (rule.isEmpty) {
-        return false
-      }
-      setIn(rule.get)
+  // -- from refactored implementation, not in use --
+
+  //return true if method leaves with status(c) != in
+  def DDBRefactored(c: Atom): Boolean = {
+
+    if (status(c) != in) return true
+
+    val asms = foundations(c) filter isAssumption
+    val maxAssumptions = asms filter { a =>
+      ! ((asms - a) exists (b => foundations(b) contains a))
     }
-    for (n <- atoms diff M) {
-      setOut(n)
+
+    if (maxAssumptions.isEmpty)
+      return false //contradiction cannot be solved
+
+    findBacktrackingRule(maxAssumptions) match {
+      case Some(rule) => add(rule); return true
+      case None => return false
     }
-    true
+
   }
 
-  def isFounded(atoms:scala.collection.immutable.Set[Atom])={
-    false
-  }
+  def findBacktrackingRule(maxAssumptions: Set[Atom]): Option[AspRuleFromBacktracking] = {
 
-  /** takes atoms at list M index idx and tries to find a valid rule
-    * that is founded wrt indexes 0..idx-1
-    */
-  def findSuppRule(M: List[Atom], idx: Int): Option[NormalRule] = {
-    val n = M(idx)
-    val MSub = M.take(idx).toSet
-    val rules = justifications(n).filter(rule => rule.pos.subsetOf(MSub) && rule.neg.intersect(M.toSet).isEmpty)
-    selectRule(rules)
-  }
+    val culprit = maxAssumptions.head
+    val n = suppRule(culprit).get.neg.head //(all .neg have status out at this point)
 
-  def selectRule(rules: List[NormalRule]): Option[NormalRule] = {
-    if (rules.isEmpty)
-      return None
-    Some(rules.head)
+    val suppRules = maxAssumptions map (suppRule(_).get)
+    val pos = suppRules flatMap (_.pos)
+    val neg = (suppRules flatMap (_.neg)) - n
+    val rule = AspRuleFromBacktracking(pos, neg, n)
+
+    Some(rule)
   }
 
 }

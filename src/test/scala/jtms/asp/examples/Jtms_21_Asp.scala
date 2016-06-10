@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 11.02.16.
   */
-trait JTMS_21Behavior_ASP extends JTMSSpecASP {
+trait Jtms_21_Behavior_Asp extends JtmsSpecAsp {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom("f")
@@ -32,7 +32,7 @@ trait JTMS_21Behavior_ASP extends JTMSSpecASP {
   }
 }
 
-class JTMS_21_ASP extends JTMSSpecASP with JTMS_21Behavior_ASP with EvaluateASPImplementations {
+class Jtms_21_Asp extends JtmsSpecAsp with Jtms_21_Behavior_Asp with EvaluateAspImplementations {
   "The example 21" should behave like theSame(example21)
 
 }

@@ -2,7 +2,7 @@ package jtms.tmn.examples
 
 import core._
 import core.asp._
-import jtms.asp.examples.EvaluateJTMNImplementations
+import jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**
@@ -42,6 +42,6 @@ trait TweetyBehavior {
   }
 }
 
-class Tweety extends FlatSpec with TweetyBehavior with EvaluateJTMNImplementations {
+class Tweety extends FlatSpec with TweetyBehavior with EvaluateJtmsImplementations {
   "The Tweety" should behave like theSame(tweety)
 }

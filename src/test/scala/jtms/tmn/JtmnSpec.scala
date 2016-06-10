@@ -8,10 +8,10 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 05.02.16.
   */
-class JTMNSpec extends FlatSpec {
+class JtmnSpec extends FlatSpec {
   def Assumption(node: String): NormalRule = Assumption(Predicate(node))
 
   def Assumption(node: Atom): NormalRule = AspFact(node)
 
-  def EmptyTMN = new JtmsRefactored()
+  def EmptyTmn = new JtmsDoyleRefactored()
 }

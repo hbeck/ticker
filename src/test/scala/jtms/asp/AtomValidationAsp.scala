@@ -2,27 +2,27 @@ package jtms.asp
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{ExtendedJtms, Status}
+import jtms.{JtmsExtended, Status}
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
 
-trait AtomValidationASP {
+trait AtomValidationAsp {
   this: FlatSpec =>
 
-  def atomValidation(net: ExtendedJtms, n: Atom): ((AtomValidatorASP) => Any) => Any = {
-    val nc = new AtomValidatorASP(net, n)
+  def atomValidation(net: JtmsExtended, n: Atom): ((AtomValidatorAsp) => Any) => Any = {
+    val nc = new AtomValidatorAsp(net, n)
 
-    def atomCheckTestCallback(check: (AtomValidatorASP) => Any) = {
+    def atomCheckTestCallback(check: (AtomValidatorAsp) => Any) = {
       check(nc)
     }
 
     return atomCheckTestCallback
   }
 
-  class AtomValidatorASP(net: ExtendedJtms, atom: Atom) {
+  class AtomValidatorAsp(net: JtmsExtended, atom: Atom) {
 
     info(atom.toString)
 
