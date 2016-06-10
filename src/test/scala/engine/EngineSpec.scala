@@ -2,7 +2,7 @@ package engine
 
 import core._
 import core.asp.{AspProgram, AspProgramBuilder}
-import core.lars.LarsProgram$
+import core.lars.LarsProgram
 import engine.asp.{Direct, EvaluationStrategy}
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures

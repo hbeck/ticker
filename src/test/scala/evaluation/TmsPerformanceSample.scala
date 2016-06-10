@@ -1,6 +1,6 @@
 package evaluation
 
-import core.lars.{Diamond, LarsProgram$, W}
+import core.lars.{Diamond, LarsProgram, W}
 import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

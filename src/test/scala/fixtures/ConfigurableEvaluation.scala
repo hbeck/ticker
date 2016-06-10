@@ -1,6 +1,6 @@
 package fixtures
 
-import core.lars.LarsProgram$
+import core.lars.LarsProgram
 import engine.EvaluationEngine
 import org.scalatest._
 
@@ -22,8 +22,8 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
     val engineConfig = test.configMap.get("engine")
 
     engineConfig match {
-        // TODO: is there a way to make this type safe?
-      case Some(builder: EngineBuilder) => this.engineCache = builder(program)
+      // TODO: is there a way to make this type safe? - this will fail at runtime if not EngineBuilder
+      case Some(builder) => this.engineCache = builder.asInstanceOf[EngineBuilder](program)
       case _ => this.engineCache = defaultEngine(program)
     }
 
