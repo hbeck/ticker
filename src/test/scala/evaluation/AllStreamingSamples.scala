@@ -3,7 +3,7 @@ package evaluation
 import engine.EngineStreamSpec
 import engine.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
 import fixtures._
-import org.scalatest.{Suite, Suites}
+import org.scalatest.{Spec, Suite, Suites}
 
 /**
   * Created by FM on 01.06.16.
@@ -26,7 +26,7 @@ class AspPushClingo extends AllStreamingSamples with ClingoPushEngine
 
 class AspPushTms extends AllStreamingSamples with TmsPushEngine
 
-class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec) extends Suite {
+class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec) extends Spec {
 
   class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullEngine
 
