@@ -2,29 +2,8 @@ package engine.asp.evaluation
 
 import core._
 import core.lars.TimePoint
+import engine.asp.evaluation.policies.TmsPolicy
 import engine.asp.{MappedProgram, PinnedAspToIncrementalAsp}
-import jtms.JtmsExtended
-
-trait TmsPolicy {
-  def initialize(groundRules: Seq[GroundedNormalRule])
-
-  def add(rules: Seq[GroundedNormalRule])
-
-  def getModel(): Option[Model]
-
-  def remove(rules: Seq[GroundedNormalRule])
-}
-
-case class DirectAddRemovePolicy(extendedJtms: JtmsExtended = JtmsExtended()) extends TmsPolicy {
-
-  override def initialize(groundRules: Seq[GroundedNormalRule]) = groundRules foreach extendedJtms.add
-
-  override def add(rules: Seq[GroundedNormalRule]): Unit = rules foreach extendedJtms.add
-
-  override def remove(rules: Seq[GroundedNormalRule]): Unit = rules foreach extendedJtms.remove
-
-  override def getModel(): Option[Model] = extendedJtms.getModel()
-}
 
 /**
   * Created by FM on 18.05.16.
@@ -42,14 +21,14 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPolicy) 
     val groundedRules = pin.ground(nonGroundRules)
     val groundedStream = pin.ground(pinnedStream) //TODO pinnedStream map (_.toNormal) oder so
 
-    tmsPolicy.add(groundedRules ++ groundedStream)
+    tmsPolicy.add(timePoint)(groundedRules ++ groundedStream)
 
-    val resultingModel = tmsPolicy.getModel() match {
+    val resultingModel = tmsPolicy.getModel(timePoint) match {
       case Some(model) => Some(asPinnedAtoms(model, timePoint))
       case None => None
     }
 
-    tmsPolicy.remove(groundedRules ++ groundedStream)
+    tmsPolicy.remove(timePoint)(groundedRules ++ groundedStream)
 
     resultingModel
   }

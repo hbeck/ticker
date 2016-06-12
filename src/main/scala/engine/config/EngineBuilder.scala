@@ -5,6 +5,7 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.evaluation._
+import engine.asp.evaluation.policies.{DirectAddRemovePolicy, TmsPolicy}
 import jtms.JtmsExtended
 
 import scala.concurrent.duration.Duration
