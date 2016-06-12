@@ -35,7 +35,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
     val unknownRules = rules.filterNot(markedAsDeleteEntries.contains)
 
     unknownRules foreach tms.add
-    
+
     removeExpiredRules(timePoint)
   }
 
