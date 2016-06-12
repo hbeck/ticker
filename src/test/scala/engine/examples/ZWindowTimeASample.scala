@@ -48,15 +48,16 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     preparedEngine.evaluate(t0).get shouldNot contain(z)
   }
 
-  it should "not lead to z at t1" in {
+  it should "not lead to z at t1" in pendingWithTms {
     preparedEngine.evaluate(t1).get.value shouldNot contain(z)
   }
 
-  it should "lead to z and i at t2" in {
+  it should "lead to z and i at t2" in pendingWithTms {
+
     preparedEngine.evaluate(t2).get.value should contain allOf(z, i)
   }
 
-  it should "not lead to z but to i at t3" in {
+  it should "not lead to z but to i at t3" in pendingWithTms {
     val result = preparedEngine.evaluate(t3).get.value
 
     result should contain(i)

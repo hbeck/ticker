@@ -10,10 +10,26 @@ import scala.util.Random
   * Created by FM on 01.06.16.
   */
 
+trait EvaluationType
+
+object Clingo extends EvaluationType
+
+object AspBasedTms extends EvaluationType
 
 trait EvaluationEngineBuilder {
+
+  case class EngineConfig(evaluationType: EvaluationType, builder: EngineBuilder)
+
   type EngineBuilder = ((LarsProgram) => EvaluationEngine)
+
   val defaultEngine: EngineBuilder
+
+  // needed?
+  lazy val defaultEvaluationType = this match {
+    case a: TmsPushEngine => AspBasedTms
+    case _ => Clingo
+  }
+
 }
 
 trait ClingoPullEngine extends EvaluationEngineBuilder {
