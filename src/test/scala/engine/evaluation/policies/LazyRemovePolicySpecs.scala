@@ -2,8 +2,9 @@ package engine.evaluation.policies
 
 import core.Atom
 import core.asp.NormalRule
+import core.lars.Duration
 import engine.asp.evaluation.GroundedNormalRule
-import engine.asp.evaluation.policies.LazyRemovePolicy
+import engine.asp.evaluation.policies.{LazyRemovePolicy, TmsPolicy}
 import fixtures.TimeTestFixtures
 import jtms.Jtms
 import org.scalatest.FlatSpec
@@ -35,18 +36,18 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
 
   val sr = GroundedNormalRule(a)
 
-  trait PartialPolicy {
+  case class LazyPolicy(laziness: Duration = 0) {
     val spy = new JTmsSpy
-    val policy = new LazyRemovePolicy(spy)
+    val policy = new LazyRemovePolicy(spy, laziness)
   }
 
-  "An empty policy" should "have one addCall after adding" in new PartialPolicy {
+  "An empty policy" should "have one addCall after adding" in new LazyPolicy {
     policy.add(t0)(Seq(sr))
 
     spy.addCalls should have length (1)
   }
 
-  "Remove on a rule" should "not trigger immediately a remove in the TMS" in new PartialPolicy {
+  "Remove on a rule" should "not trigger immediately a remove in the TMS" in new LazyPolicy {
     policy.add(t0)(Seq(sr))
     spy.reset
 
@@ -55,7 +56,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     spy.removeCalls shouldBe empty
   }
 
-  "Removing and re-adding the same rule" should "not trigger an add in the TMS" in new PartialPolicy {
+  "Removing and re-adding the same rule" should "not trigger an add in the TMS" in new LazyPolicy {
     policy.add(t0)(Seq(sr))
     policy.remove(t0)(Seq(sr))
     spy.reset
@@ -65,14 +66,37 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     spy.addCalls shouldBe empty
   }
 
-  "Removing a rule and adding another rule" should "trigger the remove call on the TMS" in new PartialPolicy {
+  "Removing a rule and adding another rule" should "trigger the remove call on the TMS" in new LazyPolicy {
+    policy.add(t0)(Seq(sr))
+    policy.remove(t0)(Seq(sr))
+
+    assume(spy.removeCalls.isEmpty)
+    spy.reset
+
+    policy.add(t1)(Seq(GroundedNormalRule(b)))
+
+    spy.addCalls should have length (1)
+    spy.removeCalls should have length (1)
+  }
+
+  "Removing a rule and adding another rule with laziness 1" should "not trigger the remove call on the TMS" in new LazyPolicy(1) {
     policy.add(t0)(Seq(sr))
     policy.remove(t0)(Seq(sr))
     spy.reset
 
     policy.add(t1)(Seq(GroundedNormalRule(b)))
 
-    spy.addCalls should have length(1)
-    spy.removeCalls should have length(1)
+    spy.addCalls should have length (1)
+    spy.removeCalls shouldBe empty
+  }
+  it should "trigger it at t2" in new LazyPolicy(1) {
+    policy.add(t0)(Seq(sr))
+    policy.remove(t0)(Seq(sr))
+    spy.reset
+
+    policy.add(t2)(Seq(GroundedNormalRule(b)))
+
+    spy.addCalls should have length (1)
+    spy.removeCalls should have length (1)
   }
 }
