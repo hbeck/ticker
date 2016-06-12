@@ -48,7 +48,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     preparedEngine.evaluate(t0).get shouldNot contain(z)
   }
 
-  it should "not lead to z at t1" in pendingWithTms {
+  it should "not lead to z at t1" in  {
     preparedEngine.evaluate(t1).get.value shouldNot contain(z)
   }
 

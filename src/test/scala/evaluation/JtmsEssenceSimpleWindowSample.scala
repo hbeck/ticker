@@ -26,14 +26,14 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with Time
   "An empty data-stream" should "lead to model b,d" in {
     evaluationEngine.evaluate(t0).get.value should contain allOf(b, d)
   }
-  "A data-stream with {1 -> a}" should "lead to (a, c, d)" in {
+  "A data-stream with {1 -> a}" should "lead to (a, c, d)" in pendingWithTms("cycle between a <-> c"){
     evaluationEngine.append(t1)(a)
 
     evaluationEngine.evaluate(t1).get.value should contain allOf(a, c, d)
     evaluationEngine.evaluate(t2).get.value should contain allOf(a, c, d)
   }
 
-  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in {
+  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in pendingWithTms("cycle between a <-> c"){
     (1 to 100 by 2) foreach (evaluationEngine.append(_)(a))
 
     assume(Set(b, d).subsetOf(evaluationEngine.evaluate(t0).get.value))

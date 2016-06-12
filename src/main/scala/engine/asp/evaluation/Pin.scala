@@ -54,8 +54,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-      if (g.time == timePoint)
-        return g.atom
+//      if (g.time == timePoint)
+//        return g.atom
 
       g
     }

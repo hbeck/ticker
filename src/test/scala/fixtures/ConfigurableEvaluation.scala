@@ -38,9 +38,15 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
   protected def evaluationType = this.engineEvaluationType
 
-  protected def pendingWithTms(f: => Unit) = {
+  protected def pendingWithTms(f: => Unit): Unit = pendingWithTms("")(f)
+
+  protected def pendingWithTms(message: String = "")(f: => Unit): Unit = {
     evaluationType match {
-      case AspBasedTms => pendingUntilFixed(f)
+      case AspBasedTms => {
+        if (message != null && message.nonEmpty)
+          info(message)
+        pendingUntilFixed(f)
+      }
       case _ => f
     }
   }
