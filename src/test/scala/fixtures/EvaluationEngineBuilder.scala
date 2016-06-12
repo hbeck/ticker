@@ -41,5 +41,5 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
 }
 
 trait TmsPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms(new Random(1)).use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().withRandom(new Random(1)).use().usePush().start()
 }

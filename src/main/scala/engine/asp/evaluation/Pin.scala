@@ -54,8 +54,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-//      if (g.time == timePoint)
-//        return g.atom
+      //      if (g.time == timePoint)
+      //        return g.atom
 
       g
     }
@@ -101,12 +101,19 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 }
 
-case class GroundedNormalRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends AspRule[Atom]
+case class GroundedNormalRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends NormalRule
 
-//case class GroundedAspFact(head: Atom) extends AspRule[Atom]{
-//  val pos = Set()
-//  val neg = Set()
-//}
+object GroundedNormalRule {
+
+  def apply(rule: NormalRule): GroundedNormalRule = {
+    if (rule.isGround) {
+      GroundedNormalRule(rule.head, rule.pos, rule.neg)
+    } else {
+      throw new IllegalArgumentException("Cannot convert rule " + rule + " into a grounded Rule")
+    }
+
+  }
+}
 
 case class GroundedNormalProgram(programRules: Seq[GroundedNormalRule], groundedAtoms: GroundedStream, timePoint: TimePoint) extends NormalProgram {
   val rules: Seq[NormalRule] = programRules ++ groundedAtoms

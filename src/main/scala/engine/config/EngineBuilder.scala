@@ -30,8 +30,20 @@ case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
 
   def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
 
-  def withTms(random: Random = new Random()) = EvaluationModeConfiguration(TmsEvaluation(aspProgram, JtmsExtended(random)))
+  def withTms() = AspBasedTmsConfiguration(aspProgram)
 
+}
+
+case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = DirectAddRemovePolicy(JtmsExtended(new Random))) {
+  def withRandom(random: Random) = AspBasedTmsConfiguration(program, DirectAddRemovePolicy(JtmsExtended(random)))
+
+  def withTms(jtms: JtmsExtended) = AspBasedTmsConfiguration(program, DirectAddRemovePolicy(jtms))
+
+  def usingPolicy(tmsPolicy: TmsPolicy) = AspBasedTmsConfiguration(program, tmsPolicy)
+}
+
+object AspBasedTmsConfiguration {
+  implicit def toEvaluationModeConfig(config: AspBasedTmsConfiguration): EvaluationModeConfiguration = EvaluationModeConfiguration(TmsEvaluation(config.program, config.policy))
 }
 
 case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
