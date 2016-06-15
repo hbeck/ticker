@@ -34,13 +34,13 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) 
   def -(duration: Duration) = TimeVariableWithOffset(variable, -duration)
 
   override def toString: String = {
-
+    val name = variable.name
     if (offset < 0)
-      return f"$variable - ${math.abs(offset)}"
+      return f"$name - ${math.abs(offset)}"
     if (offset > 0)
-      return f"$variable + ${math.abs(offset)}"
+      return f"$name + ${math.abs(offset)}"
 
-    variable
+    name
   }
 }
 

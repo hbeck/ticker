@@ -13,7 +13,7 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
     assert(PlainLarsToAsp(a) == a(T))
   }
   "An atom a(1)" should "be transformed into a(1,T)" in {
-    assert(PlainLarsToAsp(a("1")) == a("1", T.variable))
+    assert(PlainLarsToAsp(a("1")) == a("1", T.toString))
   }
 
   "An at-atom @_t1 a" should "be transformed into a(t1)" in {
@@ -29,7 +29,7 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
   }
   "The window-atom wˆ1 b a(1)" should "be transformed into w_1_b_a(1,T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), Box, a("1"))
-    assert(PlainLarsToAsp(window) == Atom("w_1_b_a")("1", T.variable))
+    assert(PlainLarsToAsp(window) == Atom("w_1_b_a")("1", T.toString))
   }
   "The window-atom wˆ1 at_1 a" should "be transformed into w_1_at_1_a(T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), At(t1), a)

@@ -4,7 +4,7 @@ package core
   * Created by FM on 29.04.16.
   */
 package object lars {
-  type TimeVariable = String
+  type TimeVariable = Variable
   type WindowSize = Long
   type Duration = Long
 
