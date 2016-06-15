@@ -9,7 +9,8 @@ import core.lars.{HeadAtom, Time, TimePoint}
 
 sealed trait Atom extends HeadAtom {
   def arity = 0
-  def isGround():Boolean = true
+
+  def isGround(): Boolean = true
 }
 
 trait AtomWithArgument extends Atom {
@@ -43,7 +44,7 @@ trait AtomWithArgument extends Atom {
   }
 
   override def isGround(): Boolean = {
-    arguments forall ( s => s.isEmpty || s.charAt(0).isLower )
+    arguments forall (s => s.isEmpty || s.charAt(0).isLower)
   }
 
 }
@@ -64,6 +65,12 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 }
 
 case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends AtomWithArgument
+
+case class AtomWithVariables(atom: Atom, variables: Seq[Variable], otherArguments: Seq[String]) extends AtomWithArgument {
+  val arguments = otherArguments ++ variables.map(_.name)
+
+  override def isGround() = variables.isEmpty
+}
 
 object Falsum extends Atom {
   override def isGround = true
@@ -95,7 +102,29 @@ trait AsPinnableAtom {
 trait AsAtomWithArgument {
   val atom: Atom
 
-  def apply(arguments: String*): Atom = {
+  def variableArguments(arguments: Variable*): Atom = {
+    val otherArguments: Seq[String] = atom match {
+      case AtomWithArguments(_, args) => args
+      case a: Atom => Seq()
+    }
+    AtomWithVariables(atom, arguments, otherArguments)
+  }
+
+  def apply(arguments: Any*): Atom = {
+    // TODO: can this go into pattern matching?
+    if (arguments.forall(_.isInstanceOf[Variable]))
+      return variableArguments(arguments map (_.asInstanceOf[Variable]): _*)
+    else if (arguments.forall(_.isInstanceOf[String])) {
+      val args = arguments.map(_.asInstanceOf[String])
+      if (args.forall(_.head.isUpper))
+        return variableArguments(args map (Variable(_)): _*)
+      else
+        return genericArguments(args: _*)
+    }
+    throw new IllegalArgumentException("Don't know how to handle generic arguments")
+  }
+
+  def genericArguments(arguments: String*): Atom = {
     val appliedArguments: Seq[String] = atom match {
       case AtomWithArguments(_, args) => args ++ arguments.toSeq
       case a: Atom => arguments.toSeq
