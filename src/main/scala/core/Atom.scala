@@ -66,7 +66,7 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
     case _ => Seq(timeAsArgument)
   }
 
-  override def isGround(): Boolean = timeAsArgument.isInstanceOf[Variable]
+  override def isGround(): Boolean = timeAsArgument.isInstanceOf[Value]
 }
 
 case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
