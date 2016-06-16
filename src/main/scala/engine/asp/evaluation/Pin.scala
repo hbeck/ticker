@@ -2,7 +2,7 @@ package engine.asp.evaluation
 
 import core.asp._
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
-import core.{Atom, PinnedAtom}
+import core.{Atom, Fact, GroundAtom, PinnedAtom}
 
 /**
   * Created by FM on 16.05.16.
@@ -51,7 +51,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def ground(atom: Atom): Atom = atom match {
+  def ground(atom: Atom): GroundAtom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
       //      if (g.time == timePoint)
@@ -59,7 +59,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
       GroundAtom(g)
     }
-    case a: Atom => a
+    case a: Atom => GroundAtom(a)
   }
 
   def ground(fact: NormalFact): GroundedNormalFact = GroundedNormalFact(this.ground(fact.head))
@@ -94,7 +94,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def apply(pinnedFact: PinnedFact): GroundedNormalFact = GroundedNormalFact(this.apply(pinnedFact.head))
+  def apply(pinnedFact: PinnedFact): GroundedNormalFact = GroundedNormalFact(GroundAtom(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): GroundedNormalRule = {
     GroundedNormalRule(
@@ -105,18 +105,20 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 }
 
-case class GroundedNormalRule(head: Atom, pos: Set[Atom] = Set(), neg: Set[Atom] = Set()) extends NormalRule
+case class GroundedNormalRule(head: GroundAtom, pos: Set[GroundAtom] = Set(), neg: Set[GroundAtom] = Set()) extends AspRule[GroundAtom]
+
+case class GroundedNormalFact(override val head: GroundAtom) extends AspRule[GroundAtom] with Fact[GroundAtom, GroundAtom]
 
 object GroundedNormalRule {
 
-  def apply(rule: NormalRule): GroundedNormalRule = {
-    if (rule.isGround) {
-      GroundedNormalRule(rule.head, rule.pos, rule.neg)
-    } else {
-      throw new IllegalArgumentException("Cannot convert rule " + rule + " into a grounded Rule")
-    }
+//  def apply(rule: NormalRule): GroundedNormalRule = {
+//    if (rule.isGround) {
+//      GroundedNormalRule(rule.head, rule.pos, rule.neg)
+//    } else {
+//      throw new IllegalArgumentException("Cannot convert rule " + rule + " into a grounded Rule")
+//    }
 
-  }
+//  }
 }
 
 case class GroundedNormalProgram(programRules: Seq[GroundedNormalRule], groundedAtoms: GroundedStream, timePoint: TimePoint) extends NormalProgram {

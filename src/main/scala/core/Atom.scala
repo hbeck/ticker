@@ -1,7 +1,7 @@
 package core
 
 import core.asp.{AspFact, BuilderHead}
-import core.lars.{HeadAtom, Time, TimePoint}
+import core.lars.{HeadAtom, Time, TimePoint, TimeVariableWithOffset}
 
 /**
   * Created by hb on 12/22/15.
@@ -16,7 +16,7 @@ sealed trait Atom extends HeadAtom {
 trait AtomWithArgument extends Atom {
   val atom: Atom
 
-  val arguments: Seq[String]
+  val arguments: Seq[Argument]
 
   override def arity = arguments.size
 
@@ -44,7 +44,7 @@ trait AtomWithArgument extends Atom {
   }
 
   override def isGround(): Boolean = {
-    arguments forall (s => s.isEmpty || s.charAt(0).isLower)
+    arguments forall (s => s.isInstanceOf[Value])
   }
 
 }
@@ -57,19 +57,34 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
   }
 
   override val arguments = timedAtom match {
-    case aa: AtomWithArgument => aa.arguments :+ time.toString
-    case _ => Seq(time.toString)
+    case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
+    case _ => Seq(timeAsArgument)
   }
 
-  override def isGround(): Boolean = time.isInstanceOf[TimePoint]
+  val timeAsArgument: Argument = time match {
+    case TimePoint(t) => Value(t.toString)
+    case t: TimeVariableWithOffset => Variable(t.toString)
+  }
+
+  override def isGround(): Boolean = timeAsArgument.isInstanceOf[Variable]
 }
 
-case class AtomWithArguments(atom: Atom, arguments: Seq[String]) extends AtomWithArgument
+case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
 
-case class AtomWithVariables(atom: Atom, variables: Seq[Variable], otherArguments: Seq[String]) extends AtomWithArgument {
-  val arguments = otherArguments ++ variables.map(_.name)
+//case class AtomWithVariables(atom: Atom, variables: Seq[Variable], otherArguments: Seq[String]) extends AtomWithArgument {
+//  val arguments = otherArguments ++ variables.map(_.name)
+//
+//  override def isGround() = variables.isEmpty
+//
+//  def ground(variable: Variable, value: String) = {
+//    if (variables.contains(variable)) {
+//      AtomWithVariables(atom, variables - variable, otherArguments)
+//    }
+//  }
+//}
 
-  override def isGround() = variables.isEmpty
+case class GroundAtom(atom: Atom, arguments: Seq[Value] = Seq()) extends AtomWithArgument {
+  override def isGround() = true
 }
 
 object Falsum extends Atom {
@@ -78,7 +93,7 @@ object Falsum extends Atom {
 
 object Atom {
 
-  def unapply(arg: Atom): Option[Seq[String]] = arg match {
+  def unapply(arg: Atom): Option[Seq[Argument]] = arg match {
     case aa: AtomWithArgument => Some(aa.arguments)
     case _ => None
   }
@@ -102,42 +117,19 @@ trait AsPinnableAtom {
 trait AsAtomWithArgument {
   val atom: Atom
 
-  def variableArguments(arguments: Variable*): Atom = {
-    val otherArguments: Seq[String] = atom match {
+  def apply(arguments: Argument*): Atom = {
+    val otherArguments: Seq[Argument] = atom match {
       case AtomWithArguments(_, args) => args
       case a: Atom => Seq()
     }
-    AtomWithVariables(atom, arguments, otherArguments)
+    AtomWithArguments(atom, otherArguments ++ arguments)
   }
 
-  def genericArguments(arguments: String*): Atom = {
-    val appliedArguments: Seq[String] = atom match {
-      case AtomWithArguments(_, args) => args ++ arguments.toSeq
-      case a: Atom => arguments.toSeq
-    }
-    AtomWithArguments(atom, appliedArguments)
-  }
+  def ground(variable: Variable, value: String): Unit = {
 
-  def apply(arguments: Any*): Atom = {
-    // TODO: can this go into pattern matching?
-    if (arguments.forall(_.isInstanceOf[Variable]))
-      return variableArguments(arguments map (_.asInstanceOf[Variable]): _*)
-    else if (arguments.forall(_.isInstanceOf[String])) {
-      val args = arguments.map(_.asInstanceOf[String])
-      if (args.forall(_.head.isUpper))
-        return variableArguments(args map (Variable(_)): _*)
-      else
-        return genericArguments(args: _*)
-    }
-    throw new IllegalArgumentException("Don't know how to handle generic arguments")
-  }
+    if (!value.head.isLower)
+      throw new IllegalArgumentException("Cannot ground to " + value)
 
-  def genericArguments(arguments: String*): Atom = {
-    val appliedArguments: Seq[String] = atom match {
-      case AtomWithArguments(_, args) => args ++ arguments.toSeq
-      case a: Atom => arguments.toSeq
-    }
-    AtomWithArguments(atom, appliedArguments)
   }
 }
 

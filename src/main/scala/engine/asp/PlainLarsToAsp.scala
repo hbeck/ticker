@@ -132,7 +132,7 @@ object PlainLarsToAsp {
       case aa: AtomWithArgument => aa.arguments
       case a: Atom => Seq()
     }
-    val atomsWithArguments = atom.genericArguments(previousArguments: _*)
+    val atomsWithArguments = atom.apply(previousArguments: _*)
 
     windowAtom.temporalModality match {
       case At(v: TimeVariableWithOffset) => atomsWithArguments(v)

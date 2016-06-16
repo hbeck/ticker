@@ -35,7 +35,7 @@ object ClingoEvaluation {
     //    var name = matche.get.group("atom")
     //    var arguments = matche.get.group("arguments")
 
-    AtomWithArguments(atom, arguments)
+    AtomWithArguments(atom, arguments map (Value(_)))
   }
 }
 
