@@ -56,14 +56,14 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
     case _ => timedAtom
   }
 
-  override val arguments = timedAtom match {
-    case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
-    case _ => Seq(timeAsArgument)
-  }
-
   val timeAsArgument: Argument = time match {
     case TimePoint(t) => Value(t.toString)
     case t: TimeVariableWithOffset => Variable(t.toString)
+  }
+
+  override val arguments = timedAtom match {
+    case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
+    case _ => Seq(timeAsArgument)
   }
 
   override def isGround(): Boolean = timeAsArgument.isInstanceOf[Variable]

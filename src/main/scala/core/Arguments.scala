@@ -26,3 +26,12 @@ object Value {
     Value(value)
   }
 }
+
+object Argument {
+  implicit def convertToArgument(nameOrValue: String): Argument = {
+    if (nameOrValue.head.isUpper)
+      return Variable(nameOrValue)
+    else
+      return Value(nameOrValue)
+  }
+}

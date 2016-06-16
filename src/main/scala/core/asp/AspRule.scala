@@ -60,6 +60,8 @@ trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
   }
 }
 
+trait AspFact[TAtom <: Atom] extends AspRule[TAtom] with Fact[TAtom, TAtom]
+
 /**
   * Created by hb on 12/22/15.
   */
@@ -71,7 +73,11 @@ case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) e
   }
 }
 
-case class AspFact[TAtom <: Atom](head: TAtom) extends AspRule[TAtom] with Fact[TAtom, TAtom] {
+object AspFact {
+  def apply[TAtom <: Atom](fact: TAtom): AspFact[TAtom] = UserDefinedAspFact(fact)
+}
+
+case class UserDefinedAspFact[TAtom <: Atom](head: TAtom) extends AspFact[TAtom] {
   override def toString = {
     head.toString
   }

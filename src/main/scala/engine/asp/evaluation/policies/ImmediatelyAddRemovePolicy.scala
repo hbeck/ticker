@@ -2,7 +2,7 @@ package engine.asp.evaluation.policies
 
 import core._
 import core.lars.TimePoint
-import engine.asp.evaluation.GroundedNormalRule
+import engine.asp.evaluation.{GroundRule, GroundedNormalRule}
 import jtms.{Jtms, JtmsExtended}
 
 /**
@@ -10,11 +10,11 @@ import jtms.{Jtms, JtmsExtended}
   */
 case class ImmediatelyAddRemovePolicy(tms: Jtms = JtmsExtended()) extends TmsPolicy {
 
-  override def initialize(groundRules: Seq[GroundedNormalRule]) = groundRules foreach tms.add
+  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x=>tms.add(GroundRule.toNormalRule(x)))
 
-  override def add(timePoint: TimePoint)(rules: Seq[GroundedNormalRule]): Unit = rules foreach tms.add
+  override def add(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = rules foreach  (x=>tms.add(GroundRule.toNormalRule(x)))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[GroundedNormalRule]): Unit = rules foreach tms.remove
+  override def remove(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = rules foreach  (x=>tms.remove(GroundRule.toNormalRule(x)))
 
   override def getModel(timePoint: TimePoint): Option[Model] = tms.getModel()
 }

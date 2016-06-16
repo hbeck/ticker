@@ -10,8 +10,8 @@ val op: WindowAtom = WindowAtom(SlidingTimeWindow(3), Diamond, a)
 
 Format(op)
 
-val r = LarsRule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), a), Set(b))
-val r2 = LarsRule(c,
+val r = UserDefinedLarsRule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), a), Set(b))
+val r2 = UserDefinedLarsRule(c,
   Set(WindowAtom(SlidingTimeWindow(5), Box, b)),
   Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), WindowAtom(SlidingTimeWindow(1), At(TimePoint(3)), a))
 )

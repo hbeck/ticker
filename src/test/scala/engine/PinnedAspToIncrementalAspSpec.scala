@@ -6,7 +6,7 @@ import core.{PinnedAtom, Predicate}
 import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp, now}
 import core.{Atom, PinnedAtom, Predicate}
 import core.asp.{AspFact, AspRule}
-import core.lars.{Diamond, LarsProgram, LarsRule, W}
+import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
 import engine.asp.now
 import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp}
 import fixtures.TimeTestFixtures

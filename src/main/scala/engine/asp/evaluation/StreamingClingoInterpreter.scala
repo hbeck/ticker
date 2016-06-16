@@ -2,7 +2,7 @@ package engine.asp.evaluation
 
 import clingo.{ClingoConversion, ClingoProgram, _}
 import core.lars.TimePoint
-import core.{Atom, AtomWithArguments, Model, PinnedAtom}
+import core._
 
 /**
   *
@@ -36,7 +36,11 @@ object StreamingClingoInterpreter {
 
     val lastArgument = atom.arguments.last
 
-    val converted = numberFormat.findFirstIn(lastArgument) match {
+    if(!lastArgument.isInstanceOf[Value])
+      throw new IllegalArgumentException("Can only handle values as last argumetn")
+
+
+    val converted = numberFormat.findFirstIn(lastArgument.asInstanceOf[Value].value) match {
       case Some(number) => {
         val l = number.toLong
 

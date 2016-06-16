@@ -13,9 +13,9 @@ class LarsBuilderHead(val head: HeadAtom) {
 
 
 object LarsProgramBuilder {
-  def rule(rule: LarsRule) = new LarsProgramBuilder(Seq(rule))
+  def rule(rule: UserDefinedLarsRule) = new LarsProgramBuilder(Seq(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Seq[LarsRule]]): LarsProgram = {
+  def apply(atomsToRules: PartialFunction[Seq[Atom], Seq[UserDefinedLarsRule]]): LarsProgram = {
     val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
 
     val rules = atomsToRules(atoms)
@@ -24,10 +24,10 @@ object LarsProgramBuilder {
   }
 }
 
-class LarsProgramBuilder(rules: Seq[LarsRule]) {
-  def apply(rule: LarsRule) = new LarsProgramBuilder(rules :+ rule)
+class LarsProgramBuilder(rules: Seq[UserDefinedLarsRule]) {
+  def apply(rule: UserDefinedLarsRule) = new LarsProgramBuilder(rules :+ rule)
 
-  def rule(rule: LarsRule) = new LarsProgramBuilder(rules :+ rule)
+  def rule(rule: UserDefinedLarsRule) = new LarsProgramBuilder(rules :+ rule)
 
   def toProgram = new LarsProgram(rules)
 }

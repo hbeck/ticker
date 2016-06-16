@@ -5,7 +5,7 @@ import core.{Fact, Rule}
 /**
   * Created by FM on 01.05.16.
   */
-case class LarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends Rule[HeadAtom, ExtendedAtom]
+case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends LarsRule
 
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom]
 

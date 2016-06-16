@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.asp.AspRule
-import core.lars.{AtAtom, LarsFact, LarsRule}
+import core.lars.{AtAtom, LarsFact, UserDefinedLarsRule}
 import engine.asp.PlainLarsToAsp
 import org.scalatest.Matchers._
 
@@ -22,11 +22,11 @@ class RuleOnlySpec extends TransformLarsSpec {
   }
 
   "A rule containing only positive elements" should "have the same amount of items in its transformed pos. body and now(T)" in {
-    val r = LarsRule(a, Set(b, c))
+    val r = UserDefinedLarsRule(a, Set(b, c))
     PlainLarsToAsp.rule(r).pos should have size 3
   }
   "A rule containing only negative elements" should "have the same amount of items in its transformed neg. body" in {
-    val r = LarsRule(a, Set(), Set(b, c))
+    val r = UserDefinedLarsRule(a, Set(), Set(b, c))
     PlainLarsToAsp.rule(r).neg should have size 2
   }
 }
