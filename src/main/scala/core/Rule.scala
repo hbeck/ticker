@@ -9,7 +9,7 @@ trait Rule[THead <: HeadAtom, TBody<: ExtendedAtom] {
   val head: THead
   val pos: Set[TBody]
   val neg: Set[TBody]
-  val body = pos union neg
+  lazy val body = pos union neg
 }
 
 trait Fact[THead <: HeadAtom, TBody<: ExtendedAtom] extends Rule[THead, TBody] {

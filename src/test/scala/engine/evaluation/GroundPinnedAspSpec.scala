@@ -2,7 +2,7 @@ package engine.evaluation
 
 import core.GroundAtom
 import core.asp._
-import engine.asp.evaluation.{GroundedNormalRule, Pin}
+import engine.asp.evaluation.{GroundedNormalFact, GroundedNormalRule, Pin}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -26,7 +26,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   it should "be grounded to t0" in {
     val p =  AspProgram.pinned()
 
-    Pin(t0)(p, Set(AspFact(a(T)))).atoms should contain only (a(t0))
+    Pin(t0)(p, Set(AspFact(a(T)))).atoms should contain only (GroundAtom(a(t0)))
   }
 
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
@@ -46,7 +46,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "A rule a(T). at t1" should "be grounded to a(t1)." in {
-    Pin(t1)(AspFact(a(T))) should be(GroundedNormalRule(a(t1)))
+    Pin(t1)(AspFact(a(T))) should be(GroundedNormalFact(GroundAtom(a(t1))))
   }
 
   "An atom a(T-1,T) at t1" should "be grounded to a(0,1)" in {

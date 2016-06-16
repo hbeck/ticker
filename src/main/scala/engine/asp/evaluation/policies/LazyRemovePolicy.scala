@@ -19,7 +19,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
 
   def containsRule(r: GroundedNormalRule) = markedForDelete.values.exists(_ == r)
 
-  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach  (x=>tms.add(GroundRule.toNormalRule(x)))
+  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
 
   override def remove(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = {
     rules foreach markAsDeleted(timePoint)
@@ -34,7 +34,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
 
     val newRules = rules filterNot markedAsDeleteEntries.contains
 
-    unknownRules foreach  (x=>tms.add(GroundRule.toNormalRule(x)))
+    newRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
 
     removeExpiredRules(timePoint)
   }
@@ -47,7 +47,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
     markedForDelete.update(timePoint, r)
   }
 
-  def unmarkDeleted(rule: GroundRule, timePoint: TimePoint) = {
+  def unmarkAsDeleted(rule: GroundRule, timePoint: TimePoint) = {
     reverseDeleteMap.remove(rule)
 
     val notDeleted = markedForDelete.getOrElse(timePoint, Set()) - rule

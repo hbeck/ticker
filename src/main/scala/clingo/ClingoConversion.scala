@@ -32,7 +32,7 @@ object ClingoConversion {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case Predicate(caption) => (caption, "")
-      case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(_.toString).mkString("(", ",", ")"))
+      case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case _ => (atom.toString, "")
     }
 
@@ -46,5 +46,10 @@ object ClingoConversion {
       throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
 
     atomName + argumentNames
+  }
+
+  def apply(argument: Argument): String = argument match {
+    case Value(v) => v
+    case Variable(v) => v
   }
 }

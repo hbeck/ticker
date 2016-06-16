@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.Atom
+import core.{Atom, Variable}
 import core.lars._
 import engine.asp.PlainLarsToAsp
 import org.scalatest.Inspectors._
@@ -27,12 +27,12 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   }
   it should "return  reach_w_1_at_U_a(T -1, T)" in {
     forExactly(1, PlainLarsToAsp.rulesForAtTimeVariable(w_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain inOrder("T - 1", "T")
+      rule => headArguments(rule.head) should contain inOrder(Variable("T - 1"), Variable("T"))
     }
   }
   it should "return  reach_w_1_at_U_a(T, T)" in {
     forExactly(1, PlainLarsToAsp.rulesForAtTimeVariable(w_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq("T", "T")
+      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq(Variable("T"), Variable("T"))
     }
   }
 
@@ -41,7 +41,7 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   }
   it should "have one head with Time-Variables U,T" in {
     forExactly(1, PlainLarsToAsp.rulesForAtTimeVariable(w_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain inOrder(U.toString, T.toString)
+      rule => headArguments(rule.head) should contain inOrder(U.variable, T.variable)
     }
   }
 
