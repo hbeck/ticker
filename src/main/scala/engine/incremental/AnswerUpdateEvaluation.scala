@@ -8,18 +8,20 @@ import jtms.JtmsExtended
 
 /**
   * Created by FM on 05.04.16.
+  *
+  * TODO deprecated
   */
-case class IncrementalEvaluation(private val program: NormalProgram) extends EvaluationEngine {
-  val intensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
+case class AnswerUpdateEvaluation(private val program: NormalProgram) extends EvaluationEngine {
+  val extensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
   val answerUpdateNetwork = JtmsExtended(program)
 
   def append(time: TimePoint)(atoms: Atom*): Unit = {
-    intensionalAtomStream.append(time)(atoms.toSet)
+    extensionalAtomStream.append(time)(atoms.toSet)
   }
 
   def evaluate(time: TimePoint) = {
-    val facts = intensionalAtomStream.evaluate(time).map(x => AspFact(x))
+    val facts = extensionalAtomStream.evaluate(time).map(x => AspFact(x))
     facts foreach answerUpdateNetwork.add
 
     new Result {
