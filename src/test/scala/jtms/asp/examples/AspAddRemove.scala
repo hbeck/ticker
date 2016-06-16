@@ -350,8 +350,8 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     times foreach { _ =>
 
       /* edge(a,b). edge(b,c). edge(c,d). edge(d,e). edge(b,e).
-       reach(X,Y) :- edge(X,Y), not blocked(X,Y).
-       reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+         reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+         reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
     */
 
       val tms = jtmsImpl()

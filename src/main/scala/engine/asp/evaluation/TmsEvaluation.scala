@@ -15,6 +15,7 @@ case class TmsEvaluation(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPolicy) 
 
   tmsPolicy.initialize(groundRules.map(x => GroundedNormalRule(x)))
 
+  //TODO time and set of atoms need to be the input here, not a stream
   def apply(timePoint: TimePoint, pinnedStream: PinnedStream): Option[PinnedModel] = {
     val pin = Pin(timePoint)
 

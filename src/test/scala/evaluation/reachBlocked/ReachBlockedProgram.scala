@@ -27,4 +27,6 @@ trait ReachBlockedProgram {
     blocked_X_Y_1,
     blocked_X_Y_2
   )
+
+  //TODO see "reach" test case in AspAddRemove.
 }

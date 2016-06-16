@@ -12,8 +12,7 @@ import scala.collection.mutable
   */
 case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) extends TmsPolicy {
 
-
-  // TODO: Set or Seq? guess Set because gurantee of order might be hard
+  // TODO: Set or Seq? guess Set because guarantee of order might be hard
   var markedForDelete: mutable.Map[TimePoint, Set[GroundedNormalRule]] = mutable.Map()
   var reverseDeleteMap: mutable.Map[GroundedNormalRule, TimePoint] = mutable.Map()
 
@@ -30,11 +29,11 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
   override def add(timePoint: TimePoint)(rules: Seq[GroundedNormalRule]): Unit = {
     val markedAsDeleteEntries = reverseDeleteMap filter (x => rules.contains(x._1))
     // We don't need to add these rules - instead don't remove them
-    markedAsDeleteEntries foreach (x => unmarkDeleted(x._1, x._2))
+    markedAsDeleteEntries foreach (x => unmarkAsDeleted(x._1, x._2))
 
-    val unknownRules = rules.filterNot(markedAsDeleteEntries.contains)
+    val newRules = rules filterNot markedAsDeleteEntries.contains
 
-    unknownRules foreach tms.add
+    newRules foreach tms.add
 
     removeExpiredRules(timePoint)
   }
@@ -47,7 +46,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
     markedForDelete.update(timePoint, r)
   }
 
-  def unmarkDeleted(rule: GroundedNormalRule, timePoint: TimePoint) = {
+  def unmarkAsDeleted(rule: GroundedNormalRule, timePoint: TimePoint) = {
     reverseDeleteMap.remove(rule)
 
     val notDeleted = markedForDelete.getOrElse(timePoint, Set()) - rule
