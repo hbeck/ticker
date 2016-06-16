@@ -5,5 +5,6 @@ package core
   */
 package object asp {
   type NormalRule = AspRule[Atom]
+  type NormalFact = AspFact[Atom]
   type NormalProgram = AspProgram[Atom, NormalRule]
 }

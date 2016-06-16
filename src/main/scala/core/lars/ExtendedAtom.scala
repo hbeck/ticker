@@ -13,7 +13,7 @@ trait HeadAtom extends ExtendedAtom
 object HeadAtom {
   implicit def headAtomToBuilder(atom: HeadAtom): LarsBuilderHead = new LarsBuilderHead(atom)
 
-  implicit def headAtomToFact(atom: HeadAtom): LarsRule = LarsFact(atom)
+  implicit def headAtomToFact(atom: HeadAtom): LarsFact = LarsFact(atom)
 }
 
 case class WindowAtom(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) extends ExtendedAtom

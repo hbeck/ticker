@@ -1,6 +1,6 @@
 package core.asp
 
-import core.Atom
+import core.{Atom, Fact, Rule}
 
 object AspRule {
 
@@ -12,7 +12,7 @@ object AspRule {
 
   def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
 
-  def apply[TAtom <: Atom](head: TAtom) :AspFact[TAtom]= AspFact(head)
+  def apply[TAtom <: Atom](head: TAtom): AspFact[TAtom] = AspFact(head)
 
   def apply[TAtom <: Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
 
@@ -21,13 +21,8 @@ object AspRule {
 }
 
 // TODO: discuss if sealed is needed (removed because of GroundedRule)
-trait AspRule[TAtom <: Atom] {
+trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
-  val pos: Set[TAtom]
-  val neg: Set[TAtom]
-  val head: TAtom
-
-  lazy val body = pos union neg
   lazy val atoms = body + head
 
   def isFact: Boolean = pos.isEmpty && neg.isEmpty
@@ -76,10 +71,7 @@ case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) e
   }
 }
 
-case class AspFact[TAtom <: Atom](head: TAtom) extends AspRule[TAtom] {
-  val pos: Set[TAtom] = Set()
-  val neg: Set[TAtom] = Set()
-
+case class AspFact[TAtom <: Atom](head: TAtom) extends AspRule[TAtom] with Fact[TAtom, TAtom] {
   override def toString = {
     head.toString
   }

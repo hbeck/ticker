@@ -1,6 +1,6 @@
 package engine.asp.evaluation
 
-import core.asp.{AspRule, NormalProgram, NormalRule}
+import core.asp._
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
 import core.{Atom, PinnedAtom}
 
@@ -57,10 +57,12 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       //      if (g.time == timePoint)
       //        return g.atom
 
-      g
+      GroundAtom(g)
     }
     case a: Atom => a
   }
+
+  def ground(fact: NormalFact): GroundedNormalFact = GroundedNormalFact(this.ground(fact.head))
 
   def ground(rule: NormalRule): GroundedNormalRule = {
     GroundedNormalRule(
@@ -70,7 +72,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def ground(dataStream: PinnedStream): Set[GroundedNormalRule] = apply(dataStream) map ground
+  def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)
 
   def ground(rules: Seq[NormalRule]): Seq[GroundedNormalRule] = rules map ground
 
@@ -82,7 +84,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def apply(dataStream: PinnedStream): Set[GroundedNormalRule] = dataStream map apply
+  def apply(dataStream: PinnedStream): Set[GroundedNormalFact] = dataStream map apply
 
   def apply(program: PinnedProgram, dataStream: PinnedStream): GroundedNormalProgram = {
     GroundedNormalProgram(
@@ -91,6 +93,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       timePoint
     )
   }
+
+  def apply(pinnedFact: PinnedFact): GroundedNormalFact = GroundedNormalFact(this.apply(pinnedFact.head))
 
   def apply(pinnedAspRule: PinnedRule): GroundedNormalRule = {
     GroundedNormalRule(

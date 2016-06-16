@@ -110,6 +110,14 @@ trait AsAtomWithArgument {
     AtomWithVariables(atom, arguments, otherArguments)
   }
 
+  def genericArguments(arguments: String*): Atom = {
+    val appliedArguments: Seq[String] = atom match {
+      case AtomWithArguments(_, args) => args ++ arguments.toSeq
+      case a: Atom => arguments.toSeq
+    }
+    AtomWithArguments(atom, appliedArguments)
+  }
+
   def apply(arguments: Any*): Atom = {
     // TODO: can this go into pattern matching?
     if (arguments.forall(_.isInstanceOf[Variable]))

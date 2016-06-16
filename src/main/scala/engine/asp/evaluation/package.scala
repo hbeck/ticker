@@ -18,7 +18,7 @@ package object evaluation {
 
   type LarsRuleMapping = (LarsRule, Set[PinnedRule])
 
-  type GroundedStream = Set[GroundedNormalRule]
+  type GroundedStream = Set[GroundedNormalFact]
 
 
 }
