@@ -25,24 +25,9 @@ trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
   lazy val atoms = body + head
 
-  def isFact: Boolean = pos.isEmpty && neg.isEmpty
+  lazy val isGround: Boolean = atoms forall (_.isGround)
 
-  def isGround: Boolean = atoms forall (_.isGround)
 
-  def ==(other: AspRule[TAtom]): Boolean = {
-    if (this.head != other.head) return false
-    if (this.pos != other.pos) return false
-    if (this.neg != other.neg) return false
-    true
-  }
-
-  override def equals(other: Any): Boolean = {
-    if (!other.isInstanceOf[AspRule[TAtom]]) {
-      return false
-    }
-    val r = other.asInstanceOf[AspRule[TAtom]]
-    return this == r
-  }
 
   override def toString = {
     val sb = new StringBuilder
