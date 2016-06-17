@@ -2,26 +2,7 @@ package core.asp
 
 import core.{Atom, Fact, Rule}
 
-object AspRule {
-
-  def pos[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
-
-  def neg[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
-
-  def fact[TAtom <: Atom](head: TAtom) = AspFact(head)
-
-  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
-
-  def apply[TAtom <: Atom](head: TAtom): AspFact[TAtom] = AspFact(head)
-
-  def apply[TAtom <: Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
-
-  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
-
-}
-
-// TODO: discuss if sealed is needed (removed because of GroundedRule)
-trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
+sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
   lazy val atoms = body + head
 
@@ -45,14 +26,36 @@ trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
 trait AspFact[TAtom <: Atom] extends AspRule[TAtom] with Fact[TAtom, TAtom]
 
-/**
-  * Created by hb on 12/22/15.
-  */
+
+object AspRule {
+
+  def pos[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
+
+  def neg[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
+
+  def fact[TAtom <: Atom](head: TAtom) = AspFact(head)
+
+  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
+
+  def apply[TAtom <: Atom](head: TAtom): AspFact[TAtom] = AspFact(head)
+
+  def apply[TAtom <: Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
+
+  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
+
+}
+
 case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends NormalRule {
   override def toString = {
     super.toString.replaceAll("<-", "<--")
+  }
+}
+
+object AspRuleFromBacktracking {
+  def apply(pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
+    AspRuleFromBacktracking(pos.toSet, neg.toSet, head)
   }
 }
 
@@ -63,11 +66,5 @@ object AspFact {
 case class UserDefinedAspFact[TAtom <: Atom](head: TAtom) extends AspFact[TAtom] {
   override def toString = {
     head.toString
-  }
-}
-
-object AspRuleFromBacktracking {
-  def apply(pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
-    AspRuleFromBacktracking(pos.toSet, neg.toSet, head)
   }
 }
