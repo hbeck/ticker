@@ -49,6 +49,21 @@ trait AtomWithArgument extends Atom {
 
 }
 
+case class Predicate(caption: String) extends Atom {
+  override def toString = caption
+}
+
+object Falsum extends Atom
+
+case class ContradictionAtom(caption: String) extends Atom
+
+case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
+
+case class GroundAtom(atom: Atom, arguments: Seq[Value] = Seq()) extends AtomWithArgument {
+  override def isGround() = true
+}
+
+
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
   val atom = timedAtom match {
@@ -69,27 +84,6 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
   override def isGround(): Boolean = timeAsArgument.isInstanceOf[Value]
 }
 
-case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
-
-//case class AtomWithVariables(atom: Atom, variables: Seq[Variable], otherArguments: Seq[String]) extends AtomWithArgument {
-//  val arguments = otherArguments ++ variables.map(_.name)
-//
-//  override def isGround() = variables.isEmpty
-//
-//  def ground(variable: Variable, value: String) = {
-//    if (variables.contains(variable)) {
-//      AtomWithVariables(atom, variables - variable, otherArguments)
-//    }
-//  }
-//}
-
-case class GroundAtom(atom: Atom, arguments: Seq[Value] = Seq()) extends AtomWithArgument {
-  override def isGround() = true
-}
-
-object Falsum extends Atom {
-  override def isGround = true
-}
 
 object Atom {
 
@@ -104,40 +98,6 @@ object Atom {
 
   implicit def headAtomToFact(atom: Atom): AspFact[Atom] = AspFact[Atom](atom)
 
-  implicit def toPinnedAtom(atom: Atom): AtomModification = AtomModification(atom)
-
+  implicit def asAtomModification(atom: Atom): AtomModification = AtomModification(atom)
 }
 
-trait AsPinnableAtom {
-  val atom: Atom
-
-  def apply(time: Time) = PinnedAtom(atom, time)
-}
-
-trait AsAtomWithArgument {
-  val atom: Atom
-
-  def apply(arguments: Argument*): Atom = {
-    val otherArguments: Seq[Argument] = atom match {
-      case AtomWithArguments(_, args) => args
-      case a: Atom => Seq()
-    }
-    AtomWithArguments(atom, otherArguments ++ arguments)
-  }
-
-  def ground(variable: Variable, value: String): Unit = {
-
-    if (!value.head.isLower)
-      throw new IllegalArgumentException("Cannot ground to " + value)
-
-  }
-}
-
-case class AtomModification(atom: Atom) extends AsPinnableAtom with AsAtomWithArgument
-
-
-case class Predicate(caption: String) extends Atom {
-  override def toString = caption
-}
-
-case class ContradictionAtom(caption: String) extends Atom
