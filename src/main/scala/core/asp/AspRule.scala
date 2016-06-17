@@ -27,8 +27,6 @@ trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
   lazy val isGround: Boolean = atoms forall (_.isGround)
 
-
-
   override def toString = {
     val sb = new StringBuilder
     sb.append(head).append(" <- ")

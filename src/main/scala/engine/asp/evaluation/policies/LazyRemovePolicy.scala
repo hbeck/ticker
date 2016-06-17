@@ -17,8 +17,6 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
   var markedForDelete: mutable.Map[TimePoint, Set[GroundRule]] = mutable.Map()
   var reverseDeleteMap: mutable.Map[GroundRule, TimePoint] = mutable.Map()
 
-  def containsRule(r: GroundedNormalRule) = markedForDelete.values.exists(_ == r)
-
   override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
 
   override def remove(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = {

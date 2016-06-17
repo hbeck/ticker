@@ -62,10 +62,10 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     case a: Atom => GroundAtom(a)
   }
 
-  def ground(fact: NormalFact): GroundFact = GroundedNormalFact(this.ground(fact.head))
+  def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))
 
   def ground(rule: NormalRule): GroundRule = {
-    GroundedNormalRule(
+    AspRule(
       this.ground(rule.head),
       rule.pos map this.ground,
       rule.neg map this.ground
@@ -80,28 +80,12 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
   def ground(rules: Seq[NormalRule]): Seq[GroundRule] = rules map ground
 
-  def ground(program: NormalProgram, dataStream: PinnedStream): GroundedNormalProgram = {
-    GroundedNormalProgram(
-      program.rules map ground,
-      ground(dataStream),
-      timePoint
-    )
-  }
-
   def apply(dataStream: PinnedStream): Set[GroundFact] = dataStream map apply
 
-  def apply(program: PinnedProgram, dataStream: PinnedStream): GroundProgram = {
-    GroundedNormalProgram(
-      program.rules map apply,
-      apply(dataStream),
-      timePoint
-    )
-  }
-
-  def apply(pinnedFact: PinnedFact): GroundFact = GroundedNormalFact(GroundAtom(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): GroundFact = AspFact(GroundAtom(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): GroundRule = {
-    GroundedNormalRule(
+    AspRule(
       ground(this.apply(pinnedAspRule.head)),
       pinnedAspRule.pos map this.apply map this.ground,
       pinnedAspRule.neg map this.apply map this.ground
@@ -109,15 +93,11 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 }
 
-case class GroundedNormalRule(head: GroundAtom, pos: Set[GroundAtom] = Set(), neg: Set[GroundAtom] = Set()) extends GroundRule
-
-case class GroundedNormalFact(override val head: GroundAtom) extends GroundFact
-
 object GroundedNormalRule {
-
+  // TODO: get rid of this
   def apply(rule: NormalRule): GroundRule = {
     if (rule.isGround) {
-      GroundedNormalRule(
+      AspRule(
         GroundAtom(rule.head),
         rule.pos map (GroundAtom(_)),
         rule.neg map (GroundAtom(_))
@@ -135,8 +115,4 @@ object GroundRule{
    def toNormalRule(rule: GroundRule): NormalRule = {
     AspRule(rule.head.asInstanceOf[Atom], rule.pos map (_.asInstanceOf[Atom]), rule.neg map (_.asInstanceOf[Atom]))
   }
-}
-
-case class GroundedNormalProgram(programRules: Seq[GroundRule], groundedAtoms: GroundedStream, timePoint: TimePoint) extends AspProgram[GroundAtom, AspRule[GroundAtom]] {
-  val rules: Seq[AspRule[GroundAtom]] = programRules ++ groundedAtoms
 }
