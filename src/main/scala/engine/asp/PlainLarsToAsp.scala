@@ -12,7 +12,7 @@ object PlainLarsToAsp {
 
   def apply(headAtom: HeadAtom): PinnedAtom = headAtom match {
     case AtAtom(t, a) => a(t)
-    // TODO: discuss if this approach is correct
+    // TODO: discuss if this approach is correct: can an head-atom be already pinned?
     case PinnedAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
   }

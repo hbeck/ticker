@@ -31,29 +31,23 @@ object StreamingClingoInterpreter {
 
   val numberFormat = """\d+""".r
 
-  def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = {
-    // TODO: there should be a more elegant way...
-
-    val lastArgument = atom.arguments.last
-
-    if(!lastArgument.isInstanceOf[Value])
-      throw new IllegalArgumentException("Can only handle values as last argumetn")
-
-
-    val converted = numberFormat.findFirstIn(lastArgument.asInstanceOf[Value].value) match {
-      case Some(number) => {
-        val l = number.toLong
-
-        val atomWithoutTime = atom.arguments.init match {
-          case Nil => atom.atom
-          case remainingArguments => AtomWithArguments(atom.atom, remainingArguments)
-        }
-
-        PinnedAtom(atomWithoutTime, l)
-      }
-      case None => throw new IllegalArgumentException(f"Cannot convert '$lastArgument' into a TimePoint for a PinnedAtom")
-    }
-
-    converted
+  def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
+    case Value(v) => convertValue(atom, v)
+    case _ => throw new IllegalArgumentException("Can only handle values as last argument")
   }
+
+  def convertValue(atom: AtomWithArguments, value: String): PinnedAtom = numberFormat.findFirstIn(value) match {
+    case Some(number) => {
+      val l = number.toLong
+
+      val atomWithoutTime = atom.arguments.init match {
+        case Nil => atom.atom
+        case remainingArguments => AtomWithArguments(atom.atom, remainingArguments)
+      }
+
+      PinnedAtom(atomWithoutTime, l)
+    }
+    case None => throw new IllegalArgumentException(f"Cannot convert '$value' into a TimePoint for a PinnedAtom")
+  }
+
 }
