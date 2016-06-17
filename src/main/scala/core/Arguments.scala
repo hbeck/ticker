@@ -3,7 +3,16 @@ package core
 /**
   * Created by FM on 15.06.16.
   */
-trait Argument
+sealed trait Argument
+
+object Argument {
+  implicit def convertToArgument(nameOrValue: String): Argument = {
+    if (nameOrValue.head.isUpper)
+      Variable(nameOrValue)
+    else
+      Value(nameOrValue)
+  }
+}
 
 case class Variable(name: String) extends Argument
 
@@ -24,14 +33,5 @@ object Value {
       throw new IllegalArgumentException("A value must not start with an upper-case char")
 
     Value(value)
-  }
-}
-
-object Argument {
-  implicit def convertToArgument(nameOrValue: String): Argument = {
-    if (nameOrValue.head.isUpper)
-      return Variable(nameOrValue)
-    else
-      return Value(nameOrValue)
   }
 }

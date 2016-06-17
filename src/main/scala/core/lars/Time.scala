@@ -3,7 +3,7 @@ package core.lars
 /**
   * Created by FM on 05.04.16.
   */
-trait Time {
+sealed trait Time {
   def -(duration: Duration): Time
 
   def +(duration: Duration): Time
@@ -25,6 +25,14 @@ case class TimePoint(value: Long) extends Time {
   }
 }
 
+object TimePoint {
+  implicit val ordering = Ordering.by((time: TimePoint) => time.value)
+
+  implicit def convertToTimePoint(timePoint: Long): TimePoint = TimePoint(timePoint)
+
+  implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
+}
+
 case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time {
 
   def ground(timePoint: TimePoint) = TimePoint(timePoint.value + offset)
@@ -42,26 +50,4 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) 
 
     name
   }
-}
-
-object TimePoint {
-  implicit val ordering = Ordering.by((time: TimePoint) => time.value)
-
-  implicit def convertToTimePoint(timePoint: Long): TimePoint = TimePoint(timePoint)
-
-  implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
-}
-
-object AtTime {
-  def second(seconds: Long) = Second(seconds)
-
-  def minute(minutes: Long) = Minute(minutes)
-}
-
-object Second {
-  def apply(seconds: Long) = TimePoint(seconds * 1000)
-}
-
-object Minute {
-  def apply(minutes: Long) = Second(minutes * 60)
 }

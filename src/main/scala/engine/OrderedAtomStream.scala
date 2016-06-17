@@ -18,14 +18,7 @@ class OrderedAtomStream {
     inputStream = inputStream.updated(time, previousValue ++ atoms)
   }
 
-  def evaluate(time: TimePoint): Set[Atom] = {
-    inputStream.getOrElse(time, Set())
-  }
+  def evaluate(time: TimePoint): Set[Atom] = inputStream.getOrElse(time, Set())
 
-  def evaluateUntil(time: TimePoint): Stream = {
-    val eval = inputStream.range(0, time + 1).map(x => StreamEntry(x._1, x._2))
-
-    eval.toSet
-  }
-
+  def evaluateUntil(time: TimePoint): Stream = inputStream.range(0, time + 1).map(x => StreamEntry(x._1, x._2)).toSet
 }

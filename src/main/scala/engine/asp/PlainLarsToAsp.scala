@@ -32,7 +32,6 @@ object PlainLarsToAsp {
   def apply(program: LarsProgram): MappedProgram = {
     val rules: Seq[LarsRuleMapping] = program.rules map (r => (r, this.apply(r)))
     MappedProgram(rules)
-    //    AspProgram.pinned(rules.toList)
   }
 
   def apply(windowAtom: WindowAtom): PinnedAtom = {

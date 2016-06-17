@@ -8,7 +8,7 @@ package object lars {
   type WindowSize = Long
   type Duration = Long
 
-  val T = TimeVariableWithOffset("T")
+  val T = TimeVariableWithOffset(Variable("T"))
 
   def STW(windowSize: WindowSize) = SlidingTimeWindow(windowSize)
 
