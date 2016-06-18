@@ -1,9 +1,10 @@
-package engine.asp.evaluation
+package engine.asp.tms
 
 import core._
 import core.lars.TimePoint
-import engine.asp.evaluation.policies.TmsPolicy
-import engine.asp.{MappedProgram, PinnedAspToIncrementalAsp}
+import engine.asp.{MappedProgram, PinnedModel, PinnedStream}
+import engine.asp.evaluation._
+import engine.asp.tms.policies.TmsPolicy
 
 /**
   * Created by FM on 18.05.16.

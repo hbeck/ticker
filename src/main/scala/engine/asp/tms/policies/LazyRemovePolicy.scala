@@ -1,8 +1,9 @@
-package engine.asp.evaluation.policies
+package engine.asp.tms.policies
 
 import core._
 import core.lars.{Duration, TimePoint}
-import engine.asp.evaluation.{GroundRule, GroundedNormalRule}
+import engine.asp.GroundRule
+import engine.asp.tms.GroundRule
 import jtms.{Jtms, JtmsExtended}
 
 import scala.collection.mutable

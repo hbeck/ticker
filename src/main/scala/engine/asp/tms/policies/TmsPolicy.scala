@@ -1,8 +1,8 @@
-package engine.asp.evaluation.policies
+package engine.asp.tms.policies
 
 import core._
 import core.lars.TimePoint
-import engine.asp.evaluation.{GroundRule, GroundedNormalRule}
+import engine.asp.GroundRule
 
 /**
   * Created by FM on 12.06.16.

@@ -1,8 +1,9 @@
-package engine.asp.evaluation
+package engine.asp.tms
 
 import core.asp._
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
-import core.{Atom, Fact, GroundAtom, PinnedAtom}
+import core.{Atom, GroundAtom, PinnedAtom}
+import engine.asp._
 
 /**
   * Created by FM on 16.05.16.

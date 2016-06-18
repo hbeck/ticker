@@ -1,8 +1,9 @@
 package engine.asp.evaluation
 
 import core._
+import core.asp.AspFact
 import core.lars.TimePoint
-import engine.asp.now
+import engine.asp._
 import engine.{Result, _}
 
 /**
@@ -16,9 +17,9 @@ trait AspEvaluation {
 case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends AspEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
-    val pinnedStream = PinToTimePoint(time)(dataStream) //TODO time meaningless
+    val input = AspEvaluationEngine.pinnedInput(time, dataStream)
 
-    val aspResult = interpreter(time, pinnedStream)
+    val aspResult = interpreter(time, input)
 
     val result = aspResult match {
       case Some(model) => Some(AspEvaluationEngine.translateToLars(time, model))
@@ -32,6 +33,10 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends Asp
 }
 
 object AspEvaluationEngine {
+
+  def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + PinToTimePoint(time)(now)
+
+  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => PinToTimePoint(x.time).atoms(x.atoms))
 
   def translateToLars(timePoint: TimePoint, model: PinnedModel): Model = {
 

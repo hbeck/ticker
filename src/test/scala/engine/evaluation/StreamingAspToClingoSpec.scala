@@ -2,7 +2,7 @@ package engine.evaluation
 
 import core.AtomWithArguments
 import engine.asp._
-import engine.asp.evaluation.StreamingClingoInterpreter
+import engine.asp.oneshot.StreamingClingoInterpreter
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

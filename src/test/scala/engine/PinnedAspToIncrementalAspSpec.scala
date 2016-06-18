@@ -3,12 +3,13 @@ package engine
 import core.asp.AspRule
 import core.lars._
 import core.{PinnedAtom, Predicate}
-import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp, now}
+import engine.asp.{PlainLarsToAsp, now}
 import core.{Atom, PinnedAtom, Predicate}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
 import engine.asp.now
-import engine.asp.{PinnedAspToIncrementalAsp, PlainLarsToAsp}
+import engine.asp.PlainLarsToAsp
+import engine.asp.tms.PinnedAspToIncrementalAsp
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._

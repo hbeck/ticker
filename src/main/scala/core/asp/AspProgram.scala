@@ -1,7 +1,8 @@
 package core.asp
 
 import core.{Atom, PinnedAtom}
-import engine.asp.evaluation.PinnedRule
+import engine.asp.PinnedRule
+
 
 /**
   * Created by FM on 25.02.16.

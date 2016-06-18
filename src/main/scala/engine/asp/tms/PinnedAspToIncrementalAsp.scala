@@ -1,9 +1,9 @@
-package engine.asp
+package engine.asp.tms
 
-import core.asp._
+import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
 import core.{Atom, PinnedAtom}
-import engine.asp.evaluation.PinnedRule
+import engine.asp.{MappedProgram, PinnedRule, now}
 
 /**
   * Created by FM on 08.06.16.

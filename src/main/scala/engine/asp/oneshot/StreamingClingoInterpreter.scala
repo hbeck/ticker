@@ -1,8 +1,10 @@
-package engine.asp.evaluation
+package engine.asp.oneshot
 
 import clingo.{ClingoConversion, ClingoProgram, _}
-import core.lars.TimePoint
 import core._
+import core.lars.TimePoint
+import engine.asp.{PinnedModel, PinnedStream}
+import engine.asp.evaluation._
 
 /**
   *

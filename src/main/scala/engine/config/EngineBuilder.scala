@@ -5,7 +5,9 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.evaluation._
-import engine.asp.evaluation.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
+import engine.asp.oneshot.StreamingClingoInterpreter
+import engine.asp.tms.TmsEvaluation
+import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
 import jtms.JtmsExtended
 
 import scala.concurrent.duration.Duration

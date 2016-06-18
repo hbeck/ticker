@@ -3,8 +3,8 @@ package engine.evaluation.policies
 import core.Atom
 import core.asp.NormalRule
 import core.lars.Duration
-import engine.asp.evaluation.GroundedNormalRule
-import engine.asp.evaluation.policies.{LazyRemovePolicy, TmsPolicy}
+import engine.asp.tms.GroundedNormalRule
+import engine.asp.tms.policies.{LazyRemovePolicy, TmsPolicy}
 import fixtures.TimeTestFixtures
 import jtms.Jtms
 import org.scalatest.FlatSpec

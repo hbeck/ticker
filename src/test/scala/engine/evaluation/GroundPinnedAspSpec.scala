@@ -2,7 +2,7 @@ package engine.evaluation
 
 import core.GroundAtom
 import core.asp._
-import engine.asp.evaluation.{ GroundedNormalRule, Pin}
+import engine.asp.tms.Pin
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

@@ -3,7 +3,6 @@ package engine.asp
 import core.asp.AspRule
 import core.lars._
 import core.{Atom, AtomWithArgument, PinnedAtom}
-import engine.asp.evaluation.{LarsRuleMapping, PinnedProgram, PinnedRule}
 
 /**
   * Created by FM on 05.05.16.
