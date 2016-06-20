@@ -1,7 +1,6 @@
-package engine.asp.evaluation
+package engine.asp.oneshot
 
 import core._
-import core.asp.AspFact
 import core.lars.TimePoint
 import engine.asp._
 import engine.{Result, _}
@@ -22,7 +21,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends Asp
     val aspResult = interpreter(time, input)
 
     val result = aspResult match {
-      case Some(model) => Some(AspEvaluationEngine.translateToLars(time, model))
+      case Some(model) => Some(PinnedModelToLarsModel(time, model))
       case None => None
     }
 
@@ -37,18 +36,5 @@ object AspEvaluationEngine {
   def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + PinToTimePoint(time)(now)
 
   def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => PinToTimePoint(x.time).atoms(x.atoms))
-
-  def translateToLars(timePoint: TimePoint, model: PinnedModel): Model = {
-
-    val filtered = model filter {
-      case PinnedAtom(`now`, _) => false
-      case PinnedAtom(atom, time) => time == timePoint
-      case _ => true
-    }
-
-    val unpinned = filtered map (_.atom)
-
-    unpinned
-  }
 
 }

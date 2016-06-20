@@ -1,7 +1,7 @@
 package engine.evaluation
 
 import core.asp.{AspFact, AspProgram}
-import engine.asp.evaluation.AspEvaluationEngine
+import engine.asp.oneshot.AspEvaluationEngine
 import engine.asp.{PinToTimePoint, now}
 import engine.{StreamEntry, _}
 import fixtures.TimeTestFixtures

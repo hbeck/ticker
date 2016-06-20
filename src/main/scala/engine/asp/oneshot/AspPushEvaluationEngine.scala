@@ -1,9 +1,8 @@
-package engine.asp
+package engine.asp.oneshot
 
 import core.Atom
 import core.lars.TimePoint
 import engine._
-import engine.asp.evaluation.AspEvaluation
 
 /**
   * Created by FM on 21.04.16.

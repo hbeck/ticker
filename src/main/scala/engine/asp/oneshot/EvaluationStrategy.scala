@@ -1,7 +1,6 @@
-package engine.asp
+package engine.asp.oneshot
 
 import core.asp.NormalProgram
-import engine.asp.evaluation._
 
 import scala.concurrent.duration._
 

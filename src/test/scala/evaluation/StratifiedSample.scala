@@ -32,7 +32,7 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
 
     evaluationEngine.evaluate(10).get.value should contain allOf(a, r, b, c)
   }
-  
+
   "Given {0...10 -> r, 5 -> y}" should "lead to Model a, r, b, c ,f at t10" in {
     (0 to 10) foreach (t => {
       evaluationEngine.append(t)(r)

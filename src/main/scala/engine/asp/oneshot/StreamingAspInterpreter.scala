@@ -1,10 +1,9 @@
-package engine.asp.evaluation
+package engine.asp.oneshot
 
 import clingo.ClingoConversion
 import core.asp.NormalProgram
 import core.lars.TimePoint
 import engine.asp.{PinnedModel, PinnedStream}
-import engine.asp.oneshot.StreamingClingoInterpreter
 
 
 trait StreamingAspInterpreter {

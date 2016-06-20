@@ -3,7 +3,7 @@ package engine
 import core._
 import core.asp.{AspProgram, AspProgramBuilder}
 import core.lars.LarsProgram
-import engine.asp.{Direct, EvaluationStrategy}
+import engine.asp.oneshot.Direct
 import engine.config.BuildEngine
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec

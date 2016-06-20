@@ -4,7 +4,7 @@ import clingo.{ClingoConversion, ClingoProgram, _}
 import core._
 import core.lars.TimePoint
 import engine.asp.{PinnedModel, PinnedStream}
-import engine.asp.evaluation._
+
 
 /**
   *

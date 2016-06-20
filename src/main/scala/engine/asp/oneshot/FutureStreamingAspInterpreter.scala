@@ -1,4 +1,4 @@
-package engine.asp.evaluation
+package engine.asp.oneshot
 
 import core.Atom
 import core.lars.TimePoint
