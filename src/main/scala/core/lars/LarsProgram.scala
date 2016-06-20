@@ -5,6 +5,10 @@ import core.{Fact, Rule}
 /**
   * Created by FM on 01.05.16.
   */
+object LarsRule {
+  def apply(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]) = UserDefinedLarsRule(head, pos, neg)
+}
+
 case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends LarsRule
 
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom]

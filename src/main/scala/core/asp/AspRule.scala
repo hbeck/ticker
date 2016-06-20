@@ -4,8 +4,9 @@ import core.{Atom, Fact, Rule}
 
 sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
+  // TODO: can we move this into Rule[..]?
   lazy val atoms = body + head
-
+  // TODO: can we move this into Rule[..]?
   lazy val isGround: Boolean = atoms forall (_.isGround)
 
   override def toString = {

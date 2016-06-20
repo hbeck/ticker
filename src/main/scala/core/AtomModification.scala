@@ -16,11 +16,4 @@ case class AtomModification(atom: Atom) {
     }
     AtomWithArguments(atom, otherArguments ++ arguments)
   }
-
-  def ground(variable: Variable, value: String): Unit = {
-
-    if (!value.head.isLower)
-      throw new IllegalArgumentException("Cannot ground to " + value)
-
-  }
 }
