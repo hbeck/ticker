@@ -19,8 +19,8 @@ trait EvaluateProgramWithAllImplementations  {
     "Using Clingo-Pull" should behave like testSpecifications(config.withClingo().use().usePull().start())
     "Using Clingo-Push" should behave like testSpecifications(config.withClingo().use().usePush().start())
 
-    "Using TMS-Pull" should behave like testSpecifications(config.withTms().use().usePull().start())
-    "Using TMS-Push" should behave like testSpecifications(config.withTms().use().usePush().start())
+    "Using TMS-Pull" should behave like testSpecifications(config.withTms().start())
+    "Using TMS-Push" should behave like testSpecifications(config.withTms().start())
   }
 
 }

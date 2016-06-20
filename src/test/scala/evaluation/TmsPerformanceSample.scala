@@ -27,7 +27,7 @@ class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtu
     i <= j,
     j <= W(100, Diamond, k)
   )
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(JtmsExtended(new Random(1)), 10)).use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(JtmsExtended(new Random(1)), 10)).start()
 
   "An empty Program" should "lead to an empty model at t0" in {
     evaluationEngine.evaluate(t0).get.value shouldBe empty

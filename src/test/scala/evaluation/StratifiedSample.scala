@@ -32,9 +32,12 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
 
     evaluationEngine.evaluate(10).get.value should contain allOf(a, r, b, c)
   }
+  
   "Given {0...10 -> r, 5 -> y}" should "lead to Model a, r, b, c ,f at t10" in {
-    (0 to 10) foreach (evaluationEngine.append(_)(r))
-    evaluationEngine.append(5)(y)
+    (0 to 10) foreach (t => {
+      evaluationEngine.append(t)(r)
+      if (t == 5) evaluationEngine.append(5)(y)
+    })
 
     evaluationEngine.evaluate(10).get.value should contain allOf(a, r, b, c, f)
   }
@@ -43,9 +46,8 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
     (0 to 100) foreach (i => {
       evaluationEngine.append(i)(r, s)
 
-      evaluationEngine.evaluate(TimePoint(i)).get.value shouldNot contain (a)
+      evaluationEngine.evaluate(TimePoint(i)).get.value shouldNot contain(a)
     })
-
 
 
   }

@@ -46,7 +46,7 @@ case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = 
 }
 
 object AspBasedTmsConfiguration {
-  implicit def toEvaluationModeConfig(config: AspBasedTmsConfiguration): EvaluationModeConfiguration = EvaluationModeConfiguration(TmsEvaluation(config.program, config.policy))
+  implicit def toEvaluationModeConfig(config: AspBasedTmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluation(config.program, config.policy))
 }
 
 case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {

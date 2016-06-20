@@ -2,6 +2,7 @@ package engine.asp.tms.policies
 
 import core._
 import core.lars.TimePoint
+import engine.Result
 import engine.asp.GroundRule
 
 /**
@@ -12,7 +13,7 @@ trait TmsPolicy {
 
   def add(timePoint: TimePoint)(rules: Seq[GroundRule])
 
-  def getModel(timePoint: TimePoint): Option[Model]
+  def getModel(timePoint: TimePoint): Result
 
   def remove(timePoint: TimePoint)(rules: Seq[GroundRule])
 }

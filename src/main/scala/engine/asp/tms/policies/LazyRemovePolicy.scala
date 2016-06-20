@@ -2,6 +2,7 @@ package engine.asp.tms.policies
 
 import core._
 import core.lars.{Duration, TimePoint}
+import engine.Result
 import engine.asp.GroundRule
 import engine.asp.tms.GroundRule
 import jtms.{Jtms, JtmsExtended}
@@ -24,7 +25,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) 
     rules foreach markAsDeleted(timePoint)
   }
 
-  override def getModel(timePoint: TimePoint): Option[Model] = tms.getModel()
+  override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 
   override def add(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = {
     val markedAsDeleteEntries = reverseDeleteMap filter (x => rules.contains(x._1))

@@ -25,3 +25,12 @@ object EmptyResult extends Result {
 object NoResult extends Result {
   override def get: Option[Set[Atom]] = None
 }
+
+object Result {
+  def apply(model: Option[Model]): Result = model match {
+    case None => NoResult
+    case Some(m) => new Result {
+      override def get: Option[Model] = Some(m)
+    }
+  }
+}
