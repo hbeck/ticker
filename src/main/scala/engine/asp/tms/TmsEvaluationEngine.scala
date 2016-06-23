@@ -2,10 +2,9 @@ package engine.asp.tms
 
 import core._
 import core.lars.TimePoint
-import engine.{EvaluationEngine, Result}
 import engine.asp._
-import engine.asp.oneshot.AspEvaluationEngine
 import engine.asp.tms.policies.TmsPolicy
+import engine.{EvaluationEngine, Result}
 
 /**
   * Created by FM on 18.05.16.
@@ -24,11 +23,12 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     cachedResults(time) = prepare(time, PinToTimePoint(time).atoms(atoms.toSet))
   }
 
+  //TODO same signature as in append
   def prepare(time: TimePoint, pinnedStream: PinnedStream): Result = {
     val pin = Pin(time)
 
     val groundedRules = pin.ground(nonGroundRules)
-    val groundedStream = pin.ground(pinnedStream)
+    val groundedStream = pin.ground(pinnedStream) //TODO
 
     tmsPolicy.add(time)(groundedRules ++ groundedStream)
     val model = tmsPolicy.getModel(time)
@@ -40,7 +40,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
   override def evaluate(time: TimePoint): Result = {
     val resultingModel = cachedResults.get(time) match {
       case Some(result) => result.get
-      case None => prepare(time, Set()).get
+      case None => prepare(time, Set()).get //TODO think about this
     }
 
     new Result {

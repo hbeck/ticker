@@ -63,8 +63,8 @@ case class GroundAtom(atom: Atom, arguments: List[Value] = List()) extends AtomW
   override def isGround() = true
 }
 
-object GroundAtom {
-  def apply(atom: Atom, arguments: Value*): GroundAtom = GroundAtom(atom, arguments.toList)
+object GroundAtom {//TODO type predicate
+  def apply(predicate: Atom, arguments: Value*): GroundAtom = GroundAtom(predicate, arguments.toList)
 }
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
