@@ -37,7 +37,7 @@ case class Ground(substitutions: Map[Variable, Value]) {
     case a: Atom => this.apply(a)
   }
 
-  def apply(rule: LarsRule) = {
+  def apply(rule: LarsRule):LarsRule = {
     LarsRule(
       apply(rule.head),
       rule.pos map this.apply,
@@ -45,13 +45,13 @@ case class Ground(substitutions: Map[Variable, Value]) {
     )
   }
 
-  def apply[TAtom <: Atom](rule: AspRule[TAtom]) = {
-    AspRule(
-      apply(rule.head),
-      rule.pos map this.apply,
-      rule.neg map this.apply
-    )
-  }
+//  def apply[TAtom <: Atom](rule: AspRule[TAtom]):AspRule[TAtom] = {
+//    AspRule(
+//      apply(rule.head),
+//      rule.pos map this.apply,
+//      rule.neg map this.apply
+//    )
+//  }
 }
 
 

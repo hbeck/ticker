@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
-import core.{Atom, PinnedAtom}
+import core.{Atom, AtomWithArguments, PinnedAtom}
 import engine.asp.{MappedProgram, PinnedRule, now}
 
 /**
@@ -11,7 +11,10 @@ import engine.asp.{MappedProgram, PinnedRule, now}
   * Remove temporal information (the pinned part, so to speak) from intensional atoms.
   */
 object PinnedAspToIncrementalAsp {
-  def unpin(pinned: PinnedAtom) = pinned.atom
+  def unpin(pinned: PinnedAtom) = pinned.arguments match {
+    case pinned.timeAsArgument :: Nil => pinned.atom
+    case _ => AtomWithArguments(pinned.atom, pinned.arguments filter (_ != pinned.timeAsArgument))
+  }
 
   def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {
 

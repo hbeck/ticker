@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp._
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
-import core.{Atom, GroundAtom, PinnedAtom}
+import core.{Atom, GroundAtom, PinnedAtom, Value}
 import engine.asp._
 
 /**
@@ -58,7 +58,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       //      if (g.time == timePoint)
       //        return g.atom
 
-      GroundAtom(g)
+      // TODO: this is wrong -  we need something like "toGroundAtom"
+      GroundAtom(g, g.arguments.map(_.asInstanceOf[Value]))
     }
     case a: Atom => GroundAtom(a)
   }
