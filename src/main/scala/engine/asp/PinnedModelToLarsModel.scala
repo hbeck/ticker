@@ -2,6 +2,7 @@ package engine.asp
 
 import core.{PinnedAtom, _}
 import core.lars.TimePoint
+import engine.asp.tms.PinnedAspToIncrementalAsp
 
 /**
   * Created by FM on 20.06.16.
@@ -14,8 +15,8 @@ object PinnedModelToLarsModel {
       case PinnedAtom(atom, time) => time == timePoint
       case _ => true
     }
-
-    val unpinned = filtered map (_.atom)
+// TODO: use corerct unpint method
+    val unpinned = filtered map PinnedAspToIncrementalAsp.unpin
 
     unpinned
   }
