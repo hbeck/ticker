@@ -1,5 +1,7 @@
 package core
 
+import core.lars.TimePoint
+
 /**
   * Created by FM on 15.06.16.
   */
@@ -34,4 +36,6 @@ object Value {
 
     Value(value)
   }
+
+  implicit def convertToValue(timePoint: TimePoint): Value = Value(timePoint.toString)
 }

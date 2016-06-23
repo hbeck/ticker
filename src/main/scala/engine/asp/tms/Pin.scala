@@ -55,11 +55,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   def ground(atom: Atom): GroundAtom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-      //      if (g.time == timePoint)
-      //        return g.atom
-
-      // TODO: this is wrong -  we need something like "toGroundAtom"
-      GroundAtom(g, g.arguments.map(_.asInstanceOf[Value]))
+      ground(g)
     }
     case a: Atom => GroundAtom(a)
   }
@@ -75,7 +71,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 
   def ground(pinnedAtom: PinnedAtom): GroundAtom = {
-    GroundAtom(pinnedAtom)
+    // TODO: unifiy
+    GroundAtom(pinnedAtom.atom, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
   }
 
   def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)
@@ -84,7 +81,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
   def apply(dataStream: PinnedStream): Set[GroundFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): GroundFact = AspFact(GroundAtom(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): GroundFact = AspFact(ground(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): GroundRule = {
     AspRule(

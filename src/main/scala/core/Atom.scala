@@ -59,10 +59,13 @@ case class ContradictionAtom(caption: String) extends Atom
 
 case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
 
-case class GroundAtom(atom: Atom, arguments: Seq[Value] = Seq()) extends AtomWithArgument {
+case class GroundAtom(atom: Atom, arguments: List[Value] = List()) extends AtomWithArgument {
   override def isGround() = true
 }
 
+object GroundAtom {
+  def apply(atom: Atom, arguments: Value*): GroundAtom = GroundAtom(atom, arguments.toList)
+}
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 

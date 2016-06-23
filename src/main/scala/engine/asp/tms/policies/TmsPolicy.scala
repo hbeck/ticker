@@ -15,5 +15,6 @@ trait TmsPolicy {
 
   def getModel(timePoint: TimePoint): Result
 
+  // TODO: change to (timePoint) params only - intelligent strategy which rules are removed is part of the policy
   def remove(timePoint: TimePoint)(rules: Seq[GroundRule])
 }

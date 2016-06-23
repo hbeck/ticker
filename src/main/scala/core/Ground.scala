@@ -21,7 +21,8 @@ case class Ground(substitutions: Map[Variable, Value]) {
     }
 
     if (groundedArguments.forall(_.isInstanceOf[Value])) {
-      GroundAtom(atom.atom, groundedArguments.map(_.asInstanceOf[Value]))
+      // TODO: unifiy
+      GroundAtom(atom.atom, groundedArguments.map(_.asInstanceOf[Value]).toList)
     } else {
       AtomWithArguments(atom.atom, groundedArguments)
     }
