@@ -2,6 +2,7 @@ package evaluation.reachBlocked
 
 import core.lars.{LarsFact, LarsProgram, LarsRule}
 import core.{Atom, Ground, Value}
+import evaluation.RunWithAllImplementations
 import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
 import org.scalatest.Matchers._
 
@@ -94,3 +95,6 @@ class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedPr
     evaluationEngine.evaluate(6).get.get should contain(reach_a_b)
   }
 }
+
+
+class AllParallelLanes extends RunWithAllImplementations(new ParallelLanesSample)
