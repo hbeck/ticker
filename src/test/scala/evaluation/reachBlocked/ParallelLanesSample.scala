@@ -9,6 +9,9 @@ import org.scalatest.Matchers._
   * Created by FM on 20.06.16.
   */
 class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedProgram with TimeTestFixtures with TmsPushEngine {
+
+  type EdgeAtomMap = (Option[Value], Atom)
+
   /**
     * ** n_1_1      n_i_1  n_1_n
     *
@@ -28,38 +31,39 @@ class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedPr
 
   val reach_a_b = reach(startNode, endNode)
 
-  val paths = 1
+  val paths = 2
   val nodes = 1
 
-  val program = {
-    val C: Seq[(Option[Value], Atom)] = (1 to paths) flatMap (p => {
-      (0 to nodes) map (n => {
-        val nodeName = Value(f"n_${p}_$n")
-        val nextNode = Value(f"n_${p}_${n + 1}")
-        n match {
-          case 0 => (None, edge(startNode, nextNode))
-          case `nodes` => (Some(nodeName), edge(nodeName, endNode))
-          case _ => (Some(nodeName), edge(nodeName, nextNode))
-        }
-      })
+  // TODO: as dictionary {path -> Seq[EdgeNodeMap]}
+  val edgeAndAtoms: Seq[EdgeAtomMap] = (1 to paths) flatMap (p => {
+    (0 to nodes) map (n => {
+      val nodeName = Value(f"n_${p}_$n")
+      val nextNode = Value(f"n_${p}_${n + 1}")
+      n match {
+        case 0 => (None, edge(startNode, nextNode))
+        case `nodes` => (Some(nodeName), edge(nodeName, endNode))
+        case _ => (Some(nodeName), edge(nodeName, nextNode))
+      }
     })
+  })
 
+  val generatedNodes = edgeAndAtoms.filter(_._1.isDefined).map(_._1.get)
+  val availableNodes = generatedNodes union Seq(startNode, endNode)
+  val edges: Seq[LarsRule] = edgeAndAtoms map (_._2) map (a => LarsFact(a))
+
+  val program = {
     var p = Set[LarsRule]()
 
-    val nodeNames = C.filter(_._1.isDefined).map(_._1.get) union Seq(startNode, endNode)
+    val generateRedundantRules = false
 
-    val generateUseLessRules = false
-    for (x <- nodeNames) {
-      for (y <- nodeNames) {
-        for (z <- nodeNames) {
+    for (x <- availableNodes) {
+      for (y <- availableNodes) {
+        for (z <- availableNodes) {
           val g = Ground(Map(X -> x, Y -> y, Z -> z))
-          p = p ++ (baseProgram.rules filter (r => generateUseLessRules || (r == reach_X_Z && x != z) || r != reach_X_Z && x != y) map (g.apply))
+          p = p ++ (baseProgram.rules filter (r => generateRedundantRules || (r == reach_X_Z && x != z) || r != reach_X_Z && x != y) map (g.apply))
         }
       }
     }
-
-    val edges: Seq[LarsRule] = C map (_._2) map (a => LarsFact(a))
-
 
     LarsProgram(p.toSeq union edges)
   }
@@ -68,4 +72,25 @@ class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedPr
     evaluationEngine.evaluate(t0).get.get should contain(reach_a_b)
   }
 
+  "A single obstacle at one path at t0" should "still lead to reach(a,b) at t0...t5" in {
+    evaluationEngine.append(t0)(obstacle(generatedNodes.head))
+
+    evaluationEngine.evaluate(t0).get.get should contain(reach_a_b)
+  }
+
+  "Obstacles at all paths at t0" should "not lead to reach(a,b) at t0" in {
+    val atT0 = evaluationEngine.append(t0) _
+
+    (0 to paths - 1) foreach (p => atT0(Seq(obstacle(generatedNodes.drop(p * nodes).head))))
+
+    evaluationEngine.evaluate(t0).get.get should not contain (reach_a_b)
+  }
+
+  "Obstacles at all paths at t0" should "lead to reach(a,b) at t6" in {
+    val atT0 = evaluationEngine.append(t0) _
+
+    (0 to paths - 1) foreach (p => atT0(Seq(obstacle(generatedNodes.drop(p * nodes).head))))
+
+    evaluationEngine.evaluate(6).get.get should contain(reach_a_b)
+  }
 }
