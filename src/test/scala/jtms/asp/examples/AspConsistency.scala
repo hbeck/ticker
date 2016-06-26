@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsExtended
+import jtms.JtmsBeierleFixed
 import org.scalatest.FunSuite
 
 /**
@@ -13,13 +13,17 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
   val O = Set[Atom]()
 
+  def jtmsImpl = JtmsBeierleFixed
+  //def jtmsImpl = JtmsExtended
+  //def jtmsImpl = JtmsDoyleRefactored
+
   val times = 1 to 100
 
   test("a") {
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       assert(m.get.isEmpty)
@@ -37,7 +41,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -56,7 +60,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -77,7 +81,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      var tms = JtmsExtended()
+      var tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspFact(a))
@@ -86,7 +90,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.remove(AspFact(a))
       assert(m == None)
 
-      tms = JtmsExtended()
+      tms = jtmsImpl()
       tms.add(AspRule(a, Set(), Set(a)))
       assert(m == None)
       tms.add(AspFact(a))
@@ -99,7 +103,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -124,11 +128,12 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
+
   test("inc2: a :- not b. b :- not c. c :- not a") {
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -150,7 +155,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(d), Set(b, c)))
@@ -175,7 +180,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(b, c)))
@@ -206,7 +211,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(b), Set(c)))
@@ -230,7 +235,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, Set(d), Set(c)))
@@ -259,7 +264,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
       //illustrates the essence of inc6 more clearly
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(b)))
@@ -285,7 +290,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, O, Set(a)))
@@ -301,7 +306,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-      val tms = JtmsExtended()
+      val tms = jtmsImpl()
       def m = tms.getModel
 
       tms.add(AspRule(a, b))
@@ -324,7 +329,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     times foreach { _ =>
 
-    val tms = JtmsExtended()
+    val tms = jtmsImpl()
     def m = tms.getModel
 
     tms.add(AspRule(a,b))

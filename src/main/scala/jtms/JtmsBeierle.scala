@@ -253,7 +253,6 @@ case class JtmsBeierle() extends JtmsAbstraction {
 
   def unfoundedValid(rule: NormalRule) = posValid(rule)
 
-
   //
 
   override def unregister(a: Atom): Unit = {
