@@ -186,7 +186,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def setOutSupport(a: Atom) {
     val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
-      throw new IncrementalUpdateFailureException()
+      throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
     }
     supp(a) = Set() ++ maybeAtoms map (_.get)
   }

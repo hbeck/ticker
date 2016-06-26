@@ -1,5 +1,7 @@
 package jtms
 
+import java.util
+
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 
@@ -24,6 +26,8 @@ object JtmsBeierle {
   * Created by hb on 12/22/15; 03/25/16
   */
 case class JtmsBeierle() extends JtmsAbstraction {
+
+  var shuffle = true //debugging
 
   val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
 
@@ -68,16 +72,18 @@ case class JtmsBeierle() extends JtmsAbstraction {
 
     //3 (second part)
     for (atom <- L) {
-      status(atom) = unknown //vs setUnknown [!]
+      step3(atom)
     }
     //4 determine status
     for (atom <- L) {
       step4a(atom)
     }
     //5 fix (choose) status
-    for (atom <- L) {
-      step5a(atom)
-    }
+    step5(L)
+  }
+
+  def step3(atom: Atom): Unit = {
+    status(atom) = unknown //vs setUnknown [!]
   }
 
   //determine status
@@ -101,6 +107,42 @@ case class JtmsBeierle() extends JtmsAbstraction {
         }
       }
     }
+  }
+
+  def step5(L: Set[Atom]) {
+
+    var atoms = Seq[Atom]() ++ L
+
+    if (doForceChoiceOrder) {
+      atoms = (Seq[Atom]() ++ L) sortWith byForcedChoiceSeq
+    } else if (shuffle) {
+      atoms = shuffleSeq(atoms)
+      //println(atoms)
+    }
+
+    for (atom <- atoms) {
+      step5a(atom)
+    }
+
+  }
+
+  def shuffleSeq(atoms: Seq[Atom]): Seq[Atom] = {
+    val list = new util.ArrayList[Atom]()
+    atoms foreach list.add
+    java.util.Collections.shuffle(list)
+    var seq = Seq[Atom]()
+    for (i <- 0 to list.size()-1) {
+      seq = seq :+ list.get(i)
+    }
+    seq
+  }
+
+  def byForcedChoiceSeq(a:Atom, b:Atom): Boolean = {
+    val aIdx = forcedChoiceSeq.indexOf(a)
+    val bIdx = forcedChoiceSeq.indexOf(b)
+    if (aIdx == -1) return false
+    if (bIdx == -1) return true
+    aIdx <= bIdx
   }
 
   //fix (choose) status
@@ -159,11 +201,8 @@ case class JtmsBeierle() extends JtmsAbstraction {
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")
 
     status(atom) = out
-    val maybeAtoms: List[Option[Atom]] = justifications(atom) map (findSpoiler(_))
-    if (maybeAtoms exists (_.isEmpty)) {
-      throw new RuntimeException("could not find spoiler for every SuppRule of atom "+atom)
-    }
-    supp(atom) = Set() ++ maybeAtoms map (_.get)
+    setOutSupport(atom)
+
     //SuppRule(a) = None //is not set in beierle [!]
   }
 
@@ -232,7 +271,7 @@ case class JtmsBeierle() extends JtmsAbstraction {
 
   override def setOutSupport(a: Atom) {
     super.setOutSupport(a)
-    suppRule(a) = None
+    suppRule(a) = None //not set in beierle, but relevant only for backtracking
   }
 
   // -- from refactored implementation, not in use --

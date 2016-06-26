@@ -4,7 +4,7 @@ import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import jtms.{JtmsBeierle, JtmsExtended}
+import jtms.{JtmsBeierleFixed, JtmsBeierle, JtmsExtended}
 import org.scalatest.FunSuite
 
 /**
@@ -12,7 +12,7 @@ import org.scalatest.FunSuite
   */
 class AspAddRemove extends FunSuite with AtomTestFixture {
   
-  def jtmsImpl = JtmsExtended
+  def jtmsImpl = JtmsBeierleFixed
 
   val none = Set[Atom]()
 
@@ -345,89 +345,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   val n = Atom("n")
 
-  test("reach") {
 
-    times foreach { _ =>
-
-      /* edge(a,b). edge(b,c). edge(c,d). edge(d,e). edge(b,e).
-         reach(X,Y) :- edge(X,Y), not blocked(X,Y).
-         reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
-    */
-
-      val tms = jtmsImpl()
-
-      val a = "a"
-      val b = "b"
-      val c = "c"
-      val d = "d"
-      val e = "e"
-      def edge(x: String, y: String) = Atom("edge(" + x + "," + y + ")")
-      def reach(x: String, y: String) = Atom("reach(" + x + "," + y + ")")
-      def blocked(x: String, y: String) = Atom("blocked(" + x + "," + y + ")")
-
-      tms.add(edge(a, b))
-      tms.add(edge(b, c))
-      tms.add(edge(c, d))
-      tms.add(edge(d, e))
-      tms.add(edge(b, e))
-
-      val C = List(a, b, c, d, e)
-      //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
-      for (x <- C) {
-        for (y <- C) {
-          val r = AspRule(reach(x, y), Set(edge(x, y)), Set(blocked(x, y)))
-          tms.add(r)
-          //println(r)
-        }
-      }
-      //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
-      for (x <- C) {
-        for (y <- C) {
-          for (z <- C) {
-            val r = AspRule(reach(x, y), Set(reach(x, z), edge(z, y)), Set(blocked(z, y)))
-            tms.add(r)
-            //println(r)
-          }
-        }
-      }
-
-      def m = tms.getModel.get
-
-      assert(m contains reach(a, b))
-      assert(m contains reach(b, c))
-      assert(m contains reach(c, d))
-      assert(m contains reach(d, e))
-      assert(m contains reach(a, c))
-      assert(m contains reach(a, d))
-      assert(m contains reach(a, e))
-      assert(m contains reach(b, c))
-      assert(m contains reach(b, d))
-      assert(m contains reach(b, e))
-      assert(m contains reach(c, d))
-      assert(m contains reach(c, e))
-      assert(m contains reach(d, e))
-
-      tms.add(blocked(b, c))
-      assert(!(m contains reach(b, d)))
-      assert(m contains reach(b, e))
-      assert(m contains reach(c, d))
-      assert(m contains reach(c, e))
-      assert(m contains reach(a, e))
-
-      tms.add(blocked(b, e))
-      assert(!(m contains reach(b, e)))
-      assert(m contains reach(d, e))
-      assert(m contains reach(c, e))
-      assert(!(m contains reach(a, e)))
-
-      tms.remove(blocked(b, c))
-      assert(m contains reach(b, c))
-      assert(m contains reach(b, d))
-      assert(m contains reach(b, e))
-      assert(m contains reach(a, e))
-
-    }
-  }
 
   test("jtms5") {
 
@@ -457,6 +375,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.remove(r0)
 
       tms match {
+        case x:JtmsBeierleFixed => assert(m == Set(e,b,d))
         case x: JtmsExtended => assertModelWithKnownLimitation(tms, Set(e, b, d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(e, b, d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0) == c && tms.choiceSeq(1) == d))
@@ -491,7 +410,8 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.remove(AspFact(a))
 
       tms match {
-        case x: JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case x:JtmsBeierleFixed => assert(m.get == Set(b,d))
+        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
         )
@@ -518,6 +438,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.remove(AspFact(a))
 
       tms match {
+        case x:JtmsBeierleFixed => assert(m == Set(b,d))
         case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(b,d),tms.choiceSeq.head == d)
       }
@@ -544,10 +465,11 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.add(AspRule(a, none, Set(e))) //a :- not e.  instead of AspFact(a)
       assert(m.get == Set(a, c, d))
 
-      tms.forceChoiceOrder(Seq(d)) //just saying "d first"
+      //tms.forceChoiceOrder(Seq(d)) //just saying "d first"
       tms.add(AspFact(e)) //e.  instead of removing fact a directly
 
       tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(e,b,d))
         case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(e,b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
@@ -628,7 +550,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
     }
   }
 
-  test("a :- not b, not c. b :- not c.") {
+  test("[todo beierle] a :- not b, not c. b :- not c. etc.") {
+
+    //TODO make invalidateModel compatible for Beierle(Fixed)
 
     times foreach { _ =>
 
@@ -648,9 +572,121 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms add AspRule(b, none, Set(c)) //central rule 2
 
       tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(b,c))
         case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
         case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
       }
+
+    }
+  }
+
+  test("a :- b. b :- not c. c :- not a. a :- d. d.") {
+
+    times foreach { _ =>
+
+      val tms = jtmsImpl(AspProgram())
+
+      def m = tms.getModel.get
+
+      tms add AspRule(c, none, Set(a))
+      tms add AspRule(a, b)
+      tms add AspRule(b, none, Set(c))
+      tms add AspRule(a, d)
+
+      assert(m == Set(c)) //other is Set(a,b)
+
+      tms add AspFact(d)
+
+      assert(m == Set(a,b,d))
+
+//      tms match {
+//        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+//        case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+//      }
+
+    }
+  }
+
+  test("reach") {
+
+    times foreach { _ =>
+
+      /* edge(a,b). edge(b,c). edge(c,d). edge(d,e). edge(b,e).
+         reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+         reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    */
+
+      val tms = jtmsImpl()
+
+      val a = "a"
+      val b = "b"
+      val c = "c"
+      val d = "d"
+      val e = "e"
+      def edge(x: String, y: String) = Atom("edge(" + x + "," + y + ")")
+      def reach(x: String, y: String) = Atom("reach(" + x + "," + y + ")")
+      def blocked(x: String, y: String) = Atom("blocked(" + x + "," + y + ")")
+
+      tms.add(edge(a, b))
+      tms.add(edge(b, c))
+      tms.add(edge(c, d))
+      tms.add(edge(d, e))
+      tms.add(edge(b, e))
+
+      val C = List(a, b, c, d, e)
+      //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+      for (x <- C) {
+        for (y <- C) {
+          val r = AspRule(reach(x, y), Set(edge(x, y)), Set(blocked(x, y)))
+          tms.add(r)
+          //println(r)
+        }
+      }
+      //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+      for (x <- C) {
+        for (y <- C) {
+          for (z <- C) {
+            val r = AspRule(reach(x, y), Set(reach(x, z), edge(z, y)), Set(blocked(z, y)))
+            tms.add(r)
+            //println(r)
+          }
+        }
+      }
+
+      def m = tms.getModel.get
+
+      assert(m contains reach(a, b))
+      assert(m contains reach(b, c))
+      assert(m contains reach(c, d))
+      assert(m contains reach(d, e))
+      assert(m contains reach(a, c))
+      assert(m contains reach(a, d))
+      assert(m contains reach(a, e))
+      assert(m contains reach(b, c))
+      assert(m contains reach(b, d))
+      assert(m contains reach(b, e))
+      assert(m contains reach(c, d))
+      assert(m contains reach(c, e))
+      assert(m contains reach(d, e))
+
+      tms.add(blocked(b, c))
+      assert(!(m contains reach(b, d)))
+      assert(m contains reach(b, e))
+      assert(m contains reach(c, d))
+      assert(m contains reach(c, e))
+      assert(m contains reach(a, e))
+
+      tms.add(blocked(b, e))
+      assert(!(m contains reach(b, e)))
+      assert(m contains reach(d, e))
+      assert(m contains reach(c, e))
+      assert(!(m contains reach(a, e)))
+
+      tms.remove(blocked(b, c))
+      assert(m contains reach(b, c))
+      assert(m contains reach(b, d))
+      assert(m contains reach(b, e))
+      assert(m contains reach(a, e))
 
     }
   }
