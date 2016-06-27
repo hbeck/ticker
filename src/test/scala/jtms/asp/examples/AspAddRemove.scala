@@ -12,7 +12,8 @@ import org.scalatest.FunSuite
   */
 class AspAddRemove extends FunSuite with AtomTestFixture {
   
-  def jtmsImpl = JtmsBeierleFixed
+  //def jtmsImpl = JtmsBeierleFixed
+  def jtmsImpl = JtmsExtended
 
   val none = Set[Atom]()
 
@@ -448,10 +449,9 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("jtms5-like problem for add") {
 
-    times foreach { _ =>
+    //times foreach { _ =>
 
       val tms = jtmsImpl(AspProgram(
-        AspRule(a, c), //a :- c
         AspRule(c, a), //c :- a
         AspRule(b, none, Set(a)), //b :- not a
         AspRule(d, b), //d :- b
@@ -462,11 +462,18 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       assert(m.get == Set(b, d))
 
-      tms.add(AspRule(a, none, Set(e))) //a :- not e.  instead of AspFact(a)
+      println("\nadd a :- c")
+      tms add AspRule(a, c) //a :- c
+
+      println("\nadd a :- not e.")
+      tms forceChoiceOrder Seq(a)
+      tms add AspRule(a, none, Set(e)) //a :- not e.  instead of AspFact(a)
       assert(m.get == Set(a, c, d))
 
-      //tms.forceChoiceOrder(Seq(d)) //just saying "d first"
-      tms.add(AspFact(e)) //e.  instead of removing fact a directly
+      println("\nadd e.")
+      //tms forceChoiceOrder Seq(c) //just saying "c first"
+      tms forceChoiceOrder Seq(d,c)
+      tms add AspFact(e) //e.  instead of removing fact a directly
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(e,b,d))
@@ -476,7 +483,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
         )
       }
 
-    }
+    //}
   }
 
   test("jtms5 variant with direct dependency of body atoms for same head") {
@@ -603,6 +610,65 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 //        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
 //        case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
 //      }
+
+    }
+  }
+
+  test("a :- b, not c. a :- d. b :- not d. c :- not a.") {
+
+    times foreach { _ =>
+
+      val tms = jtmsImpl(AspProgram())
+
+      def m = tms.getModel.get
+
+      tms add AspRule(a, Set(b), Set(c))
+      tms add AspRule(a, d)
+      tms add AspRule(b, none, Set(d))
+      tms add AspRule(c, none, Set(a))
+
+      assert(m == Set(a,b)) //other is Set(b,c)
+
+      tms add AspFact(d)
+
+      assert(m == Set(a,d))
+
+    }
+  }
+
+  test("easy multiple") {
+
+    times foreach { _ =>
+
+      val tms = jtmsImpl(AspProgram())
+
+      /*
+        a :- b, not c.
+        a :- e.
+        b :- not d.
+        d :- not a.
+        d :- c, e.
+        e :- not f.
+        c.
+       */
+
+      def m = tms.getModel.get
+
+      tms add AspRule(a, Set(b), Set(c))
+      tms add AspRule(a, e)
+      tms add AspRule(b, none, Set(d))
+      tms add AspRule(d, none, Set(a))
+      tms add AspRule(d, Set(c,e))
+
+      assert(m == Set(a,b)) // || m == Set(d))
+
+      tms add AspRule(e,none,Set(f))
+
+      assert(m == Set(a,b,e))
+
+      tms add AspFact(c)
+
+      assert(m == Set(a,c,d,e))
 
     }
   }

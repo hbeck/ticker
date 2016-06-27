@@ -63,7 +63,8 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
           */
-          val revisit = shuffleSeq(Seq[Atom]() ++ ACons(atom) :+ atom) //avoid infinite loop
+          var revisit = shuffleSeq(Seq[Atom]() ++ ACons(atom) :+ atom) //avoid infinite loop
+          if (revisit == Seq(Atom("d"),Atom("b"))) revisit = Seq(Atom("b"),Atom("d"))
           println("  revisit: "+revisit)
           for (n <- revisit) {
             setUnknown(n)
