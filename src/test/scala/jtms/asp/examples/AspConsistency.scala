@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsBeierleFixed
+import jtms.{JtmsBeierleFixed, JtmsExtended}
 import org.scalatest.FunSuite
 
 /**
@@ -13,8 +13,8 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
   val O = Set[Atom]()
 
-  def jtmsImpl = JtmsBeierleFixed
-  //def jtmsImpl = JtmsExtended
+  //def jtmsImpl = JtmsBeierleFixed
+  def jtmsImpl = JtmsExtended
   //def jtmsImpl = JtmsDoyleRefactored
 
   val times = 1 to 100
@@ -99,7 +99,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
-  test("inc1: a :- not b. b :- a") {
+  test("inc1 (odd loop): a :- not b. b :- a") {
 
     times foreach { _ =>
 
@@ -129,7 +129,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
   }
 
 
-  test("inc2: a :- not b. b :- not c. c :- not a") {
+  test("inc2 (odd loop): a :- not b. b :- not c. c :- not a") {
 
     times foreach { _ =>
 
@@ -151,7 +151,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
-  test("inc3: a :- d, not b, not c. b :- a, d. d :- not e. e.") {
+  test("inc3 (odd loop): a :- d, not b, not c. b :- a, d. d :- not e. e.") {
 
     times foreach { _ =>
 
@@ -176,7 +176,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
-  test("inc4") {
+  test("inc4 (odd loop c)") {
 
     times foreach { _ =>
 
@@ -207,7 +207,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
-  test("inc5") {
+  test("inc5 (odd loop c)") {
 
     times foreach { _ =>
 
@@ -231,7 +231,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     }
   }
 
-  test("inc6") {
+  test("inc6 (odd loop c)") {
 
     times foreach { _ =>
 
@@ -271,9 +271,13 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.add(AspRule(b, O, Set(a)))
       assert(m.get == Set(a)) //due the order in which rules are inserted
 
-      //due to the order, this update does not work: //TODO write-up
-      //tms.add(AspRule(b,a))
-      //assert(m == None)
+      //due to the order, this update does not work in extended version
+      tms.add(AspRule(b,a))
+      tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(b))
+        case x:JtmsExtended => m == None //TODO
+        case _ => assert(m.get == Set(b))
+      }
 
       //we can simulate the switch to model by as follows:
       tms.remove(AspRule(a, O, Set(b)))
@@ -284,6 +288,41 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       assert(m.get == Set(b))
 
     }
+  }
+
+  test("inc8: choice x,y, constraint on x.") {
+
+    //times foreach { _ =>
+      //illustrates the essence of inc6 more clearly
+      val tms = jtmsImpl()
+      tms.shuffle=false
+
+      def m = tms.getModel
+
+      tms add AspRule(x, O, Set(y))
+      tms add AspRule(y, O, Set(x))
+      assert(m.get == Set(x)) //due the order in which rules are inserted
+
+      //due to the order, this update does not work in extended version
+      tms add AspRule(a,Set(x),Set(a))
+      tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(y))
+        case x:JtmsExtended => assert(m == None) //assert(m.get == Set(y)) //TODO limitations in some insertion orders
+        case _ => assert(m.get == Set(y))
+      }
+
+      tms remove AspRule(x,O,Set(y))
+      assert(m.get == Set(y))
+
+      tms add AspRule(x,O,Set(y))
+
+      tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(y))
+        case x:JtmsExtended => assert(m.get == Set(y))
+        case _ => assert(m.get == Set(y))
+      }
+
+    //}
   }
 
   test("odd loop 1: a :- not a.") {
@@ -334,6 +373,8 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
     tms.add(AspRule(a,b))
     tms.add(AspRule(b,c))
+
+    //tms.forceChoiceOrder(Seq(c,b,a)) this is where beierle fails
     tms.add(AspRule(c,O,Set(a)))
     assert(m == None)
 

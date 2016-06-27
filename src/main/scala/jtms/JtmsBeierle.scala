@@ -25,7 +25,7 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-case class JtmsBeierle() extends JtmsAbstraction {
+class JtmsBeierle() extends JtmsAbstraction {
 
   var shuffle = true //debugging
 
@@ -54,18 +54,27 @@ case class JtmsBeierle() extends JtmsAbstraction {
     if (status(rule.head) == in) return
     if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
     //2
-    if (ACons(rule.head).isEmpty) {
-      setIn(rule)
-      return
-    }
+    if (step2(rule)) return
     //3 (first part)
     val L = repercussions(rule.head) + rule.head
 
     update(L)
   }
 
+  def step2(rule: NormalRule): Boolean = {
+    if (ACons(rule.head).isEmpty) {
+      setIn(rule)
+      return true
+    }
+    false
+  }
+
   //extracted at this position for remove case
   override def update(L: Set[Atom]) {
+     updateImpl(L)
+  }
+
+  def updateImpl(L: Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()

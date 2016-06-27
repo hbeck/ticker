@@ -1,8 +1,9 @@
 package jtms
 
 import core.Atom
-import core.asp.{NormalRule, NormalProgram}
+import core.asp.{NormalProgram, NormalRule}
 
+import scala.collection.mutable.Set
 import scala.util.Random
 
 /**
@@ -30,6 +31,18 @@ object JtmsBeierleFixed {
   */
 class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
 
+  override def update(L: Set[Atom]) {
+    //try {
+      updateImpl(L)
+//    } catch {
+//      case e:IncrementalUpdateFailureException => {
+//        invalidateModel()
+//      }
+//    }
+  }
+
+  override def step2(rule: NormalRule) = false
+
   override def step3(atom: Atom): Unit = {
     setUnknown(atom)
   }
@@ -38,6 +51,8 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
   override def step5a(atom: Atom): Unit = {
     if (status(atom) != unknown)
       return
+
+    print(atom)
 
     justifications(atom) find unfoundedValid match {
       case Some(rule) => {
@@ -49,6 +64,7 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
           }
           */
           val revisit = shuffleSeq(Seq[Atom]() ++ ACons(atom) :+ atom) //avoid infinite loop
+          println("  revisit: "+revisit)
           for (n <- revisit) {
             setUnknown(n)
           }
@@ -56,6 +72,7 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
             step5a(n)
           }
         } else {
+          println("  in.")
           setIn(rule)
           //diff to beierle: unknown atoms are left unknown. their support must be determined later.
           /*
@@ -66,12 +83,16 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
             }
           }
           */
+          //if (rule.neg exists (status(_) == in)) { //odd loop detection
+          //  throw new IncrementalUpdateFailureException()
+          //}
           for (u <- unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
             step5a(u)
           }
         }
       }
       case None => { //all justifications(atom) are unfounded invalid
+        println("  out.")
         setOut(atom) //diff to beierle: findSpoiler allows unknown atoms!
         for (u <- unknownCons(atom)) {
           step5a(u)
