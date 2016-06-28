@@ -48,9 +48,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     }
   }
 
-  def asPinnedAtoms(model: Model, timePoint: TimePoint) = model map {
+  def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p
     case GroundAtom(p: PinnedAtom, Seq()) => p
+    case GroundAtom(p: Predicate, Seq(t: Value)) => p(TimePoint(t.value.toLong))
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
   }
