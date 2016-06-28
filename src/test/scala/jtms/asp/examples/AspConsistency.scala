@@ -325,6 +325,36 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     //}
   }
 
+  test("inc9") {
+
+    times foreach { _ =>
+      //illustrates the essence of inc6 more clearly
+      val tms = jtmsImpl()
+      def m = tms.getModel
+
+      tms add AspRule(a, Set(c), Set(b))
+      tms add AspRule(b, Set(c), Set(a))
+      tms add AspFact(c)
+
+      assert(m.get == Set(b,c) || m.get == Set(a,c))
+
+      tms add AspRule(x,Set(b),Set(x))
+      assert(m == None || m.get == Set(a,c))
+
+       /*
+      //due to the order, this update does not work in extended version
+      tms.add(AspRule(b,a))
+
+      tms match {
+        case x:JtmsBeierleFixed => assert(m.get == Set(b))
+        case x:JtmsExtended => m == None //TODO
+        case _ => assert(m.get == Set(b))
+      }
+          */
+
+    }
+  }
+
   test("odd loop 1: a :- not a.") {
 
     times foreach { _ =>
@@ -374,7 +404,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     tms.add(AspRule(a,b))
     tms.add(AspRule(b,c))
 
-    //tms.forceChoiceOrder(Seq(c,b,a)) this is where beierle fails
+    tms.forceChoiceOrder(Seq(c,b,a)) //this is where beierle fails
     tms.add(AspRule(c,O,Set(a)))
     assert(m == None)
 
