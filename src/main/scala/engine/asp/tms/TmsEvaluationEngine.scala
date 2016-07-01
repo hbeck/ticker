@@ -24,11 +24,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
   }
 
   //TODO same signature as in append
-  def prepare(time: TimePoint, pinnedStream: PinnedStream): Result = {
+  def prepare(time: TimePoint, input: PinnedStream): Result = {
     val pin = Pin(time)
 
     val groundedRules = pin.ground(nonGroundRules)
-    val groundedStream = pin.ground(pinnedStream) //TODO
+    val groundedStream = pin.ground(input) //TODO
 
     tmsPolicy.add(time)(groundedRules ++ groundedStream)
     val model = tmsPolicy.getModel(time)
@@ -48,8 +48,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p
-    case GroundAtomWithArguments(p: PinnedAtom, Seq()) => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimeValue)) => p(t.timePoint)
+//    case GroundAtomWithArguments(p: Predicate, Seq(t: TimeValue)) => p(t.timePoint)
     case g: Predicate => g(timePoint)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)

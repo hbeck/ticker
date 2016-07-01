@@ -9,7 +9,7 @@ case class AtomModification(atom: Atom) {
   def apply(time: Time) = PinnedAtom(atom, time)
 
 
-  def apply(arguments: Argument*): AtomWithArgument = {
+  def apply(arguments: List[Argument]): AtomWithArgument = {
     val otherArguments: Seq[Argument] = atom match {
       case aa: AtomWithArgument => aa.arguments
       case a: Predicate => Seq()
@@ -25,7 +25,8 @@ case class AtomModification(atom: Atom) {
     //    }
     combinedArguments.forall(_.isInstanceOf[Value]) match {
       case true => GroundAtomWithArguments(atom, combinedArguments.map(_.asInstanceOf[Value]).toList)
-      case false => NonGroundAtomWithArguments(atom, combinedArguments)
+      case false => NonGroundAtom(atom, combinedArguments)
     }
   }
+  def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
 }

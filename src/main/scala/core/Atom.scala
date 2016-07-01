@@ -15,8 +15,6 @@ sealed trait Atom extends HeadAtom {
 
 trait GroundAtom extends Atom
 
-trait NonGroundAtom extends Atom
-
 trait AtomWithArgument extends Atom {
   val atom: Atom
 
@@ -64,7 +62,7 @@ case class ContradictionAtom(caption: String) extends GroundAtom {
   def isGround(): Boolean = true
 }
 
-case class NonGroundAtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends NonGroundAtom with AtomWithArgument
+case class NonGroundAtom(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
 
 case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true

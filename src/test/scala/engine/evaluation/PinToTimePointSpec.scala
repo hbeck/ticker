@@ -2,7 +2,7 @@ package engine.evaluation
 
 import core.asp.{AspFact, AspProgram}
 import engine.asp.oneshot.AspEvaluationEngine
-import engine.asp.{PinToTimePoint, now}
+import engine.asp.{ now}
 import engine.{StreamEntry, _}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec

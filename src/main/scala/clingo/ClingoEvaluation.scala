@@ -36,7 +36,7 @@ object ClingoEvaluation {
     //    var arguments = matche.get.group("arguments")
 
     // TODO do we have always ground results?
-    NonGroundAtomWithArguments(atom, arguments map Argument.convertToArgument)
+    NonGroundAtom(atom, arguments map Argument.convertToArgument)
   }
 }
 

@@ -8,9 +8,10 @@ import core.lars._
   * Created by FM on 20.06.16.
   */
 case class Ground(substitutions: Map[Variable, Value]) {
+
   def apply(atom: Atom): Atom = atom match {
+    case a: GroundAtom => a
     case a: AtomWithArgument => this.apply(a)
-    case a: Atom => a
   }
 
   def apply(atom: AtomWithArgument): Atom = {
@@ -20,12 +21,7 @@ case class Ground(substitutions: Map[Variable, Value]) {
       case v: Value => v
     }
 
-    if (groundedArguments.forall(_.isInstanceOf[Value])) {
-      // TODO: unifiy
-      GroundAtomWithArguments(atom.atom, groundedArguments.map(_.asInstanceOf[Value]).toList)
-    } else {
-      NonGroundAtomWithArguments(atom.atom, groundedArguments)
-    }
+    atom.atom(groundedArguments.toList)
   }
 
   def apply(headAtom: HeadAtom): HeadAtom = headAtom match {
@@ -38,7 +34,7 @@ case class Ground(substitutions: Map[Variable, Value]) {
     case a: Atom => this.apply(a)
   }
 
-  def apply(rule: LarsRule):LarsRule = {
+  def apply(rule: LarsRule): LarsRule = {
     LarsRule(
       apply(rule.head),
       rule.pos map this.apply,
@@ -46,13 +42,13 @@ case class Ground(substitutions: Map[Variable, Value]) {
     )
   }
 
-//  def apply[TAtom <: Atom](rule: AspRule[TAtom]):AspRule[TAtom] = {
-//    AspRule(
-//      apply(rule.head),
-//      rule.pos map this.apply,
-//      rule.neg map this.apply
-//    )
-//  }
+  //  def apply[TAtom <: Atom](rule: AspRule[TAtom]):AspRule[TAtom] = {
+  //    AspRule(
+  //      apply(rule.head),
+  //      rule.pos map this.apply,
+  //      rule.neg map this.apply
+  //    )
+  //  }
 }
 
 

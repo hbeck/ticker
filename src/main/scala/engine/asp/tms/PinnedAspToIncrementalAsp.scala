@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
-import core.{Atom, NonGroundAtomWithArguments, PinnedAtom}
+import core.{Atom, NonGroundAtom, PinnedAtom}
 import engine.asp.{MappedProgram, PinnedRule, now}
 
 /**

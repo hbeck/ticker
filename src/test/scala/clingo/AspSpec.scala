@@ -74,6 +74,6 @@ class AspSpec extends FlatSpec with AtomTestFixture{
   "Models with arity" should "be parsed into AtomsWithArguments" in {
     val cc: Atom = c("a", "b")
 
-    assert(NonGroundAtomWithArguments(c, List("a", "b")) == ClingoEvaluation.convert("c(a,b)"))
+    assert(NonGroundAtom(c, List("a", "b")) == ClingoEvaluation.convert("c(a,b)"))
   }
 }

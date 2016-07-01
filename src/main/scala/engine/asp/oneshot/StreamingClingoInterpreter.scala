@@ -44,7 +44,7 @@ object StreamingClingoInterpreter {
 
       val atomWithoutTime = atom.arguments.init match {
         case Nil => atom.atom
-        case remainingArguments => NonGroundAtomWithArguments(atom.atom, remainingArguments)
+        case remainingArguments => NonGroundAtom(atom.atom, remainingArguments)
       }
 
       PinnedAtom(atomWithoutTime, l)
