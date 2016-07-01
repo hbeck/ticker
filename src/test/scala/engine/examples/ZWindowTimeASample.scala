@@ -4,7 +4,7 @@ import core.Atom
 import core.lars._
 import engine._
 import engine.config.BuildEngine
-import fixtures.{ClingoPullEngine, ClingoPushEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
+import fixtures._
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -44,11 +44,11 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     evaluationEngine
   }
 
-  it should "not lead to z at t0" in {
+  it should "not lead to z at t0" in pendingWithTms("Missing grounding of Variable U") {
     preparedEngine.evaluate(t0).get shouldNot contain(z)
   }
 
-  it should "not lead to z at t1" in  {
+  it should "not lead to z at t1" in pendingWithTms("Missing grounding of Variable U") {
     preparedEngine.evaluate(t1).get.value shouldNot contain(z)
   }
 
@@ -64,7 +64,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     result shouldNot contain(z)
   }
 
-  it should "not lead to z or i at t4" in {
+  it should "not lead to z or i at t4" in pendingWithTms("Missing grounding of Variable U") {
     val result = preparedEngine.evaluate(t4).get.value
 
     result shouldNot contain allOf(i, z)

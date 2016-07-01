@@ -13,7 +13,7 @@ import engine.asp.{MappedProgram, PinnedRule, now}
 object PinnedAspToIncrementalAsp {
   def unpin(pinned: PinnedAtom) = pinned.arguments match {
     case pinned.timeAsArgument :: Nil => pinned.atom
-    case _ => NonGroundAtomWithArguments(pinned.atom, pinned.arguments filter (_ != pinned.timeAsArgument))
+    case _ => pinned.atom(pinned.arguments filter (_ != pinned.timeAsArgument): _*)
   }
 
   def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {

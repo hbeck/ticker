@@ -12,8 +12,10 @@ object Argument {
     if (nameOrValue.head.isUpper)
       Variable(nameOrValue)
     else
-      Value(nameOrValue)
+      StringValue(nameOrValue)
   }
+
+  implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
 }
 
 case class Variable(name: String) extends Argument
@@ -27,15 +29,23 @@ object Variable {
   }
 }
 
-case class Value(value: String) extends Argument
+sealed trait Value extends Argument
+
+case class StringValue(value: String) extends Value
+
+case class TimeValue(timePoint: TimePoint) extends Value
 
 object Value {
+  def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
+
+  def apply(value: String): Value = StringValue(value)
+
   implicit def convertToValue(value: String): Value = {
     if (value.head.isUpper)
       throw new IllegalArgumentException("A value must not start with an upper-case char")
 
-    Value(value)
+    StringValue(value)
   }
 
-  implicit def convertToValue(timePoint: TimePoint): Value = Value(timePoint.toString)
+
 }

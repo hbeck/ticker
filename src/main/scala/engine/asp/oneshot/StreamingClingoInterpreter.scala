@@ -34,7 +34,7 @@ object StreamingClingoInterpreter {
   val numberFormat = """\d+""".r
 
   def convertToPinnedAtom(atom: AtomWithArgument, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
-    case Value(v) => convertValue(atom, v)
+    case StringValue(v) => convertValue(atom, v)
     case _ => throw new IllegalArgumentException("Can only handle values as last argument")
   }
 

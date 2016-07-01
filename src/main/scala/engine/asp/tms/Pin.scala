@@ -57,7 +57,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       val g = this.apply(p)
       ground(g)
     }
-    case a: Predicate => a
+    case p: Predicate => p
+    case g: GroundAtom => g
   }
 
   def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))

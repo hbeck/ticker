@@ -83,7 +83,7 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
   }
 
   val timeAsArgument: Argument = time match {
-    case TimePoint(t) => Value(t.toString)
+    case TimePoint(t) => Value(t)
     case t: TimeVariableWithOffset => Variable(t.toString)
   }
 

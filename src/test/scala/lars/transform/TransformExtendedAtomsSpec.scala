@@ -20,7 +20,7 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
     assert(PlainLarsToAsp(AtAtom(t1, a)) == a(t1))
   }
   "An at-atom @_t1 a(1)" should "be transformed into a(1,t1)" in {
-    assert(PlainLarsToAsp(AtAtom(t1, a("1"))) == a("1", t1.toString))
+    assert(PlainLarsToAsp(AtAtom(t1, a("1"))) == a("1", t1))
   }
 
   "The window-atom wˆ1 d a" should "be transformed into w_1_d_a(T)" in {
