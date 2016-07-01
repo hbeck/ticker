@@ -43,9 +43,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
       case None => prepare(time, Set()).get //TODO think about this
     }
 
-    new Result {
-      override def get: Option[Model] = Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time)))
-    }
+    Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))
   }
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
