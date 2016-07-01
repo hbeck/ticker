@@ -52,12 +52,12 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def ground(atom: Atom): GroundAtomWithArguments = atom match {
+  def ground(atom: Atom): GroundAtom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
       ground(g)
     }
-    case a: Atom => GroundAtomWithArguments(a)
+    case a: Predicate => a
   }
 
   def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))
@@ -97,9 +97,9 @@ object GroundedNormalRule {
   def apply(rule: NormalRule): GroundRule = {
     if (rule.isGround) {
       AspRule(
-        GroundAtomWithArguments(rule.head),
-        rule.pos map (GroundAtomWithArguments(_)),
-        rule.neg map (GroundAtomWithArguments(_))
+        rule.head.asInstanceOf[GroundAtom],
+        rule.pos map (_.asInstanceOf[GroundAtom]),
+        rule.neg map (_.asInstanceOf[GroundAtom])
       )
     } else {
       throw new IllegalArgumentException("Cannot convert rule " + rule + " into a grounded Rule")

@@ -1,6 +1,6 @@
 package engine.evaluation
 
-import core.AtomWithArguments
+import core.NonGroundAtomWithArguments
 import engine.asp._
 import engine.asp.oneshot.StreamingClingoInterpreter
 import fixtures.TimeTestFixtures
@@ -22,11 +22,11 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "An atom 'a(0)'" should "be converted to a(t0)" in {
-    StreamingClingoInterpreter.asPinnedAtom(Set(AtomWithArguments(a, Seq(t0.toString))), t1) should contain(a(t0))
+    StreamingClingoInterpreter.asPinnedAtom(Set(NonGroundAtomWithArguments(a, Seq(t0.toString))), t1) should contain(a(t0))
   }
 
   "A model containing a(1), now(0) and a(2)" should "be converted into a(t1), now(t0), a(t2) at t0" in {
     val modelAfterClingoParsing = Set(a("1"), now("0"), a("2"))
-    StreamingClingoInterpreter.asPinnedAtom(modelAfterClingoParsing, t0) should contain allOf(a(t1), now(t0), a(t2))
+    StreamingClingoInterpreter.asPinnedAtom(modelAfterClingoParsing.toSet, t0) should contain allOf(a(t1), now(t0), a(t2))
   }
 }

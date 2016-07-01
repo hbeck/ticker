@@ -1,6 +1,6 @@
 package engine.evaluation
 
-import core.AtomWithArguments
+import core.NonGroundAtomWithArguments
 import engine.asp.{PinnedModelToLarsModel, now}
 import engine.asp.oneshot.AspEvaluationEngine
 import fixtures.TimeTestFixtures

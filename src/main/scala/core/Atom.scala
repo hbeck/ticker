@@ -47,10 +47,7 @@ trait AtomWithArgument extends Atom {
     sb.toString
   }
 
-  override def isGround(): Boolean = {
-    arguments forall (s => s.isInstanceOf[Value])
-  }
-
+  override def isGround(): Boolean = arguments forall (s => s.isInstanceOf[Value])
 }
 
 case class Predicate(caption: String) extends GroundAtom {
@@ -69,7 +66,7 @@ case class ContradictionAtom(caption: String) extends GroundAtom {
 
 case class NonGroundAtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends NonGroundAtom with AtomWithArgument
 
-case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value] = Seq()) extends GroundAtom with AtomWithArgument {
+case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
 }
 

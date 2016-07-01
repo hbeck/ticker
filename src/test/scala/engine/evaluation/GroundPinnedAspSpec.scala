@@ -1,6 +1,6 @@
 package engine.evaluation
 
-import core.{GroundAtom, Value}
+import core.{GroundAtom, GroundAtomWithArguments, Value}
 import core.asp._
 import engine.asp.tms.Pin
 import fixtures.TimeTestFixtures
