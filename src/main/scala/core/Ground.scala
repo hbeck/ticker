@@ -22,9 +22,9 @@ case class Ground(substitutions: Map[Variable, Value]) {
 
     if (groundedArguments.forall(_.isInstanceOf[Value])) {
       // TODO: unifiy
-      GroundAtom(atom.atom, groundedArguments.map(_.asInstanceOf[Value]).toList)
+      GroundAtomWithArguments(atom.atom, groundedArguments.map(_.asInstanceOf[Value]).toList)
     } else {
-      AtomWithArguments(atom.atom, groundedArguments)
+      NonGroundAtomWithArguments(atom.atom, groundedArguments)
     }
   }
 

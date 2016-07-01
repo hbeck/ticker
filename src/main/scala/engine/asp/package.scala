@@ -2,7 +2,7 @@ package engine
 
 import core.asp.{AspFact, AspProgram, AspRule}
 import core.lars._
-import core.{Atom, GroundAtom, PinnedAtom}
+import core._
 
 /**
   * Created by FM on 13.05.16.

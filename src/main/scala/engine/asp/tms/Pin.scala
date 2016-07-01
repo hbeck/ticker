@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp._
 import core.lars.{T, TimePoint, TimeVariableWithOffset}
-import core.{Atom, GroundAtom, PinnedAtom, Value}
+import core._
 import engine.asp._
 
 /**
@@ -52,12 +52,12 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def ground(atom: Atom): GroundAtom = atom match {
+  def ground(atom: Atom): GroundAtomWithArguments = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
       ground(g)
     }
-    case a: Atom => GroundAtom(a)
+    case a: Atom => GroundAtomWithArguments(a)
   }
 
   def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))
@@ -70,9 +70,9 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
+  def ground(pinnedAtom: PinnedAtom): GroundAtomWithArguments = {
     // TODO: unifiy
-    GroundAtom(pinnedAtom.atom, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
+    GroundAtomWithArguments(pinnedAtom.atom, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
   }
 
   def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)
@@ -97,9 +97,9 @@ object GroundedNormalRule {
   def apply(rule: NormalRule): GroundRule = {
     if (rule.isGround) {
       AspRule(
-        GroundAtom(rule.head),
-        rule.pos map (GroundAtom(_)),
-        rule.neg map (GroundAtom(_))
+        GroundAtomWithArguments(rule.head),
+        rule.pos map (GroundAtomWithArguments(_)),
+        rule.neg map (GroundAtomWithArguments(_))
       )
     } else {
       throw new IllegalArgumentException("Cannot convert rule " + rule + " into a grounded Rule")

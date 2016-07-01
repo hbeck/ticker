@@ -10,8 +10,12 @@ import core.lars.{HeadAtom, Time, TimePoint, TimeVariableWithOffset}
 sealed trait Atom extends HeadAtom {
   def arity = 0
 
-  def isGround(): Boolean = true
+  def isGround(): Boolean
 }
+
+trait GroundAtom extends Atom
+
+trait NonGroundAtom extends Atom
 
 trait AtomWithArgument extends Atom {
   val atom: Atom
@@ -49,22 +53,29 @@ trait AtomWithArgument extends Atom {
 
 }
 
-case class Predicate(caption: String) extends Atom {
+case class Predicate(caption: String) extends GroundAtom {
   override def toString = caption
+
+  override def isGround(): Boolean = true
 }
 
-object Falsum extends Atom
+object Falsum extends GroundAtom {
+  def isGround(): Boolean = true
+}
 
-case class ContradictionAtom(caption: String) extends Atom
+case class ContradictionAtom(caption: String) extends GroundAtom {
+  def isGround(): Boolean = true
+}
 
-case class AtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
+case class NonGroundAtomWithArguments(atom: Atom, arguments: Seq[Argument]) extends NonGroundAtom with AtomWithArgument
 
-case class GroundAtom(atom: Atom, arguments: List[Value] = List()) extends AtomWithArgument {
+case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value] = Seq()) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
 }
 
-object GroundAtom {//TODO type predicate
-  def apply(predicate: Atom, arguments: Value*): GroundAtom = GroundAtom(predicate, arguments.toList)
+object GroundAtom {
+  //TODO type predicate
+  def apply(predicate: Atom, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
 }
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {

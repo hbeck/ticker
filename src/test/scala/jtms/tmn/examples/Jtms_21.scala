@@ -1,6 +1,6 @@
 package jtms.tmn.examples
 
-import core.ContradictionAtom
+import core.{Atom, ContradictionAtom}
 import core.asp.{AspFact, AspRule}
 
 /**

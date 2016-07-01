@@ -27,24 +27,24 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 
 object StreamingClingoInterpreter {
   def asPinnedAtom(model: Model, timePoint: TimePoint) = model map {
-    case aa: AtomWithArguments => convertToPinnedAtom(aa, timePoint)
+    case aa: AtomWithArgument => convertToPinnedAtom(aa, timePoint)
     case a: Atom => throw new IllegalArgumentException(f"Cannot convert '$a' into a PinnedAtom")
   }
 
   val numberFormat = """\d+""".r
 
-  def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
+  def convertToPinnedAtom(atom: AtomWithArgument, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
     case Value(v) => convertValue(atom, v)
     case _ => throw new IllegalArgumentException("Can only handle values as last argument")
   }
 
-  def convertValue(atom: AtomWithArguments, value: String): PinnedAtom = numberFormat.findFirstIn(value) match {
+  def convertValue(atom: AtomWithArgument, value: String): PinnedAtom = numberFormat.findFirstIn(value) match {
     case Some(number) => {
       val l = number.toLong
 
       val atomWithoutTime = atom.arguments.init match {
         case Nil => atom.atom
-        case remainingArguments => AtomWithArguments(atom.atom, remainingArguments)
+        case remainingArguments => NonGroundAtomWithArguments(atom.atom, remainingArguments)
       }
 
       PinnedAtom(atomWithoutTime, l)
