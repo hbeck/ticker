@@ -33,6 +33,14 @@ import engine.asp._
   */
 case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
+  def atoms(atoms: Set[Atom]): PinnedStream = {
+    atoms map (apply(_))
+  }
+
+  def apply(atom: Atom): PinnedFact = {
+    AspFact(atom(timePoint))
+  }
+
   def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
       case t: PinnedAtom => apply(t)

@@ -3,6 +3,7 @@ package engine.asp.oneshot
 import core._
 import core.lars.TimePoint
 import engine.asp._
+import engine.asp.tms.Pin
 import engine.{Result, _}
 
 /**
@@ -33,8 +34,8 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends Asp
 
 object AspEvaluationEngine {
 
-  def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + PinToTimePoint(time)(now)
+  def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + Pin(time)(now)
 
-  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => PinToTimePoint(x.time).atoms(x.atoms))
+  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => Pin(x.time).atoms(x.atoms))
 
 }
