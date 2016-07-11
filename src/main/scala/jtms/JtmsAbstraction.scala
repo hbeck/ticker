@@ -11,6 +11,11 @@ import scala.util.Random
   */
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
+  // TODO: this is a performance bottleneck (according to profiling)
+  override def allAtoms() = _atomsCache.to
+  var _atomsCache :Set[Atom]= Set()
+
+
   def update(atoms: Set[Atom])
 
   //based on JTMS update algorithm
@@ -76,6 +81,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (!status.isDefinedAt(a)) status(a) = out
     if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
     if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
+    _atomsCache add a
     //if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
@@ -132,7 +138,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def unregister(rule: NormalRule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filter (_ != rule)
-    val remainingAtoms = allAtoms()
+    // TODO: because of performance optimization - we can not use allAtoms (because it still contains the atoms of the rule)
+    val remainingAtoms =(rules flatMap (_.atoms)).toSet[Atom]  // allAtoms()
     (rule.atoms diff remainingAtoms) foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
   }
@@ -148,6 +155,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status remove a
     cons remove a
     supp remove a
+    _atomsCache remove a
     //suppRule remove a
   }
 
