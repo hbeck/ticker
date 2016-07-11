@@ -2,14 +2,20 @@ package evaluation.reachBlocked
 
 import core.lars.{LarsFact, LarsProgram, LarsRule}
 import core.{Atom, Ground, Value}
+import engine.asp.tms.policies.LazyRemovePolicy
+import engine.config.BuildEngine
 import evaluation.RunWithAllImplementations
-import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
+import evaluation.tags.NoTmsDirectPolicy
+import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine, TmsLazyRemovePolicyEngine}
 import org.scalatest.Matchers._
+
+import scala.util.Random
 
 /**
   * Created by FM on 20.06.16.
   */
-class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedProgram with TimeTestFixtures with TmsPushEngine {
+@NoTmsDirectPolicy
+class ParallelLanesSample extends ConfigurableEvaluationSpec with ReachBlockedProgram with TimeTestFixtures with TmsLazyRemovePolicyEngine {
 
   type EdgeAtomMap = (Option[Value], Atom)
 

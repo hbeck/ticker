@@ -2,7 +2,9 @@ package fixtures
 
 import core.lars.LarsProgram
 import engine.EvaluationEngine
+import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
+import jtms.JtmsExtended
 
 import scala.util.Random
 
@@ -22,11 +24,13 @@ trait EvaluationEngineBuilder {
 
   type EngineBuilder = ((LarsProgram) => EvaluationEngine)
 
+
   val defaultEngine: EngineBuilder
 
   // needed?
   lazy val defaultEvaluationType = this match {
-    case a: TmsPushEngine => AspBasedTms
+    case a: TmsDirectPolicyEngine => AspBasedTms
+    case a: TmsLazyRemovePolicyEngine => AspBasedTms
     case _ => Clingo
   }
 
@@ -40,6 +44,10 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePush().start()
 }
 
-trait TmsPushEngine extends EvaluationEngineBuilder {
+trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().withRandom(new Random(1)).start()
+}
+
+trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(JtmsExtended(new Random(1)), 10)).start()
 }

@@ -27,6 +27,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     val pin = Pin(time)
 
     val groundedRules = pin.ground(nonGroundRules)
+    // TODO: make it nicer
     val groundedStream = pin.ground(pin.atoms(atoms))
 
     tmsPolicy.add(time)(groundedRules ++ groundedStream)

@@ -2,7 +2,7 @@ package evaluation
 
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule}
 import core.{BuilderCollection, not}
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsPushEngine}
+import fixtures._
 import core.lars._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -12,7 +12,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsPushEngine {
+class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine {
   val program = LarsProgram.from(
     a <= W(1, Diamond, c),
     c <= W(1, Diamond, a),

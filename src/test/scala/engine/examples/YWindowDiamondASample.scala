@@ -6,7 +6,7 @@ import core.lars._
 import engine.EvaluationEngine
 import engine.asp.now
 import engine.config.BuildEngine
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsLazyRemovePolicyEngine}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,7 +14,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine {
   val aspStringProgram =
     """y(T) :- w1d_a(T).
 

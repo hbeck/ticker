@@ -2,6 +2,7 @@ package fixtures
 
 import core.lars.LarsProgram
 import engine.EvaluationEngine
+import fixtures.tags.NoTmsDirectPolicy
 import org.scalatest._
 
 
@@ -14,9 +15,9 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
   val program: LarsProgram
 
   private var engineEvaluationType: EvaluationType = this.defaultEvaluationType
-  private var engineCache: EvaluationEngine = null //TODO: null nicht die art der feinen scala leute
+  private var engineCache: Option[EvaluationEngine] = None
 
-  def evaluationEngine: EvaluationEngine = engineCache
+  def evaluationEngine: EvaluationEngine = engineCache.get
 
   override def withFixture(test: NoArgTest): Outcome = {
 
@@ -28,9 +29,9 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
         val c = config.asInstanceOf[EngineConfig]
         this.engineEvaluationType = c.evaluationType
-        this.engineCache = c.builder(program)
+        this.engineCache = Some(c.builder(program))
       }
-      case _ => this.engineCache = defaultEngine(program)
+      case _ => this.engineCache = Some(defaultEngine(program))
     }
 
     ConfigurableEvaluationSpec.super.withFixture(test)
@@ -61,8 +62,13 @@ trait ConfigurableEvaluationSuite extends Suite with EvaluationEngineBuilder {
     val configEntry = ("engineConfig", config)
 
     val c = args.configMap + configEntry
+    var filter = args.filter
 
-    val argumentsWithEngine = Args(args.reporter, configMap = c)
+    if (this.isInstanceOf[TmsDirectPolicyEngine]) {
+      filter = Filter.apply(tagsToExclude = Set(NoTmsDirectPolicy.name))
+    }
+
+    val argumentsWithEngine = Args(args.reporter, configMap = c, filter = filter)
 
     //    profile.withWarmup(10) {
     super.runNestedSuites(argumentsWithEngine)

@@ -3,7 +3,7 @@ package evaluation
 import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
-import fixtures.{ConfigurableEvaluationSpec, EvaluationEngineBuilder, TimeTestFixtures, TmsPushEngine}
+import fixtures.{ConfigurableEvaluationSpec, EvaluationEngineBuilder, TimeTestFixtures, TmsDirectPolicyEngine}
 import jtms.JtmsExtended
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
