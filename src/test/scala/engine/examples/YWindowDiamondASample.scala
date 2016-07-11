@@ -47,8 +47,8 @@ class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixt
     evaluationEngine
   }
 
-  it should "not lead to y at t0" in {
-    engineWithStream.evaluate(t0).get shouldNot contain(y)
+  "An empty program" should "not lead to y at t0" in {
+    evaluationEngine.evaluate(t0).get shouldNot contain(y)
   }
 
   it should "lead to y at t1" in {

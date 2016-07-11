@@ -26,6 +26,10 @@ object NoResult extends Result {
   override def get: Option[Set[Atom]] = None
 }
 
+object UnknownResult extends Result {
+  override def get: Option[Set[Atom]] = throw new IllegalStateException("No known model was derived")
+}
+
 object Result {
   def apply(model: Option[Model]): Result = model match {
     case None => NoResult

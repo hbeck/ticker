@@ -4,7 +4,7 @@ import core.{GroundAtom, _}
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, Result}
+import engine.{EvaluationEngine, Result, UnknownResult}
 
 /**
   * Created by FM on 18.05.16.
@@ -28,10 +28,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
     val groundedRules = pin.ground(nonGroundRules)
     // TODO: make it nicer
-    val groundedStream = pin.ground(pin.atoms(atoms))
+    val extensionalAtoms = pin.ground(pin.atoms(atoms))
 
-    tmsPolicy.add(time)(groundedRules ++ groundedStream)
+    tmsPolicy.add(time)(groundedRules ++ extensionalAtoms)
     val model = tmsPolicy.getModel(time)
+    // we never remove extensional atoms explicitly (the policy might do it)
     tmsPolicy.remove(time)(groundedRules)
 
     model
@@ -40,7 +41,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
   override def evaluate(time: TimePoint): Result = {
     val resultingModel = cachedResults.get(time) match {
       case Some(result) => result.get
-      case None => prepare(time, Set()).get //TODO think about this
+      case None => {
+        //TODO think about this
+        if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
+          return UnknownResult
+        } else {
+          prepare(time, Set()).get
+        }
+      }
     }
 
     Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))

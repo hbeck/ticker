@@ -53,8 +53,8 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
   }
 
 
-  it should "not lead to x at t0" in {
-    engineWithStream.evaluate(t0).get shouldNot contain(x)
+  "An empty program" should "not lead to x at t0" in {
+    evaluationEngine.evaluate(t0).get shouldNot contain(x)
   }
 
   it should "not lead to x at t1" in {
@@ -65,7 +65,7 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
     engineWithStream.evaluate(t2).get.value should contain(x)
   }
   it should "not contain x(2) at t3" in {
-    val model = engineWithStream.evaluate(TimePoint(3)).get
+    val model = engineWithStream.evaluate(t3).get
     model.value shouldNot contain(x)
   }
 }
