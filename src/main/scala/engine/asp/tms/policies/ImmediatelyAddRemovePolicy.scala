@@ -5,12 +5,12 @@ import core.lars.TimePoint
 import engine.Result
 import engine.asp.GroundRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsExtended}
+import jtms.{Jtms, JtmsGreedy$}
 
 /**
   * Created by FM on 12.06.16.
   */
-case class ImmediatelyAddRemovePolicy(tms: Jtms = JtmsExtended()) extends TmsPolicy {
+case class ImmediatelyAddRemovePolicy(tms: Jtms = JtmsGreedy()) extends TmsPolicy {
 
   override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
 

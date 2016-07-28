@@ -4,7 +4,7 @@ import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import jtms.{JtmsBeierleFixed, JtmsBeierle, JtmsExtended}
+import jtms.{JtmsBeierleFixed, JtmsBeierle, JtmsGreedy$}
 import org.scalatest.FunSuite
 
 /**
@@ -13,7 +13,7 @@ import org.scalatest.FunSuite
 class AspAddRemove extends FunSuite with AtomTestFixture {
   
   //def jtmsImpl = JtmsBeierleFixed
-  def jtmsImpl = JtmsExtended
+  def jtmsImpl = JtmsGreedy
 
   val none = Set[Atom]()
 
@@ -377,7 +377,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms match {
         case x:JtmsBeierleFixed => assert(m == Set(e,b,d))
-        case x: JtmsExtended => assertModelWithKnownLimitation(tms, Set(e, b, d), tms.choiceSeq.head == d)
+        case x: JtmsGreedy => assertModelWithKnownLimitation(tms, Set(e, b, d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(e, b, d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0) == c && tms.choiceSeq(1) == d))
       }
@@ -412,7 +412,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(b,d))
-        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
         )
@@ -440,7 +440,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms match {
         case x:JtmsBeierleFixed => assert(m == Set(b,d))
-        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
+        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(b,d),tms.choiceSeq.head == d)
       }
 
@@ -477,7 +477,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(e,b,d))
-        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
+        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(e,b,d), tms.choiceSeq.head == d)
         case _ => assertModelWithKnownLimitation(tms, Set(e,b,d),
           tms.choiceSeq.head == d || (tms.choiceSeq(0)==c && tms.choiceSeq(1) ==d)
         )
@@ -580,7 +580,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(b,c))
-        case x:JtmsExtended => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
+        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
         case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
       }
 

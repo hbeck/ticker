@@ -18,8 +18,9 @@ object JtmsDoyle {
 /**
   * justification-based truth maintenance network
   *
-  * based book chapter from Beierle and Kern-Isberner
-  * and Doyle's original prose
+  * specific algorithm obtained as refactoring from
+  * pseudo-code in book chapter from Beierle and Kern-Isberner
+  * (who in turn simplify Doyle's original algorithm)
   *
   * Created by hb on 12/22/15.
   */

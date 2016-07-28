@@ -2,7 +2,7 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.JtmsExtended
+import jtms.JtmsGreedy$
 
 /**
   * Created by hb on 25.03.16.
@@ -10,7 +10,7 @@ import jtms.JtmsExtended
 class JtmsExtendedEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
-    val tmn = JtmsExtended(program)
+    val tmn = JtmsGreedy(program)
 
     val singleModel = tmn.getModel.get
 

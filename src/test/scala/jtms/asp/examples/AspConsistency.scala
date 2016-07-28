@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.{JtmsBeierleFixed, JtmsExtended}
+import jtms.{JtmsBeierleFixed, JtmsGreedy$}
 import org.scalatest.FunSuite
 
 /**
@@ -14,7 +14,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
   val O = Set[Atom]()
 
   //def jtmsImpl = JtmsBeierleFixed
-  def jtmsImpl = JtmsExtended
+  def jtmsImpl = JtmsGreedy
   //def jtmsImpl = JtmsDoyleRefactored
 
   val times = 1 to 100
@@ -275,7 +275,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms.add(AspRule(b,a))
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(b))
-        case x:JtmsExtended => m == None //TODO
+        case x:JtmsGreedy => m == None //TODO
         case _ => assert(m.get == Set(b))
       }
 
@@ -307,7 +307,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
       tms add AspRule(a,Set(x),Set(a))
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(y))
-        case x:JtmsExtended => assert(m == None) //assert(m.get == Set(y)) //TODO limitations in some insertion orders
+        case x:JtmsGreedy => assert(m == None) //assert(m.get == Set(y)) //TODO limitations in some insertion orders
         case _ => assert(m.get == Set(y))
       }
 
@@ -318,7 +318,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(y))
-        case x:JtmsExtended => assert(m.get == Set(y))
+        case x:JtmsGreedy => assert(m.get == Set(y))
         case _ => assert(m.get == Set(y))
       }
 

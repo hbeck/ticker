@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp.{AspFact, AspProgram}
-import jtms.{JtmsDoyleRefactored, in}
+import jtms.{JtmsDoyle, in}
 import org.scalatest.FlatSpec
 
 import scala.language.implicitConversions
@@ -15,10 +15,10 @@ class InitialEmptyTMN extends FlatSpec {
   val assumptionA = AspFact(Atom("A"))
   val program = AspProgram(assumptionA)
 
-  val EmptyTMN = JtmsDoyleRefactored(AspProgram()) //TODO
+  val EmptyTMN = JtmsDoyle(AspProgram()) //TODO
 
   val tmn = {
-    JtmsDoyleRefactored(program)
+    JtmsDoyle(program)
   }
 
   "An empty TMN" should "have no rules and no status values set" in {

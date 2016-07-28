@@ -5,14 +5,14 @@ import core.lars.{Duration, TimePoint}
 import engine.Result
 import engine.asp.GroundRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsExtended}
+import jtms.{Jtms, JtmsGreedy$}
 
 import scala.collection.mutable
 
 /**
   * Created by FM on 12.06.16.
   */
-case class LazyRemovePolicy(tms: Jtms = JtmsExtended(), laziness: Duration = 0) extends TmsPolicy {
+case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) extends TmsPolicy {
 
 
   // TODO: Set or Seq? guess Set because gurantee of order might be hard

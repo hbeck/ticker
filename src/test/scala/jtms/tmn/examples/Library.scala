@@ -101,7 +101,7 @@ class Library extends FlatSpec with LibraryBehavior with EvaluateJtmsImplementat
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = JtmsDoyleRefactored(program)
+  def Tmn = JtmsDoyle(program)
 
   "Atom V" must behave like atomValidation(Tmn, V) { validator =>
     validator.state(in)

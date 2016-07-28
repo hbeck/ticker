@@ -4,7 +4,7 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
-import jtms.JtmsExtended
+import jtms.JtmsGreedy$
 
 import scala.util.Random
 
@@ -45,7 +45,7 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
-  val tms = JtmsExtended(new Random(1))
+  val tms = JtmsGreedy(new Random(1))
   tms.doConsistencyCheck = false
 
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
@@ -53,7 +53,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 
 trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
-  val tms = JtmsExtended(new Random(1))
+  val tms = JtmsGreedy(new Random(1))
   tms.doConsistencyCheck = false
 
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()

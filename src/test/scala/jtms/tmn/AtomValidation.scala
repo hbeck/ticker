@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{JtmsDoyleRefactored, Status}
+import jtms.{JtmsDoyle, Status}
 import org.scalatest.FlatSpec
 
 /**
@@ -13,7 +13,7 @@ trait AtomValidation {
   this: FlatSpec =>
 
   //TODO
-  def atomValidation(tmn: JtmsDoyleRefactored, n: Atom): ((AtomValidator) => Any) => Any = {
+  def atomValidation(tmn: JtmsDoyle, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 
     def atomCheckTestCallback(check: (AtomValidator) => Any) = {
@@ -23,7 +23,7 @@ trait AtomValidation {
     return atomCheckTestCallback
   }
 
-  class AtomValidator(tmn: JtmsDoyleRefactored, atom: Atom) {
+  class AtomValidator(tmn: JtmsDoyle, atom: Atom) {
 
     info(atom.toString)
 

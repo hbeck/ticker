@@ -8,7 +8,7 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.JtmsExtended
+import jtms.JtmsGreedy$
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -37,10 +37,10 @@ case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
 
 }
 
-case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsExtended(new Random))) {
-  def withRandom(random: Random) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(JtmsExtended(random)))
+case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new Random))) {
+  def withRandom(random: Random) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(JtmsGreedy(random)))
 
-  def useTms(jtms: JtmsExtended) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: JtmsGreedy) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
 
   def usingPolicy(tmsPolicy: TmsPolicy) = AspBasedTmsConfiguration(program, tmsPolicy)
 }

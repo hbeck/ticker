@@ -4,7 +4,7 @@ import core.Atom
 import core.asp.{AspFact, NormalProgram}
 import core.lars.TimePoint
 import engine.{Result, _}
-import jtms.JtmsExtended
+import jtms.JtmsGreedy$
 
 /**
   * Created by FM on 05.04.16.
@@ -14,7 +14,7 @@ import jtms.JtmsExtended
 case class AnswerUpdateEvaluation(private val program: NormalProgram) extends EvaluationEngine {
   val extensionalAtomStream: OrderedAtomStream = new OrderedAtomStream
 
-  val answerUpdateNetwork = JtmsExtended(program)
+  val answerUpdateNetwork = JtmsGreedy(program)
 
   def append(time: TimePoint)(atoms: Atom*): Unit = {
     extensionalAtomStream.append(time)(atoms.toSet)

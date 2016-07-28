@@ -26,7 +26,7 @@ object JtmsBeierleFixed {
   *
   * follows quite closely the presentation in the
   * book chapter from Beierle and Kern-Isberner,
-  * but fixes some bugs
+  * but fixes some bugs.
   *
   */
 class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {

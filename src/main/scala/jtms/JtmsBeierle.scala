@@ -22,6 +22,7 @@ object JtmsBeierle {
   *
   * follows quite closely the presentation in the
   * book chapter from Beierle and Kern-Isberner
+  * (including its bugs ;-) )
   *
   * Created by hb on 12/22/15; 03/25/16
   */
