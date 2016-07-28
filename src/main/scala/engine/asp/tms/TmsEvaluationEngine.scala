@@ -42,7 +42,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     val resultingModel = cachedResults.get(time) match {
       case Some(result) => result.get
       case None => {
-        //TODO think about this
+        //TODO think about this: We can't generate a result if the current time is in the past (of previous calculated time values)
         if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
           return UnknownResult
         } else {
