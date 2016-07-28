@@ -10,7 +10,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine{
   val program = LarsProgram.from(
     a <= b and c not d,
 

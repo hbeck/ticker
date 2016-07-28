@@ -12,7 +12,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine {
+class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val program = LarsProgram.from(
     a <= W(1, Diamond, c),
     c <= W(1, Diamond, a),

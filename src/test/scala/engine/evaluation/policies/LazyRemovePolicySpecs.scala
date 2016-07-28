@@ -17,6 +17,8 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
 
   class JTmsSpy extends Jtms {
 
+    override def allAtoms() = addCalls flatMap(_.atoms) to
+
     var addCalls = List[NormalRule]()
     var removeCalls = List[NormalRule]()
 

@@ -40,7 +40,7 @@ case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
 case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsExtended(new Random))) {
   def withRandom(random: Random) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(JtmsExtended(random)))
 
-  def withTms(jtms: JtmsExtended) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: JtmsExtended) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
 
   def usingPolicy(tmsPolicy: TmsPolicy) = AspBasedTmsConfiguration(program, tmsPolicy)
 }
