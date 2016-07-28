@@ -6,17 +6,17 @@ import core.asp.{NormalProgram, NormalRule}
 import scala.collection.mutable.Set
 import scala.util.Random
 
-object JtmsExtended {
+object JtmsGreedy {
 
-  def apply(P: NormalProgram): JtmsExtended = {
-    val net = new JtmsExtended()
+  def apply(P: NormalProgram): JtmsGreedy = {
+    val net = new JtmsGreedy()
     P.rules foreach net.add
     net
   }
 
 }
 
-case class JtmsExtended(random: Random = new Random()) extends JtmsAbstraction {
+case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   var doSelfSupportCheck = true
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
@@ -121,7 +121,7 @@ case class JtmsExtended(random: Random = new Random()) extends JtmsAbstraction {
     rulePosValid.neg foreach { a =>
       status(a) match {
         case `unknown` => fixOut(a) //fix ancestors
-        case `in` => throw new IncrementalUpdateFailureException()
+        case `in` => throw new IncrementalUpdateFailureException() //odd loop (within rule) detection
         case `out` => //nothing to be done
       }
     }

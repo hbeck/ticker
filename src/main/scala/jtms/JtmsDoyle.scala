@@ -5,10 +5,10 @@ import core.asp.{NormalProgram, NormalRule}
 
 import scala.collection.mutable.Set
 
-object JtmsDoyleRefactored {
+object JtmsDoyle {
 
-  def apply(P: NormalProgram): JtmsDoyleRefactored = {
-    val tmn = new JtmsDoyleRefactored()
+  def apply(P: NormalProgram): JtmsDoyle = {
+    val tmn = new JtmsDoyle()
     P.rules foreach tmn.add
     tmn
   }
@@ -23,7 +23,7 @@ object JtmsDoyleRefactored {
   *
   * Created by hb on 12/22/15.
   */
-case class JtmsDoyleRefactored() extends JtmsAbstraction {
+case class JtmsDoyle() extends JtmsAbstraction {
 
   override def update(atoms: Set[Atom]): Unit = {
 
