@@ -34,6 +34,7 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
       case _ => this.engineCache = Some(defaultEngine(program))
     }
 
+    info("Using engine " + evaluationType)
     ConfigurableEvaluationSpec.super.withFixture(test)
   }
 

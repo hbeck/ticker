@@ -2,7 +2,7 @@ package fixtures
 
 import core.lars.LarsProgram
 import engine.EvaluationEngine
-import engine.asp.tms.policies.LazyRemovePolicy
+import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
 import jtms.JtmsExtended
 
@@ -45,9 +45,16 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().withRandom(new Random(1)).start()
+  val tms = JtmsExtended(new Random(1))
+  tms.doConsistencyCheck = false
+
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
 }
 
 trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(JtmsExtended(new Random(1)), 10)).start()
+
+  val tms = JtmsExtended(new Random(1))
+  tms.doConsistencyCheck = false
+
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
 }

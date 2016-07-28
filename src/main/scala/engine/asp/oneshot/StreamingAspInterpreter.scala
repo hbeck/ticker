@@ -7,9 +7,6 @@ import engine.asp.{PinnedModel, PinnedStream}
 
 
 trait StreamingAspInterpreter {
-  // TODO: pass timepoint as arguments to streaming interpreter? needed for TMS
-  // decide  if we always should pin the data-stream first to a variable and then ground it
-  // (wouldn't be needed for the clingo-case)
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel]
 }
 

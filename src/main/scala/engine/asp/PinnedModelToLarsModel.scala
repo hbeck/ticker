@@ -15,7 +15,7 @@ object PinnedModelToLarsModel {
       case PinnedAtom(atom, time) => time == timePoint
       case _ => true
     }
-// TODO: use corerct unpint method
+// TODO: use correct unpin method
     val unpinned = filtered map PinnedAspToIncrementalAsp.unpin
 
     unpinned
