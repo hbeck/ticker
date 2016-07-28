@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import core.Atom
 import core.lars.TimePoint
-import evaluation.StatisticResult
+import evaluation.{RunWithAllImplementations, StatisticResult}
 import fixtures.{ClingoPushEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsLazyRemovePolicyEngine}
 
 import scala.language.implicitConversions
@@ -15,13 +15,13 @@ import scala.concurrent.duration.{Deadline, Duration}
   * Created by FM on 11.07.16.
   */
 class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPushEngine with ParallelLanes {
-  val program = generateProgram(3, 3)
+  val program = generateProgram(2, 3)
 
   val obstacles = generatedNodes.map(obstacle(_)).toSet.subsets().toList
 
   var executionTimes: List[Duration] = List()
 
-  "All diffrent combinations of obstacles" should "be appended at a given timepoint" in {
+  "All different combinations of obstacles" should "be appended at a given timepoint" in {
     obstacles zip (Stream from 1) foreach (t => timedAppend(t._2, t._1.toSeq))
 
     val d = StatisticResult.fromExecutionTimes(executionTimes)
@@ -44,3 +44,5 @@ class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixture
     executionTimes = executionTimes :+ elapsed
   }
 }
+
+class AllStreamingObstacles extends RunWithAllImplementations(new StreamingObstacles)
