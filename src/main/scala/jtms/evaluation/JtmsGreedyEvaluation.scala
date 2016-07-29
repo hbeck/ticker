@@ -2,12 +2,12 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.JtmsGreedy$
+import jtms.JtmsGreedy
 
 /**
   * Created by hb on 25.03.16.
   */
-class JtmsExtendedEvaluation extends Evaluation {
+class JtmsGreedyEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
     val tmn = JtmsGreedy(program)

@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.{JtmsBeierleFixed, JtmsGreedy$}
+import jtms.{JtmsBeierleFixed, JtmsGreedy}
 import org.scalatest.FunSuite
 
 /**
@@ -14,8 +14,8 @@ class AspConsistency extends FunSuite with AtomTestFixture{
   val O = Set[Atom]()
 
   //def jtmsImpl = JtmsBeierleFixed
+  //def jtmsImpl = JtmsDoyle
   def jtmsImpl = JtmsGreedy
-  //def jtmsImpl = JtmsDoyleRefactored
 
   val times = 1 to 100
 
@@ -295,7 +295,9 @@ class AspConsistency extends FunSuite with AtomTestFixture{
     //times foreach { _ =>
       //illustrates the essence of inc6 more clearly
       val tms = jtmsImpl()
-      tms.shuffle=false
+      if (tms.isInstanceOf[JtmsGreedy]) {
+        tms.asInstanceOf[JtmsGreedy].shuffle=false
+      }
 
       def m = tms.getModel
 
@@ -347,7 +349,7 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
       tms match {
         case x:JtmsBeierleFixed => assert(m.get == Set(b))
-        case x:JtmsExtended => m == None //TODO
+        case x:JtmsGreedy => m == None //TODO
         case _ => assert(m.get == Set(b))
       }
           */

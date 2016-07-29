@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsGreedy$
+import jtms.JtmsGreedy
 import org.scalatest.FlatSpec
 
 /**

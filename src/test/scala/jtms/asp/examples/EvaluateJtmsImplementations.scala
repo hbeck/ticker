@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import clingo.ClingoEvaluation
 import core.Evaluation
-import jtms.evaluation.{JtmsExtendedEvaluation, JtmsBeierleEvaluation, JtmsRefactoredEvaluation}
+import jtms.evaluation.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsGreedyEvaluation}
 import org.scalatest.FlatSpec
 
 /**
@@ -12,14 +12,14 @@ trait EvaluateJtmsImplementations {
   this: FlatSpec =>
 
   val asp = ClingoEvaluation()
-  val jtmsBeierle = new JtmsBeierleEvaluation
-  val jtmnRefactored = new JtmsRefactoredEvaluation
-  val jtmnExtended = new JtmsExtendedEvaluation
+  val jtmsBeierleFixed = new JtmsBeierleFixedEvaluation
+  val jtmsDoyle = new JtmsDoyleEvaluation
+  val jtmsGreedy = new JtmsGreedyEvaluation
 
   def theSame(tests: => Evaluation => Unit) = {
     "The ASP implementation" should behave like tests(asp)
-    "The JtmsBeierle implementation" should behave like tests(jtmsBeierle)
-    "The JtmsRefactored implementation" should behave like tests(jtmnRefactored)
-    "The JtmsExtended implementation" should behave like tests(jtmnExtended)
+    "The JtmsBeierleFixed implementation" should behave like tests(jtmsBeierleFixed)
+    "The JtmsDoyle implementation" should behave like tests(jtmsDoyle)
+    "The JtmsGreedy implementation" should behave like tests(jtmsGreedy)
   }
 }

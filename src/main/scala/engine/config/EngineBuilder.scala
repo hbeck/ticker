@@ -8,7 +8,7 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.JtmsGreedy$
+import jtms.JtmsGreedy
 
 import scala.concurrent.duration.Duration
 import scala.util.Random

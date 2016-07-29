@@ -11,10 +11,8 @@ import scala.util.Random
   */
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
-  // TODO: this is a performance bottleneck (according to profiling)
   override def allAtoms() = _atomsCache.to
-  var _atomsCache :Set[Atom]= Set()
-
+  var _atomsCache: Set[Atom]= Set()
 
   def update(atoms: Set[Atom])
 
@@ -64,7 +62,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def invalidation(a: Atom): Boolean = {
     if (justifications(a) forall invalid) {
-      setOut(a) //TODO this is the only usage. keep it?
+      setOut(a)
       return true
     }
     false
@@ -96,17 +94,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     //suppRule(rule.head) = Some(rule)
   }
 
-  def setOut(a: Atom) = { //TODO there is only one occurrence; in the other, the two lines appear separated. keep setOut?
+  def setOut(a: Atom) = {
     status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
-    //supp(a) = Set() ++ (justifications(a) map (findSpoiler(_).get)) //TODO write-up missing
-    /*
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
-    if (maybeAtoms exists (_.isEmpty)) {
-      throw new IncrementalUpdateFailureException()
-    }
-    supp(a) = Set() ++ maybeAtoms map (_.get)
-    */
     setOutSupport(a)
     //suppRule(a) = None
   }
@@ -138,8 +128,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def unregister(rule: NormalRule): Unit = {
     if (!(rules contains rule)) return
     rules = rules filter (_ != rule)
-    // TODO: because of performance optimization - we can not use allAtoms (because it still contains the atoms of the rule)
-    val remainingAtoms =(rules flatMap (_.atoms)).toSet[Atom]  // allAtoms()
+    val remainingAtoms = (rules flatMap (_.atoms)).toSet[Atom]  // (allAtoms() still contains the atoms of the rule)
     (rule.atoms diff remainingAtoms) foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
   }

@@ -2,12 +2,12 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.{JtmsDoyle, JtmsDoyleRefactored$}
+import jtms.JtmsDoyle
 
 /**
   * Created by FM on 25.02.16.
   */
-class JtmsRefactoredEvaluation extends Evaluation {
+class JtmsDoyleEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
     val tmn = JtmsDoyle(program)

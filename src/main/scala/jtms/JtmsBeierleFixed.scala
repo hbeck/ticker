@@ -35,7 +35,7 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
     //try {
       updateImpl(L)
 //    } catch {
-//      case e:IncrementalUpdateFailureException => {
+//      case e:IncrementalUpdateFailureException => { //odd loop detection
 //        invalidateModel()
 //      }
 //    }
@@ -64,8 +64,6 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
           }
           */
           val revisit = shuffleSeq(Seq[Atom]() ++ ACons(atom) :+ atom) //avoid infinite loop
-          //if (revisit == Seq(Atom("c"),Atom("a"))) revisit = Seq(Atom("a"),Atom("c"))
-          println("  revisit: "+revisit)
           for (n <- revisit) {
             setUnknown(n)
           }
@@ -73,12 +71,10 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
             step5a(n)
           }
         } else {
-          println("  in.")
           setIn(rule)
           //diff to beierle: unknown atoms are left unknown. their support must be determined later.
           /*
           for (n <- rule.neg) {
-
             if (status(n) == unknown) {
               status(n) = out
             }
@@ -93,7 +89,6 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
         }
       }
       case None => { //all justifications(atom) are unfounded invalid
-        println("  out.")
         setOut(atom) //diff to beierle: findSpoiler allows unknown atoms!
         for (u <- unknownCons(atom)) {
           step5a(u)

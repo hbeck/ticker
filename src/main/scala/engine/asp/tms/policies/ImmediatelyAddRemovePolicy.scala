@@ -1,11 +1,10 @@
 package engine.asp.tms.policies
 
-import core._
 import core.lars.TimePoint
 import engine.Result
 import engine.asp.GroundRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsGreedy$}
+import jtms.{Jtms, JtmsGreedy}
 
 /**
   * Created by FM on 12.06.16.

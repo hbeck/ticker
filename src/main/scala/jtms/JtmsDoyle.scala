@@ -89,8 +89,8 @@ case class JtmsDoyle() extends JtmsAbstraction {
     val atomList = Seq[Atom]() ++ atoms
 
     def sort(a:Atom,b:Atom): Boolean = {
-      if (!choiceSeq.contains(b)) true
-      if (!choiceSeq.contains(a)) false
+      if (!choiceSeq.contains(b)) return true
+      if (!choiceSeq.contains(a)) return false
       choiceSeq.indexOf(a) <= choiceSeq.indexOf(b)
     }
 

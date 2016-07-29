@@ -99,20 +99,12 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
     if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
-    justifications(a) find posValid match { //TODO write-up
+    justifications(a) find posValid match {
       case Some(rule) => fixIn(rule)
       case None => fixOut(a)
     }
 
     unknownCons(a) foreach determineAndPropagateStatus
-
-    /*
-    if (fix(a)) {
-      unknownCons(a) foreach determineAndPropagateStatus
-    } else {
-      affected(a) foreach setUnknown //TODO no test coverage
-    }
-    */
   }
 
   def fixIn(rulePosValid: NormalRule): Unit = {
@@ -142,8 +134,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     unknownPosAtoms foreach fixOut //fix ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
-    //setOut(a)
-    setOutSupport(a: Atom) //TODO write-up; non-redundant now
+    setOutSupport(a: Atom)
   }
 
   //
@@ -160,17 +151,17 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
     if (inAtoms exists unfoundedSelfSupport) {
-      invalidateModel() //TODO can this happen?
+      throw new RuntimeException("self support")
     }
   }
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
     if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
-      invalidateModel() //TODO can this happen?
+      throw new RuntimeException("inconsistent state: in atom has no valid justification")
     }
     if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
-      invalidateModel() //TODO can this happen?
+      throw new RuntimeException("inconsistent state: out atom has valid justification")
     }
   }
 

@@ -168,7 +168,7 @@ class JtmsBeierle() extends JtmsAbstraction {
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
-          setIn(rule) //TODO log as "fix"
+          setIn(rule)
           for (n <- rule.neg) {
             if (status(n) == unknown) {
               status(n) = out //vs setOutOriginal [!]; support never set!
@@ -180,7 +180,7 @@ class JtmsBeierle() extends JtmsAbstraction {
         }
       }
       case None => { //all justifications(atom) are unfounded invalid
-        status(atom)=out
+        status(atom) = out
         for (rule <- justifications(atom)) {
           val n: Option[Atom] = rule.pos find (status(_) == unknown) //in general, rule.pos might be empty! [!]
           if (n.isEmpty) {
@@ -195,7 +195,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     }
   }
 
-  //TODO there's no such method in the book!
+  //note: there is no such sub-procedure in the book!
   override def setIn(rule: NormalRule) = {
 
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
@@ -205,7 +205,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     suppRule(rule.head) = Some(rule)
   }
 
-  //TODO there's no such method in the book!
+  //note: there is no such sub-procedure in the book!
   override def setOut(atom: Atom): Unit = {
 
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")

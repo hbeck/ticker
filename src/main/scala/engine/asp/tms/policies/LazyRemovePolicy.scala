@@ -1,11 +1,10 @@
 package engine.asp.tms.policies
 
-import core._
 import core.lars.{Duration, TimePoint}
 import engine.Result
 import engine.asp.GroundRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsGreedy$}
+import jtms.{Jtms, JtmsGreedy}
 
 import scala.collection.mutable
 
@@ -15,7 +14,7 @@ import scala.collection.mutable
 case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) extends TmsPolicy {
 
 
-  // TODO: Set or Seq? guess Set because gurantee of order might be hard
+  // TODO: Set or Seq? guess Set because guarantee of order might be hard
   var markedForDelete: mutable.Map[TimePoint, Set[GroundRule]] = mutable.Map()
   var reverseDeleteMap: mutable.Map[GroundRule, TimePoint] = mutable.Map()
 

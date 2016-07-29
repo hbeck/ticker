@@ -4,7 +4,7 @@ import core.Atom
 import core.asp.{AspFact, NormalProgram}
 import core.lars.TimePoint
 import engine.{Result, _}
-import jtms.JtmsGreedy$
+import jtms.JtmsGreedy
 
 /**
   * Created by FM on 05.04.16.

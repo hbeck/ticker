@@ -5,7 +5,7 @@ import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{JtmsGreedy$, in}
+import jtms.{JtmsGreedy, in}
 import org.scalatest.FlatSpec
 
 /**

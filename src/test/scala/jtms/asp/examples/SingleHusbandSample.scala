@@ -3,7 +3,7 @@ package jtms.asp.examples
 import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import jtms.evaluation.JtmsExtendedEvaluation
+import jtms.evaluation.JtmsGreedyEvaluation
 import org.scalatest.FlatSpec
 
 import scala.language.postfixOps
@@ -45,7 +45,7 @@ trait SingleHusbandBehavior {
 }
 
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
-  def net = new JtmsExtendedEvaluation
+  def net = new JtmsGreedyEvaluation
 
   def asp = ClingoEvaluation()
 

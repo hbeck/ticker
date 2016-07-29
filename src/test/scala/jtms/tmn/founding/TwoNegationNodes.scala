@@ -2,7 +2,7 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.{JtmsDoyle, JtmsDoyleRefactored$}
+import jtms.JtmsDoyle
 import org.scalatest.FlatSpec
 
 /**
