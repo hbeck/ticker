@@ -22,7 +22,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
 
   //for inspection:
-  var doTmsSemanticsCheck = true //introduced while debugging remove problems
+  var doJtmsSemanticsCheck = true //for debugging
   var shuffle = true
 
   override def update(atoms: Set[Atom]) {
@@ -31,9 +31,9 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
 
     try {
-      updateStepwise(atoms)
+      updateGreedy(atoms)
 
-      checkTmsSemantics()
+      checkJtmsSemantics()
       checkSelfSupport()
       checkConsistency()
     } catch {
@@ -44,20 +44,20 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   }
 
-  def updateStepwise(atoms: Set[Atom]) {
+  def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
     while (hasUnknown) {
-      unknownAtoms foreach determineAndPropagateStatus
+      unknownAtoms foreach findStatus
       val atom = getOptUnknownOtherThan(lastAtom) //ensure that the same atom is not tried consecutively
       if (atom.isDefined) {
-        fixAndDetermineAndPropagateStatus(atom.get)
+        chooseStatusGreedy(atom.get)
       }
       lastAtom = atom
     }
   }
 
-  def getOptUnknownOtherThan(atom: Option[Atom]): Option[Atom] = {
+  def getOptUnknownOtherThan(atom: Option[Atom]): Option[Atom] = { //TODO improve
 
     val atoms = unknownAtoms
 
@@ -81,38 +81,26 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     return list find (_ != elemToAvoid)
   }
 
-  //add book keeping
-  override def setIn(rule: NormalRule) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
-    super.setIn(rule)
-  }
-
-  //add book keeping
-  override def setOut(a: Atom) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
-    super.setOut(a)
-  }
-
-  def fixAndDetermineAndPropagateStatus(a: Atom): Unit = {
+  def chooseStatusGreedy(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
     if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
     justifications(a) find posValid match {
-      case Some(rule) => fixIn(rule)
-      case None => fixOut(a)
+      case Some(rule) => chooseIn(rule)
+      case None => chooseOut(a)
     }
 
-    unknownCons(a) foreach determineAndPropagateStatus
+    unknownCons(a) foreach findStatus
   }
 
-  def fixIn(rulePosValid: NormalRule): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"fix")
+  def chooseIn(rulePosValid: NormalRule): Unit = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"choose")
     setIn(rulePosValid)
     rulePosValid.neg foreach { a =>
       status(a) match {
-        case `unknown` => fixOut(a) //fix ancestors
+        case `unknown` => chooseOut(a) //fix status of ancestors
         case `in` => throw new IncrementalUpdateFailureException() //odd loop (within rule) detection
         case `out` => //nothing to be done
       }
@@ -125,13 +113,13 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
      */
   }
 
-  def fixOut(a: Atom): Unit = {
+  def chooseOut(a: Atom): Unit = {
     status(a) = out
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"fix")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"choose")
 
     val maybeAtoms: List[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach fixOut //fix ancestors
+    unknownPosAtoms foreach chooseOut //fix status of ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
     setOutSupport(a: Atom)
@@ -141,8 +129,8 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   //
   //
 
-  def checkTmsSemantics(): Unit = {
-    if (!doTmsSemanticsCheck) return
+  def checkJtmsSemantics(): Unit = {
+    if (!doJtmsSemanticsCheck) return
     if (atomsNeedingSupp exists (supp(_).isEmpty)) {
       throw new RuntimeException("no support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
     }

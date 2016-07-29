@@ -45,12 +45,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   //  update sub-procedures
   //
 
-  def determineAndPropagateStatus(a: Atom): Unit = {
+  def findStatus(a: Atom): Unit = {
     if (status(a) != unknown)
       return
 
     if (validation(a) || invalidation(a))
-      unknownCons(a) foreach determineAndPropagateStatus
+      unknownCons(a) foreach findStatus
   }
 
   def validation(a: Atom): Boolean = {
@@ -95,8 +95,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setOut(a: Atom) = {
-    status(a) = out
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
+    status(a) = out
     setOutSupport(a)
     //suppRule(a) = None
   }
