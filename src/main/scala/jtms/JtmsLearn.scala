@@ -56,7 +56,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         selectedAtom = atom
         chooseStatusGreedy(atom.get)
       } else if (hasUnknown) {
-        throw new IncrementalUpdateFailureException()
+        invalidateModel()
+        //throw new IncrementalUpdateFailureException()
       }
     }
   }
