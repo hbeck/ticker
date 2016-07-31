@@ -25,7 +25,7 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  case class State(status: Map[Atom, Status], support: Map[Atom, mutable.Set[Atom]]) {
+  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
       sb.append("State[\n").append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
@@ -35,13 +35,11 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   var state: State = stateSnapshot()
   var selectedAtom: Option[Atom] = None
-  var atomShouldBeAvoided: Boolean = false
 
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     while (hasUnknown) {
       unknownAtoms foreach findStatus
-      state = stateSnapshot()
       val atom = selectNextAtom
       if (atom.isDefined) {
         selectedAtom = atom
@@ -66,8 +64,24 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): State = {
 
     val inOutAtoms = inAtoms union outAtoms
-    val partialStatus: Map[Atom, Status] = status filterKeys (inOutAtoms contains _)
-    val partialSupp: Map[Atom, mutable.Set[Atom]] = supp filterKeys (inOutAtoms contains _)
+    // ugly hacks around mutability problems
+    val partialStatus: Map[Atom, Status] = {
+      val map1: Map[Atom, Status] = status filterKeys (inOutAtoms contains _)
+      val map2 = scala.collection.mutable.Map[Atom, Status]()
+      for ((k,v) <- map1) {
+        map2 += k -> v
+      }
+      map2.toMap
+    }
+    val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
+      val map1: Map[Atom, mutable.Set[Atom]] = supp filterKeys (inOutAtoms contains _)
+      val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
+      for ((k,v) <- map1) {
+        val set = v.toSet
+        map2 += k -> set
+      }
+      map2.toMap
+    }
 
     State(partialStatus,partialSupp)
 
@@ -87,7 +101,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       }
     }
 
-    //val list = List[Atom]() ++ atoms
+    state = stateSnapshot()
+
     val javaList = new java.util.ArrayList[Atom]()
     for (a <- atoms) {
       javaList.add(a)
@@ -106,7 +121,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       elem = iterator.next()
     }
 
-    //in general, avoided atom but become okay
+    //in general, avoided atom but become okay - todo
 
     Some(elem)
 
