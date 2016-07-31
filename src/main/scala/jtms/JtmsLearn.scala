@@ -25,6 +25,9 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
+  recordStatusSeq = true
+  recordChoiceSeq = true
+
   case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
@@ -44,10 +47,34 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       if (atom.isDefined) {
         selectedAtom = atom
         chooseStatusGreedy(atom.get)
+      } else if (hasUnknown) { //force re-computation
+        invalidateModel()
+        shuffle = false
+        doForceChoiceOrder = true
+        forcedChoiceSeq = shuffleStatusSeq()
+        choiceSeq = Seq[Atom]()
+        statusSeq = Seq[(Atom,Status,String)]()
+        //TODO mode management: try another shuffle on fail; reset force computation after success
       }
     }
   }
 
+  def shuffleStatusSeq(): Seq[Atom] = {
+    val javaList = new java.util.ArrayList[Atom]
+    for (a <- allAtoms()) {
+      javaList.add(a)
+    }
+    java.util.Collections.shuffle(javaList)
+    var nextSeq = Seq[Atom]()
+    val iterator: util.Iterator[Atom] = javaList.iterator()
+    while (iterator.hasNext()) {
+      nextSeq = nextSeq :+ iterator.next()
+    }
+    println("next seq: "+nextSeq)
+    nextSeq
+  }
+
+  //note that in this case, invalidateModel is not supposed to be called from outside!
   override def invalidateModel(): Unit = {
 
     if (selectedAtom.isDefined) {
@@ -64,7 +91,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): State = {
 
     val inOutAtoms = inAtoms union outAtoms
-    // ugly hacks around mutability problems
+    // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
       val map1: Map[Atom, Status] = status filterKeys (inOutAtoms contains _)
       val map2 = scala.collection.mutable.Map[Atom, Status]()
@@ -92,7 +119,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     val atoms = unknownAtoms
 
     if (atoms.isEmpty) return None
-    if (atoms.size == 1) return Some(atoms.head)
+    //if (atoms.size == 1) return Some(atoms.head)
 
     if (doForceChoiceOrder) {
       val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
@@ -122,6 +149,11 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
     //in general, avoided atom but become okay - todo
+
+    if (atomsToAvoid contains elem) {
+      selectedAtom = None
+      return None
+    }
 
     Some(elem)
 

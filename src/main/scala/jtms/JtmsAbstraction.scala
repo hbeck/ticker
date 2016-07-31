@@ -76,7 +76,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def register(a: Atom) {
-    if (!status.isDefinedAt(a)) status(a) = out
+    if (!status.isDefinedAt(a)) { status(a) = out
+      if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
+    }
     if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
     if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
     _atomsCache add a

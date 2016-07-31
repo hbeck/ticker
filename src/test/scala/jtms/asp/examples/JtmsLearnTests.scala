@@ -4,7 +4,6 @@ import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
 import jtms._
-import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import org.scalatest.FunSuite
 
 /**
@@ -371,7 +370,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       tms.remove(r0)
 
-      if (assertModelHasFailure(tms, Set(e,b,d))) failures += 1
+      if (failsToCompute(tms, Set(e,b,d))) failures += 1
 
       tms.add(r0)
 
@@ -392,7 +391,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   //returns true if failure
-  def assertModelHasFailure(tms: Jtms, model: Set[Atom]): Boolean = {
+  def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
     if (tms.getModel == None) {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
@@ -403,6 +402,21 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       return true
     } else {
       assert(tms.getModel.get == model)
+      return false
+    }
+  }
+
+  def failsToCompute(tms: Jtms, condition: => Boolean): Boolean = {
+    if (tms.getModel == None) {
+      if (tms.isInstanceOf[JtmsLearn]) {
+        val jtms = tms.asInstanceOf[JtmsLearn]
+        println("status:  "+jtms.state.status)
+        println("support: "+jtms.state.support)
+        println("atom:    "+jtms.selectedAtom.get+"\n")
+      }
+      return true
+    } else {
+      assert(condition)
       return false
     }
   }
@@ -435,7 +449,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       tms.remove(AspFact(a))
 
-      if (assertModelHasFailure(tms, Set(b,d))) failures += 1
+      if (failsToCompute(tms, Set(b,d))) failures += 1
 
       tms.add(AspFact(a))
 
@@ -464,7 +478,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       tms.remove(AspFact(a))
 
-      if (assertModelHasFailure(tms, Set(b,d))) failures += 1
+      if (failsToCompute(tms, Set(b,d))) failures += 1
 
       tms.add(AspFact(a))
 
@@ -496,22 +510,22 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       //println("\nadd a :- not e.")
       //tms forceChoiceOrder Seq(a)
       tms add AspRule(a, none, Set(e)) //a :- not e.  instead of AspFact(a)
-      if (assertModelHasFailure(tms, Set(a, c, d))) failures += 1
+      if (failsToCompute(tms, Set(a, c, d))) failures += 1
 
       //println("\nadd e.")
       //tms forceChoiceOrder Seq(c) //just saying "c first"
       //tms forceChoiceOrder Seq(d,c)
       tms add AspFact(e) //e.  instead of removing fact a directly
 
-      if (assertModelHasFailure(tms, Set(e, b, d))) failures += 1
+      if (failsToCompute(tms, Set(e, b, d))) failures += 1
 
       tms remove AspFact(e)
 
-      if (assertModelHasFailure(tms, Set(a, c, d))) failures += 1
+      if (failsToCompute(tms, Set(a, c, d))) failures += 1
 
       tms remove AspRule(a, none, Set(e))
 
-      if (assertModelHasFailure(tms, Set(b, d))) failures += 1
+      if (failsToCompute(tms, Set(b, d))) failures += 1
 
     }
 
@@ -521,193 +535,136 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   test("jtms5 variant with direct dependency of body atoms for same head") {
 
+    val tms = JtmsLearn(AspProgram(
+      AspRule(d, b), //d :- b
+      AspRule(d, c), //d :- c
+      AspRule(c, none, Set(b)), //c :- not b. these are the crucial three rules,
+      // the other exist only to make them initially unknown s.t. fixOut kicks in for d
+      AspRule(b, none, Set(c)), //b :- not c. his rule is only needed s.t. b is not determined after the input "a" later
+      AspRule(b, none, Set(a)), //b :- not a
+      AspRule(c, none, Set(a))) //c :- not a
+    )
+
+    def m = tms.getModel.get
+
+    assert(m == Set(b, c, d))
+
+    var failures = 0
     times foreach { _ =>
-
-      val tms = jtmsImpl(AspProgram(
-        AspRule(d, b), //d :- b
-        AspRule(d, c), //d :- c
-        AspRule(c, none, Set(b)), //c :- not b. these are the crucial three rules,
-        // the other exist only to make them initially unknown s.t. fixOut kicks in for d
-        AspRule(b, none, Set(c)), //b :- not c. his rule is only needed s.t. b is not determined after the input "a" later
-        AspRule(b, none, Set(a)), //b :- not a
-        AspRule(c, none, Set(a))) //c :- not a
-      )
-
-      def m = tms.getModel.get
-
-      assert(m == Set(b, c, d))
 
       tms.add(AspFact(a))
-      assertModelWithKnownLimitation(tms, tms.getModel.get == Set(a,b,d) || tms.getModel.get == Set(a,c,d), tms.choiceSeq.head == d)
+
+      if (failsToCompute(tms, m == Set(a,b,d) || m == Set(a,c,d))) failures += 1
+
+      tms.remove(AspFact(a))
 
     }
+
+    println("failures: "+failures)
+    printAvoidanceMap(tms)
   }
 
-  test("Beierle: jtms5-like problem for add") {
+  test("constraint x :- a,b, not x.") {
 
+    val tms = JtmsLearn(AspProgram())
+
+    /*
+      a :- b, not c.
+      a :- e.
+      b :- not d.
+      d :- not a.
+      d :- c, e.  => {a,b} | {d}
+      x :- a,b, not x. ==> {d}
+     */
+
+    def m = tms.getModel.get
+
+    tms add AspRule(a, Set(b), Set(c))
+    tms add AspRule(a, e)
+    tms add AspRule(b, none, Set(d))
+    tms add AspRule(d, none, Set(a))
+    tms add AspRule(d, Set(c,e))
+
+    assert(m == Set(a,b)) // || m == Set(d))
+
+    var failures = 0
     times foreach { _ =>
 
-      val tms = JtmsBeierle(AspProgram(
-        AspRule(a, c), //a :- c
-        AspRule(c, a), //c :- a
-        AspRule(b, none, Set(a)), //b :- not a
-        AspRule(d, b), //d :- b
-        AspRule(d, c)) //d :- c
-      )
+      tms add AspRule(x,Set(a,b),Set(x))
 
-      def m = tms.getModel.get
+      if (failsToCompute(tms,Set(d))) failures += 1
 
-      assert(m == Set(b, d))
+      tms remove AspRule(x,Set(a,b),Set(x))
 
-      //TODO
-      //tms.add(AspRule(a, none, Set(e))) //instead of AspFact(a)
-      //assert(m == Set(a, c, d))
+      tms remove AspRule(d, none, Set(a))
 
-      //this one reveals a bug:
-      //    tms.add(AspFact(e)) //instead of removing fact a directly
-      //    assert(m == Set(e,b,d))
+      if (failsToCompute(tms,Set(a,b))) failures += 1
 
-    }
-  }
-
-  test("beierle tests") {
-
-    times foreach { _ =>
-
-      val tms = JtmsBeierle(AspProgram(
-        AspRule(a, c), //a :- c
-        AspRule(c, a), //c :- a
-        AspRule(b, none, Set(a)), //b :- not a
-        AspRule(d, b), //d :- b
-        AspRule(d, c))) //d :- c
-
-      def m = tms.getModel.get
-
-      //TODO
-//      tms.add(AspFact(a))
-//      assert(m == Set(a, c, d))
-
-    }
-  }
-
-  test("[todo doyle] a :- not b, not c. b :- not c. etc.") {
-
-    //TODO make invalidateModel compatible for Doyle
-
-    times foreach { _ =>
-
-      val tms = jtmsImpl(AspProgram())
-
-      def m = tms.getModel
-
-      tms add AspRule(a, none, Set(b, c)) //central rule 1
-      assert(m.get == Set(a))
-
-      tms add AspRule(b, none, Set(e))
-      tms add AspRule(c, none, Set(f))
-      tms add AspRule(e, f)
-      tms add AspRule(f, e)
-
-      tms invalidateModel() //simulate that choice among {a,b,c} occurs due to further rules
-      tms add AspRule(b, none, Set(c)) //central rule 2
-
-      tms match {
-        case x:JtmsBeierleFixed => assert(m.get == Set(b,c))
-        case x:JtmsDoyle => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq == List(b,a)) //TODO !
-        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
-        case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
-      }
-
-    }
-  }
-
-  test("a :- b. b :- not c. c :- not a. a :- d. d.") {
-
-    times foreach { _ =>
-
-      val tms = jtmsImpl(AspProgram())
-
-      def m = tms.getModel.get
-
-      tms add AspRule(c, none, Set(a))
-      tms add AspRule(a, b)
-      tms add AspRule(b, none, Set(c))
-      tms add AspRule(a, d)
-
-      assert(m == Set(c)) //other is Set(a,b)
-
-      tms add AspFact(d)
-
-      assert(m == Set(a,b,d))
-
-//      tms match {
-//        case x:JtmsGreedy => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
-//        case _ => assertModelWithKnownLimitation(tms, Set(b, c), tms.choiceSeq.head == a)
-//      }
-
-    }
-  }
-
-  test("a :- b, not c. a :- d. b :- not d. c :- not a.") {
-
-    times foreach { _ =>
-
-      val tms = jtmsImpl(AspProgram())
-
-      def m = tms.getModel.get
-
-      tms add AspRule(a, Set(b), Set(c))
-      tms add AspRule(a, d)
-      tms add AspRule(b, none, Set(d))
-      tms add AspRule(c, none, Set(a))
-
-      assert(m == Set(a,b)) //other is Set(b,c)
-
-      tms add AspFact(d)
-
-      assert(m == Set(a,d))
-
-    }
-  }
-
-  test("easy multiple") {
-
-    times foreach { _ =>
-
-      val tms = jtmsImpl(AspProgram())
-
-      /*
-        a :- b, not c.
-        a :- e.
-        b :- not d.
-        d :- not a.
-        d :- c, e.
-        e :- not f.
-        c.
-       */
-
-      def m = tms.getModel.get
-
-      tms add AspRule(a, Set(b), Set(c))
-      tms add AspRule(a, e)
-      tms add AspRule(b, none, Set(d))
       tms add AspRule(d, none, Set(a))
-      tms add AspRule(d, Set(c,e))
 
-      assert(m == Set(a,b)) // || m == Set(d))
-
-      tms add AspRule(e,none,Set(f))
-
-      assert(m == Set(a,b,e))
-
-      tms add AspFact(c)
-
-      assert(m == Set(a,c,d,e))
+      assert(m == Set(a,b))
+      tms.shuffle = true
 
     }
+
+    println("failures: "+failures)
+    printAvoidanceMap(tms)
   }
 
   test("reach") {
+
+    val tms = new JtmsLearn()
+
+    val a = "a"
+    val b = "b"
+    val c = "c"
+    val d = "d"
+    val e = "e"
+    def edge(x: String, y: String) = Atom("edge(" + x + "," + y + ")")
+    def reach(x: String, y: String) = Atom("reach(" + x + "," + y + ")")
+    def blocked(x: String, y: String) = Atom("blocked(" + x + "," + y + ")")
+
+    tms.add(edge(a, b))
+    tms.add(edge(b, c))
+    tms.add(edge(c, d))
+    tms.add(edge(d, e))
+    tms.add(edge(b, e))
+
+    val C = List(a, b, c, d, e)
+    //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+    for (x <- C) {
+      for (y <- C) {
+        val r = AspRule(reach(x, y), Set(edge(x, y)), Set(blocked(x, y)))
+        tms.add(r)
+        //println(r)
+      }
+    }
+    //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    for (x <- C) {
+      for (y <- C) {
+        for (z <- C) {
+          val r = AspRule(reach(x, y), Set(reach(x, z), edge(z, y)), Set(blocked(z, y)))
+          tms.add(r)
+          //println(r)
+        }
+      }
+    }
+
+    def m = tms.getModel.get
+
+    assert(m contains reach(a, b))
+    assert(m contains reach(b, c))
+    assert(m contains reach(c, d))
+    assert(m contains reach(d, e))
+    assert(m contains reach(a, c))
+    assert(m contains reach(a, d))
+    assert(m contains reach(a, e))
+    assert(m contains reach(b, c))
+    assert(m contains reach(b, d))
+    assert(m contains reach(b, e))
+    assert(m contains reach(c, d))
+    assert(m contains reach(c, e))
+    assert(m contains reach(d, e))
 
     times foreach { _ =>
 
@@ -715,59 +672,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
          reach(X,Y) :- edge(X,Y), not blocked(X,Y).
          reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
     */
-
-      val tms = jtmsImpl()
-
-      val a = "a"
-      val b = "b"
-      val c = "c"
-      val d = "d"
-      val e = "e"
-      def edge(x: String, y: String) = Atom("edge(" + x + "," + y + ")")
-      def reach(x: String, y: String) = Atom("reach(" + x + "," + y + ")")
-      def blocked(x: String, y: String) = Atom("blocked(" + x + "," + y + ")")
-
-      tms.add(edge(a, b))
-      tms.add(edge(b, c))
-      tms.add(edge(c, d))
-      tms.add(edge(d, e))
-      tms.add(edge(b, e))
-
-      val C = List(a, b, c, d, e)
-      //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
-      for (x <- C) {
-        for (y <- C) {
-          val r = AspRule(reach(x, y), Set(edge(x, y)), Set(blocked(x, y)))
-          tms.add(r)
-          //println(r)
-        }
-      }
-      //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
-      for (x <- C) {
-        for (y <- C) {
-          for (z <- C) {
-            val r = AspRule(reach(x, y), Set(reach(x, z), edge(z, y)), Set(blocked(z, y)))
-            tms.add(r)
-            //println(r)
-          }
-        }
-      }
-
-      def m = tms.getModel.get
-
-      assert(m contains reach(a, b))
-      assert(m contains reach(b, c))
-      assert(m contains reach(c, d))
-      assert(m contains reach(d, e))
-      assert(m contains reach(a, c))
-      assert(m contains reach(a, d))
-      assert(m contains reach(a, e))
-      assert(m contains reach(b, c))
-      assert(m contains reach(b, d))
-      assert(m contains reach(b, e))
-      assert(m contains reach(c, d))
-      assert(m contains reach(c, e))
-      assert(m contains reach(d, e))
 
       tms.add(blocked(b, c))
       assert(!(m contains reach(b, d)))
@@ -787,6 +691,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       assert(m contains reach(b, d))
       assert(m contains reach(b, e))
       assert(m contains reach(a, e))
+
+      tms.remove(blocked(b, e))
 
     }
   }
