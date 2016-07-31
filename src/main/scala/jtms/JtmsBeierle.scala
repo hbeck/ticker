@@ -55,7 +55,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     //2
     if (step2(rule)) return
     //3 (first part)
-    val L = repercussions(rule.head) + rule.head
+    val L = (repercussions(rule.head) + rule.head).toSet
 
     update(L)
   }
@@ -69,11 +69,11 @@ class JtmsBeierle() extends JtmsAbstraction {
   }
 
   //extracted at this position for remove case
-  override def update(L: Set[Atom]) {
+  override def update(L: Predef.Set[Atom]) {
      updateImpl(L)
   }
 
-  def updateImpl(L: Set[Atom]): Unit = {
+  def updateImpl(L: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
@@ -117,7 +117,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     }
   }
 
-  def step5(L: Set[Atom]) {
+  def step5(L: Predef.Set[Atom]) {
 
     var atoms = Seq[Atom]() ++ L
 

@@ -5,7 +5,6 @@ import java.util
 import core._
 import core.asp.{NormalProgram, NormalRule}
 
-import scala.collection.mutable.Set
 import scala.util.Random
 
 object JtmsLearn {
@@ -48,7 +47,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var state: State = stateSnapshot()
   var selectedAtom: Option[Atom] = None
 
-  override def updateGreedy(atoms: Set[Atom]) {
+  override def updateGreedy(atoms: Predef.Set[Atom]) {
     atoms foreach setUnknown
     while (hasUnknown) {
       unknownAtoms foreach findStatus

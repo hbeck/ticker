@@ -3,7 +3,6 @@ package jtms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 
-import scala.collection.mutable.Set
 import scala.util.Random
 
 object JtmsGreedy {
@@ -25,7 +24,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   var doJtmsSemanticsCheck = true //for debugging
   var shuffle = true
 
-  override def update(atoms: Set[Atom]) {
+  override def update(atoms: Predef.Set[Atom]) {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
@@ -44,7 +43,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   }
 
-  def updateGreedy(atoms: Set[Atom]) {
+  def updateGreedy(atoms: Predef.Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
     while (hasUnknown) {
@@ -132,24 +131,24 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
     if (atomsNeedingSupp exists (supp(_).isEmpty)) {
-      throw new RuntimeException("no support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
+      throw new RuntimeException("model: "+getModel()+"\nno support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
     }
   }
 
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
     if (inAtoms exists unfoundedSelfSupport) {
-      throw new RuntimeException("self support")
+      throw new RuntimeException("model: "+getModel()+"\nself support exists")
     }
   }
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
     if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
-      throw new RuntimeException("inconsistent state: in atom has no valid justification")
+      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
     }
     if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
-      throw new RuntimeException("inconsistent state: out atom has valid justification")
+      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
     }
   }
 

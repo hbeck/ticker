@@ -2,12 +2,10 @@ package jtms
 
 import java.util
 
-import scala.util.Random
-
 import core._
-import core.asp.{NormalRule, NormalProgram}
+import core.asp.{NormalProgram, NormalRule}
 
-import scala.collection.mutable.Set
+import scala.util.Random
 
 object JtmsDoyle {
 
@@ -30,7 +28,7 @@ object JtmsDoyle {
   */
 case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
-  override def update(atoms: Set[Atom]): Unit = {
+  override def update(atoms: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
@@ -49,7 +47,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
   }
 
-  def updateDoyle(atoms: Set[Atom]): Unit = {
+  def updateDoyle(atoms: Predef.Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach findStatus // Evaluating the nodes' justifications
 
@@ -113,7 +111,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
     }
   }
 
-  def sortByForcedOrder(atoms: Set[Atom]): Seq[Atom] = {
+  def sortByForcedOrder(atoms: Predef.Set[Atom]): Seq[Atom] = {
     val atomList = Seq[Atom]() ++ atoms
 
     def sort(a:Atom,b:Atom): Boolean = {

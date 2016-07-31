@@ -3,7 +3,6 @@ package jtms
 import core.Atom
 import core.asp.{NormalProgram, NormalRule}
 
-import scala.collection.mutable.Set
 import scala.util.Random
 
 /**
@@ -31,7 +30,7 @@ object JtmsBeierleFixed {
   */
 class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
 
-  override def update(L: Set[Atom]) {
+  override def update(L: Predef.Set[Atom]) {
     //try {
       updateImpl(L)
 //    } catch {

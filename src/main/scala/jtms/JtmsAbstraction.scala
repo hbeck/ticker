@@ -14,24 +14,35 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def allAtoms() = _atomsCache.to
   var _atomsCache: Set[Atom]= Set()
 
-  def update(atoms: Set[Atom])
+  def update(atoms: Predef.Set[Atom])
 
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
     register(rule)
-    if (status(rule.head) == in) return
-    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    val atoms = repercussions(rule.head) + rule.head
-    update(atoms)
+    if (inconsistent) {
+      update(unknownAtoms()+rule.head)
+    } else {
+      if (status(rule.head) == in) return
+      if (invalid(rule)) {
+        supp(rule.head) += findSpoiler(rule).get; return
+      }
+      val atoms = (repercussions(rule.head) + rule.head).toSet
+      update(atoms)
+    }
   }
 
   override def remove(rule: NormalRule): Unit = {
     unregister(rule)
-    if (!(allAtoms contains rule.head)) return
-    if (status(rule.head) == out) return
-    if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
-    val atoms = repercussions(rule.head) + rule.head
-    update(atoms)
+    if (inconsistent) {
+      val h = if (allAtoms contains rule.head) Set(rule.head) else Set()
+      update(unknownAtoms()++h)
+    } else {
+      if (!(allAtoms contains rule.head)) return
+      if (status(rule.head) == out) return
+      if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
+      val atoms = (repercussions(rule.head) + rule.head).toSet
+      update(atoms)
+    }
   }
 
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
@@ -39,6 +50,11 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (atoms exists contradictionAtom) return None //not dealt with; left for old test-cases
     if (hasUnknown) return None
     Some(atoms.toSet)
+  }
+
+  def inconsistent(): Boolean = {
+    //semantics: getModel == None
+    allAtoms exists (status(_) == unknown)
   }
 
   //
