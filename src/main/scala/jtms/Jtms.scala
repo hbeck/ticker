@@ -21,6 +21,7 @@ trait Jtms {
 
   def add(rule: NormalRule)
   def remove(rule: NormalRule)
+  def recompute()
   def getModel(): Option[collection.immutable.Set[Atom]]
   def set(model: collection.immutable.Set[Atom]): Boolean
 
