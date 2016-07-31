@@ -3,10 +3,9 @@ package jtms
 import java.util
 
 import core._
-import core.asp.{NormalRule, NormalProgram}
+import core.asp.{NormalProgram, NormalRule}
 
 import scala.collection.mutable.Set
-import scala.collection.{Map, mutable}
 import scala.util.Random
 
 object JtmsLearn {
@@ -25,15 +24,19 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  recordStatusSeq = true
-  recordChoiceSeq = true
+//  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
+//    override def toString: String = {
+//      val sb = new StringBuilder
+//      sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
+//          .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+//      sb.toString
+//    }
+//  }
 
-  //TODO notion of 'active' rules?
-  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
+  case class State(statusIn: scala.collection.immutable.Set[Atom], suppRules: scala.collection.immutable.Set[NormalRule]) {
     override def toString: String = {
       val sb = new StringBuilder
-      sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
-          .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+      sb.append("State[\n").append("  in: ").append(statusIn).append("\n  supp. rules:  ").append(suppRules).append("]")
       sb.toString
     }
   }
@@ -87,10 +90,11 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   def stateSnapshot(): State = {
 
-    val inOutAtoms = inAtoms union outAtoms
+    /*
+    val atoms = inAtoms union outAtoms
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
-      val map1: Map[Atom, Status] = status filterKeys (inOutAtoms contains _)
+      val map1: Map[Atom, Status] = status filterKeys (atoms contains _)
       val map2 = scala.collection.mutable.Map[Atom, Status]()
       for ((k,v) <- map1) {
         map2 += k -> v
@@ -98,7 +102,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
     val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: Map[Atom, mutable.Set[Atom]] = supp filterKeys (inOutAtoms contains _)
+      val map1: Map[Atom, mutable.Set[Atom]] = supp filterKeys (atoms contains _)
       val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
       for ((k,v) <- map1) {
         val set = v.toSet
@@ -107,8 +111,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    //State(partialStatus,partialSupp,rules.toSet)
     State(partialStatus,partialSupp,rules.toSet)
+    */
+
+    val atoms = inAtoms
+    val supportingRules = Predef.Set[NormalRule]() ++ (atoms map suppRule map (_.get))
+    State(atoms, supportingRules)
 
   }
 

@@ -70,8 +70,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     if (tms.getModel == None) {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
-        println("status:    "+jtms.state.status)
-        println("support:   "+jtms.state.support)
+        println(jtms.state)
         println("sel. atom: "+jtms.selectedAtom.get+"\n")
       }
       return true
@@ -85,9 +84,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     if (tms.getModel == None) {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
-        println("status:  "+jtms.state.status)
-        println("support: "+jtms.state.support)
-        println("atom:    "+jtms.selectedAtom.get+"\n")
+        println(jtms.state)
+        println("sel. atom: "+jtms.selectedAtom.get+"\n")
       }
       return true
     } else {
@@ -243,6 +241,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   test("constraint x :- a,b, not x.") {
 
     val tms = JtmsLearn(AspProgram())
+    //val tms = JtmsGreedy(AspProgram())
 
     /*
       a :- b, not c.
