@@ -3,7 +3,7 @@ package jtms
 import java.util
 
 import core._
-import core.asp.NormalProgram
+import core.asp.{NormalRule, NormalProgram}
 
 import scala.collection.mutable.Set
 import scala.collection.{Map, mutable}
@@ -28,10 +28,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   recordStatusSeq = true
   recordChoiceSeq = true
 
-  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
+  //TODO notion of 'active' rules?
+  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
     override def toString: String = {
       val sb = new StringBuilder
-      sb.append("State[\n").append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+      sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
+          .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
       sb.toString
     }
   }
@@ -79,9 +81,10 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (selectedAtom.isDefined) {
       if (avoidanceMap contains state) {
-        avoidanceMap(state) + selectedAtom.get
+        val curr = avoidanceMap(state)
+        avoidanceMap(state) = curr + selectedAtom.get
       } else {
-        avoidanceMap(state) = Set(selectedAtom.get)
+        avoidanceMap(state) = scala.collection.immutable.Set(selectedAtom.get)
       }
     }
 
@@ -110,7 +113,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    State(partialStatus,partialSupp)
+    //State(partialStatus,partialSupp,rules.toSet)
+    State(partialStatus,partialSupp,rules.toSet)
 
   }
 
@@ -142,13 +146,21 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     var elem: Atom = iterator.next()
 
-    val atomsToAvoid = avoidanceMap.getOrElse(state,Set())
+    val atomsToAvoid = avoidanceMap.getOrElse(state,scala.collection.immutable.Set())
 
     while ((atomsToAvoid contains elem) && iterator.hasNext) {
       elem = iterator.next()
     }
 
     //in general, avoided atom but become okay - todo
+
+
+    val map1 = (scala.collection.mutable.Map[Atom,Status]() + (Atom("e") -> out) + (Atom("c") -> out)).toMap
+    //println(map1)
+    if (/*state.support == map1 &&*/ elem == Atom("b")) {
+      println("!")
+    }
+
 
     if (atomsToAvoid contains elem) {
       selectedAtom = None
@@ -160,6 +172,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   }
 
   //history
-  var avoidanceMap = new scala.collection.mutable.HashMap[State,Set[Atom]]()
+  val avoidanceMap = new scala.collection.mutable.HashMap[State,scala.collection.immutable.Set[Atom]]()
 
 }

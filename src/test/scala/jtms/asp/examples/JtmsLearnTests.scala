@@ -70,9 +70,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     if (tms.getModel == None) {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
-        println("status:  "+jtms.state.status)
-        println("support: "+jtms.state.support)
-        println("atom:    "+jtms.selectedAtom.get+"\n")
+        println("status:    "+jtms.state.status)
+        println("support:   "+jtms.state.support)
+        println("sel. atom: "+jtms.selectedAtom.get+"\n")
       }
       return true
     } else {
