@@ -1,9 +1,12 @@
 package jtms
 
+import java.util
+
 import core._
-import core.asp.{NormalProgram, NormalRule}
+import core.asp.NormalProgram
 
 import scala.collection.mutable.Set
+import scala.collection.{Map, mutable}
 import scala.util.Random
 
 object JtmsLearn {
@@ -16,48 +19,61 @@ object JtmsLearn {
 
 }
 
-case class JtmsLearn(random: Random = new Random()) extends JtmsAbstraction {
+/**
+ * Refinement of JtmsGreedy that learns to avoid bad choices.
+ *
+ */
+class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  var doSelfSupportCheck = true
-  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
-
-  //for inspection:
-  var doJtmsSemanticsCheck = true //for debugging
-  var shuffle = true
-
-  override def update(atoms: Set[Atom]) {
-
-    if (recordChoiceSeq) choiceSeq = Seq[Atom]()
-    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
-
-    try {
-      updateGreedy(atoms)
-
-      checkJtmsSemantics()
-      checkSelfSupport()
-      checkConsistency()
-    } catch {
-      case e:IncrementalUpdateFailureException => {
-        invalidateModel()
-      }
+  case class State(status: Map[Atom, Status], support: Map[Atom, mutable.Set[Atom]]) {
+    override def toString: String = {
+      val sb = new StringBuilder
+      sb.append("State[\n").append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+      sb.toString
     }
-
   }
 
-  def updateGreedy(atoms: Set[Atom]) {
+  var state: State = stateSnapshot()
+  var selectedAtom: Option[Atom] = None
+  var atomShouldBeAvoided: Boolean = false
+
+  override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
-    var lastAtom: Option[Atom] = None
     while (hasUnknown) {
       unknownAtoms foreach findStatus
-      val atom = getOptUnknownOtherThan(lastAtom) //ensure that the same atom is not tried consecutively
+      state = stateSnapshot()
+      val atom = selectNextAtom
       if (atom.isDefined) {
+        selectedAtom = atom
         chooseStatusGreedy(atom.get)
       }
-      lastAtom = atom
     }
   }
 
-  def getOptUnknownOtherThan(atom: Option[Atom]): Option[Atom] = { //TODO improve
+  override def invalidateModel(): Unit = {
+
+    if (selectedAtom.isDefined) {
+      if (avoidanceMap contains state) {
+        avoidanceMap(state) + selectedAtom.get
+      } else {
+        avoidanceMap(state) = Set(selectedAtom.get)
+      }
+    }
+
+    super.invalidateModel()
+  }
+
+  def stateSnapshot(): State = {
+
+    val inOutAtoms = inAtoms union outAtoms
+    val partialStatus: Map[Atom, Status] = status filterKeys (inOutAtoms contains _)
+    val partialSupp: Map[Atom, mutable.Set[Atom]] = supp filterKeys (inOutAtoms contains _)
+
+    State(partialStatus,partialSupp)
+
+  }
+
+  def selectNextAtom(): Option[Atom] = {
 
     val atoms = unknownAtoms
 
@@ -71,93 +87,32 @@ case class JtmsLearn(random: Random = new Random()) extends JtmsAbstraction {
       }
     }
 
-    val list = List[Atom]() ++ atoms
-    val idx = if (shuffle) { util.Random.nextInt(list.size) } else 0
-    val elem = list(idx)
-
-    if (atom == None) return Some(elem)
-    val elemToAvoid = atom.get
-    if (elem != elemToAvoid) return Some(elem)
-    return list find (_ != elemToAvoid)
-  }
-
-  def chooseStatusGreedy(a: Atom): Unit = {
-    if (status(a) != unknown)
-      return
-
-    if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
-
-    justifications(a) find posValid match {
-      case Some(rule) => chooseIn(rule)
-      case None => chooseOut(a)
+    //val list = List[Atom]() ++ atoms
+    val javaList = new java.util.ArrayList[Atom]()
+    for (a <- atoms) {
+      javaList.add(a)
+    }
+    if (shuffle) {
+      java.util.Collections.shuffle(javaList)
     }
 
-    unknownCons(a) foreach findStatus
-  }
+    val iterator: util.Iterator[Atom] = javaList.iterator()
 
-  def chooseIn(rulePosValid: NormalRule): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"choose")
-    setIn(rulePosValid)
-    rulePosValid.neg foreach { a =>
-      status(a) match {
-        case `unknown` => chooseOut(a) //fix status of ancestors
-        case `in` => throw new IncrementalUpdateFailureException() //odd loop (within rule) detection
-        case `out` => //nothing to be done
-      }
+    var elem: Atom = iterator.next()
+
+    val atomsToAvoid = avoidanceMap.getOrElse(state,Set())
+
+    while ((atomsToAvoid contains elem) && iterator.hasNext) {
+      elem = iterator.next()
     }
-    /* not that setIn here has to be called first. consider
-       a :- not b.
-       b :- not a. ,
-       where the choice is for status(a)=in. then, this status needs to be available
-       when the spoiler for rule b :- not a is sought.
-     */
+
+    //in general, avoided atom but become okay
+
+    Some(elem)
+
   }
 
-  def chooseOut(a: Atom): Unit = {
-    status(a) = out
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"choose")
-
-    val maybeAtoms: List[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
-    val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
-    unknownPosAtoms foreach chooseOut //fix status of ancestors
-    //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
-    //where the negative body is out/unknown is
-    setOutSupport(a: Atom)
-  }
-
-  //
-  //
-  //
-
-  def checkJtmsSemantics(): Unit = {
-    if (!doJtmsSemanticsCheck) return
-    if (atomsNeedingSupp exists (supp(_).isEmpty)) {
-      throw new RuntimeException("no support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
-    }
-  }
-
-  def checkSelfSupport(): Unit = {
-    if (!doSelfSupportCheck) return
-    if (inAtoms exists unfoundedSelfSupport) {
-      throw new RuntimeException("self support")
-    }
-  }
-
-  def checkConsistency(): Unit = {
-    if (!doConsistencyCheck) return
-    if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
-      throw new RuntimeException("inconsistent state: in atom has no valid justification")
-    }
-    if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
-      throw new RuntimeException("inconsistent state: out atom has valid justification")
-    }
-  }
-
-  def selfSupport(a:Atom): Boolean = supp(a) contains a
-
-  def unfoundedSelfSupport(a: Atom): Boolean = {
-    if (!selfSupport(a)) return false
-    justifications(a) filter valid exists (r => !(r.pos contains a))
-  }
+  //history
+  var avoidanceMap = new scala.collection.mutable.HashMap[State,Set[Atom]]()
 
 }

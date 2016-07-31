@@ -4,7 +4,7 @@ import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import jtms.{JtmsDoyle, JtmsBeierle, JtmsBeierleFixed, JtmsGreedy}
+import jtms._
 import org.scalatest.FunSuite
 
 /**
@@ -13,7 +13,7 @@ import org.scalatest.FunSuite
 class AspAddRemove extends FunSuite with AtomTestFixture {
   
   //def jtmsImpl = JtmsDoyle
-  def jtmsImpl = JtmsGreedy
+  def jtmsImpl = JtmsGreedy  
 
   val none = Set[Atom]()
 
