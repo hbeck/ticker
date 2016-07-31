@@ -38,6 +38,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   var state: State = stateSnapshot()
   var selectedAtom: Option[Atom] = None
+  var previousState: Option[State] = None
+  var previousAtom: Option[Atom] = None
 
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
@@ -47,15 +49,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       if (atom.isDefined) {
         selectedAtom = atom
         chooseStatusGreedy(atom.get)
-      } else if (hasUnknown) { //force re-computation
+      } else if (hasUnknown && previousState.isDefined) { //avoid previous choice
+        state = previousState.get
+        selectedAtom = previousAtom
         invalidateModel()
-        shuffle = false
-        doForceChoiceOrder = true
-        forcedChoiceSeq = shuffleStatusSeq()
-        choiceSeq = Seq[Atom]()
-        statusSeq = Seq[(Atom,Status,String)]()
-        //TODO mode management: try another shuffle on fail; reset force computation after success
       }
+      previousState = Some(state)
+      previousAtom = selectedAtom
     }
   }
 
