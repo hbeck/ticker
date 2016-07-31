@@ -24,14 +24,18 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-//  case class State(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
-//    override def toString: String = {
-//      val sb = new StringBuilder
-//      sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
-//          .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
-//      sb.toString
-//    }
-//  }
+  /*
+
+  case class State(status: Predef.Map[Atom, Status], support: Predef.Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
+    override def toString: String = {
+      val sb = new StringBuilder
+      sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
+          .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+      sb.toString
+    }
+  }
+
+  */
 
   case class State(statusIn: scala.collection.immutable.Set[Atom], suppRules: scala.collection.immutable.Set[NormalRule]) {
     override def toString: String = {
@@ -91,10 +95,11 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): State = {
 
     /*
+
     val atoms = inAtoms union outAtoms
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
-      val map1: Map[Atom, Status] = status filterKeys (atoms contains _)
+      val map1: scala.collection.Map[Atom, Status] = status filterKeys (atoms contains _)
       val map2 = scala.collection.mutable.Map[Atom, Status]()
       for ((k,v) <- map1) {
         map2 += k -> v
@@ -102,7 +107,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
     val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: Map[Atom, mutable.Set[Atom]] = supp filterKeys (atoms contains _)
+      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys (atoms contains _)
       val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
       for ((k,v) <- map1) {
         val set = v.toSet

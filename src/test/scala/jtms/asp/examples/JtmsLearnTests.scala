@@ -372,4 +372,47 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     }
   }
 
+  test("a :- not b. b :- not a. ...") {
+
+    val tms = new JtmsLearn()
+
+    def m = tms.getModel
+
+    tms.add(AspRule(a, none, Set(b)))
+    tms.add(AspRule(b, none, Set(a)))
+    assert(m.get == Set(a))
+
+    var failures = 0
+    times foreach { _ =>
+
+      tms add AspRule(x,Set(a),Set(x))
+
+      if (failsToCompute(tms,Set(b))) failures += 1
+
+      tms add AspRule(y,Set(b),Set(y))
+
+      assert(m == None)
+
+      tms remove AspRule(x,Set(a),Set(x))
+
+      if (failsToCompute(tms,Set(b))) failures += 1
+
+      tms remove AspRule(y,Set(b),Set(y))
+
+      if (failsToCompute(tms,Set(b))) failures += 1
+
+      tms add AspFact(a)
+
+      if (failsToCompute(tms,Set(a))) failures += 1
+
+      tms remove AspFact(a)
+
+      if (failsToCompute(tms,m.get == Set(a) || m.get == Set(b))) failures += 1
+
+    }
+
+    println("failures: "+failures)
+    printAvoidanceMap(tms)
+  }
+
 }
