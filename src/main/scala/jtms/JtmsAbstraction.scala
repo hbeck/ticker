@@ -45,6 +45,10 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     }
   }
 
+  def recompute(): Unit = {
+    update(unknownAtoms())
+  }
+
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None //not dealt with; left for old test-cases
