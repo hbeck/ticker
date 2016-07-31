@@ -59,7 +59,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         throw new IncrementalUpdateFailureException()
       }
     }
-  }o
+  }
 
   def shuffleStatusSeq(): Seq[Atom] = {
     val javaList = new java.util.ArrayList[Atom]
