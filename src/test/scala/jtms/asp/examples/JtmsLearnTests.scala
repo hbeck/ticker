@@ -71,7 +71,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
         println(jtms.state)
-        println("sel. atom: "+jtms.selectedAtom.get+"\n")
+        println("sel. atom: "+jtms.selectedAtom+"\n")
       }
       return true
     } else {
@@ -85,7 +85,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       if (tms.isInstanceOf[JtmsLearn]) {
         val jtms = tms.asInstanceOf[JtmsLearn]
         println(jtms.state)
-        println("sel. atom: "+jtms.selectedAtom.get+"\n")
+        println("sel. atom: "+jtms.selectedAtom+"\n")
       }
       return true
     } else {
@@ -385,29 +385,34 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     var failures = 0
     times foreach { _ =>
 
-      tms add AspRule(x,Set(a),Set(x))
+      tms add AspRule(x,Set(a),Set(x))  //  :- a
 
-      if (failsToCompute(tms,Set(b))) failures += 1
+      if (failsToCompute(tms,Set(b)))
+        failures += 1
 
-      tms add AspRule(y,Set(b),Set(y))
+      tms add AspRule(y,Set(b),Set(y)) // :- b
 
       assert(m == None)
 
-      tms remove AspRule(x,Set(a),Set(x))
+      tms remove AspRule(x,Set(a),Set(x))  //- :- a
 
-      if (failsToCompute(tms,Set(b))) failures += 1
+      if (failsToCompute(tms,Set(a)))
+        failures += 1
 
       tms remove AspRule(y,Set(b),Set(y))
 
-      if (failsToCompute(tms,Set(b))) failures += 1
+      if (failsToCompute(tms,m.get == Set(a) || m.get == Set(b)))
+        failures += 1
 
       tms add AspFact(a)
 
-      if (failsToCompute(tms,Set(a))) failures += 1
+      if (failsToCompute(tms,Set(a)))
+        failures += 1
 
       tms remove AspFact(a)
 
-      if (failsToCompute(tms,m.get == Set(a) || m.get == Set(b))) failures += 1
+      if (failsToCompute(tms,m.get == Set(a) || m.get == Set(b)))
+        failures += 1
 
     }
 
