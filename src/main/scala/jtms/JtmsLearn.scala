@@ -41,14 +41,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   override def updateGreedy(atoms: Predef.Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences
-    val hasNextAtom = selectNextAtom().isDefined
-    if (!hasNextAtom) {
+    selectNextAtom()
+    if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
-      val maybeAtom = selectNextAtom
-      maybeAtom match {
+      selectNextAtom()
+      selectedAtom match {
         case Some(atom) => {
           chooseStatusGreedy(atom)
           prevState = state
@@ -107,14 +107,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   }
 
-  def selectNextAtom(): Option[Atom] = {
+  def selectNextAtom(): Unit = {
 
     state = stateSnapshot()
 
     val atoms = unknownAtoms
 
     if (atoms.isEmpty) return None
-    //if (atoms.size == 1) return Some(atoms.head)
 
     if (doForceChoiceOrder) {
       val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
@@ -140,17 +139,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
     if (avoidAtom(state.get,elem)) {
-      selectedAtom = None
       if (prevState.isDefined) {
         updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
-        //val rules = prevState.get.rules ++ state.rules ++ justifications(elem)
         val updatedPrevState = State(prevState.get.status, prevState.get.support, rules.toSet)
         updateAvoidanceMap(updatedPrevState,prevSelectedAtom.get)
       }
-      None
+      selectedAtom = None
     } else {
       selectedAtom = Some(elem)
-      Some(elem)
     }
 
   }
