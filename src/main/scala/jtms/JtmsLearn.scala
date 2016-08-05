@@ -134,11 +134,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     var elem: Atom = iterator.next()
 
-    while (avoidAtom(state.get,elem) && iterator.hasNext) {
+    val atomsToAvoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
+
+    while ((atomsToAvoid contains elem) && iterator.hasNext) {
       elem = iterator.next()
     }
 
-    if (avoidAtom(state.get,elem)) {
+    if (atomsToAvoid contains elem) {
       if (prevState.isDefined) {
         updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
         val updatedPrevState = State(prevState.get.status, prevState.get.support, rules.toSet)
@@ -149,11 +151,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       selectedAtom = Some(elem)
     }
 
-  }
-
-  def avoidAtom(state: State, atom: Atom): Boolean = {
-    val atomsToAvoid = avoidanceMap.getOrElse(state,scala.collection.immutable.Set())
-    atomsToAvoid contains atom
   }
 
   //history
