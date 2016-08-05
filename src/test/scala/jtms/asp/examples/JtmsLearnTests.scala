@@ -68,11 +68,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //returns true if failure
   def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
     if (tms.getModel == None) {
-      if (tms.isInstanceOf[JtmsLearn]) {
-        val jtms = tms.asInstanceOf[JtmsLearn]
-        println(jtms.state)
-        println("sel. atom: "+jtms.selectedAtom+"\n")
-      }
+//      if (tms.isInstanceOf[JtmsLearn]) {
+//        val jtms = tms.asInstanceOf[JtmsLearn]
+//        println(jtms.state)
+//        println("sel. atom: "+jtms.selectedAtom+"\n")
+//      }
       return true
     } else {
       assert(tms.getModel.get == model)
@@ -82,11 +82,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   def failsToCompute(tms: Jtms, condition: => Boolean): Boolean = {
     if (tms.getModel == None) {
-      if (tms.isInstanceOf[JtmsLearn]) {
-        val jtms = tms.asInstanceOf[JtmsLearn]
-        println(jtms.state)
-        println("sel. atom: "+jtms.selectedAtom+"\n")
-      }
+//      if (tms.isInstanceOf[JtmsLearn]) {
+//        val jtms = tms.asInstanceOf[JtmsLearn]
+//        println(jtms.state)
+//        println("sel. atom: "+jtms.selectedAtom+"\n")
+//      }
       return true
     } else {
       assert(condition)
@@ -242,6 +242,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     val tms = JtmsLearn(AspProgram())
     //val tms = JtmsGreedy(AspProgram())
+    //val tms = JtmsDoyle(AspProgram())
 
     /*
       a :- b, not c.
@@ -375,6 +376,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   test("a :- not b. b :- not a. ...") {
 
     val tms = new JtmsLearn()
+    //val tms = new JtmsGreedy()
 
     def m = tms.getModel
 
@@ -394,7 +396,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       assert(m == None)
 
-      tms remove AspRule(x,Set(a),Set(x))  //- :- a
+      tms remove AspRule(x,Set(a),Set(x))  //del :- a
 
       if (failsToCompute(tms,Set(a)))
         failures += 1

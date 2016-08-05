@@ -32,18 +32,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
   }
 
-  /*
-  case class State(statusIn: scala.collection.immutable.Set[Atom], suppRules: scala.collection.immutable.Set[NormalRule]) {
-    override def toString: String = {
-      val sb = new StringBuilder
-      sb.append("State[\n").append("  in: ").append(statusIn).append("\n  supp. rules:  ").append(suppRules).append("]")
-      sb.toString
-    }
-  }
-  */
-
-
-  var state: State = stateSnapshot()
+  var state: Option[State] = None
   var selectedAtom: Option[Atom] = None
 
   var prevState: Option[State] = None
@@ -51,21 +40,21 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   override def updateGreedy(atoms: Predef.Set[Atom]) {
     atoms foreach setUnknown
-    if (needReset) {
+    //test avoidance map before determining further consequences
+    val hasNextAtom = selectNextAtom().isDefined
+    if (!hasNextAtom) {
       atomsNeedingSupp() foreach setUnknown
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
-      state = stateSnapshot()
-      val atom = selectNextAtom
-      if (atom.isDefined) {
-        selectedAtom = atom
-        chooseStatusGreedy(atom.get)
-        prevState = Some(state)
-        prevSelectedAtom = selectedAtom
-      } else if (hasUnknown) {
-        //invalidateModel()
-        throw new IncrementalUpdateFailureException()
+      val maybeAtom = selectNextAtom
+      maybeAtom match {
+        case Some(atom) => {
+          chooseStatusGreedy(atom)
+          prevState = state
+          prevSelectedAtom = selectedAtom
+        }
+        case None => if (hasUnknown) throw new IncrementalUpdateFailureException()
       }
     }
     //reset for next update iteration
@@ -73,42 +62,17 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     prevSelectedAtom = None
   }
 
-  def needReset(): Boolean = {
-    state = stateSnapshot()
-    //val avoidSet = avoidanceMap.getOrElse(state,Set[Atom]())
-    //(unknownAtoms diff avoidSet).isEmpty
-    val atom = selectNextAtom()
-    atom.isEmpty
-  }
-
-  def shuffleStatusSeq(): Seq[Atom] = {
-    val javaList = new java.util.ArrayList[Atom]
-    for (a <- allAtoms()) {
-      javaList.add(a)
-    }
-    java.util.Collections.shuffle(javaList)
-    var nextSeq = Seq[Atom]()
-    val iterator: util.Iterator[Atom] = javaList.iterator()
-    while (iterator.hasNext()) {
-      nextSeq = nextSeq :+ iterator.next()
-    }
-    println("next seq: "+nextSeq)
-    nextSeq
-  }
-
   //note that in this case, invalidateModel is not supposed to be called from outside!
   override def invalidateModel(): Unit = {
 
     if (selectedAtom.isDefined) {
-      updateAvoidanceMap(this.state,selectedAtom.get)
+      updateAvoidanceMap(this.state.get,selectedAtom.get)
     }
 
     super.invalidateModel()
   }
 
   def updateAvoidanceMap(state: State, avoidAtom: Atom): Unit = {
-    //val updatedRules = state.rules ++ justifications(avoidAtom)
-    //val state = State(state.status,state.support,updatedRules)
     if (avoidanceMap contains state) {
       val curr = avoidanceMap(state)
       avoidanceMap(state) = curr + avoidAtom
@@ -117,7 +81,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
   }
 
-  def stateSnapshot(): State = {
+  def stateSnapshot(): Option[State] = {
 
     val atoms = inAtoms union outAtoms
     // ugly hacks around mutability problems - todo
@@ -139,24 +103,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    State(partialStatus,partialSupp,rules.toSet)
-
-
-    //only supporting rules' atoms
-    /*
-    val atoms = inAtoms
-    val supportingRules = Predef.Set[NormalRule]() ++ (atoms map suppRule map (_.get))
-    State(atoms, supportingRules)
-    */
-
-    /*
-    val rules = (outAtoms flatMap justifications) ++ (inAtoms map suppRule map (_.get))
-    State(partialStatus,partialSupp,rules.toSet)
-    */
+    Some(State(partialStatus,partialSupp,rules.toSet))
 
   }
 
   def selectNextAtom(): Option[Atom] = {
+
+    state = stateSnapshot()
 
     val atoms = unknownAtoms
 
@@ -182,11 +135,11 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     var elem: Atom = iterator.next()
 
-    while (avoidAtom(state,elem) && iterator.hasNext) {
+    while (avoidAtom(state.get,elem) && iterator.hasNext) {
       elem = iterator.next()
     }
 
-    if (avoidAtom(state,elem)) {
+    if (avoidAtom(state.get,elem)) {
       selectedAtom = None
       if (prevState.isDefined) {
         updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
@@ -194,17 +147,15 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         val updatedPrevState = State(prevState.get.status, prevState.get.support, rules.toSet)
         updateAvoidanceMap(updatedPrevState,prevSelectedAtom.get)
       }
-      return None
+      None
+    } else {
+      selectedAtom = Some(elem)
+      Some(elem)
     }
-
-    Some(elem)
 
   }
 
   def avoidAtom(state: State, atom: Atom): Boolean = {
-    //val updatedRules = partialState.rules ++ justifications(atom)
-    //val updatedState = State(partialState.status,partialState.support,rules.toSet)
-    //val atomsToAvoid = avoidanceMap.getOrElse(updatedState,scala.collection.immutable.Set())
     val atomsToAvoid = avoidanceMap.getOrElse(state,scala.collection.immutable.Set())
     atomsToAvoid contains atom
   }
