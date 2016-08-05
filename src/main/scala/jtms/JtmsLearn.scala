@@ -143,8 +143,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     if (atomsToAvoid contains elem) {
       if (prevState.isDefined) {
         updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
-        val updatedPrevState = State(prevState.get.status, prevState.get.support, rules.toSet)
-        updateAvoidanceMap(updatedPrevState,prevSelectedAtom.get)
       }
       selectedAtom = None
     } else {

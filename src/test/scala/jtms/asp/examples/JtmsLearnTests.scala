@@ -285,6 +285,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     println("failures: "+failures)
     printAvoidanceMap(tms)
+
+    if (failures > 4) assert(false)
   }
 
   test("reach") {
@@ -375,6 +377,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   test("a :- not b. b :- not a. ...") {
 
+    // needs prevState!
+
     val tms = new JtmsLearn()
     //val tms = new JtmsGreedy()
 
@@ -420,6 +424,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     println("failures: "+failures)
     printAvoidanceMap(tms)
+
+    if (failures > 6) assert(false)
   }
 
 }
