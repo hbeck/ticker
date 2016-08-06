@@ -1,7 +1,5 @@
-package fixtures
-
 import scala.concurrent.duration._
-import scala.language.{postfixOps, implicitConversions}
+import scala.language.{implicitConversions, postfixOps}
 
 
 /**
@@ -12,7 +10,11 @@ package object profile {
   def withWarmup[R](code: => R): R = withWarmup(1)(code)
 
   def withWarmup[R](repeat: Int)(code: => R): R = {
-    (1 until Math.max(repeat / 10, 1)).foldLeft(code){ (_: R, _: Int) => code }
+    withWarmup(Math.max(repeat / 10, 1), repeat)(code)
+  }
+
+  def withWarmup[R](warmupRepeat: Int, repeat: Int)(code: => R): R = {
+    (1 until warmupRepeat).foldLeft(code){ (_: R, _: Int) => code }
 
     profileR(repeat)(code)
   }
@@ -42,3 +44,4 @@ package object profile {
     result
   }
 }
+

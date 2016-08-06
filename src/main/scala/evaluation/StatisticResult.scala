@@ -1,6 +1,7 @@
 package evaluation
 
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.Duration
 
 /**
@@ -10,6 +11,7 @@ case class StatisticResult(max: Duration, min: Duration, avg: Duration, median: 
   override def toString = {
     val unit = TimeUnit.MILLISECONDS
     val b = StringBuilder.newBuilder
+      .append(f"Results [${unit.name()}]\n")
       .append(f"Max: ${max.toUnit(unit)}\n")
       .append(f"Min: ${min.toUnit(unit)}\n")
       .append(f"Average: ${avg.toUnit(unit)}\n")
@@ -20,7 +22,7 @@ case class StatisticResult(max: Duration, min: Duration, avg: Duration, median: 
 }
 
 object StatisticResult {
-  def fromExecutionTimes(executionTimes: List[Duration]): StatisticResult = {
+  def fromExecutionTimes(executionTimes: Seq[Duration]): StatisticResult = {
     if (executionTimes.isEmpty) {
       StatisticResult(Duration.Zero, Duration.Zero, Duration.Zero, Duration.Zero)
     } else
