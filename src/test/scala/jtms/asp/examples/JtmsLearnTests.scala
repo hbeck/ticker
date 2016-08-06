@@ -291,8 +291,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   test("reach") {
 
-    pending
-
     val tms = new JtmsLearn()
 
     val a = "a"
@@ -433,6 +431,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     if (failures > 6) assert(false)
   }
 
+  //illustrates the problem of finding a smart state for the avoidance map.
+  //with changing rules (due to grounding temporal information), there is a different
+  //set of rules at every time point and the naive concepts fails
   test("stream ds") {
 
     val tms = JtmsLearn(AspProgram(
@@ -454,7 +455,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     //times foreach { _ =>
 
-    for (t <- 3 to 30) {
+    for (t <- 3 to 300) {
 
       // a <- \window^2 \Diamond d
       // => remove a <- d(t-3), add a <- d(t)
