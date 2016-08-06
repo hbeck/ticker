@@ -36,7 +36,7 @@ trait Jtms {
 
   def justifications(a: Atom) = rules filter (_.head == a)
 
-  def allAtoms() = (rules flatMap (_.atoms)) toSet
+  def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
 
   def facts() = rules filter (_.isFact) map (_.head) toSet
 
