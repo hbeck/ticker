@@ -34,7 +34,7 @@ trait Jtms {
   var recordChoiceSeq = true
   var choiceSeq = Seq[Atom]()
 
-  def justifications(a: Atom) = rules filter (_.head == a)
+  def justifications(a: Atom):Seq[NormalRule] = rules filter (_.head == a)
 
   def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
 

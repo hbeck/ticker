@@ -57,8 +57,10 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
   }
 
   def removeExpiredRules(timePoint: TimePoint): Unit = {
-    val expiredTimePoints = markedForDelete.keys filter (_.value < timePoint.value - laziness)
-    expiredTimePoints foreach (t => {
+    // to list assures we are not reevaluating the iterable during remove
+    val expiredTimePoints: List[TimePoint] = markedForDelete.keys filter (_.value < timePoint.value - laziness) toList
+
+    expiredTimePoints.foreach(t => {
       val rules = markedForDelete.remove(t).get
       rules foreach (r => {
         tms.remove(GroundRule.toNormalRule(r))

@@ -16,6 +16,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var _rulesCache : Predef.Set[NormalRule] = Predef.Set()
 
+  override def justifications(a: Atom) = _justificationCache(a)
+  var _justificationCache: Map[Atom, Seq[NormalRule]] = Map.empty.withDefaultValue(Seq())
+
   def update(atoms: Predef.Set[Atom])
 
   //based on JTMS update algorithm
@@ -96,6 +99,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (_rulesCache contains rule) return //list representation!
     rules = rules :+ rule
     _rulesCache = _rulesCache + rule
+    _justificationCache = _justificationCache updated (rule.head, justifications(rule.head):+ rule)
     rule.atoms foreach register
     rule.body foreach (cons(_) += rule.head)
   }
@@ -155,7 +159,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def unregister(rule: NormalRule): Unit = {
     if (!(_rulesCache contains rule)) return
     rules = rules filter (_ != rule)
-    _rulesCache = _rulesCache -rule
+    _rulesCache = _rulesCache - rule
+
+    _justificationCache = _justificationCache updated (rule.head, justifications(rule.head) filter (_!= rule))
 
     // cached allAtoms() still contains the atoms of the rule to be removed
     // we need to reevaluate all rules to find remaining atoms because we don't know yet which rules contain which atoms
@@ -214,7 +220,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setOutSupport(a: Atom) {
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    val maybeAtoms: Seq[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
     }
