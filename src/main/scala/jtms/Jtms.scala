@@ -44,6 +44,12 @@ trait Jtms {
 
   def atomsNeedingSupp() = ruleHeads diff facts
 
+  def underivableAtoms() = allAtoms diff ruleHeads
+
+  def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
+
+  def inactiveRules() = (rules filter (r => !(r.pos intersect underivableAtoms).isEmpty)).toSet
+
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
   def inAtoms() = allAtoms filter (status(_) == in)

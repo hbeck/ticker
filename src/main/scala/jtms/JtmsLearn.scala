@@ -103,7 +103,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    Some(State(partialStatus,partialSupp,rules.toSet))
+    Some(State(partialStatus,partialSupp,activeRules))
 
   }
 

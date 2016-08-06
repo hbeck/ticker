@@ -291,6 +291,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   test("reach") {
 
+    pending
+
     val tms = new JtmsLearn()
 
     val a = "a"
@@ -343,6 +345,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     assert(m contains reach(c, d))
     assert(m contains reach(c, e))
     assert(m contains reach(d, e))
+
+    println("active rules: "+tms.activeRules())
+    println("\ninactive rules: "+tms.inactiveRules())
 
     times foreach { _ =>
 
@@ -426,6 +431,63 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     printAvoidanceMap(tms)
 
     if (failures > 6) assert(false)
+  }
+
+  test("stream ds") {
+
+    val tms = JtmsLearn(AspProgram(
+      AspRule(b, none, Set(c)), //b :- not c
+      AspRule(c, none, Set(b)), //c :- not b
+      AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+      AspRule(a, d(0)),
+      AspRule(a, d(1)),
+      AspRule(a, d(2)),
+      AspRule(b, d(0))
+    ))
+
+    println(tms)
+
+    def m = tms.getModel
+    assert(m.get == Set(b) || m.get == Set(c))
+
+    var failures = 0
+
+    //times foreach { _ =>
+
+    for (t <- 3 to 30) {
+
+      // a <- \window^2 \Diamond d
+      // => remove a <- d(t-3), add a <- d(t)
+
+      tms.remove(AspRule(a,d(""+(t-3))))
+      tms.add(AspRule(a,d(""+t)))
+
+      // b <- @_{T-2} d
+      tms.remove(AspRule(b,d(""+(t-4))))
+      tms.add(AspRule(b,d(""+(t-2))))
+
+      if (t % 6 == 0) {
+        tms.add(d(""+t))
+      }
+      //out-dating old data
+      if (t % 6 == 4) {
+        tms.remove(d(""+(t-4)))
+      }
+
+      println(t+": "+m)
+
+      if (t % 6 >= 0 && t % 6 <= 2) {
+        if (failsToCompute(tms, m.get.contains(b) || (m.get.contains(a) && m.get.contains(c)))) failures += 1
+      } else if (t % 6 >= 3 && t % 6 <= 5) {
+        if (failsToCompute(tms, m.get.contains(b) || (!m.get.contains(a) && m.get.contains(c)))) failures += 1
+      }
+
+    }
+
+    //}
+
+    println("failures: "+failures)
+    printAvoidanceMap(tms)
   }
 
 }

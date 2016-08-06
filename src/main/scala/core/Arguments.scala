@@ -31,9 +31,13 @@ object Variable {
 
 sealed trait Value extends Argument
 
-case class StringValue(value: String) extends Value
+case class StringValue(value: String) extends Value {
+  override def toString = value
+}
 
-case class TimeValue(timePoint: TimePoint) extends Value
+case class TimeValue(timePoint: TimePoint) extends Value {
+  override def toString = timePoint.value.toString
+}
 
 object Value {
   def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
