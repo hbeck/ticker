@@ -442,8 +442,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
       AspRule(a, d(0)),
       AspRule(a, d(1)),
-      AspRule(a, d(2)),
-      AspRule(b, d(0))
+      AspRule(a, d(2))/*,
+      AspRule(b, d(0))*/
     ))
 
     println(tms)
@@ -455,24 +455,29 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     //times foreach { _ =>
 
-    for (t <- 3 to 300) {
+    for (t <- 3 to 50) {
 
       // a <- \window^2 \Diamond d
       // => remove a <- d(t-3), add a <- d(t)
 
-      tms.remove(AspRule(a,d(""+(t-3))))
-      tms.add(AspRule(a,d(""+t)))
+      val ruleToRemove = AspRule(a,d(t-3))
+      tms.remove(ruleToRemove)
+      val ruleToAdd = AspRule(a,d(t))
+      tms.add(ruleToAdd)
 
       // b <- @_{T-2} d
-      tms.remove(AspRule(b,d(""+(t-4))))
-      tms.add(AspRule(b,d(""+(t-2))))
+      /*
+      tms.remove(AspRule(b,d(t-4)))
+      tms.add(AspRule(b,d(t-2)))
+      */
 
       if (t % 6 == 0) {
-        tms.add(d(""+t))
+        val fact: NormalRule = AspFact(d(t))
+        tms.add(fact)
       }
-      //out-dating old data
+      //removing old data
       if (t % 6 == 4) {
-        tms.remove(d(""+(t-4)))
+        tms.remove(d(t-4))
       }
 
       println(t+": "+m)
