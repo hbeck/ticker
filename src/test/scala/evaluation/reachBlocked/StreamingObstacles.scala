@@ -19,30 +19,16 @@ class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixture
 
   val obstacles = generatedNodes.map(obstacle(_)).toSet.subsets().toList
 
-  var executionTimes: List[Duration] = List()
+val timedEngine = TimedEvaluationEngine(evaluationEngine)
 
   "All different combinations of obstacles" should "be appended at a given timepoint" in {
-    obstacles zip (Stream from 1) foreach (t => timedAppend(t._2, t._1.toSeq))
+    obstacles zip (Stream from 1) foreach (t => timedEngine.append(t._2)(t._1.toSeq :_*))
 
-    val d = StatisticResult.fromExecutionTimes(executionTimes)
+    val d = StatisticResult.fromExecutionTimes(timedEngine.appendExecutionTimes)
     info(d.toString)
   }
 
 
-  def append(time: TimePoint, atoms: Seq[Atom]) = {
-    evaluationEngine.append(time)(atoms: _*)
-  }
-
-  def timedAppend(time: TimePoint, atoms: Seq[Atom]) = {
-    val start = Deadline.now
-
-    append(time, atoms)
-
-    val end = Deadline.now
-
-    val elapsed = ((end - start))
-    executionTimes = executionTimes :+ elapsed
-  }
 }
 
 class AllStreamingObstacles extends RunWithAllImplementations(new StreamingObstacles)
