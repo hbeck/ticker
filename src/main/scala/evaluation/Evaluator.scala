@@ -101,7 +101,7 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
     val appendExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
     val evaluateExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
 
-    profile.withWarmup(warmups, repetitions)({
+    def test = {
       val engine = new TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
 
       inputs.foreach(i => {
@@ -109,7 +109,14 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
 
         engine.evaluate(i._1)
       })
-    })
+    }
+
+    // warmup - we need to clear execution times afterwards
+    test
+    appendExecutionTimes.clear()
+    evaluateExecutionTimes.clear()
+
+    profile.profileR(repetitions)(test)
 
     (
       StatisticResult.fromExecutionTimes(appendExecutionTimes),

@@ -32,7 +32,7 @@ package object profile {
 
     val start = Deadline.now
 
-    val result = (1 until repeat).foldLeft(code) { (_: R, i: Int) => {
+    val result = (0 until repeat).foldLeft(code) { (_: R, i: Int) => {
       Console.out.println("Repeat " + i)
       code
     }
