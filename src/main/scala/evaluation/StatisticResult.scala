@@ -7,7 +7,12 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 21.07.16.
   */
-case class StatisticResult(max: Duration, min: Duration, avg: Duration, median: Duration) {
+case class StatisticResult(executionTimes: Seq[Duration]) {
+  val max = executionTimes.max
+  val min = executionTimes.min
+  val avg = executionTimes.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / executionTimes.length.toDouble
+  val median = executionTimes.sorted.drop(executionTimes.length / 2).head
+
   override def toString = {
     val unit = TimeUnit.MILLISECONDS
     val b = StringBuilder.newBuilder
@@ -19,18 +24,25 @@ case class StatisticResult(max: Duration, min: Duration, avg: Duration, median: 
 
     b.toString()
   }
+
+  def asResult(unit: TimeUnit = TimeUnit.MILLISECONDS) = {
+    
+    val results = Seq(
+      min,
+      max,
+      avg,
+      median
+    )
+
+    results map (_.toUnit(unit))
+  }
 }
 
 object StatisticResult {
   def fromExecutionTimes(executionTimes: Seq[Duration]): StatisticResult = {
     if (executionTimes.isEmpty) {
-      StatisticResult(Duration.Zero, Duration.Zero, Duration.Zero, Duration.Zero)
+      StatisticResult(Seq(Duration.Zero))
     } else
-      StatisticResult(
-        max = executionTimes.max,
-        min = executionTimes.min,
-        avg = executionTimes.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / executionTimes.length.toDouble,
-        median = executionTimes.sorted.drop(executionTimes.length / 2).head
-      )
+      StatisticResult(executionTimes)
   }
 }

@@ -1,9 +1,10 @@
-import evaluation.TimedEvaluationEngine
+import java.io.File
 
+import evaluation.TimedEvaluationEngine
 import core.Atom
 import core.lars.{Diamond, _}
 import evaluation.reachBlocked.ParallelLanes
-import evaluation.{Evaluator, Evaluator2}
+import evaluation.Evaluator
 
 
 /**
@@ -11,40 +12,74 @@ import evaluation.{Evaluator, Evaluator2}
   */
 object ParallelLanesEvaluation {
 
-  def main(args: Array[String]): Unit = {
+  def execute(args: Array[String], nodes: Int, lanes: Int) = {
 
-    val pl = new ParallelLanes {
+    val pl = new ParallelLanes {}
 
-    }
+    val program = pl.generateProgram(nodes, lanes)
 
-    val a = Atom("a")
-    val y = Atom("y")
+    val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
 
-
-    val program = pl.generateProgram(2, 4)
-
-    val ySample = LarsProgram.from(
-      y <= W(1, Diamond, a)
-    )
-
-    val provider = () => Evaluator.greedyTms(program)
-
-    val e = Evaluator2(provider, 1, 1)
+    val e = Evaluator(provider, 1, 2)
 
     val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
 
-
     val inputs: Seq[(TimePoint, Seq[Atom])] = obstacles zip (Stream from 1) map (t => ((TimePoint(t._2), t._1.toSeq)))
 
-    //  val inputs = Seq(
-    //    (TimePoint(1), Seq(a)),
-    //    (TimePoint(3), Seq(a)),
-    //    (TimePoint(5), Seq(a))
-    //  )
 
-    val (append, evaluate) = e.streamInputsAsFastAsPossible(inputs)
+    val result = e.streamInputsAsFastAsPossible(inputs)
 
-    Console.out.println(append)
-    Console.out.println(evaluate)
+    (f"${nodes}x${lanes}", result)
+  }
+
+  def main(args: Array[String]): Unit = {
+    var usedArgs = args
+    if (usedArgs.length == 0) {
+      usedArgs = Seq("tms", "greedy") toArray
+    }
+
+    val evaluationOptions = Seq(
+      (1, 1),
+      (1, 2),
+      (1, 3),
+      (1, 4),
+      (2, 2),
+      (2, 3),
+      (2, 4)
+      //      (3, 3),
+      //      (3, 4),
+      //      (4, 4)
+    )
+
+    val results = evaluationOptions map (o => execute(usedArgs ++ Seq("parallel"), o._1, o._2)) toList
+
+    printToFile(new File("output.csv")) { p =>
+      val captions = Seq(
+        "Configuration",
+        "Append-Min [ms]",
+        "Append-Max [ms]",
+        "Append-Avg [ms]",
+        "Append-Median [ms]",
+        "Evaluate-Min [ms]",
+        "Evaluate-Max [ms]",
+        "Evaluate-Avg [ms]",
+        "Evaluate-Median [ms]"
+      )
+
+      p.println(captions.mkString(";"))
+
+      val resultStrings = results map (r => Seq(r._1) ++ r._2._1.asResult() ++ r._2._2.asResult())
+
+      resultStrings foreach (r => p.println(r.mkString(";")))
+    }
+
+    def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
+      val p = new java.io.PrintWriter(f)
+      try {
+        op(p)
+      } finally {
+        p.close()
+      }
+    }
   }
 }

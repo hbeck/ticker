@@ -3,62 +3,57 @@ package evaluation
 import core.Atom
 import core.lars.{Duration, LarsProgram, TimePoint}
 import engine.EvaluationEngine
+import engine.asp.oneshot.EvaluationMode
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
-import jtms.JtmsGreedy
+import jtms.{JtmsDoyle, JtmsGreedy}
 
 import scala.collection.mutable.ArrayBuffer
+
 //import scala.reflect.runtime.universe
 //import scala.reflect.runtime._
 import scala.util.Random
 
 object Evaluator {
 
-
-  def main(args: Array[String]): Unit = {
+  def buildEngineFromArguments(args: Array[String], programLoader: String => LarsProgram): EvaluationEngine = {
     if (args.length != 3) {
-      printUsageAndExit("Supply the correct arguments");
+      printUsageAndExit(args, "Supply the correct arguments")
     }
-    val program = loadProgram(args(2))
+    val program = programLoader(args(2))
 
     val evaluationType = args(0)
     val evaluationModifier = args(1)
 
     val engine = buildEngine(program, evaluationType, evaluationModifier)
-
-
-    // feed data
-    engine.append(1)(Atom("a"))
-  }
-
-  def loadProgram(programIdentifier: String): LarsProgram = {
-
-    //    var classLoader = new java.net.URLClassLoader(
-    //      Array(new File("module.jar").toURI.toURL),
-    //      this.getClass.getClassLoader)
-//    val mirror = universe.runtimeMirror(getClass.getClassLoader)
-//    val cls = mirror.classSymbol(Class.forName(programIdentifier))
-//    val module = cls.companion.asModule
-//    val i = mirror.reflectModule(module).instance
-    //    val c = cm.classLoader.loadClass(programIdentifier).asInstanceOf[ProgramProvider]
-
-    //    c.program
-//    i.asInstanceOf[ {val program: LarsProgram}].program
-    return null
+    if (engine.isDefined) {
+      return engine.get
+    } else {
+      // TODO: not nice
+      printUsageAndExit(args, "wrong combination of evaluation-type/modifier specified")
+      return null
+    }
   }
 
 
-  def buildEngine(program: LarsProgram, evaluationType: String, evaluationModifier: String): EvaluationEngine = {
+  def buildEngine(program: LarsProgram, evaluationType: String, evaluationModifier: String): Option[EvaluationEngine] = {
+    // TODO: not nice
+
     if (evaluationType == "tms") {
       if (evaluationModifier == "greedy") {
-        return greedyTms(program)
+        return Some(greedyTms(program))
+      } else if (evaluationModifier == "doyle") {
+        return Some(doyleTms(program))
+      }
+    } else if (evaluationType == "clingo") {
+      if (evaluationModifier == "push") {
+        return Some(clingoPush(program))
+      } else if (evaluationModifier == "pull") {
+        return Some(clingoPull(program))
       }
     }
 
-    printUsageAndExit("wrong combination of evaluation-type/modifier specified")
-    // TODO: not nice
-    return null
-
+    None
   }
 
   def greedyTms(program: LarsProgram) = {
@@ -69,10 +64,26 @@ object Evaluator {
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
 
+  def doyleTms(program: LarsProgram) = {
+    val tms = JtmsDoyle(new Random(1))
 
-  def printUsageAndExit(exitMessage: String) = {
+    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+  }
+
+  def clingoPush(program: LarsProgram) = {
+    BuildEngine.withProgram(program).useAsp().withClingo().use().usePush().start()
+  }
+
+  def clingoPull(program: LarsProgram) = {
+    BuildEngine.withProgram(program).useAsp().withClingo().use().usePull().start()
+  }
+
+
+  def printUsageAndExit(args: Array[String], exitMessage: String) = {
     Console.err.println(exitMessage)
     Console.err.println()
+
+    Console.out.println("You specified: " + args.mkString(" "))
 
     Console.out.println("Usage: Evaluator <evaluation-type> <evaluation-modifier> <input-file>")
     Console.err.println()
@@ -84,7 +95,7 @@ object Evaluator {
   }
 }
 
-case class Evaluator2(engineProvider: () => EvaluationEngine, warmups: Int = 5, repetitions: Int = 5) {
+case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, repetitions: Int = 5) {
 
   def streamInputsAsFastAsPossible(inputs: Seq[(TimePoint, Seq[Atom])]): (StatisticResult, StatisticResult) = {
     val appendExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()

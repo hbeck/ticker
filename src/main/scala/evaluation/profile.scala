@@ -14,8 +14,14 @@ package object profile {
   }
 
   def withWarmup[R](warmupRepeat: Int, repeat: Int)(code: => R): R = {
-    (1 until warmupRepeat).foldLeft(code){ (_: R, _: Int) => code }
+    Console.out.println("Starting warmup")
+    (1 until warmupRepeat).foldLeft(code) { (_: R, i: Int) => {
+      Console.out.println("Warmup " + i)
+      code
+    }
+    }
 
+    Console.out.println("Finished warmup")
     profileR(repeat)(code)
   }
 
@@ -26,7 +32,11 @@ package object profile {
 
     val start = Deadline.now
 
-    val result = (1 until repeat).foldLeft(code) { (_: R, _: Int) => code }
+    val result = (1 until repeat).foldLeft(code) { (_: R, i: Int) => {
+      Console.out.println("Repeat " + i)
+      code
+    }
+    }
 
     val end = Deadline.now
 
