@@ -1,7 +1,7 @@
 import java.io.File
 
 import com.sun.org.glassfish.external.statistics.Statistic
-import evaluation.{Evaluator, StatisticResult, TimedEvaluationEngine}
+import evaluation.{DumpDataToCsv, Evaluator, StatisticResult, TimedEvaluationEngine}
 import core.Atom
 import core.lars.{Diamond, _}
 import evaluation.reachBlocked.ParallelLanes
@@ -17,6 +17,13 @@ object ParallelLanesEvaluation {
     // evaluate everything one time as pre-pre-warmup
     evaluate(Seq("tms", "greedy") toArray) toArray
 
+    val captions = Seq(
+      "Configuration",
+      "node x lanes"
+    )
+
+    val dataDump = DumpDataToCsv.printResults("output.csv") _
+
     if (args.length == 0) {
       val allOptions = Seq(
         Seq("tms", "greedy"),
@@ -26,12 +33,12 @@ object ParallelLanesEvaluation {
 
       val allResults = allOptions flatMap (o => evaluate(o.toArray))
 
-      printResults(allResults)
+      dataDump(captions, allResults)
 
     } else {
       val results = evaluate(args)
 
-      printResults(results)
+      dataDump(captions, results)
     }
   }
 
@@ -61,7 +68,6 @@ object ParallelLanesEvaluation {
     Console.out.println(f"Evaluating ${options.mkString(" ")}")
 
     val pl = new ParallelLanes {}
-
     val program = pl.generateProgram(nodes, lanes)
 
     val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
@@ -69,44 +75,12 @@ object ParallelLanesEvaluation {
     val e = Evaluator(provider, 1, 2)
 
     val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
-
-    val inputs: Seq[(TimePoint, Seq[Atom])] = obstacles zip (Stream from 1) map (t => ((TimePoint(t._2), t._1.toSeq)))
+    val inputs: Seq[(TimePoint, Seq[Atom])] = obstacles zip (Stream from 1) map (t => (TimePoint(t._2), t._1.toSeq))
 
     val result = e.streamInputsAsFastAsPossible(inputs)
 
     (options, result)
   }
 
-  def printResults(results: Seq[(Seq[String], (StatisticResult, StatisticResult))]) {
-    printToFile(new File("output.csv")) { p =>
-      val captions = Seq(
-        "Configuration",
-        "node x lanes",
-        "Append-Min [ms]",
-        "Append-Max [ms]",
-        "Append-Avg [ms]",
-        "Append-Median [ms]",
-        "Evaluate-Min [ms]",
-        "Evaluate-Max [ms]",
-        "Evaluate-Avg [ms]",
-        "Evaluate-Median [ms]"
-      )
-
-      p.println(captions.mkString(";"))
-
-      val resultStrings = results map (r => r._1 ++ r._2._1.asResult() ++ r._2._2.asResult())
-
-      resultStrings foreach (r => p.println(r.mkString(";")))
-    }
-  }
-
-  def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
-    val p = new java.io.PrintWriter(f)
-    try {
-      op(p)
-    } finally {
-      p.close()
-    }
-  }
 
 }
