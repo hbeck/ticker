@@ -535,6 +535,14 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     println("\nfailures: "+failures)
   }
 
+  //TODO: i want to have an access pinnedAtom.time.asInt
+  def getTime(maybeAtom: Option[Atom]): Option[Int] = {
+    maybeAtom match {
+      case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedAtom].timeAsArgument.toString))
+      case None => None
+    }
+  }
+
   test("streaming 1 sampling") {
 
     val waux_d = Atom("waux_d")
@@ -566,14 +574,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       var lastD: Option[Atom] = None
       var lastE: Option[Atom] = None
-
-      //TODO: i want to have an access pinnedAtom.time.asInt
-      def getTime(maybeAtom: Option[Atom]): Option[Int] = {
-        maybeAtom match {
-          case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedAtom].timeAsArgument.toString))
-          case None => None
-        }
-      }
 
       var failures = 0
 
@@ -654,6 +654,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
   }
+
 
   test("streaming 2 analytic") {
 
@@ -808,10 +809,116 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
 
   }
+
+
+  /*
+  test("streaming 2 sampling") {
+
+    val w5_a = Atom("w5_a") //\window^5 \Diamond a
+    val w1_Box_b = Atom("w1_Box_b") //\window^1 \Box b
+    val w2_Box_b = Atom("w2_Box_b") //\window^2 \Box b
+    val w5_c = Atom("w5_c") //\window^5 \Diamond c
+
+    val tms = JtmsLearn(AspProgram(
+      AspRule(x,none,Set(y,z)),
+      AspRule(y,none,Set(x,z)),
+      AspRule(z,none,Set(x,y)),
+      AspRule(x,Set(w5_a),Set(w5_c)), //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      AspRule(y,w1_Box_b), //prepare y <- \window^1 \Box b
+      AspRule(n,Set(w2_Box_b,w5_c),Set(n)) //prepare n <- \window^2 \Box b, \window^5 \Diamond c, \naf n
+    ))
+
+    def m = tms.getModel
+    def M = tms.getModel.get
+
+    var failures = 0
+    var noModel = 0
+
+    for (t <- 0 to 1000) {
+
+      //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      //prepare y <- \window^1 \Box b
+      //prepare n <- \window^2 \Box b, \window^5 \Diamond c, naf b
+
+      tms add AspRule(w5_a, a(t)) // w5_a <- a(t)
+      tms add AspRule(w5_c, c(t)) // w5_c <- c(t)
+      tms add AspRule(w1_Box_b, Set[Atom](b(t - 1), b(t))) //w1_Box_b <- b(t-1), b(t)
+      tms add AspRule(w2_Box_b, Set[Atom](b(t - 2), b(t - 1), b(t))) //w2_Box_b <- b(t-2), b(t-1), b(t)
+
+      tms remove AspRule(w5_a, Set[Atom](a(t - 6)))
+      tms remove AspRule(w5_c, Set[Atom](c(t - 6)))
+      tms remove AspRule(w1_Box_b, Set[Atom](b(t - 2), b(t - 1)))
+      tms remove AspRule(w2_Box_b, Set[Atom](b(t - 3), b(t - 2), b(t - 1)))
+
+      var lastA: Option[Atom] = None
+      var lastC: Option[Atom] = None
+
+      //removing data older than 10
+      if (t % 10 == 0) {
+        for (i <- 0 to 10) {
+          val tp = (t - 10) - i
+          for (atom <- Seq(a, b, c)) {
+            tms.remove(a(tp))
+          }
+        }
+      }
+
+      val timeA = getTime(lastA)
+      if (timeA.isDefined && timeA.get <= (t-10)) lastA = None
+
+      val timeC = getTime(lastC)
+      if (timeC.isDefined && timeC.get <= (t-10)) lastC = None
+
+      println(t + ": " + m.getOrElse(None))
+
+      //x | y | z.
+      //x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      //y <- \window^1 \Box b
+      //n <- \window^2 \Box b, \window^5 \Diamond c, \naf n
+
+      if (m == None) {
+        if (lastC.isDefined && getTime(lastC).get >= (t-5)) {
+          val bSet: Set[Atom] = Set(b(t),b(t-1),b(t-2))
+          if ((bSet diff tms.allAtoms).isEmpty) {
+            noModel += 1
+          } else {
+            failures += 1
+          }
+        } else {
+          failures += 1
+        }
+      } else {
+        val bSet: Set[Atom] = Set(b(t),b(t-1))
+        if (t >= 10 && bSet.forall(tms.allAtoms.contains(_))) {
+          println(tms.allAtoms)
+          def cond1 = Set[Atom](y,w1_Box_b).forall(M.contains(_))
+          def cond2 = Set[Atom](b(t-2),w2_Box_b).forall(!M.contains(_))
+          if (failsToCompute(tms, cond1 && cond2)) failures += 1
+        }
+        if (lastA.isDefined && getTime(lastA).get >= 5) {
+          if (lastC.isDefined && getTime(lastC).get >= 5) {
+            def cond1 = Set[Atom](lastA.get,lastC.get,w5_a,w5_c).forall(M.contains(_))
+            def cond2 = M.contains(x) || M.contains(y) || M.contains(z)
+            if (failsToCompute(tms, cond1 && cond2)) failures += 1
+          } else {
+            def cond1 = Set[Atom](lastA.get,w5_a).forall(M.contains(_))
+            def cond2 = M.contains(x)
+            if (failsToCompute(tms, cond1 && cond2)) failures += 1
+          }
+        }
+      }
+
+    }
+
+    printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
+
+  }
+
+  */
 
 }
