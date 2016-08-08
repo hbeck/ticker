@@ -45,7 +45,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
     } else {
-      //else or always?
       prevState = state
       prevSelectedAtom = selectedAtom
     }
@@ -77,6 +76,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   }
 
   def updateAvoidanceMap(state: State, avoidAtom: Atom): Unit = {
+//    println("\nupdateAvoidanceMap:")
+//    println(state)
+//    println("avoid atom: "+avoidAtom+"\n")
     if (avoidanceMap contains state) {
       val curr = avoidanceMap(state)
       avoidanceMap(state) = curr + avoidAtom
