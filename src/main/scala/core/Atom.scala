@@ -99,7 +99,7 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
 object Atom {
 
-  def unapply(arg: Atom): Option[Seq[Argument]] = arg match {
+  def unapply(atom: Atom): Option[Seq[Argument]] = atom match {
     case aa: AtomWithArgument => Some(aa.arguments)
     case _ => None
   }

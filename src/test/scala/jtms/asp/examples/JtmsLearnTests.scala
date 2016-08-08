@@ -452,9 +452,10 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     var failures = 0
 
-    tms add AspRule(wd,d(0))
-    tms add AspRule(wd,d(1))
-    tms add AspRule(wd,d(2))
+    tms add AspFact(d(0))
+    tms add AspRule(wd,d(0))  //t - 2
+    tms add AspRule(wd,d(1)) //t - 1
+    tms add AspRule(wd,d(2)) //t
 
     assert(tms.dataIndependentRules().toSet ==
       Set(AspRule(b, none, Set(c)),
@@ -468,6 +469,10 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 //    println("\ndata dependent rules")
 //    (tms.rules.toSet diff tms.dataIndependentRules().toSet) foreach println
 
+    val intervalA = 10
+
+    var lastD: Atom = d(0)
+
     for (t <- 3 to 50) {
 
       // a <- \window^2 \Diamond d
@@ -479,23 +484,24 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       val ruleToRemove = AspRule(wd,d(t-3))
       tms remove ruleToRemove
 
-      if (t % 6 == 0) {
-        val fact: NormalRule = AspFact(d(t))
+      if (t % intervalA == 0) {
+        val fact: NormalFact = AspFact(d(t))
         tms.add(fact)
+        lastD = fact.head
         assert(!tms.dataIndependentRules().contains(fact))
         assert(tms.facts().toSet.contains(fact))
       }
       //removing old data
-      if (t % 6 == 4) {
-        tms.remove(d(t-4))
+      if (t % intervalA == 3) {
+        tms.remove(d(t-3)) //this is not tms semantics, but assuming that data is deleted when it became irrelevant wrt potential inferences
       }
 
-      println(t+": "+m)
+      println(t+": "+m.getOrElse(None))
 
-      if (t % 6 >= 0 && t % 6 <= 2) {
-        if (failsToCompute(tms, m.get.contains(b) || (m.get.contains(a) && m.get.contains(c)))) failures += 1
-      } else if (t % 6 >= 3 && t % 6 <= 5) {
-        if (failsToCompute(tms, m.get.contains(b) || (!m.get.contains(a) && m.get.contains(c)))) failures += 1
+      if (t % intervalA >= 0 && t % intervalA <= 2) {
+        if (failsToCompute(tms, m.get == Set(b,lastD) || m.get == Set(a,c,lastD,wd))) failures += 1
+      } else if (t % intervalA >= 3 && t % intervalA <= (intervalA-1)) {
+        if (failsToCompute(tms, m.get == Set(b) || m.get == Set(c))) failures += 1
       }
 
     }
