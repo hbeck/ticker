@@ -67,6 +67,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     }
     case p: Predicate => p
     case a: GroundAtom => a
+    case _ => throw new RuntimeException("cannot ground "+atom) //TODO
   }
 
   def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))

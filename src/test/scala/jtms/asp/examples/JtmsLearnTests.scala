@@ -1,9 +1,9 @@
 package jtms.asp.examples
 
-import core.asp._
-import core.{Atom, PinnedAtom}
+import core.{PinnedAtom, Atom}
+import core.asp.{NormalFact, AspProgram, AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms._
+import jtms.{Jtms, JtmsLearn, JtmsGreedy}
 import org.scalatest.FunSuite
 
 /**
@@ -50,20 +50,21 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       tms.add(r0)
 
     }
-
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
 
   }
 
   def printAvoidanceMap(tms: Jtms): Unit = {
     if (!tms.isInstanceOf[JtmsLearn]) return
     val jtms = tms.asInstanceOf[JtmsLearn]
-    println("learned avoidance map:")
+    println("\nlearned avoidance map:")
     for ((k,v) <- jtms.avoidanceMap) {
       println(k+"\n  -> Avoid: "+v)
     }
   }
+
 
   //returns true if failure
   def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
@@ -128,9 +129,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       tms.add(AspFact(a))
 
     }
-
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
   }
 
   test("jtms5 essence part") {
@@ -158,8 +159,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
   }
 
   test("jtms5-like problem for add") {
@@ -203,8 +205,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
   }
 
   test("jtms5 variant with direct dependency of body atoms for same head") {
@@ -234,8 +237,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
   }
 
 
@@ -284,8 +288,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
 
     if (failures > 4) assert(false)
   }
@@ -426,8 +431,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
 
     if (failures > 6) assert(false)
   }
@@ -524,14 +530,19 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    println("failures: "+failures)
+    
     printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
   }
 
   test("streaming 1 sampling") {
 
     val waux_d = Atom("waux_d")
     val waux_e = Atom("waux_e")
+
+    val times = 1000
+
+    println(times+" runs each")
 
     for (likelihood <- Seq(0.05,0.1,0.25,0.5,0.8,0.95)) {
 
@@ -567,8 +578,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       var failures = 0
 
       var noModel = 0 //counter for correct None returned model (due to inconsistency of program)
-
-      val times = 1000
 
       for (t <- 0 to times-1) {
 
@@ -637,13 +646,172 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       println("\nstreaming likelihood d,e: "+likelihood)
       println("noModel: " + noModel) // + " ("+((1.0*noModel)/(1.0*times))+")")
-      println("failures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
+      println("\nfailures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
       //printAvoidanceMap(tms)
 
       //println("\n\nfailures: " + failures)
       //printAvoidanceMap(tms)
 
     }
+  }
+
+  test("streaming 2 analytic") {
+
+    val w5_a = Atom("w5_a") //\window^5 \Diamond a
+    val w1_Box_b = Atom("w1_Box_b") //\window^1 \Box b
+    val w2_Box_b = Atom("w2_Box_b") //\window^2 \Box b
+    val w5_c = Atom("w5_c") //\window^5 \Diamond c
+
+    val tms = JtmsLearn(AspProgram(
+      AspRule(x,none,Set(y,z)),
+      AspRule(y,none,Set(x,z)),
+      AspRule(z,none,Set(x,y)),
+      AspRule(x,Set(w5_a),Set(w5_c)), //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      AspRule(y,w1_Box_b), //prepare y <- \window^1 \Box b
+      AspRule(n,Set(w2_Box_b,w5_c),Set(n)) //prepare n <- \window^2 \Box b, \window^5 \Diamond c, \naf n
+    ))
+
+    def m = tms.getModel
+    def M = tms.getModel.get
+
+    var failures = 0
+
+    var a1: Option[Atom] = None
+    var b2: Option[Atom] = None
+    var b3: Option[Atom] = None
+    var b4: Option[Atom] = None
+    var b8: Option[Atom] = None
+    var b9: Option[Atom] = None
+    var c13: Option[Atom] = None
+
+    for (t <- 0 to 1000) {
+
+      //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      //prepare y <- \window^1 \Box b
+      //prepare n <- \window^2 \Box b, \window^5 \Diamond c, naf b
+
+      tms add AspRule(w5_a,a(t)) // w5_a <- a(t)
+      tms add AspRule(w5_c,c(t)) // w5_c <- c(t)
+      tms add AspRule(w1_Box_b,Set[Atom](b(t-1),b(t))) //w1_Box_b <- b(t-1), b(t)
+      tms add AspRule(w2_Box_b,Set[Atom](b(t-2),b(t-1),b(t))) //w2_Box_b <- b(t-2), b(t-1), b(t)
+
+      tms remove AspRule(w5_a,Set[Atom](a(t-6)))
+      tms remove AspRule(w5_c,Set[Atom](c(t-6)))
+      tms remove AspRule(w1_Box_b,Set[Atom](b(t-2),b(t-1)))
+      tms remove AspRule(w2_Box_b,Set[Atom](b(t-3),b(t-2),b(t-1)))
+
+      if (t % 10 == 1) {
+        val fact: NormalFact = AspFact(a(t))
+        tms.add(fact)
+        a1 = Some(fact.head)
+      } else if (t % 10 == 2) {
+        val fact: NormalFact = AspFact(b(t))
+        tms.add(fact)
+        b2 = Some(fact.head)
+      } else if (t % 10 == 3) {
+        val fact: NormalFact = AspFact(b(t))
+        tms.add(fact)
+        b3 = Some(fact.head)
+        if (t % 20 == 13) {
+          val fact: NormalFact = AspFact(c(t))
+          tms.add(fact)
+          c13 = Some(fact.head)
+        }
+      } else if (t % 10 == 4) {
+        val fact: NormalFact = AspFact(b(t))
+        tms.add(fact)
+        b4 = Some(fact.head)
+      } else if (t % 10 == 8) {
+        val fact: NormalFact = AspFact(b(t))
+        tms.add(fact)
+        b8 = Some(fact.head)
+      } else if (t % 10 == 9) {
+        val fact: NormalFact = AspFact(b(t))
+        tms.add(fact)
+        b9 = Some(fact.head)
+      }
+
+      //removing old data
+      if (t % 10 == 7) {
+        tms.remove(a(t-6))
+      }
+      if (t % 10 >= 4 && t % 10 <= 7) {
+        tms.remove(b(t-3))
+      } else if (t % 10 >= 0 && t % 10 <= 2) {
+        tms.remove(b(t-3))
+      }
+      if (t % 20 == 19) {
+        tms.remove(c(t-6))
+      }
+
+      println(t+": "+m.getOrElse(None))
+
+      // 0      1      2      3      4      5      6      7      8      9      0
+      //        a----------------------------------------|
+      //               b------b------b-----|                     b------b------|
+      //                     (c---------------------------------|)
+
+      //x | y | z.
+      //x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
+      //y <- \window^1 \Box b
+      //n <- \window^2 \Box b, \window^5 \Diamond c, \naf n
+
+      if (t % 10 == 0) {
+        val bSet: Set[Atom] = if (t>0) Set(b8.get,b9.get) else Set()
+        if (failsToCompute(tms, M == bSet++Set(x) || M == bSet++Set(y) || M == bSet++Set(z))) failures += 1
+      } else if (t % 10 == 1) {
+        val bSet: Set[Atom] = if (t>1) Set(b9.get) else Set()
+        if (failsToCompute(tms, bSet++Set(a1.get, w5_a, x))) failures += 1
+      } else if (t % 10 == 2) {
+        if (failsToCompute(tms, Set(a1.get, b2.get, w5_a, x))) failures += 1
+      } else if (t % 10 == 3) {
+        if (t % 20 == 13) {
+          if (failsToCompute(tms, Set(a1.get, b2.get, b3.get, c13.get, w5_a, w1_Box_b, w5_c, y))) failures += 1
+        } else {
+          if (failsToCompute(tms, Set(a1.get, b2.get, b3.get, w5_a, w1_Box_b, x, y))) failures += 1
+        }
+      } else if (t % 10 == 4) {
+        if (t % 20 == 14) {
+          assert(m == None)
+        } else {
+          if (failsToCompute(tms, Set(a1.get, b2.get, b3.get, b4.get, w5_a, w1_Box_b, w2_Box_b, x, y))) failures += 1
+        }
+      } else if (t % 10 == 5) {
+        if (t % 20 == 15) {
+          val base = Set(a1.get, b3.get, b4.get, c13.get, w5_a, w5_c)
+          if (failsToCompute(tms, M == base ++ Set(x) || M == base ++ Set(y) || M == base ++ Set(z))) failures += 1
+        } else {
+          if (failsToCompute(tms, Set(a1.get, b3.get, b4.get, w5_a, x))) failures += 1
+        }
+      } else if (t % 10 == 6) {
+        if (t % 20 == 16) {
+          val base = Set(a1.get, b4.get, c13.get, w5_a, w5_c)
+          if (failsToCompute(tms, M == base ++ Set(x) || M == base ++ Set(y) || M == base ++ Set(z))) failures += 1
+        } else {
+          if (failsToCompute(tms, Set(a1.get, b4.get, w5_a, x))) failures += 1
+        }
+      } else if (t % 10 == 7) {
+        if (t % 20 == 17) {
+          if (failsToCompute(tms, M == Set(x, c13.get, w5_c) || M == Set(y, c13.get, w5_c) || M == Set(z, c13.get, w5_c))) failures += 1
+        } else {
+          if (failsToCompute(tms, M == Set(x) || M == Set(y) || M == Set(z))) failures += 1
+        }
+      } else if (t % 10 == 8) {
+        if (t % 20 == 18) {
+          if (failsToCompute(tms, M == Set(x, c13.get, w5_c, b8.get) || M == Set(y, c13.get, w5_c, b8.get) || M == Set(z, c13.get, w5_c, b8.get))) failures += 1
+        } else {
+          if (failsToCompute(tms, M == Set(x, b8.get) || M == Set(y, b8.get) || M == Set(z, b8.get))) failures += 1
+        }
+      } else if (t % 10 == 9) {
+        if (failsToCompute(tms, Set(b8.get, b9.get, w1_Box_b, y))) failures += 1
+      }
+
+    }
+
+    
+    printAvoidanceMap(tms)
+    println("\nfailures: "+failures)
+
   }
 
 }

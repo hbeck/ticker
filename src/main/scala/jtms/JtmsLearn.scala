@@ -124,12 +124,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     val atoms = unknownAtoms filter (!extensional(_))
 
-    if (atoms.isEmpty) return None
+    if (atoms.isEmpty) return
 
     if (doForceChoiceOrder) {
       val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
       if (maybeAtom.isDefined) {
-        return maybeAtom
+        selectedAtom = maybeAtom
+        return
       }
     }
 
