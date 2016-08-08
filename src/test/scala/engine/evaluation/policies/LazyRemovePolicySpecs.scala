@@ -39,7 +39,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
   val sr = GroundedNormalRule(a)
 
   case class LazyPolicy(laziness: Duration = 0) {
-    val spy = new JtmsSpy
+    val spy = new JTmsSpy
     val policy = new LazyRemovePolicy(spy, laziness)
   }
 

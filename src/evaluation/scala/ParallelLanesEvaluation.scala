@@ -14,6 +14,8 @@ object ParallelLanesEvaluation {
 
   def main(args: Array[String]): Unit = {
 
+    // evaluate everything one time as pre-pre-warmup
+    evaluate("tms", "greedy").toArray
 
     if (args.length == 0) {
       val allOptions = Seq(
