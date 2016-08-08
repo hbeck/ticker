@@ -6,7 +6,8 @@ import core.lars._
 import engine.EvaluationEngine
 import engine.asp.now
 import engine.config.BuildEngine
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsLazyRemovePolicyEngine}
+import evaluation.{ RunWithAllImplementations}
+import fixtures._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

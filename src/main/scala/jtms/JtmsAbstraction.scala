@@ -11,8 +11,15 @@ import scala.util.Random
   */
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
-  override def allAtoms() = _atomsCache.to
-  var _atomsCache: Set[Atom]= Set()
+  override def allAtoms() = _atomsCache
+  var _atomsCache: Predef.Set[Atom]= Predef.Set()
+
+  var _rulesLookupCache : Predef.Set[NormalRule] = Predef.Set()
+
+  override def justifications(a: Atom) = _justificationLookupCache(a)
+  var _justificationLookupCache: Map[Atom, Seq[NormalRule]] = Map.empty.withDefaultValue(Seq())
+
+  var _atomUsedByRuleCache : Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   def update(atoms: Predef.Set[Atom])
 
@@ -53,12 +60,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None //not dealt with; left for old test-cases
     if (hasUnknown) return None
-    Some(atoms.toSet)
+    Some(atoms)
   }
 
   def inconsistent(): Boolean = {
     //semantics: getModel == None
-    allAtoms exists (status(_) == unknown)
+    status.exists(_._2 == unknown)
+    // TODO: the previous line should be tha same?
+//    allAtoms exists (status(_) == unknown)
   }
 
   //
@@ -89,8 +98,15 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def register(rule: NormalRule): Unit = {
-    if (rules contains rule) return //list representation!
+    if (_rulesLookupCache contains rule) return //list representation!
     rules = rules :+ rule
+
+    _rulesLookupCache = _rulesLookupCache + rule
+    _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head):+ rule)
+
+    val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) + rule))
+    _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
+
     rule.atoms foreach register
     rule.body foreach (cons(_) += rule.head)
   }
@@ -101,7 +117,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     }
     if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
     if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
-    _atomsCache add a
+    _atomsCache = _atomsCache + a
     if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
@@ -148,9 +164,23 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   //
 
   def unregister(rule: NormalRule): Unit = {
-    if (!(rules contains rule)) return
+    if (!(_rulesLookupCache contains rule)) return
     rules = rules filter (_ != rule)
-    val remainingAtoms = (rules flatMap (_.atoms)).toSet[Atom]  // (allAtoms() still contains the atoms of the rule)
+    _rulesLookupCache = _rulesLookupCache - rule
+
+    _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head) filter (_!= rule))
+    val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) - rule))
+    _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
+
+    val atomToBeRemoved = rule.atoms  filter (a => _atomUsedByRuleCache(a).isEmpty)
+
+    val remainingAtoms = _atomsCache diff atomToBeRemoved
+
+    // cached allAtoms() still contains the atoms of the rule to be removed
+    // we need to reevaluate all rules to find remaining atoms because we don't know yet which rules contain which atoms
+    // this is still a bottleneck
+//    val remainingAtoms = (rules flatMap (_.atoms)).toSet[Atom]
+
     (rule.atoms diff remainingAtoms) foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
   }
@@ -166,7 +196,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status remove a
     cons remove a
     supp remove a
-    _atomsCache remove a
+    _atomsCache = _atomsCache - a
     suppRule remove a
   }
 
@@ -203,7 +233,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setOutSupport(a: Atom) {
-    val maybeAtoms: List[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    val maybeAtoms: Seq[Option[Atom]] = justifications(a) map (findSpoiler(_))
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
     }

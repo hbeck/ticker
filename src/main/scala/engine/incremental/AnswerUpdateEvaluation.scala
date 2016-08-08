@@ -9,7 +9,7 @@ import jtms.JtmsGreedy
 /**
   * Created by FM on 05.04.16.
   *
-  * TODO deprecated
+  * TODO deprecated : replace with real incremental implementation
   */
 case class AnswerUpdateEvaluation(private val program: NormalProgram) extends EvaluationEngine {
   val extensionalAtomStream: OrderedAtomStream = new OrderedAtomStream

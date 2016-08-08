@@ -47,7 +47,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       case a: Atom => a
     }
 
-    // TODO: move into AtomWithTime.ground Function?
+    // TODO: move into PinnedAtom.ground Function?
     val timeVariable = variable.variable
 
     val groundedTimePoint = atom.time match {
@@ -102,7 +102,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 }
 
 object GroundedNormalRule {
-  // TODO: get rid of this
+  
   def apply(rule: NormalRule): GroundRule = {
     if (rule.isGround) {
       AspRule(
@@ -119,7 +119,7 @@ object GroundedNormalRule {
 
 object GroundRule {
 
-  // TODO: get rid of this
+  // TODO: get rid of this (Ground Rule should be a normal rule - types don't work currently)
   def toNormalRule(rule: GroundRule): NormalRule = {
     AspRule(rule.head.asInstanceOf[Atom], rule.pos map (_.asInstanceOf[Atom]), rule.neg map (_.asInstanceOf[Atom]))
   }

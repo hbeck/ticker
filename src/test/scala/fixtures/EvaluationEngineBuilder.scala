@@ -45,16 +45,24 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
-  val tms = JtmsGreedy(new Random(1))
-  tms.doConsistencyCheck = false
 
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+
+  val defaultEngine = (p: LarsProgram) => {
+    val tms = JtmsGreedy(new Random(1))
+    tms.doConsistencyCheck = false
+
+    BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+  }
 }
 
 trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
-  val tms = JtmsGreedy(new Random(1))
-  tms.doConsistencyCheck = false
 
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+
+  val defaultEngine = (p: LarsProgram) => {
+    val tms = JtmsGreedy(new Random(1))
+    tms.doConsistencyCheck = false
+
+    BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+  }
 }
