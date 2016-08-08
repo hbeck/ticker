@@ -22,7 +22,7 @@ object DumpDataToCsv {
 
       p.println(captions.mkString(";"))
 
-      val resultStrings = results map (r => r._1 ++ r._2._1.asResult() ++ r._2._2.asResult())
+      val resultStrings = results map (r => r._1 ++ r._2._1.asResult() ++ r._2._2.asResult() map (_.formatted("%f")))
 
       resultStrings foreach (r => p.println(r.mkString(";")))
     }
