@@ -144,10 +144,10 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if ((inAtoms diff facts) exists (a => !(justifications(a) exists valid))) {
+    if ((inAtoms diff factAtoms) exists (a => !(justifications(a) exists valid))) {
       throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
     }
-    if ((outAtoms diff facts) exists (a => (justifications(a) exists valid))) {
+    if ((outAtoms diff factAtoms) exists (a => (justifications(a) exists valid))) {
       throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
     }
   }

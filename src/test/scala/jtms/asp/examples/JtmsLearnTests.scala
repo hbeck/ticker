@@ -68,11 +68,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //returns true if failure
   def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
     if (tms.getModel == None) {
-//      if (tms.isInstanceOf[JtmsLearn]) {
-//        val jtms = tms.asInstanceOf[JtmsLearn]
-//        println(jtms.state)
-//        println("sel. atom: "+jtms.selectedAtom+"\n")
-//      }
+      if (tms.isInstanceOf[JtmsLearn]) {
+        val jtms = tms.asInstanceOf[JtmsLearn]
+        println(jtms.state)
+        println("sel. atom: "+jtms.selectedAtom+"\n")
+      }
       return true
     } else {
       assert(tms.getModel.get == model)
@@ -82,11 +82,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   def failsToCompute(tms: Jtms, condition: => Boolean): Boolean = {
     if (tms.getModel == None) {
-//      if (tms.isInstanceOf[JtmsLearn]) {
-//        val jtms = tms.asInstanceOf[JtmsLearn]
-//        println(jtms.state)
-//        println("sel. atom: "+jtms.selectedAtom+"\n")
-//      }
+      if (tms.isInstanceOf[JtmsLearn]) {
+        val jtms = tms.asInstanceOf[JtmsLearn]
+        println(jtms.state)
+        println("sel. atom: "+jtms.selectedAtom+"\n")
+      }
       return true
     } else {
       assert(condition)
@@ -344,8 +344,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     assert(m contains reach(c, e))
     assert(m contains reach(d, e))
 
-    println("active rules: "+tms.activeRules())
-    println("\ninactive rules: "+tms.inactiveRules())
+    //println("active rules: "+tms.activeRules())
+    //println("\ninactive rules: "+tms.inactiveRules())
 
     times foreach { _ =>
 
@@ -436,14 +436,13 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //set of rules at every time point and the naive concepts fails
   test("stream ds") {
 
+    val wd = Atom("wd")
+
     val tms = JtmsLearn(AspProgram(
       AspRule(b, none, Set(c)), //b :- not c
       AspRule(c, none, Set(b)), //c :- not b
       AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
-      AspRule(a, d(0)),
-      AspRule(a, d(1)),
-      AspRule(a, d(2))/*,
-      AspRule(b, d(0))*/
+      AspRule(a, wd) //a <- \window^2 \Diamond d; add additional rules wd <- d(t) on the fly
     ))
 
     println(tms)
@@ -453,27 +452,41 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     var failures = 0
 
-    //times foreach { _ =>
+    tms add AspRule(wd,d(0))
+    tms add AspRule(wd,d(1))
+    tms add AspRule(wd,d(2))
+
+    assert(tms.dataIndependentRules().toSet ==
+      Set(AspRule(b, none, Set(c)),
+          AspRule(c, none, Set(b)),
+          AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+          AspRule(a, wd)))
+
+//    println("data independent rules")
+//    tms.dataIndependentRules() foreach println
+//
+//    println("\ndata dependent rules")
+//    (tms.rules.toSet diff tms.dataIndependentRules().toSet) foreach println
 
     for (t <- 3 to 50) {
 
       // a <- \window^2 \Diamond d
-      // => remove a <- d(t-3), add a <- d(t)
+      // => remove wd <- d(t-3), add wd <- d(t)
 
-      val ruleToRemove = AspRule(a,d(t-3))
-      tms.remove(ruleToRemove)
-      val ruleToAdd = AspRule(a,d(t))
-      tms.add(ruleToAdd)
+      val ruleToAdd = AspRule(wd,d(t))
+      tms add ruleToAdd
 
-      // b <- @_{T-2} d
-      /*
-      tms.remove(AspRule(b,d(t-4)))
-      tms.add(AspRule(b,d(t-2)))
-      */
+      val ruleToRemove = AspRule(wd,d(t-3))
+      tms remove ruleToRemove
 
       if (t % 6 == 0) {
         val fact: NormalRule = AspFact(d(t))
         tms.add(fact)
+        assert(!tms.dataIndependentRules().contains(fact))
+        for (f <- tms.facts) {
+          println("fact: "+f.getClass)
+        }
+        assert(tms.facts().toSet.contains(fact))
       }
       //removing old data
       if (t % 6 == 4) {
@@ -489,8 +502,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       }
 
     }
-
-    //}
 
     println("failures: "+failures)
     printAvoidanceMap(tms)

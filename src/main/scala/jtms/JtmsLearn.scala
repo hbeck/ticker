@@ -83,7 +83,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   def stateSnapshot(): Option[State] = {
 
-    val atoms = inAtoms union outAtoms
+    //skip facts! - for asp the are irrelevant, for tms they change based on time - no stable basis
+
+    val atoms = (inAtoms diff factAtoms) union outAtoms
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
       val map1: scala.collection.Map[Atom, Status] = status filterKeys (atoms contains _)
@@ -103,8 +105,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    //Some(State(partialStatus,partialSupp,activeRules))
-    Some(State(partialStatus,partialSupp,rules.toSet))
+    Some(State(partialStatus,partialSupp,dataIndependentRules.toSet))
 
   }
 

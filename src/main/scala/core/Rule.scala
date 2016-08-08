@@ -23,7 +23,11 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   override def equals(other: Any): Boolean = other match {
     case r: Rule[THead, TBody] => this == r
-    case _ => false
+    case _ => {
+      println("this:  "+this.getClass)
+      println("other: "+other.getClass)
+      false
+    }
   }
 }
 

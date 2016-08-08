@@ -1,6 +1,6 @@
 package jtms
 
-import core.{ContradictionAtom, Falsum, Atom}
+import core._
 import core.asp.NormalRule
 
 import scala.annotation.tailrec
@@ -13,6 +13,12 @@ trait Jtms {
 
   //TODO hb do we still need the order?
   var rules: List[NormalRule] = List()
+
+  def dataIndependentRules(): List[NormalRule] = rules filter dataIndependentRule
+
+  def dataIndependentRule(r: NormalRule): Boolean = {
+    ! r.atoms.exists(a => a.isInstanceOf[AtomWithArgument] && a.asInstanceOf[AtomWithArgument].arguments.last.isInstanceOf[TimeValue])
+  }
 
   val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -39,17 +45,19 @@ trait Jtms {
 
   def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
 
-  def facts() = rules filter (_.isFact) map (_.head) toSet
+  def facts() = rules filter (_.isFact) toSet
+
+  def factAtoms() = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
 
   def ruleHeads() = rules map (_.head) toSet
 
-  def atomsNeedingSupp() = ruleHeads diff facts
+  def atomsNeedingSupp() = ruleHeads diff factAtoms
 
   def underivableAtoms() = allAtoms diff ruleHeads
 
-  def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
+  //def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
 
-  def inactiveRules() = (rules filter (r => !(r.pos intersect underivableAtoms).isEmpty)).toSet
+  //def inactiveRules() = (rules filter (r => !(r.pos intersect underivableAtoms).isEmpty)).toSet
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
