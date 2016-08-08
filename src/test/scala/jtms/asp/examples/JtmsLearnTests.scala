@@ -483,9 +483,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         val fact: NormalRule = AspFact(d(t))
         tms.add(fact)
         assert(!tms.dataIndependentRules().contains(fact))
-        for (f <- tms.facts) {
-          println("fact: "+f.getClass)
-        }
         assert(tms.facts().toSet.contains(fact))
       }
       //removing old data

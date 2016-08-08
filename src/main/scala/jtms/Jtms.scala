@@ -14,12 +14,6 @@ trait Jtms {
   //TODO hb do we still need the order?
   var rules: List[NormalRule] = List()
 
-  def dataIndependentRules(): List[NormalRule] = rules filter dataIndependentRule
-
-  def dataIndependentRule(r: NormalRule): Boolean = {
-    ! r.atoms.exists(a => a.isInstanceOf[AtomWithArgument] && a.asInstanceOf[AtomWithArgument].arguments.last.isInstanceOf[TimeValue])
-  }
-
   val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
@@ -43,17 +37,32 @@ trait Jtms {
 
   def justifications(a: Atom):Seq[NormalRule] = rules filter (_.head == a)
 
-  def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
-
   def facts() = rules filter (_.isFact) toSet
 
   def factAtoms() = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
+
+  def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
 
   def ruleHeads() = rules map (_.head) toSet
 
   def atomsNeedingSupp() = ruleHeads diff factAtoms
 
   def underivableAtoms() = allAtoms diff ruleHeads
+
+  def dataIndependentRules(): List[NormalRule] = rules filter dataIndependentRule
+
+  def dataIndependentRule(r: NormalRule): Boolean = {
+    //! r.atoms.exists(a => a.isInstanceOf[AtomWithArgument] && a.asInstanceOf[AtomWithArgument].arguments.last.isInstanceOf[TimeValue])
+    ! r.atoms.exists(pinned(_))
+  }
+
+  def extensionalAtoms() = allAtoms filter extensional
+
+  //note: this is implementation specific due to use case
+  //(PinnedAtoms obtained after grounding, and only extensional atoms are pinned)
+  def extensional(atom: Atom) = pinned(atom)
+
+  def pinned(atom: Atom) = atom.isInstanceOf[PinnedAtom]
 
   //def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
 

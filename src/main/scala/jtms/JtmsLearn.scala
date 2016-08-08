@@ -85,10 +85,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     //skip facts! - for asp the are irrelevant, for tms they change based on time - no stable basis
 
-    val atoms = (inAtoms diff factAtoms) union outAtoms
+    //val atoms = (inAtoms union outAtoms) filter (!isExtensional(_))
+
+    def stateAtom(a: Atom) = (status(a) == in || status(a) == out) && !extensional(a)
+
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
-      val map1: scala.collection.Map[Atom, Status] = status filterKeys (atoms contains _)
+      val map1: scala.collection.Map[Atom, Status] = status filterKeys stateAtom
       val map2 = scala.collection.mutable.Map[Atom, Status]()
       for ((k,v) <- map1) {
         map2 += k -> v
@@ -96,10 +99,10 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
     val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys (atoms contains _)
+      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys stateAtom
       val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
       for ((k,v) <- map1) {
-        val set = v.toSet
+        val set = v.toSet filter (!extensional(_))
         map2 += k -> set
       }
       map2.toMap
