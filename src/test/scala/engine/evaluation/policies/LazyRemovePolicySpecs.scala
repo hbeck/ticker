@@ -6,7 +6,7 @@ import core.lars.Duration
 import engine.asp.tms.GroundedNormalRule
 import engine.asp.tms.policies.LazyRemovePolicy
 import fixtures.TimeTestFixtures
-import jtms.{Jtms, JtmsGreedy}
+import jtms.{JtmsGreedy}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
