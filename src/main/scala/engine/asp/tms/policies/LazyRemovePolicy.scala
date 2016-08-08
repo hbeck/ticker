@@ -27,7 +27,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 
   override def add(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = {
-    val markedAsDeleteEntries = reverseDeleteMap filter (x => rules.contains(x._1))
+    val markedAsDeleteEntries = reverseDeleteMap filter (x => rules.contains(x._1)) //TODO performance
     // We don't need to add these rules - instead don't remove them
     markedAsDeleteEntries foreach (x => unmarkAsDeleted(x._1, x._2))
 

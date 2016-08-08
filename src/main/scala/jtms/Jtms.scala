@@ -11,6 +11,7 @@ import scala.collection.mutable.{Map,HashMap,Set}
   */
 trait Jtms {
 
+  //TODO hb do we still need the order?
   var rules: List[NormalRule] = List()
 
   val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]

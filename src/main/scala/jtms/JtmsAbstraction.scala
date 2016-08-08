@@ -3,7 +3,7 @@ package jtms
 import core.Atom
 import core.asp.NormalRule
 
-import scala.collection.mutable.Set
+import scala.collection.mutable.Set //TODO this is now the exception; do not import
 import scala.util.Random
 
 /**
@@ -19,7 +19,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def justifications(a: Atom) = _justificationLookupCache(a)
   var _justificationLookupCache: Map[Atom, Seq[NormalRule]] = Map.empty.withDefaultValue(Seq())
 
-  var _atomUsedByRuleCache : Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
+  var _atomUsedByRuleCache : Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
   def update(atoms: Predef.Set[Atom])
 
@@ -165,23 +165,19 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def unregister(rule: NormalRule): Unit = {
     if (!(_rulesLookupCache contains rule)) return
+
     rules = rules filter (_ != rule)
     _rulesLookupCache = _rulesLookupCache - rule
 
     _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head) filter (_!= rule))
+
     val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) - rule))
     _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
 
     val atomToBeRemoved = rule.atoms  filter (a => _atomUsedByRuleCache(a).isEmpty)
-
     val remainingAtoms = _atomsCache diff atomToBeRemoved
 
-    // cached allAtoms() still contains the atoms of the rule to be removed
-    // we need to reevaluate all rules to find remaining atoms because we don't know yet which rules contain which atoms
-    // this is still a bottleneck
-//    val remainingAtoms = (rules flatMap (_.atoms)).toSet[Atom]
-
-    (rule.atoms diff remainingAtoms) foreach unregister
+    atomToBeRemoved foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
   }
 
