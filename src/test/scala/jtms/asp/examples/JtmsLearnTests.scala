@@ -61,7 +61,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     val jtms = tms.asInstanceOf[JtmsLearn]
     println("learned avoidance map:")
     for ((k,v) <- jtms.avoidanceMap) {
-      println(k+" -> "+v)
+      println(k+"\n  -> Avoid: "+v)
     }
   }
 
@@ -436,13 +436,110 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //set of rules at every time point and the naive concepts fails
   test("stream ds") {
 
-    val wd = Atom("wd")
+    val waux_d = Atom("waux_d")
+    val waux_e = Atom("waux_e")
 
     val tms = JtmsLearn(AspProgram(
       AspRule(b, none, Set(c)), //b :- not c
       AspRule(c, none, Set(b)), //c :- not b
       AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
-      AspRule(a, wd) //a <- \window^2 \Diamond d; add additional rules wd <- d(t) on the fly
+      AspRule(a, waux_d), //a <- \window^2 \Diamond d; add additional rules waux_d <- d(t) on the fly
+      AspRule(b, waux_e) //b <- e; translating to  b <- \window^0 \Diamond e
+    ))
+
+    println(tms)
+
+    def m = tms.getModel
+    assert(m.get == Set(b) || m.get == Set(c))
+
+    var failures = 0
+
+    assert(tms.dataIndependentRules.toSet ==
+       Set(AspRule(b, none, Set(c)),
+           AspRule(c, none, Set(b)),
+           AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+           AspRule(a, waux_d),
+           AspRule(b, waux_e)))
+
+    var lastD: Atom = d(0)
+    var lastE: Atom = e(-1)
+
+    for (t <- 0 to 1000) {
+
+      // a <- \window^2 \Diamond d
+      // => add waux_d <- d(t), remove waux_d <- d(t-3)
+
+      val dRuleToAdd = AspRule(waux_d,d(t))
+      tms add dRuleToAdd
+
+      val dRuleToRemove = AspRule(waux_d,d(t-3))
+      tms remove dRuleToRemove
+
+      // b <- \window^0 \Diamond e
+      // => add waux_e <- e(t), remove waux_e <- e(t-1)
+
+      val eRuleToAdd = AspRule(waux_e,e(t))
+      tms add eRuleToAdd
+
+      val eRuleToRemove = AspRule(waux_e,e(t-1))
+      tms remove eRuleToRemove
+
+      if (t % 10 == 0) {
+        val fact: NormalFact = AspFact(d(t))
+        tms.add(fact)
+        lastD = fact.head
+        assert(!tms.dataIndependentRules().contains(fact))
+        assert(tms.facts().toSet.contains(fact))
+      } else if (t % (10 / 2) == 0) {
+        val fact: NormalFact = AspFact(e(t))
+        tms.add(fact)
+        lastE = fact.head
+      }
+
+      //removing old data
+      //this is not tms semantics, but assuming that data is deleted when it became irrelevant wrt potential inferences
+      if (t % 10 == 3) {
+        tms.remove(d(t-3))
+      } else if (t % (10 / 2) == 1) {
+        tms.remove(e(t-1))
+      }
+
+      println(t+": "+m.getOrElse(None))
+
+      // 0      1      2      3      4      5      6      7      8      9      0
+      // d-------------------|
+      //                                    e-----|
+      // | {b,d} v {a,c,d,waux_d}| {b} v {c}   |{b,e} |       {b} v {c}           |
+
+      if (t % 10 >= 0 && t % 10 <= 2) {
+        if (failsToCompute(tms, m.get == Set(b,lastD) || m.get == Set(a,c,lastD,waux_d))) failures += 1
+      } else if (t % 10 >= 3 && t % 10 < 5) {
+        if (failsToCompute(tms, m.get == Set(b) || m.get == Set(c))) failures += 1
+      } else if (t % 10 == 5) {
+        if (failsToCompute(tms, Set(b,lastE,waux_e))) failures += 1
+      } else if (t % 10 >= 6 && t % 10 <= 9) {
+        if (failsToCompute(tms, m.get == Set(b) || m.get == Set(c))) failures += 1
+      }
+
+    }
+
+    println("failures: "+failures)
+    printAvoidanceMap(tms)
+  }
+
+  /*
+
+  test("stream ds 2") {
+
+    val wd = Atom("wd")
+    val we = Atom("we")
+
+    val tms = JtmsLearn(AspProgram(
+      AspRule(b, none, Set(c)), //b :- not c
+      AspRule(c, none, Set(b)), //c :- not b
+      AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+      AspRule(a, wd), //a <- \window^5 \Diamond d; add additional rules wd <- d(t) on the fly
+      AspRule(b, we)  //b <- \window^2 \Diamond e
     ))
 
     println(tms)
@@ -453,25 +550,15 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     var failures = 0
 
     tms add AspFact(d(0))
-    tms add AspRule(wd,d(0))  //t - 2
+    tms add AspRule(wd,d(0)) //t - 2
     tms add AspRule(wd,d(1)) //t - 1
     tms add AspRule(wd,d(2)) //t
-
-    assert(tms.dataIndependentRules().toSet ==
-      Set(AspRule(b, none, Set(c)),
-          AspRule(c, none, Set(b)),
-          AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
-          AspRule(a, wd)))
-
-//    println("data independent rules")
-//    tms.dataIndependentRules() foreach println
-//
-//    println("\ndata dependent rules")
-//    (tms.rules.toSet diff tms.dataIndependentRules().toSet) foreach println
-
-    val intervalA = 10
+    tms add AspRule(we,e(0))
+    tms add AspRule(we,e(1))
+    tms add AspRule(we,e(2))
 
     var lastD: Atom = d(0)
+    var lastE: Atom = e(-1)
 
     for (t <- 3 to 50) {
 
@@ -481,33 +568,46 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       val ruleToAdd = AspRule(wd,d(t))
       tms add ruleToAdd
 
-      val ruleToRemove = AspRule(wd,d(t-3))
+      val ruleToRemove = AspRule(wd,d(t-6))
       tms remove ruleToRemove
 
-      if (t % intervalA == 0) {
+      if (t % 10 == 0) {
         val fact: NormalFact = AspFact(d(t))
         tms.add(fact)
         lastD = fact.head
-        assert(!tms.dataIndependentRules().contains(fact))
-        assert(tms.facts().toSet.contains(fact))
+      } else if (t % 10 == 4) {
+        val fact: NormalFact = AspFact(e(t))
+        tms.add(fact)
+        lastE = fact.head
       }
+
       //removing old data
-      if (t % intervalA == 3) {
-        tms.remove(d(t-3)) //this is not tms semantics, but assuming that data is deleted when it became irrelevant wrt potential inferences
+      //this is not tms semantics, but assuming that data is deleted when it became irrelevant wrt potential inferences
+      if (t % 10 == 6) {
+        tms.remove(d(t-6))
+      } else if (t % 10 == 6) {
+        tms.remove(e(t-t))
       }
 
       println(t+": "+m.getOrElse(None))
 
-      if (t % intervalA >= 0 && t % intervalA <= 2) {
-        if (failsToCompute(tms, m.get == Set(b,lastD) || m.get == Set(a,c,lastD,wd))) failures += 1
-      } else if (t % intervalA >= 3 && t % intervalA <= (intervalA-1)) {
-        if (failsToCompute(tms, m.get == Set(b) || m.get == Set(c))) failures += 1
-      }
+      // 0      1      2      3      4      5      6      7      8      9      0
+      // d--------------------|
+      //                                    e--------------------|
+      // | {b,d} v {a,c,d,wd} | {b} v {c}   |
+
+//      if (t % 10 >= 0 && t % 10 <= 2) {
+//        if (failsToCompute(tms, m.get == Set(b,lastD) || m.get == Set(a,c,lastD,wd))) failures += 1
+//      } else if (t % 10 >= 3 && t % 10 <= 9) {
+//        if (failsToCompute(tms, m.get == Set(b) || m.get == Set(c))) failures += 1
+//      }
 
     }
 
     println("failures: "+failures)
     printAvoidanceMap(tms)
   }
+
+  */
 
 }

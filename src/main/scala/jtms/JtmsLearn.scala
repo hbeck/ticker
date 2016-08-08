@@ -44,6 +44,10 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     selectNextAtom()
     if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
+    } else {
+      //else or always?
+      prevState = state
+      prevSelectedAtom = selectedAtom
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
@@ -116,7 +120,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     state = stateSnapshot()
 
-    val atoms = unknownAtoms
+    val atoms = unknownAtoms filter (!extensional(_))
 
     if (atoms.isEmpty) return None
 
