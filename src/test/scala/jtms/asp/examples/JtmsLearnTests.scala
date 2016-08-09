@@ -814,8 +814,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   }
 
-
-  /*
   test("streaming 2 sampling") {
 
     val w5_a = Atom("w5_a") //\window^5 \Diamond a
@@ -823,7 +821,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     val w2_Box_b = Atom("w2_Box_b") //\window^2 \Box b
     val w5_c = Atom("w5_c") //\window^5 \Diamond c
 
-    val tms = JtmsLearn(AspProgram(
+    val tms = JtmsGreedy(AspProgram(
       AspRule(x,none,Set(y,z)),
       AspRule(y,none,Set(x,z)),
       AspRule(z,none,Set(x,y)),
@@ -838,11 +836,14 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     var failures = 0
     var noModel = 0
 
+    var lastA: Option[Atom] = None
+    var lastC: Option[Atom] = None
+
     for (t <- 0 to 1000) {
 
       //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
       //prepare y <- \window^1 \Box b
-      //prepare n <- \window^2 \Box b, \window^5 \Diamond c, naf b
+      //prepare n <- \window^2 \Box b, \window^5 \Diamond c, naf n
 
       tms add AspRule(w5_a, a(t)) // w5_a <- a(t)
       tms add AspRule(w5_c, c(t)) // w5_c <- c(t)
@@ -854,24 +855,33 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       tms remove AspRule(w1_Box_b, Set[Atom](b(t - 2), b(t - 1)))
       tms remove AspRule(w2_Box_b, Set[Atom](b(t - 3), b(t - 2), b(t - 1)))
 
-      var lastA: Option[Atom] = None
-      var lastC: Option[Atom] = None
-
       //removing data older than 10
       if (t % 10 == 0) {
         for (i <- 0 to 10) {
           val tp = (t - 10) - i
           for (atom <- Seq(a, b, c)) {
-            tms.remove(a(tp))
+            tms.remove(atom(tp))
           }
         }
       }
 
-      val timeA = getTime(lastA)
-      if (timeA.isDefined && timeA.get <= (t-10)) lastA = None
+//      val timeA = getTime(lastA)
+//      if (timeA.isDefined && timeA.get <= (t-10)) lastA = None
+//
+//      val timeC = getTime(lastC)
+//      if (timeC.isDefined && timeC.get <= (t-10)) lastC = None
 
-      val timeC = getTime(lastC)
-      if (timeC.isDefined && timeC.get <= (t-10)) lastC = None
+      if (tms.random.nextDouble < 0.10) {
+        tms.add(a(t))
+        lastA = Some(a(t))
+      }
+      if (tms.random.nextDouble < 0.10) {
+        tms.add(c(t))
+        lastC = Some(c(t))
+      }
+      if (tms.random.nextDouble < 0.5) {
+        tms.add(b(t))
+      }
 
       println(t + ": " + m.getOrElse(None))
 
@@ -883,8 +893,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       if (m == None) {
         if (lastC.isDefined && getTime(lastC).get >= (t-5)) {
           val bSet: Set[Atom] = Set(b(t),b(t-1),b(t-2))
-          if ((bSet diff tms.allAtoms).isEmpty) {
+          if (bSet.forall(a => tms.factAtoms.contains(a))) {
             noModel += 1
+            println("\n\t"+tms.factAtoms)
           } else {
             failures += 1
           }
@@ -893,14 +904,18 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         }
       } else {
         val bSet: Set[Atom] = Set(b(t),b(t-1))
-        if (t >= 10 && bSet.forall(tms.allAtoms.contains(_))) {
-          println(tms.allAtoms)
+        if (bSet.forall(M.contains(_))) {
           def cond1 = Set[Atom](y,w1_Box_b).forall(M.contains(_))
-          def cond2 = Set[Atom](b(t-2),w2_Box_b).forall(!M.contains(_))
-          if (failsToCompute(tms, cond1 && cond2)) failures += 1
+          if (lastC.isDefined && (getTime(lastC).get >= (t-5))) {
+            def cond2 = Set[Atom](b(t - 2), w2_Box_b).forall(!M.contains(_))
+            if (failsToCompute(tms, cond1 && cond2)) failures += 1
+          }
+          else {
+            if (failsToCompute(tms, cond1)) failures += 1
+          }
         }
-        if (lastA.isDefined && getTime(lastA).get >= 5) {
-          if (lastC.isDefined && getTime(lastC).get >= 5) {
+        if (lastA.isDefined && getTime(lastA).get >= (t-5)) {
+          if (lastC.isDefined && getTime(lastC).get >= (t-5)) {
             def cond1 = Set[Atom](lastA.get,lastC.get,w5_a,w5_c).forall(M.contains(_))
             def cond2 = M.contains(x) || M.contains(y) || M.contains(z)
             if (failsToCompute(tms, cond1 && cond2)) failures += 1
@@ -916,9 +931,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
+    println("\nnoModel:  "+noModel)
 
   }
 
-  */
 
 }
