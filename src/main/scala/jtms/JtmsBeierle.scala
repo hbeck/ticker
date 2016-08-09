@@ -5,7 +5,7 @@ import java.util
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 
-import scala.collection.mutable.{HashMap,Set,Map}
+import scala.collection.mutable.Set
 
 object JtmsBeierle {
 
@@ -29,8 +29,6 @@ object JtmsBeierle {
 class JtmsBeierle() extends JtmsAbstraction {
 
   var shuffle = true //debugging
-
-  val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]()
 
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()

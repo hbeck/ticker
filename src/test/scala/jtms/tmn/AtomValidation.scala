@@ -48,9 +48,9 @@ trait AtomValidation {
       else
         text = "have no supporting rules";
 
-//      it should text in {
-//        assert(tmn.suppRule(atom) == j)
-//      }
+      it should text in {
+        assert(tmn.suppRule(atom) == j)
+      }
     }
 
     def Supp(atoms: Atom*) = {

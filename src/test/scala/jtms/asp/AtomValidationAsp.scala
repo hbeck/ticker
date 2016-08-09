@@ -47,10 +47,9 @@ trait AtomValidationAsp {
       else
         text = "have no supporting rules";
 
-      //suppRule removed, not needed
-//      it should text in {
-//        assert(net.suppRule(atom) == rule)
-//      }
+      it should text in {
+        assert(net.suppRule(atom) == rule)
+      }
     }
 
     def supp(atoms: Atom*) = {

@@ -70,8 +70,8 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     assert(net.rules == List(r0))
     assert(net.supp(a).isEmpty)
-    //assert(net.suppRule(a) == None)
-    //assert(net.suppRule(b) == None)
+    assert(net.suppRule(a) == None)
+    assert(net.suppRule(b) == None)
     assert(net.cons(a) == Set(b))
     assert(net.allAtoms == Set(a, b))
     assert(net.status.keys == Set(a, b))
@@ -97,7 +97,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     assert(net.rules == List(r2))
     assert(net.supp(a) == Set())
-    //assert(net.suppRule(a) == Some(r2))
+    assert(net.suppRule(a) == Some(r2))
     assert(net.cons(a) == Set())
 
     assert(net.allAtoms == Set(a))
@@ -124,7 +124,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     assume(net.rules.toSet == Set(r1, r2))
     assert(net.supp(c) == Set(b))
     assert(net.cons(a) == Set())
-    //assert(net.suppRule(c) == None)
+    assert(net.suppRule(c) == None)
 
     assert(net.allAtoms== Set(a, b, c))
     assert(net.status.keys == Set(a, b, c))
@@ -144,7 +144,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     net.add(r3)
 
     assume(net.getModel.get == Set(a, b, c))
-    //assume(net.suppRule(c) == Some(r2))
+    assume(net.suppRule(c) == Some(r2))
     assume(net.supp(c) == Set(b))
     assume(net.cons(a) == Set(b, c))
     assume(net.cons(b) == Set(c))
@@ -154,7 +154,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     assert(net.getModel.get == Set(a, c))
     assert(net.rules.toSet == Set(r1, r2, r3), "the SJ for C should change")
     info("the SJ for C should change")
-    //assert(net.suppRule(c) == Some(r3))
+    assert(net.suppRule(c) == Some(r3))
     info("the supp for C should change")
     assert(net.supp(c) == Set(a))
     info("the cons for A should change")
