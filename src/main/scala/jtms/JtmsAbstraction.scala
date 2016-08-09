@@ -46,7 +46,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     } else {
       if (!(allAtoms contains rule.head)) return
       if (status(rule.head) == out) return
-      if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
+      //if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
       val atoms = (repercussions(rule.head) + rule.head).toSet
       update(atoms)
     }
@@ -118,7 +118,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
     if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
     _atomsCache = _atomsCache + a
-    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
+    //if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
   def invalidateModel(): Unit = {
@@ -129,20 +129,20 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
     status(rule.head) = in
     supp(rule.head) = Set() ++ rule.body
-    suppRule(rule.head) = Some(rule)
+    //suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
     status(a) = out
     setOutSupport(a)
-    suppRule(a) = None
+    //suppRule(a) = None
   }
 
   def setUnknown(a: Atom) = {
     status(a) = unknown
     supp(a) = Set()
-    suppRule(a) = None
+    //suppRule(a) = None
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -193,7 +193,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     cons remove a
     supp remove a
     _atomsCache = _atomsCache - a
-    suppRule remove a
+    //suppRule remove a
   }
 
   //

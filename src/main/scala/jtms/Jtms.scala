@@ -18,7 +18,8 @@ trait Jtms {
   val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   val status: Map[Atom, Status] = new HashMap[Atom, Status]
 
-  val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
+  //needed only in backtracking procedure, which is skipped
+  //val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
 
   def add(rule: NormalRule)
   def remove(rule: NormalRule)

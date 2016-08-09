@@ -292,7 +292,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
 
-    if (failures > 4) assert(false)
+    if (tms.isInstanceOf[JtmsLearn]) {
+      if (failures > 4) assert(false)
+    }
   }
 
   test("reach") {
@@ -388,8 +390,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     // needs prevState!
 
-    val tms = new JtmsLearn()
-    //val tms = new JtmsGreedy()
+    //val tms = new JtmsLearn()
+    val tms = new JtmsGreedy()
 
     def m = tms.getModel
 
@@ -398,6 +400,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     assert(m.get == Set(a))
 
     var failures = 0
+
     times foreach { _ =>
 
       tms add AspRule(x,Set(a),Set(x))  //  :- a
@@ -428,14 +431,14 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       if (failsToCompute(tms,m.get == Set(a) || m.get == Set(b)))
         failures += 1
-
     }
-
     
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
 
-    if (failures > 6) assert(false)
+    if (tms.isInstanceOf[JtmsLearn]) {
+      if (failures > 6) assert(false)
+    }
   }
 
   //illustrates the problem of finding a smart state for the avoidance map.
