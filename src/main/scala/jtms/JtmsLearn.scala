@@ -1,9 +1,9 @@
 package jtms
 
 import core._
-import core.asp.NormalProgram
+import core.asp.{NormalRule, NormalProgram}
 
-import scala.collection.immutable.HashMap
+import scala.collection.immutable.{HashSet, HashMap}
 import scala.util.Random
 
 object JtmsLearn {
@@ -60,7 +60,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
     } else {
-      saveState      
+      saveState
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
@@ -82,51 +82,76 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
 
-  var avoidanceMap = new HashMap[PartialState,Set[Atom]]()
+  //var avoidanceMap = new HashMap[PartialState,Set[Atom]]()
 
-  //
+  class AllRulesTabu() {
 
-  /*
+    var ruleMap: Map[Set[NormalRule],CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
 
-  var tabuMap: Map[Int, Map[PartialState, Set[Atom]]] = new HashMap[Int,Map[PartialState,Set[Atom]]]
+    var stateRules: Set[NormalRule] = new HashSet[NormalRule]()
+    var currentRulesTabu = new CurrentRulesTabu()
 
-  case class PartialState(var status: Map[Atom, Status], var support: Map[Atom, Set[Atom]])
+    def add(rule: NormalRule): Unit = {
+      if (!stateRules.contains(rule)) {
+        stateRules = stateRules + rule
+        updateAfterRuleChange()
+      }
+    }
 
-  var prevRuleHash: Int = -1
-  var prevStateRules: Set[NormalRule] = Set()
-  var prevPartialStateMap: Map[PartialState,Set[Atom]] = new HashMap[PartialState,Set[Atom]]
-  var prevPartialState: PartialState = new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
+    def remove(rule: NormalRule): Unit = {
+      if (stateRules.contains(rule)) {
+        stateRules = stateRules - rule
+        updateAfterRuleChange()
+      }
+    }
 
-  var currentRuleHash: Int = -1
-  var currentStateRules: Set[NormalRule] = Set()
-  var currentPartialStateMap: Map[PartialState,Set[Atom]] = new HashMap[PartialState,Set[Atom]]
-  var partialState: PartialState = new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
+    def updateAfterRuleChange(): Unit = {
+      if (ruleMap.contains(stateRules)) {
+        currentRulesTabu = ruleMap(stateRules)
+      } else {
+        currentRulesTabu = new CurrentRulesTabu()
+        ruleMap = ruleMap.updated(stateRules,currentRulesTabu)
+      }
+    }
 
-  def ruleUpdateSwitchPartialState(): Unit = {
-    currentRuleHash = currentStateRules.hashCode
-    if (tabuMap contains currentRuleHash) {
-      currentPartialStateMap = tabuMap(currentRuleHash)
-    } else {
-      currentPartialStateMap = new HashMap[PartialState,Set[Atom]] //new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
-      tabuMap = tabuMap.updated(currentRuleHash,currentPartialStateMap)
+    def avoid(state: PartialState, atomToAvoid: Atom): Unit = {
+      currentRulesTabu.save(state,atomToAvoid)
+    }
+    def atomsToAvoid(): Set[Atom] = {
+      currentRulesTabu.atomsToAvoid()
+    }
+
+    override def toString(): String = {
+      val sb = new StringBuilder()
+      for ((ruleSet,tb) <- ruleMap) {
+        sb.append("rules: ").append(ruleSet).append("\n")
+        for ((state,atoms) <- tb.avoidanceMap) {
+          sb.append("  state: ").append(state)
+          sb.append("  avoid: ").append(atoms)
+        }
+      }
+      sb.toString
     }
   }
 
-  def updateTabuMap(partialState: PartialState, avoidAtom: Atom): Unit = {
-    val set = currentPartialStateMap.getOrElse(partialState,Set()) + avoidAtom
-    currentPartialStateMap = currentPartialStateMap.updated(partialState,set)
-    tabuMap = tabuMap.updated(currentRuleHash,currentPartialStateMap)
+  class CurrentRulesTabu() {
+    var avoidanceMap = new HashMap[PartialState,Set[Atom]]
+    def save(state: PartialState, atomToAvoid: Atom): Unit = {
+      val set: Set[Atom] = avoidanceMap.getOrElse(state,Set()) + atomToAvoid
+      avoidanceMap = avoidanceMap.updated(state,set)
+    }
+    def atomsToAvoid() = avoidanceMap.getOrElse(state.get,Set[Atom]())
   }
-  */
 
-  /*
+  val tabu = new AllRulesTabu()
+
+
   override def register(rule: NormalRule): Boolean = {
     val newRule = super.register(rule)
     if (!newRule) {
       return false
     } else if (dataIndependentRule(rule)) {
-      currentStateRules = currentStateRules + rule
-      ruleUpdateSwitchPartialState()
+      tabu.add(rule)
     }
     true
   }
@@ -136,41 +161,35 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     if (!ruleExisted) {
       return false
     } else if (dataIndependentRule(rule)) {
-      currentStateRules = currentStateRules - rule
-      ruleUpdateSwitchPartialState()
+      tabu.remove(rule)
     }
     true
   }
-  */
 
   //note that in this case, invalidateModel is not supposed to be called from outside!
   override def invalidateModel(): Unit = {
 
     if (selectedAtom.isDefined) {
-      updateAvoidanceMap(this.state.get,selectedAtom.get)
+      tabu.avoid(state.get, selectedAtom.get)
+      //updateAvoidanceMap(this.state.get,selectedAtom.get)
     }
 
     super.invalidateModel()
   }
 
-  def updateAvoidanceMap(state: PartialState, avoidAtom: Atom): Unit = {
-//    println("\nupdateAvoidanceMap:")
-//    println(state)
-//    println("avoid atom: "+avoidAtom+"\n")
-    if (avoidanceMap contains state) {
-      val curr = avoidanceMap(state)
-      avoidanceMap = avoidanceMap.updated(state, curr + avoidAtom)
-    } else {
-      avoidanceMap = avoidanceMap.updated(state,Set(avoidAtom))
-    }
-  }
+//  def updateAvoidanceMap(state: PartialState, avoidAtom: Atom): Unit = {
+////    println("\nupdateAvoidanceMap:")
+////    println(state)
+////    println("avoid atom: "+avoidAtom+"\n")
+//    if (avoidanceMap contains state) {
+//      val curr = avoidanceMap(state)
+//      avoidanceMap = avoidanceMap.updated(state, curr + avoidAtom)
+//    } else {
+//      avoidanceMap = avoidanceMap.updated(state,Set(avoidAtom))
+//    }
+//  }
 
-  
   /*
-
-  var currentStateStatus: Map[Atom,Status] = new HashMap[Atom,Status]()
-  var currentStateSupport: Map[Atom,Set[Atom]] = new HashMap[Atom,Set[Atom]]()
-  
   override def setIn(rule: NormalRule) = {
     super.setIn(rule)
     if (!extensional(rule.head)) {
@@ -187,12 +206,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
   }
 
+
   def setUnknown(a: Atom) = {
     status(a) = unknown
     supp(a) = Set()
     suppRule(a) = None
   }
-  
   */
 
 
@@ -256,6 +275,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (atoms.isEmpty) return
 
+    val atomsToAvoid= tabu.atomsToAvoid()
+
+    selectedAtom = atoms find (!atomsToAvoid.contains(_))
+
+    if (selectedAtom.isEmpty && prevState.isDefined) {
+      tabu.avoid(prevState.get,prevSelectedAtom.get)
+    }
+
     /*
     if (doForceChoiceOrder) {
       val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
@@ -295,14 +322,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
     */
-
-    val atomsToAvoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
-
-    selectedAtom = atoms find (!atomsToAvoid.contains(_))
-
-    if (selectedAtom.isEmpty && prevState.isDefined) {
-      updateAvoidanceMap(prevState.get,prevSelectedAtom.get)
-    }
 
   }
 

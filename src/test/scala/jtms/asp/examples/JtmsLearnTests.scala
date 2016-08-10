@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val timesUpper = 500
+  val timesUpper = 5000
 
   val times = 1 to timesUpper
 
@@ -61,10 +61,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   def printAvoidanceMap(tms: Jtms): Unit = {
     if (!tms.isInstanceOf[JtmsLearn]) return
     val jtms = tms.asInstanceOf[JtmsLearn]
-    println("\nlearned avoidance map:")
-    for ((k,v) <- jtms.avoidanceMap) {
-      println(k+"\n  -> Avoid: "+v)
-    }
+    println(jtms.tabu)
   }
 
 
