@@ -391,8 +391,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     // needs prevState!
 
-    //val tms = new JtmsLearn()
-    val tms = new JtmsGreedy()
+    val tms = new JtmsLearn()
+    //val tms = new JtmsGreedy()
 
     def m = tms.getModel
 
