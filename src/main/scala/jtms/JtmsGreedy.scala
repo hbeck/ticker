@@ -17,12 +17,12 @@ object JtmsGreedy {
 
 case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
-  var doSelfSupportCheck = true
-  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
+  var doSelfSupportCheck = false
+  var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
 
   //for inspection:
-  var doJtmsSemanticsCheck = true //for debugging
-  var shuffle = true
+  var doJtmsSemanticsCheck = false //for debugging
+  var shuffle = false
 
   override def update(atoms: Predef.Set[Atom]) {
 

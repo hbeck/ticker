@@ -1,9 +1,9 @@
 package jtms.asp.examples
 
-import core.{PinnedAtom, Atom}
-import core.asp.{NormalFact, AspProgram, AspFact, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
+import core.{Atom, PinnedAtom}
 import fixtures.AtomTestFixture
-import jtms.{Jtms, JtmsLearn, JtmsGreedy}
+import jtms.{Jtms, JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 /**
@@ -16,7 +16,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val times = 1 to 1000
+  val timesUpper = 500
+
+  val times = 1 to timesUpper
 
   val n = Atom("n")
 
@@ -284,7 +286,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       tms add AspRule(d, none, Set(a))
 
       assert(m == Set(a,b))
-      tms.shuffle = true
 
     }
 
@@ -554,11 +555,13 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("performance streaming 1 sampling ") {
-    pending
+    //pending
     performance_test(10,test_streaming_1_sampling)
   }
 
   def performance_test(loops: Int, testCode: => Any): Unit = {
+    println("runs: "+loops)
+    println("inner loop: "+timesUpper)
     var totalTime: Long = 0
     for (i <- 0 to loops) { //exclude first iteration from stats
       val start = System.currentTimeMillis()
@@ -572,7 +575,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         totalTime += dur
       }
     }
-    println("totalTime: "+((1.0*totalTime)/1000.0/(1.0*loops))+" sec per run")
+    println("avg 1-"+loops+": "+((1.0*totalTime)/1000.0/(1.0*loops))+" sec per run")
   }
 
   def test_streaming_1_sampling(): Unit = {

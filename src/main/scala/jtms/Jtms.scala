@@ -54,8 +54,7 @@ trait Jtms {
   def dataIndependentRules(): List[NormalRule] = rules filter dataIndependentRule
 
   def dataIndependentRule(r: NormalRule): Boolean = {
-    //! r.atoms.exists(a => a.isInstanceOf[AtomWithArgument] && a.asInstanceOf[AtomWithArgument].arguments.last.isInstanceOf[TimeValue])
-    ! r.atoms.exists(pinned(_))
+    ! r.atoms.exists(pinned(_)) //include testing head for facts
   }
 
   def extensionalAtoms() = allAtoms filter extensional

@@ -70,10 +70,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def inconsistent(): Boolean = {
-    //semantics: getModel == None
-    status.exists(_._2 == unknown)
-    // TODO: the previous line should be tha same?
-//    allAtoms exists (status(_) == unknown)
+    !unknownAtoms.isEmpty
   }
 
   //
@@ -103,28 +100,33 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     false
   }
 
-  def register(rule: NormalRule): Unit = {
-    if (_rulesLookupCache contains rule) return //list representation!
+  //return true iff rule is new
+  def register(rule: NormalRule): Boolean = {
+    if (_rulesLookupCache contains rule) return false //list representation!
+
     rules = rules :+ rule
 
     _rulesLookupCache = _rulesLookupCache + rule
     _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head):+ rule)
 
+    //TODO find more specific name:
     val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) + rule))
     _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
 
     rule.atoms foreach register
     rule.body foreach (cons(_) += rule.head)
+    true
   }
 
   def register(a: Atom) {
-    if (!status.isDefinedAt(a)) { status(a) = out
+    if (!status.isDefinedAt(a)) { //use this immediately as test whether the atom exists; all atoms need to have a status
       if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
+      _atomsCache = _atomsCache + a
+      status(a) = out
+      cons(a) = Set[Atom]()
+      supp(a) = Set[Atom]()
+      suppRule(a) = None
     }
-    if (!cons.isDefinedAt(a)) cons(a) = Set[Atom]()
-    if (!supp.isDefinedAt(a)) supp(a) = Set[Atom]()
-    _atomsCache = _atomsCache + a
-    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
   }
 
   def invalidateModel(): Unit = {
@@ -169,22 +171,25 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   // remove
   //
 
-  def unregister(rule: NormalRule): Unit = {
-    if (!(_rulesLookupCache contains rule)) return
+  //return true iff rules was present (and deleted)
+  def unregister(rule: NormalRule): Boolean = {
+    if (!(_rulesLookupCache contains rule)) return false
 
     rules = rules filter (_ != rule)
     _rulesLookupCache = _rulesLookupCache - rule
 
     _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head) filter (_!= rule))
 
+    //TODO more specific name
     val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) - rule))
     _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
 
-    val atomToBeRemoved = rule.atoms  filter (a => _atomUsedByRuleCache(a).isEmpty)
+    val atomToBeRemoved = rule.atoms filter (a => _atomUsedByRuleCache(a).isEmpty)
     val remainingAtoms = _atomsCache diff atomToBeRemoved
 
     atomToBeRemoved foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
+    true
   }
 
   def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
@@ -195,10 +200,10 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def unregister(a: Atom): Unit = {
+    _atomsCache = _atomsCache - a
     status remove a
     cons remove a
     supp remove a
-    _atomsCache = _atomsCache - a
     suppRule remove a
   }
 

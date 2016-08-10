@@ -1,10 +1,9 @@
 package jtms
 
-import java.util
-
 import core._
 import core.asp.{NormalProgram, NormalRule}
 
+import scala.collection.immutable.HashMap
 import scala.util.Random
 
 object JtmsLearn {
@@ -31,12 +30,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       sb.toString
     }
   }
-
-  var state: Option[State] = None
-  var selectedAtom: Option[Atom] = None
-
-  var prevState: Option[State] = None
-  var prevSelectedAtom: Option[Atom] = None
 
   override def updateGreedy(atoms: Predef.Set[Atom]) {
     atoms foreach setUnknown
@@ -65,6 +58,39 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     prevSelectedAtom = None
   }
 
+  var state: Option[State] = None
+  var selectedAtom: Option[Atom] = None
+
+  var prevState: Option[State] = None
+  var prevSelectedAtom: Option[Atom] = None
+
+  var currentRuleHash: Int = -1
+  var currentStateRules: Set[NormalRule] = Predef.Set()
+
+  override def register(rule: NormalRule): Boolean = {
+    val newRule = super.register(rule)
+    if (!newRule) {
+      return false
+    } else if (dataIndependentRule(rule)) {
+      currentStateRules = currentStateRules + rule
+      currentRuleHash = currentStateRules.hashCode
+    }
+    true
+  }
+
+  override def unregister(rule: NormalRule): Boolean = {
+    val ruleExisted = super.unregister(rule)
+    if (!ruleExisted) {
+      return false
+    } else if(dataIndependentRule(rule)) {
+      currentStateRules = currentStateRules - rule
+      currentRuleHash = currentStateRules.hashCode
+    }
+    true
+  }
+
+
+
   //note that in this case, invalidateModel is not supposed to be called from outside!
   override def invalidateModel(): Unit = {
 
@@ -87,14 +113,39 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
   }
 
-  def stateSnapshot(): Option[State] = {
+  var currentStateStatus: Map[Atom,Status] = new HashMap[Atom,Status]()
+  var currentStateSupport: Map[Atom,Predef.Set[Atom]] = new HashMap[Atom,Predef.Set[Atom]]()
 
-    //skip facts! - for asp the are irrelevant, for tms they change based on time - no stable basis
-    def stateAtom(a: Atom) = (status(a) == in || status(a) == out) && !extensional(a)
+  /*
+  override def setIn(rule: NormalRule) = {
+    super.setIn(rule)
+    if (!extensional(rule.head)) {
+      currentStateStatus = currentStateStatus.updated(rule.head,in)
+      currentStateSupport = currentStateSupport.updated(rule.head,rule.body)
+    }
+  }
+
+  override def setOut(a: Atom) = {
+    super.setOut(a)
+    if (!extensional(a)) {
+      currentStateStatus = currentStateStatus.updated(a,out)
+      currentStateSupport = currentStateSupport.updated(a,supp(a))
+    }
+  }
+
+  def setUnknown(a: Atom) = {
+    status(a) = unknown
+    supp(a) = Set()
+    suppRule(a) = None
+  }
+
+*/
+
+  def stateSnapshot(): Option[State] = {
 
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
-      val map1: scala.collection.Map[Atom, Status] = status filterKeys stateAtom
+      val map1: scala.collection.Map[Atom, Status] = status filterKeys isStateAtom
       val map2 = scala.collection.mutable.Map[Atom, Status]()
       for ((k,v) <- map1) {
         map2 += k -> v
@@ -102,7 +153,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
     val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys stateAtom
+      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys isStateAtom
       val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
       for ((k,v) <- map1) {
         val set = v.toSet filter (!extensional(_))
@@ -115,14 +166,19 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   }
 
+  //skip facts! - for asp they are irrelevant, for tms they change based on time - no stable basis
+  def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !extensional(a)
+
   def selectNextAtom(): Unit = {
 
+    //TODO assume state is maintained !
     state = stateSnapshot()
 
     val atoms = unknownAtoms filter (!extensional(_))
 
     if (atoms.isEmpty) return
 
+    /*
     if (doForceChoiceOrder) {
       val maybeAtom: Option[Atom] = forcedChoiceSeq find (status(_) == unknown)
       if (maybeAtom.isDefined) {
@@ -130,7 +186,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         return
       }
     }
+    */
 
+    /*
     val javaList = new java.util.ArrayList[Atom]()
     for (a <- atoms) {
       javaList.add(a)
@@ -156,6 +214,16 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       selectedAtom = None
     } else {
       selectedAtom = Some(elem)
+    }
+
+    */
+
+    val avoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
+
+    selectedAtom = atoms find (!avoid.contains(_))
+
+    if (selectedAtom.isEmpty && prevState.isDefined) {
+      updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
     }
 
   }
