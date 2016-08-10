@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val times = 1 to 5000
+  val times = 1 to 1000
 
   val n = Atom("n")
 
@@ -554,6 +554,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("performance streaming 1 sampling ") {
+    pending
     performance_test(10,test_streaming_1_sampling)
   }
 
@@ -872,6 +873,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("performance streaming 2 sampling") {
+    pending
     performance_test(10,test_streaming_2_sampling)
   }
 
