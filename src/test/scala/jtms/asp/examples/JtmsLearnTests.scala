@@ -559,7 +559,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   test("performance streaming 1 sampling ") {
     //pending
-    performance_test(15,test_streaming_1_sampling)
+    performance_test(10,test_streaming_1_sampling)
   }
 
   def performance_test(loops: Int, testCode: => Any): Unit = {

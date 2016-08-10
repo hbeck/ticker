@@ -22,7 +22,7 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  case class State(status: Predef.Map[Atom, Status], support: Predef.Map[Atom, scala.collection.immutable.Set[Atom]], rules: scala.collection.immutable.Set[NormalRule]) {
+  case class State(rules: scala.collection.immutable.Set[NormalRule], status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
       sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
@@ -30,16 +30,25 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       sb.toString
     }
   }
+  
+  def saveState() {
+    prevState = state
+    prevSelectedAtom = selectedAtom
+  }
+  
+  def resetSavedState(): Unit = {
+    prevState = None
+    prevSelectedAtom = None
+  }
 
-  override def updateGreedy(atoms: Predef.Set[Atom]) {
+  override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences
     selectNextAtom()
     if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
     } else {
-      prevState = state
-      prevSelectedAtom = selectedAtom
+      saveState      
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
@@ -47,33 +56,65 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       selectedAtom match {
         case Some(atom) => {
           chooseStatusGreedy(atom)
-          prevState = state
-          prevSelectedAtom = selectedAtom
+          saveState
         }
         case None => if (hasUnknown) throw new IncrementalUpdateFailureException()
       }
     }
     //reset for next update iteration
-    prevState = None
-    prevSelectedAtom = None
+    resetSavedState
   }
 
-  var state: Option[State] = None
   var selectedAtom: Option[Atom] = None
-
-  var prevState: Option[State] = None
   var prevSelectedAtom: Option[Atom] = None
+  var state: Option[State] = None
+  var prevState: Option[State] = None
+
+  var avoidanceMap = new HashMap[State,Set[Atom]]()
+
+  //
+
+  /*
+
+  var tabuMap: Map[Int, Map[PartialState, Set[Atom]]] = new HashMap[Int,Map[PartialState,Set[Atom]]]
+
+  case class PartialState(var status: Map[Atom, Status], var support: Map[Atom, Set[Atom]])
+
+  var prevRuleHash: Int = -1
+  var prevStateRules: Set[NormalRule] = Set()
+  var prevPartialStateMap: Map[PartialState,Set[Atom]] = new HashMap[PartialState,Set[Atom]]
+  var prevPartialState: PartialState = new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
 
   var currentRuleHash: Int = -1
-  var currentStateRules: Set[NormalRule] = Predef.Set()
+  var currentStateRules: Set[NormalRule] = Set()
+  var currentPartialStateMap: Map[PartialState,Set[Atom]] = new HashMap[PartialState,Set[Atom]]
+  var partialState: PartialState = new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
 
+  def ruleUpdateSwitchPartialState(): Unit = {
+    currentRuleHash = currentStateRules.hashCode
+    if (tabuMap contains currentRuleHash) {
+      currentPartialStateMap = tabuMap(currentRuleHash)
+    } else {
+      currentPartialStateMap = new HashMap[PartialState,Set[Atom]] //new PartialState(new HashMap[Atom,Status](), new HashMap[Atom,Set[Atom]])
+      tabuMap = tabuMap.updated(currentRuleHash,currentPartialStateMap)
+    }
+  }
+
+  def updateTabuMap(partialState: PartialState, avoidAtom: Atom): Unit = {
+    val set = currentPartialStateMap.getOrElse(partialState,Set()) + avoidAtom
+    currentPartialStateMap = currentPartialStateMap.updated(partialState,set)
+    tabuMap = tabuMap.updated(currentRuleHash,currentPartialStateMap)
+  }
+  */
+
+  /*
   override def register(rule: NormalRule): Boolean = {
     val newRule = super.register(rule)
     if (!newRule) {
       return false
     } else if (dataIndependentRule(rule)) {
       currentStateRules = currentStateRules + rule
-      currentRuleHash = currentStateRules.hashCode
+      ruleUpdateSwitchPartialState()
     }
     true
   }
@@ -82,14 +123,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     val ruleExisted = super.unregister(rule)
     if (!ruleExisted) {
       return false
-    } else if(dataIndependentRule(rule)) {
+    } else if (dataIndependentRule(rule)) {
       currentStateRules = currentStateRules - rule
-      currentRuleHash = currentStateRules.hashCode
+      ruleUpdateSwitchPartialState()
     }
     true
   }
-
-
+  */
 
   //note that in this case, invalidateModel is not supposed to be called from outside!
   override def invalidateModel(): Unit = {
@@ -107,16 +147,18 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 //    println("avoid atom: "+avoidAtom+"\n")
     if (avoidanceMap contains state) {
       val curr = avoidanceMap(state)
-      avoidanceMap(state) = curr + avoidAtom
+      avoidanceMap = avoidanceMap.updated(state, curr + avoidAtom)
     } else {
-      avoidanceMap(state) = scala.collection.immutable.Set(avoidAtom)
+      avoidanceMap = avoidanceMap.updated(state,Set(avoidAtom))
     }
   }
 
-  var currentStateStatus: Map[Atom,Status] = new HashMap[Atom,Status]()
-  var currentStateSupport: Map[Atom,Predef.Set[Atom]] = new HashMap[Atom,Predef.Set[Atom]]()
-
+  
   /*
+
+  var currentStateStatus: Map[Atom,Status] = new HashMap[Atom,Status]()
+  var currentStateSupport: Map[Atom,Set[Atom]] = new HashMap[Atom,Set[Atom]]()
+  
   override def setIn(rule: NormalRule) = {
     super.setIn(rule)
     if (!extensional(rule.head)) {
@@ -138,8 +180,33 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     supp(a) = Set()
     suppRule(a) = None
   }
+  
+  */
 
-*/
+
+  /*
+  def partialStateSnapshot(): PartialState = {
+    // ugly hacks around mutability problems - todo
+    val partialStatus: Map[Atom, Status] = {
+      val map1: scala.collection.Map[Atom, Status] = status filterKeys isStateAtom
+      val map2 = scala.collection.mutable.Map[Atom, Status]()
+      for ((k,v) <- map1) {
+        map2 += k -> v
+      }
+      map2.toMap
+    }
+    val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
+      val map1: scala.collection.Map[Atom, Set[Atom]] = supp filterKeys isStateAtom
+      val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
+      for ((k,v) <- map1) {
+        val set = v.toSet filter (!extensional(_))
+        map2 += k -> set
+      }
+      map2.toMap
+    }
+    PartialState(partialStatus,partialSupp)
+  }
+  */
 
   def stateSnapshot(): Option[State] = {
 
@@ -162,7 +229,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    Some(State(partialStatus,partialSupp,dataIndependentRules.toSet))
+    Some(State(dataIndependentRules.toSet,partialStatus,partialSupp))
 
   }
 
@@ -171,7 +238,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   def selectNextAtom(): Unit = {
 
-    //TODO assume state is maintained !
     state = stateSnapshot()
 
     val atoms = unknownAtoms filter (!extensional(_))
@@ -218,17 +284,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     */
 
-    val avoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
+    val atomsToAvoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
 
-    selectedAtom = atoms find (!avoid.contains(_))
+    selectedAtom = atoms find (!atomsToAvoid.contains(_))
 
     if (selectedAtom.isEmpty && prevState.isDefined) {
-      updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
+      updateAvoidanceMap(prevState.get,prevSelectedAtom.get)
     }
 
   }
-
-  //history
-  val avoidanceMap = new scala.collection.mutable.HashMap[State,scala.collection.immutable.Set[Atom]]()
 
 }
