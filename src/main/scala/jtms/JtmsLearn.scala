@@ -22,24 +22,6 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  case class PartialState(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
-    override def toString: String = {
-      val sb = new StringBuilder
-      sb.append("State[").append("\n\t\tstatus: ").append(status).append("\n\t\tsupport: ").append(support).append("]")
-      sb.toString
-    }
-  }
-  
-  def saveState() {
-    prevState = state
-    prevSelectedAtom = selectedAtom
-  }
-  
-  def resetSavedState(): Unit = {
-    prevState = None
-    prevSelectedAtom = None
-  }
-
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences
@@ -62,6 +44,24 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
     //reset for next update iteration
     resetSavedState
+  }
+
+  case class PartialState(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
+    override def toString: String = {
+      val sb = new StringBuilder
+      sb.append("State[").append("\n\t\tstatus: ").append(status).append("\n\t\tsupport: ").append(support).append("]")
+      sb.toString
+    }
+  }
+
+  def saveState() {
+    prevState = state
+    prevSelectedAtom = selectedAtom
+  }
+
+  def resetSavedState(): Unit = {
+    prevState = None
+    prevSelectedAtom = None
   }
 
   var selectedAtom: Option[Atom] = None
@@ -164,12 +164,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   }
 
   def stateSnapshot(): Option[PartialState] = {
-
     val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
     val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
-
     Some(PartialState(filteredStatus,collectedSupp))
-
   }
 
   //skip facts! - for asp they are irrelevant, for tms they change based on time - no stable basis
@@ -179,13 +176,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     state = stateSnapshot()
 
-    val atoms = unknownAtoms filter (!extensional(_))
+    val atomSet = (unknownAtoms filter (!extensional(_)))
+    val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
 
     if (atoms.isEmpty) return
 
-    val atomsToAvoid= tabu.atomsToAvoid()
-
-    selectedAtom = atoms find (!atomsToAvoid.contains(_))
+    selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))
 
     if (selectedAtom.isEmpty && prevState.isDefined) {
       tabu.avoid(prevState.get,prevSelectedAtom.get)

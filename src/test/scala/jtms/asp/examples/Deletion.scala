@@ -68,7 +68,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     // assert
     assert(net.getModel.get.isEmpty)
 
-    assert(net.rules == List(r0))
+    assert(net.rules == Set(r0))
     assert(net.supp(a).isEmpty)
     assert(net.suppRule(a) == None)
     assert(net.suppRule(b) == None)
@@ -95,7 +95,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     // assert
     assert(net.getModel.get == Set(a))
 
-    assert(net.rules == List(r2))
+    assert(net.rules == Set(r2))
     assert(net.supp(a) == Set())
     assert(net.suppRule(a) == Some(r2))
     assert(net.cons(a) == Set())
