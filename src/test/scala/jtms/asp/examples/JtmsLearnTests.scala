@@ -551,7 +551,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("performance streaming 1 sampling ") {
-    //pending
+    pending
     performance_test(10,test_streaming_1_sampling())
   }
 
