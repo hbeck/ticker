@@ -165,26 +165,10 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   def stateSnapshot(): Option[PartialState] = {
 
-    // ugly hacks around mutability problems - todo
-    val partialStatus: Map[Atom, Status] = {
-      val map1: scala.collection.Map[Atom, Status] = status filterKeys isStateAtom
-      val map2 = scala.collection.mutable.Map[Atom, Status]()
-      for ((k,v) <- map1) {
-        map2 += k -> v
-      }
-      map2.toMap
-    }
-    val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: scala.collection.Map[Atom, Set[Atom]] = supp filterKeys isStateAtom
-      val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
-      for ((k,v) <- map1) {
-        val set = v.toSet filter (!extensional(_))
-        map2 += k -> set
-      }
-      map2.toMap
-    }
+    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
+    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
 
-    Some(PartialState(partialStatus,partialSupp))
+    Some(PartialState(filteredStatus,collectedSupp))
 
   }
 
