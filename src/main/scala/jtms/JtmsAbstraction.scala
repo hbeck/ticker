@@ -105,6 +105,11 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
     rules = rules + rule
 
+    /*
+    __ruleHeads = __ruleHeads + rule.head
+    if (rule.body.isEmpty) __factAtoms = __factAtoms + rule.head
+    */
+
     __justifications = __justifications updated (rule.head, __justifications(rule.head) + rule)
 
     val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) + rule))

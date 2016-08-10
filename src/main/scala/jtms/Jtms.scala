@@ -42,7 +42,7 @@ trait Jtms {
 
   def factAtoms() = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
 
-  def allAtoms(): Predef.Set[Atom] = (rules flatMap (_.atoms)) toSet
+  def allAtoms(): Set[Atom] = (rules flatMap (_.atoms)) toSet
 
   def ruleHeads() = rules map (_.head) toSet
 
