@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val timesUpper = 5000
+  val timesUpper = 500
 
   val times = 1 to timesUpper
 
@@ -530,7 +530,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       }
 
     }
-
     
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
@@ -544,19 +543,16 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     }
   }
 
-
-
-
   val waux_d = Atom("waux_d")
   val waux_e = Atom("waux_e")
 
   test("streaming 1 sampling") {
-    test_streaming_1_sampling()
+    test_streaming_1_sampling(false)
   }
 
   test("performance streaming 1 sampling ") {
     //pending
-    performance_test(10,test_streaming_1_sampling)
+    performance_test(10,test_streaming_1_sampling())
   }
 
   def performance_test(loops: Int, testCode: => Any): Unit = {
@@ -578,9 +574,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     println("avg 1-"+loops+": "+((1.0*totalTime)/1000.0/(1.0*loops))+" sec per run")
   }
 
-  def test_streaming_1_sampling(): Unit = {
+  def test_streaming_1_sampling(doPrint: Boolean = false): Unit = {
 
     for (likelihood <- Seq(0.05, 0.1, 0.25, 0.5, 0.8, 0.95)) {
+
+      if (doPrint) println("selection likelihood: "+likelihood)
 
       val tms = JtmsLearn(AspProgram(
         AspRule(b, none, Set(c)), //b :- not c
@@ -613,7 +611,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
         //sampling part; always have one last d, resp. e
 
-        //print("\n"+t+": ")
+        //if (doPrint) print("\n"+t+": ")
 
         /*
           first add facts
@@ -673,7 +671,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
           eBefore = lastE
         }
 
-        //print("  " + m.getOrElse(None))
+        //if (doPrint) println("  " + m.getOrElse(None))
 
         val base = Set[Atom]() ++
           (if (lastD.isDefined) Set(lastD.get) else Set()) ++
@@ -699,19 +697,16 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       }
 
-      /*
-    println("\nstreaming likelihood d,e: "+likelihood)
-    println("noModel: " + noModel) // + " ("+((1.0*noModel)/(1.0*times))+")")
-    println("\nfailures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
-    */
-      //printAvoidanceMap(tms)
-
-      //println("\n\nfailures: " + failures)
-      //printAvoidanceMap(tms)
+      if (doPrint) {
+        //println("\nstreaming likelihood d,e: "+likelihood)
+        //printAvoidanceMap(tms)
+        println("\nnoModel: " + noModel) // + " ("+((1.0*noModel)/(1.0*times))+")")
+        println("failures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
+      }
 
     }
   }
-/* */
+
 
   test("streaming 2 analytic") {
 
@@ -872,15 +867,15 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("streaming 2 sampling") {
-    test_streaming_2_sampling()
+    test_streaming_2_sampling(false)
   }
 
   test("performance streaming 2 sampling") {
     pending
-    performance_test(10,test_streaming_2_sampling)
+    performance_test(10,test_streaming_2_sampling())
   }
 
-  def test_streaming_2_sampling(): Unit = {
+  def test_streaming_2_sampling(doPrint: Boolean=false): Unit = {
 
     val w5_a = Atom("w5_a") //\window^5 \Diamond a
     val w1_Box_b = Atom("w1_Box_b") //\window^1 \Box b
@@ -956,7 +951,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         }
       }
 
-      //println(t + ": " + m.getOrElse(None))
+      if (doPrint) print(t + ": " + m.getOrElse(None))
 
       //x | y | z.
       //x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
@@ -1002,11 +997,13 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
-    /*
-    printAvoidanceMap(tms)
-    println("\nfailures: "+failures)
-    println("\nnoModel:  "+noModel)
-    */
+    if (doPrint) {
+
+      printAvoidanceMap(tms)
+      println("\nfailures: "+failures)
+      println("\nnoModel:  "+noModel)
+
+    }
 
   }
 
