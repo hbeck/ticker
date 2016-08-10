@@ -1,7 +1,7 @@
 package jtms
 
 import core._
-import core.asp.{NormalProgram, NormalRule}
+import core.asp.NormalProgram
 
 import scala.collection.immutable.HashMap
 import scala.util.Random
@@ -22,11 +22,23 @@ object JtmsLearn {
  */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
+  /*
+
   case class State(rules: scala.collection.immutable.Set[NormalRule], status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
       sb.append("State[\n").append("  rules:  ").append(rules).append("\n")
           .append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
+      sb.toString
+    }
+  }
+
+  */
+
+  case class PartialState(status: Map[Atom, Status], support: Map[Atom, scala.collection.immutable.Set[Atom]]) {
+    override def toString: String = {
+      val sb = new StringBuilder
+      sb.append("State[\n").append("  status:  ").append(status).append("\n  support: ").append(support).append("]")
       sb.toString
     }
   }
@@ -67,10 +79,10 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   var selectedAtom: Option[Atom] = None
   var prevSelectedAtom: Option[Atom] = None
-  var state: Option[State] = None
-  var prevState: Option[State] = None
+  var state: Option[PartialState] = None
+  var prevState: Option[PartialState] = None
 
-  var avoidanceMap = new HashMap[State,Set[Atom]]()
+  var avoidanceMap = new HashMap[PartialState,Set[Atom]]()
 
   //
 
@@ -141,7 +153,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     super.invalidateModel()
   }
 
-  def updateAvoidanceMap(state: State, avoidAtom: Atom): Unit = {
+  def updateAvoidanceMap(state: PartialState, avoidAtom: Atom): Unit = {
 //    println("\nupdateAvoidanceMap:")
 //    println(state)
 //    println("avoid atom: "+avoidAtom+"\n")
@@ -208,7 +220,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   }
   */
 
-  def stateSnapshot(): Option[State] = {
+  def stateSnapshot(): Option[PartialState] = {
 
     // ugly hacks around mutability problems - todo
     val partialStatus: Map[Atom, Status] = {
@@ -229,7 +241,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
 
-    Some(State(dataIndependentRules.toSet,partialStatus,partialSupp))
+    Some(PartialState(partialStatus,partialSupp))
 
   }
 
