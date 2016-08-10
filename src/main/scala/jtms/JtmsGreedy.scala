@@ -56,7 +56,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     }
   }
 
-  def getOptUnknownOtherThan(atom: Option[Atom]): Option[Atom] = { //TODO improve
+  def getOptUnknownOtherThan(a: Option[Atom]): Option[Atom] = { //TODO improve
 
     val atoms = unknownAtoms
 
@@ -74,8 +74,8 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     val idx = if (shuffle) { util.Random.nextInt(list.size) } else 0
     val elem = list(idx)
 
-    if (atom == None) return Some(elem)
-    val elemToAvoid = atom.get
+    if (a == None) return Some(elem)
+    val elemToAvoid = a.get
     if (elem != elemToAvoid) return Some(elem)
     return list find (_ != elemToAvoid)
   }
@@ -112,16 +112,17 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
      */
   }
 
-  def chooseOut(a: Atom): Unit = {
-    status(a) = out
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"choose")
+  def chooseOut(atom: Atom): Unit = {
+    //status(a) = out
+    status = status.updated(atom,out)
+    if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"choose")
 
-    val maybeAtoms: Seq[Option[Atom]] = openJustifications(a) map { r => (r.pos find (status(_)==unknown)) }
+    val maybeAtoms: Seq[Option[Atom]] = openJustifications(atom) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach chooseOut //fix status of ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
     //where the negative body is out/unknown is
-    setOutSupport(a: Atom)
+    setOutSupport(atom: Atom)
   }
 
   //

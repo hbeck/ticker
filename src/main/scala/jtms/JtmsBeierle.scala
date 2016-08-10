@@ -5,8 +5,6 @@ import java.util
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 
-import scala.collection.mutable.Set
-
 object JtmsBeierle {
 
   def apply(P: NormalProgram): JtmsBeierle = {
@@ -51,7 +49,8 @@ class JtmsBeierle() extends JtmsAbstraction {
     //1
     register(rule)
     if (status(rule.head) == in) return
-    if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
+    //if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
+    if (invalid(rule)) { supp = supp.updated(rule.head, supp(rule.head)+findSpoiler(rule).get); return }
     //2
     if (step2(rule)) return
     //3 (first part)
@@ -91,7 +90,8 @@ class JtmsBeierle() extends JtmsAbstraction {
   }
 
   def step3(atom: Atom): Unit = {
-    status(atom) = unknown //vs setUnknown [!]
+    //status(atom) = unknown //vs setUnknown [!]
+    status = status.updated(atom,unknown)
   }
 
   //determine status
@@ -162,14 +162,16 @@ class JtmsBeierle() extends JtmsAbstraction {
       case Some(rule) => {
         if (!ACons(atom).isEmpty) {
           for (n <- ACons(atom) + atom) {
-            status(n) = unknown //vs setUnknown [!]
+            //status(n) = unknown //vs setUnknown [!]
+            status = status.updated(n,unknown)
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
           setIn(rule)
           for (n <- rule.neg) {
             if (status(n) == unknown) {
-              status(n) = out //vs setOutOriginal [!]; support never set!
+              //status(n) = out //vs setOutOriginal [!]; support never set!
+              status = status.updated(n,out)
             }
           }
           for (u <- unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
@@ -178,7 +180,8 @@ class JtmsBeierle() extends JtmsAbstraction {
         }
       }
       case None => { //all justifications(atom) are unfounded invalid
-        status(atom) = out
+        //status(atom) = out
+        status = status.updated(atom,out)
         for (rule <- justifications(atom)) {
           val n: Option[Atom] = rule.pos find (status(_) == unknown) //in general, rule.pos might be empty! [!]
           if (n.isEmpty) {
@@ -194,24 +197,18 @@ class JtmsBeierle() extends JtmsAbstraction {
   }
 
   //note: there is no such sub-procedure in the book!
-  override def setIn(rule: NormalRule) = {
-
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
-
-    status(rule.head) = in
-    supp(rule.head) = Set() ++ rule.body
-    suppRule(rule.head) = Some(rule)
-  }
-
-  //note: there is no such sub-procedure in the book!
   override def setOut(atom: Atom): Unit = {
 
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")
 
-    status(atom) = out
+    status = status.updated(atom,in)
     setOutSupport(atom)
 
+//    status(atom) = out
+//    setOutSupport(atom)
+
     //SuppRule(a) = None //is not set in beierle [!]
+
   }
 
   def DDBBeierleOriginal(n: Atom): Unit = {
@@ -247,7 +244,10 @@ class JtmsBeierle() extends JtmsAbstraction {
 
   override def register(a: Atom): Unit = {
     super.register(a)
-    if (!suppRule.isDefinedAt(a)) suppRule(a) = None
+    if (!suppRule.isDefinedAt(a)) {
+      suppRule = suppRule.updated(a,None)
+      //suppRule(a) = None
+    }
   }
 
   //ACons(a) = {x ∈ Cons(a) | a ∈ Supp(x)}
@@ -265,20 +265,24 @@ class JtmsBeierle() extends JtmsAbstraction {
 
   override def unregister(a: Atom): Unit = {
     super.unregister(a)
-    suppRule remove a
+    //suppRule remove a
+    suppRule = suppRule - a
   }
 
   override def setInSupport(a: Atom) = justifications(a) find foundedValid match {
     case Some(rule) => {
-      supp(a) = Set() ++ rule.body
-      suppRule(a) = Some(rule)
+      supp = supp.updated(a,rule.body)
+      suppRule = suppRule.updated(a,Some(rule))
+//      supp(a) = Set() ++ rule.body
+//      suppRule(a) = Some(rule)
     }
     case _ => throw new IncrementalUpdateFailureException()
   }
 
   override def setOutSupport(a: Atom) {
     super.setOutSupport(a)
-    suppRule(a) = None //not set in beierle, but relevant only for backtracking
+    //suppRule(a) = None //not set in beierle, but relevant only for backtracking
+    suppRule = suppRule.updated(a,None)
   }
 
   // -- from refactored implementation, not in use --

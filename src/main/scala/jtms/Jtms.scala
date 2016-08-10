@@ -4,7 +4,7 @@ import core._
 import core.asp.NormalRule
 
 import scala.annotation.tailrec
-import scala.collection.mutable.{Map,HashMap,Set}
+import scala.collection.immutable.HashMap
 
 /**
   * Created by hb on 6/10/16.
@@ -14,13 +14,13 @@ trait Jtms {
   //TODO hb do we still need the order?
   var rules: List[NormalRule] = List()
 
-  val cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
-  val status: Map[Atom, Status] = new HashMap[Atom, Status]
+  var cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  var supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
+  var status: Map[Atom, Status] = new HashMap[Atom, Status]
 
   //needed originally only in backtracking procedure, which is skipped
   //however, should give a benefit in remove, where many cases can be skipped
-  val suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
+  var suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
 
   def add(rule: NormalRule)
   def remove(rule: NormalRule)
@@ -61,7 +61,7 @@ trait Jtms {
 
   //note: this is implementation specific due to use case
   //(PinnedAtoms obtained after grounding, and only extensional atoms are pinned)
-  def extensional(atom: Atom) = pinned(atom)
+  def extensional(a: Atom) = pinned(a)
 
   def pinned(atom: Atom) = atom.isInstanceOf[PinnedAtom]
 

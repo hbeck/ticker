@@ -153,7 +153,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       map2.toMap
     }
     val partialSupp: Map[Atom, scala.collection.immutable.Set[Atom]] = {
-      val map1: scala.collection.Map[Atom, scala.collection.mutable.Set[Atom]] = supp filterKeys isStateAtom
+      val map1: scala.collection.Map[Atom, Set[Atom]] = supp filterKeys isStateAtom
       val map2 = scala.collection.mutable.Map[Atom, scala.collection.immutable.Set[Atom]]()
       for ((k,v) <- map1) {
         val set = v.toSet filter (!extensional(_))

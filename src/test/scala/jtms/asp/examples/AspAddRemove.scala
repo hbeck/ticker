@@ -21,7 +21,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("a :- b. b :- not c. c :- not d.") {
 
-    times foreach { _ =>
+    //times foreach { _ =>
 
       val r1 = AspRule(a, b)
       val r2 = AspRule(b, none, Set(c))
@@ -74,7 +74,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.remove(r3)
       assert(m == Set(b))
 
-    }
+    //}
   }
 
   test("remove case repercussion vs cons-star") {

@@ -3,7 +3,6 @@ package jtms
 import core.Atom
 import core.asp.NormalRule
 
-import scala.collection.mutable.Set //TODO this is now the exception; do not import
 import scala.util.Random
 
 /**
@@ -12,16 +11,16 @@ import scala.util.Random
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
   override def allAtoms() = _atomsCache
-  var _atomsCache: Predef.Set[Atom]= Predef.Set()
+  var _atomsCache: Set[Atom]= Set()
 
-  var _rulesLookupCache : Predef.Set[NormalRule] = Predef.Set()
+  var _rulesLookupCache : Set[NormalRule] = Set()
 
   override def justifications(a: Atom) = _justificationLookupCache(a)
   var _justificationLookupCache: Map[Atom, Seq[NormalRule]] = Map.empty.withDefaultValue(Seq())
 
   var _atomUsedByRuleCache : Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
-  def update(atoms: Predef.Set[Atom])
+  def update(atoms: Set[Atom])
 
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
@@ -36,7 +35,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
         return
       }
       if (invalid(rule)) {
-        supp(rule.head) += findSpoiler(rule).get; return
+        //supp(rule.head) += findSpoiler(rule).get; return
+        supp = supp.updated(rule.head,supp(rule.head)+findSpoiler(rule).get)
+        return
       }
       val atoms = (repercussions(rule.head) + rule.head).toSet
       update(atoms)
@@ -107,14 +108,17 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     rules = rules :+ rule
 
     _rulesLookupCache = _rulesLookupCache + rule
-    _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head):+ rule)
+    _justificationLookupCache = _justificationLookupCache updated (rule.head, _justificationLookupCache(rule.head) :+ rule)
 
     //TODO find more specific name:
     val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) + rule))
     _atomUsedByRuleCache = _atomUsedByRuleCache ++ updatedMappings
 
     rule.atoms foreach register
-    rule.body foreach (cons(_) += rule.head)
+    //rule.body foreach (cons(_) += rule.head)
+    rule.body foreach { atom =>
+      cons = cons.updated(atom, cons(atom)+rule.head)
+    }
     true
   }
 
@@ -122,10 +126,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (!status.isDefinedAt(a)) { //use this immediately as test whether the atom exists; all atoms need to have a status
       if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
       _atomsCache = _atomsCache + a
-      status(a) = out
-      cons(a) = Set[Atom]()
-      supp(a) = Set[Atom]()
-      suppRule(a) = None
+      status = status.updated(a,out)
+      cons = cons.updated(a,Set[Atom]())
+      supp = supp.updated(a,Set[Atom]())
+      suppRule = suppRule.updated(a,None)
+//      status(a) = out
+//      cons(a) = Set[Atom]()
+//      supp(a) = Set[Atom]()
+//      suppRule(a) = None
     }
   }
 
@@ -135,22 +143,31 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def setIn(rule: NormalRule) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
-    status(rule.head) = in
-    supp(rule.head) = Set() ++ rule.body
-    suppRule(rule.head) = Some(rule)
+    status = status.updated(rule.head,in)
+    supp = supp.updated(rule.head,rule.body)
+    suppRule = suppRule.updated(rule.head,Some(rule))
+//    status(rule.head) = in
+//    supp(rule.head) = Set() ++ rule.body
+//    suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
-    status(a) = out
+    status = status.updated(a,out)
     setOutSupport(a)
-    suppRule(a) = None
+    suppRule = suppRule.updated(a,None)
+//    status(a) = out
+//    setOutSupport(a)
+//    suppRule(a) = None
   }
 
   def setUnknown(a: Atom) = {
-    status(a) = unknown
-    supp(a) = Set()
-    suppRule(a) = None
+    status = status.updated(a,unknown)
+    supp = supp.updated(a,Set())
+    suppRule = suppRule.updated(a,None)
+//    status(a) = unknown
+//    supp(a) = Set()
+//    suppRule(a) = None
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -178,7 +195,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     rules = rules filter (_ != rule)
     _rulesLookupCache = _rulesLookupCache - rule
 
-    _justificationLookupCache = _justificationLookupCache updated (rule.head, justifications(rule.head) filter (_!= rule))
+    _justificationLookupCache = _justificationLookupCache updated (rule.head, _justificationLookupCache(rule.head) filter (_!= rule))
 
     //TODO more specific name
     val updatedMappings = rule.atoms map (a => (a, _atomUsedByRuleCache(a) - rule))
@@ -195,16 +212,21 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
     //efficiency - better use data structure
     if (!(justifications(rule.head) exists (_.body contains a))) {
-      cons(a) -= rule.head
+      //cons(a) -= rule.head
+      cons = cons.updated(a,cons(a)-rule.head)
     }
   }
 
   def unregister(a: Atom): Unit = {
     _atomsCache = _atomsCache - a
-    status remove a
-    cons remove a
-    supp remove a
-    suppRule remove a
+    status = status - a
+    cons = cons - a
+    supp = supp - a
+    suppRule = suppRule - a
+//    status remove a
+//    cons remove a
+//    supp remove a
+//    suppRule remove a
   }
 
   //
@@ -213,8 +235,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   override def set(model: collection.immutable.Set[Atom]): Boolean = {
     invalidateModel()
-    model foreach (status(_) = in)
-    (allAtoms diff model) foreach (status(_) = out)
+    //model foreach (status(_) = in)
+    model foreach { atom =>
+      status = status.updated(atom,in)
+    }
+    //(allAtoms diff model) foreach (status(_) = out)
+    (allAtoms diff model) foreach { atom =>
+      status = status.updated(atom,out)
+    }
     try {
       atomsNeedingSupp() foreach setSupport
     } catch {
@@ -230,12 +258,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status(a) match {
       case `in` => setInSupport(a)
       case `out` => setOutSupport(a)
-      case `unknown` => supp(a) = Set()
+      case `unknown` => supp = supp.updated(a,Set()) //supp(a) = Set()
     }
   }
 
   def setInSupport(a: Atom) = justifications(a) find valid match {
-    case Some(rule) => supp(a) = Set() ++ rule.body
+    case Some(rule) => supp = supp.updated(a,rule.body) //supp(a) = Set() ++ rule.body
     case _ => throw new IncrementalUpdateFailureException()
   }
 
@@ -244,7 +272,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
     }
-    supp(a) = Set() ++ maybeAtoms map (_.get)
+    //supp(a) = Set() ++ maybeAtoms map (_.get)
+    supp = supp.updated(a, Set() ++ maybeAtoms map (_.get))
   }
 
 }
