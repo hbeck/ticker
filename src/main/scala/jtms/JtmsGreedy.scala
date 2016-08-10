@@ -117,7 +117,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     status = status.updated(atom,out)
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"choose")
 
-    val maybeAtoms: Seq[Option[Atom]] = openJustifications(atom) map { r => (r.pos find (status(_)==unknown)) }
+    val maybeAtoms: Set[Option[Atom]] = openJustifications(atom) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach chooseOut //fix status of ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body

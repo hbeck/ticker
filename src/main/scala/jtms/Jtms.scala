@@ -11,8 +11,7 @@ import scala.collection.immutable.HashMap
   */
 trait Jtms {
 
-  //TODO hb do we still need the order?
-  var rules: List[NormalRule] = List()
+  var rules: Set[NormalRule] = Set()
 
   var cons: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
   var supp: Map[Atom, Set[Atom]] = new HashMap[Atom, Set[Atom]]
@@ -37,7 +36,7 @@ trait Jtms {
   var recordChoiceSeq = true
   var choiceSeq = Seq[Atom]()
 
-  def justifications(a: Atom):Seq[NormalRule] = rules filter (_.head == a)
+  def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
 
   def facts() = rules filter (_.isFact) toSet
 
@@ -51,7 +50,7 @@ trait Jtms {
 
   def underivableAtoms() = allAtoms diff ruleHeads
 
-  def dataIndependentRules(): List[NormalRule] = rules filter dataIndependentRule
+  def dataIndependentRules(): Set[NormalRule] = rules filter dataIndependentRule
 
   def dataIndependentRule(r: NormalRule): Boolean = {
     ! r.atoms.exists(pinned(_)) //include testing head for facts

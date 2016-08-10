@@ -69,8 +69,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
 
-  //var avoidanceMap = new HashMap[PartialState,Set[Atom]]()
-
   class AllRulesTabu() {
 
     var ruleMap: Map[Set[NormalRule],CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
