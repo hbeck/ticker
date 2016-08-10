@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val times = 1 to 1000
+  val times = 1 to 5000
 
   val n = Atom("n")
 
@@ -446,9 +446,6 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //set of rules at every time point and the naive concepts fails
   test("streaming 1 analytic") {
 
-    val waux_d = Atom("waux_d")
-    val waux_e = Atom("waux_e")
-
     val tms = JtmsLearn(AspProgram(
       AspRule(b, none, Set(c)), //b :- not c
       AspRule(c, none, Set(b)), //c :- not b
@@ -546,21 +543,45 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     }
   }
 
+
+
+
+  val waux_d = Atom("waux_d")
+  val waux_e = Atom("waux_e")
+
   test("streaming 1 sampling") {
+    test_streaming_1_sampling()
+  }
 
-    val waux_d = Atom("waux_d")
-    val waux_e = Atom("waux_e")
+  test("performance streaming 1 sampling ") {
+    performance_test(10,test_streaming_1_sampling)
+  }
 
-    val times = 1000
+  def performance_test(loops: Int, testCode: => Any): Unit = {
+    var totalTime: Long = 0
+    for (i <- 0 to loops) { //exclude first iteration from stats
+      val start = System.currentTimeMillis()
+      //
+      testCode
+      //
+      val end = System.currentTimeMillis()
+      val dur = (end-start)
+      println("run "+i+": "+((1.0*dur)/1000.0)+" sec")
+      if (i>0) {
+        totalTime += dur
+      }
+    }
+    println("totalTime: "+((1.0*totalTime)/1000.0/(1.0*loops))+" sec per run")
+  }
 
-    println(times+" runs each")
+  def test_streaming_1_sampling(): Unit = {
 
-    for (likelihood <- Seq(0.05,0.1,0.25,0.5,0.8,0.95)) {
+    for (likelihood <- Seq(0.05, 0.1, 0.25, 0.5, 0.8, 0.95)) {
 
       val tms = JtmsLearn(AspProgram(
         AspRule(b, none, Set(c)), //b :- not c
         AspRule(c, none, Set(b)), //c :- not b
-        AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+        AspRule(x, Set(a, b), Set(x)), // x :- a,b, not x
         AspRule(a, waux_d), //a <- \window^2 \Diamond d; add additional rules waux_d <- d(t) on the fly
         AspRule(b, waux_e) //b <- e; translating to  b <- \window^0 \Diamond e
       ))
@@ -571,54 +592,81 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       assert(tms.dataIndependentRules.toSet ==
         Set(AspRule(b, none, Set(c)),
           AspRule(c, none, Set(b)),
-          AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
+          AspRule(x, Set(a, b), Set(x)), // x :- a,b, not x
           AspRule(a, waux_d),
           AspRule(b, waux_e)))
 
       var lastD: Option[Atom] = None
       var lastE: Option[Atom] = None
+      var dBefore: Option[Atom] = None
+      var eBefore: Option[Atom] = None
 
       var failures = 0
 
       var noModel = 0 //counter for correct None returned model (due to inconsistency of program)
 
-      for (t <- 0 to times-1) {
-
-        // a <- \window^2 \Diamond d
-        // => add waux_d <- d(t), remove waux_d <- d(t-3)
-
-        val dRuleToAdd = AspRule(waux_d, d(t))
-        tms add dRuleToAdd
-
-        val dRuleToRemove = AspRule(waux_d, d(t - 3))
-        tms remove dRuleToRemove
-
-        // b <- \window^0 \Diamond e
-        // => add waux_e <- e(t), remove waux_e <- e(t-1)
-
-        val eRuleToAdd = AspRule(waux_e, e(t))
-        tms add eRuleToAdd
-
-        val eRuleToRemove = AspRule(waux_e, e(t - 1))
-        tms remove eRuleToRemove
+      times foreach { t =>
 
         //sampling part; always have one last d, resp. e
 
         //print("\n"+t+": ")
 
+        /*
+          first add facts
+         */
+
+        var replaceD = false
         if (tms.random.nextDouble() < likelihood) {
+          replaceD = true
           val fact: NormalFact = AspFact(d(t))
           //print(fact+" ")
           tms.add(fact)
-          if (lastD.isDefined) tms.remove(lastD.get)
+
           lastD = Some(fact.head)
         }
+        var replaceE = false
         if (tms.random.nextDouble() < likelihood) {
+          replaceE = true
           val fact: NormalFact = AspFact(e(t))
           //print(fact+" ")
           tms.add(fact)
-          if (lastE.isDefined) tms.remove(lastE.get)
           lastE = Some(fact.head)
+        }
+
+        /*
+          then add new rules
+         */
+
+        // a <- \window^2 \Diamond d
+        // => add waux_d <- d(t), remove waux_d <- d(t-3) (below)
+
+        val dRuleToAdd = AspRule(waux_d, d(t))
+        tms add dRuleToAdd
+
+        // b <- \window^0 \Diamond e
+        // => add waux_e <- e(t), remove waux_e <- e(t-1) (below)
+        val eRuleToAdd = AspRule(waux_e, e(t))
+        tms add eRuleToAdd
+
+        /*
+           then remove old rules
+         */
+        val dRuleToRemove = AspRule(waux_d, d(t - 3))
+        tms remove dRuleToRemove
+
+        val eRuleToRemove = AspRule(waux_e, e(t - 1))
+        tms remove eRuleToRemove
+
+        /*
+           and old facts
+         */
+        if (replaceD) {
+          if (dBefore.isDefined) tms.remove(dBefore.get)
+          dBefore = lastD
+        }
+        if (replaceE) {
+          if (eBefore.isDefined) tms.remove(eBefore.get)
+          eBefore = lastE
         }
 
         //print("  " + m.getOrElse(None))
@@ -647,9 +695,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       }
 
-      println("\nstreaming likelihood d,e: "+likelihood)
-      println("noModel: " + noModel) // + " ("+((1.0*noModel)/(1.0*times))+")")
-      println("\nfailures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
+      /*
+    println("\nstreaming likelihood d,e: "+likelihood)
+    println("noModel: " + noModel) // + " ("+((1.0*noModel)/(1.0*times))+")")
+    println("\nfailures: " + failures) // + " ("+((1.0*failures)/(1.0*times))+")")
+    */
       //printAvoidanceMap(tms)
 
       //println("\n\nfailures: " + failures)
@@ -657,7 +707,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
   }
-
+/* */
 
   test("streaming 2 analytic") {
 
@@ -818,13 +868,21 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   }
 
   test("streaming 2 sampling") {
+    test_streaming_2_sampling()
+  }
+
+  test("performance streaming 2 sampling") {
+    performance_test(10,test_streaming_2_sampling)
+  }
+
+  def test_streaming_2_sampling(): Unit = {
 
     val w5_a = Atom("w5_a") //\window^5 \Diamond a
     val w1_Box_b = Atom("w1_Box_b") //\window^1 \Box b
     val w2_Box_b = Atom("w2_Box_b") //\window^2 \Box b
     val w5_c = Atom("w5_c") //\window^5 \Diamond c
 
-    val tms = JtmsGreedy(AspProgram(
+    val tms = JtmsLearn(AspProgram(
       AspRule(x,none,Set(y,z)),
       AspRule(y,none,Set(x,z)),
       AspRule(z,none,Set(x,y)),
@@ -842,38 +900,15 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     var lastA: Option[Atom] = None
     var lastC: Option[Atom] = None
 
-    for (t <- 0 to 1000) {
+    times foreach { t =>
 
       //prepare x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
       //prepare y <- \window^1 \Box b
       //prepare n <- \window^2 \Box b, \window^5 \Diamond c, naf n
 
-      tms add AspRule(w5_a, a(t)) // w5_a <- a(t)
-      tms add AspRule(w5_c, c(t)) // w5_c <- c(t)
-      tms add AspRule(w1_Box_b, Set[Atom](b(t - 1), b(t))) //w1_Box_b <- b(t-1), b(t)
-      tms add AspRule(w2_Box_b, Set[Atom](b(t - 2), b(t - 1), b(t))) //w2_Box_b <- b(t-2), b(t-1), b(t)
-
-      tms remove AspRule(w5_a, Set[Atom](a(t - 6)))
-      tms remove AspRule(w5_c, Set[Atom](c(t - 6)))
-      tms remove AspRule(w1_Box_b, Set[Atom](b(t - 2), b(t - 1)))
-      tms remove AspRule(w2_Box_b, Set[Atom](b(t - 3), b(t - 2), b(t - 1)))
-
-      //removing data older than 10
-      if (t % 10 == 0) {
-        for (i <- 0 to 10) {
-          val tp = (t - 10) - i
-          for (atom <- Seq(a, b, c)) {
-            tms.remove(atom(tp))
-          }
-        }
-      }
-
-//      val timeA = getTime(lastA)
-//      if (timeA.isDefined && timeA.get <= (t-10)) lastA = None
-//
-//      val timeC = getTime(lastC)
-//      if (timeC.isDefined && timeC.get <= (t-10)) lastC = None
-
+      /*
+        1 add facts
+       */
       if (tms.random.nextDouble < 0.10) {
         tms.add(a(t))
         lastA = Some(a(t))
@@ -886,7 +921,37 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         tms.add(b(t))
       }
 
-      println(t + ": " + m.getOrElse(None))
+      /*
+        2. add rules
+       */
+
+      tms add AspRule(w5_a, a(t)) // w5_a <- a(t)
+      tms add AspRule(w5_c, c(t)) // w5_c <- c(t)
+      tms add AspRule(w1_Box_b, Set[Atom](b(t - 1), b(t))) //w1_Box_b <- b(t-1), b(t)
+      tms add AspRule(w2_Box_b, Set[Atom](b(t - 2), b(t - 1), b(t))) //w2_Box_b <- b(t-2), b(t-1), b(t)
+
+      /*
+        3. remove rules
+       */
+
+      tms remove AspRule(w5_a, Set[Atom](a(t - 6)))
+      tms remove AspRule(w5_c, Set[Atom](c(t - 6)))
+      tms remove AspRule(w1_Box_b, Set[Atom](b(t - 2), b(t - 1)))
+      tms remove AspRule(w2_Box_b, Set[Atom](b(t - 3), b(t - 2), b(t - 1)))
+
+      /*
+         4. remove old data
+       */
+      if (t % 10 == 0) {
+        for (i <- 0 to 10) {
+          val tp = (t - 10) - i
+          for (atom <- Seq(a, b, c)) {
+            tms.remove(atom(tp))
+          }
+        }
+      }
+
+      //println(t + ": " + m.getOrElse(None))
 
       //x | y | z.
       //x <- \window^5 \Diamond a, \naf \window^5 \Diamond c
@@ -898,7 +963,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
           val bSet: Set[Atom] = Set(b(t),b(t-1),b(t-2))
           if (bSet.forall(a => tms.factAtoms.contains(a))) {
             noModel += 1
-            println("\n\t"+tms.factAtoms)
+            //println("\n\t"+tms.factAtoms)
           } else {
             failures += 1
           }
@@ -932,9 +997,11 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     }
 
+    /*
     printAvoidanceMap(tms)
     println("\nfailures: "+failures)
     println("\nnoModel:  "+noModel)
+    */
 
   }
 

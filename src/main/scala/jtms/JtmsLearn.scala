@@ -90,9 +90,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): Option[State] = {
 
     //skip facts! - for asp the are irrelevant, for tms they change based on time - no stable basis
-
-    //val atoms = (inAtoms union outAtoms) filter (!isExtensional(_))
-
     def stateAtom(a: Atom) = (status(a) == in || status(a) == out) && !extensional(a)
 
     // ugly hacks around mutability problems - todo

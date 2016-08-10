@@ -29,7 +29,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (inconsistent) {
       update(unknownAtoms()+rule.head)
     } else {
-      if (status(rule.head) == in) return
+      if (status(rule.head) == in) {
+        if (valid(rule)) { //difference to original; optimization for sliding time-based window (support always by latest)
+          setIn(rule)
+        }
+        return
+      }
       if (invalid(rule)) {
         supp(rule.head) += findSpoiler(rule).get; return
       }

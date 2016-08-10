@@ -11,6 +11,14 @@ sealed trait Atom extends HeadAtom {
   def arity = 0
 
   def isGround(): Boolean
+
+  /*
+  //convenience for testing TODO review
+  def apply(int: Int): Atom = PinnedAtom(this,TimePoint(int))
+
+  //TODO
+  def apply(s: String): Atom = Predicate(s)
+  */
 }
 
 trait GroundAtom extends Atom
