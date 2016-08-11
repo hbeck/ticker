@@ -25,7 +25,8 @@ object ParallelLanesEvaluation {
       val allOptions = Seq(
         Seq("tms", "greedy"),
         Seq("tms", "doyle"),
-        Seq("clingo", "push")
+        Seq("tms", "learn")
+//        Seq("clingo", "push")
       )
 
       val allResults = allOptions map (o => evaluate(o.toArray))

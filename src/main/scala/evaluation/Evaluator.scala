@@ -6,7 +6,7 @@ import engine.EvaluationEngine
 import engine.asp.oneshot.EvaluationMode
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
-import jtms.{JtmsDoyle, JtmsGreedy}
+import jtms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -44,6 +44,8 @@ object Evaluator {
         return Some(greedyTms(program))
       } else if (evaluationModifier == "doyle") {
         return Some(doyleTms(program))
+      } else if(evaluationModifier=="learn"){
+        return Some(learnTms(program))
       }
     } else if (evaluationType == "clingo") {
       if (evaluationModifier == "push") {
@@ -66,6 +68,12 @@ object Evaluator {
 
   def doyleTms(program: LarsProgram) = {
     val tms = JtmsDoyle(new Random(1))
+
+    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+  }
+
+  def learnTms(program: LarsProgram) = {
+    val tms = new JtmsLearn(new Random(1))
 
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
