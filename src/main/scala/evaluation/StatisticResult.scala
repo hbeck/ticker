@@ -46,3 +46,6 @@ object StatisticResult {
       StatisticResult(executionTimes)
   }
 }
+
+case class ConfigurationResult(instanceCaption:String, appendResult:StatisticResult, evaluateResult:StatisticResult)
+case class AlgorithmResult(caption: String, runs:Seq[ConfigurationResult])
