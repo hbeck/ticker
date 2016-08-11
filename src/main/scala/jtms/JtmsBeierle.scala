@@ -91,7 +91,8 @@ class JtmsBeierle() extends JtmsAbstraction {
 
   def step3(atom: Atom): Unit = {
     //status(atom) = unknown //vs setUnknown [!]
-    status = status.updated(atom,unknown)
+    //status = status.updated(atom,unknown)
+    __updateStatus(atom, unknown)
   }
 
   //determine status
@@ -163,7 +164,8 @@ class JtmsBeierle() extends JtmsAbstraction {
         if (!ACons(atom).isEmpty) {
           for (n <- ACons(atom) + atom) {
             //status(n) = unknown //vs setUnknown [!]
-            status = status.updated(n,unknown)
+            //status = status.updated(n,unknown)
+            __updateStatus(n, unknown)
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
@@ -171,7 +173,8 @@ class JtmsBeierle() extends JtmsAbstraction {
           for (n <- rule.neg) {
             if (status(n) == unknown) {
               //status(n) = out //vs setOutOriginal [!]; support never set!
-              status = status.updated(n,out)
+              //status = status.updated(n,out)
+              __updateStatus(n, out)
             }
           }
           for (u <- unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
@@ -181,7 +184,8 @@ class JtmsBeierle() extends JtmsAbstraction {
       }
       case None => { //all justifications(atom) are unfounded invalid
         //status(atom) = out
-        status = status.updated(atom,out)
+        //status = status.updated(atom,out)
+        __updateStatus(atom, out)
         for (rule <- justifications(atom)) {
           val n: Option[Atom] = rule.pos find (status(_) == unknown) //in general, rule.pos might be empty! [!]
           if (n.isEmpty) {
@@ -201,7 +205,8 @@ class JtmsBeierle() extends JtmsAbstraction {
 
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")
 
-    status = status.updated(atom,in)
+    //status = status.updated(atom,out)
+    __updateStatus(atom, out)
     setOutSupport(atom)
 
 //    status(atom) = out
