@@ -20,11 +20,13 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __statusMap: Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
 
+  /*
   override def inAtoms() = __statusMap(in)
 
   override def outAtoms(): Set[Atom] = __statusMap(out)
 
   override def unknownAtoms(): Set[Atom] = __statusMap(unknown)
+  */
 
   def update(atoms: Set[Atom])
 
