@@ -18,6 +18,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
+  var __statusMap :Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
+
+  override def inAtoms =__statusMap(in)
+
+  override def outAtoms(): Set[Atom] = __statusMap(out)
+
+  override def unknownAtoms(): Set[Atom] = __statusMap(unknown)
+
   def update(atoms: Set[Atom])
 
   //based on JTMS update algorithm
@@ -128,6 +136,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
       __allAtoms = __allAtoms + a
       status = status.updated(a,out)
+      __statusMap = __statusMap.updated(out, __statusMap(out)+a)
+
       cons = cons.updated(a,Set[Atom]())
       supp = supp.updated(a,Set[Atom]())
       suppRule = suppRule.updated(a,None)
@@ -144,7 +154,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def setIn(rule: NormalRule) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
-    status = status.updated(rule.head,in)
+    __updateStatus(rule.head, in)
     supp = supp.updated(rule.head,rule.body)
     suppRule = suppRule.updated(rule.head,Some(rule))
 //    status(rule.head) = in
@@ -154,7 +164,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
-    status = status.updated(a,out)
+    __updateStatus(a, out)
+
     setOutSupport(a)
     suppRule = suppRule.updated(a,None)
 //    status(a) = out
@@ -163,12 +174,20 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setUnknown(a: Atom) = {
-    status = status.updated(a,unknown)
+    __updateStatus(a, unknown)
     supp = supp.updated(a,Set())
     suppRule = suppRule.updated(a,None)
 //    status(a) = unknown
 //    supp(a) = Set()
 //    suppRule(a) = None
+  }
+
+  def __updateStatus(a:Atom, newStatus:Status): Unit ={
+    val oldStatus = status(a)
+    status = status.updated(a,newStatus)
+
+    __statusMap = __statusMap.updated(newStatus, __statusMap(newStatus)+a)
+    __statusMap = __statusMap.updated(oldStatus,__statusMap(oldStatus)-a)
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -218,7 +237,10 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def unregister(a: Atom): Unit = {
     __allAtoms = __allAtoms - a
+    val oldStatus = status(a)
+    __statusMap = __statusMap.updated(oldStatus,__statusMap(oldStatus)-a)
     status = status - a
+
     cons = cons - a
     supp = supp - a
     suppRule = suppRule - a
