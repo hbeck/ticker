@@ -30,8 +30,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     // TODO: make it nicer
     val extensionalAtoms = pin.ground(pin.atoms(atoms))
 
-    tmsPolicy.add(time)(groundedRules ++ extensionalAtoms)
+    val add = tmsPolicy.add(time)_
+
+    // separating the calls ensures maximum on support for rules
+    add(extensionalAtoms.toSeq)
+    add(groundedRules)
+
     val model = tmsPolicy.getModel(time)
+
     // we never remove extensional atoms explicitly (the policy might do it)
     tmsPolicy.remove(time)(groundedRules)
 
