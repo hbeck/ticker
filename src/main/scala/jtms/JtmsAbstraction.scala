@@ -18,9 +18,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
-  var __statusMap :Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
+  var __statusMap: Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
 
-  override def inAtoms =__statusMap(in)
+  override def inAtoms() = __statusMap(in)
 
   override def outAtoms(): Set[Atom] = __statusMap(out)
 
@@ -31,7 +31,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
     register(rule)
-    if (inconsistent) {
+    if (inconsistent()) {
       update(unknownAtoms()+rule.head)
     } else {
       if (status(rule.head) == in) {
@@ -45,14 +45,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
         supp = supp.updated(rule.head,supp(rule.head)+findSpoiler(rule).get)
         return
       }
-      val atoms = (repercussions(rule.head) + rule.head).toSet
+      val atoms = repercussions(rule.head) + rule.head
       update(atoms)
     }
   }
 
   override def remove(rule: NormalRule): Unit = {
     unregister(rule)
-    if (inconsistent) {
+    if (inconsistent()) {
       val h = if (allAtoms contains rule.head) Set(rule.head) else Set()
       update(unknownAtoms()++h)
     } else {
@@ -60,7 +60,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       if (status(rule.head) == out) return
       //this should save some time!:
       if (suppRule(rule.head).isDefined && suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
-      val atoms = (repercussions(rule.head) + rule.head).toSet
+      val atoms = repercussions(rule.head) + rule.head
       update(atoms)
     }
   }
@@ -76,9 +76,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     Some(atoms)
   }
 
-  def inconsistent(): Boolean = {
-    !unknownAtoms.isEmpty
-  }
+  def inconsistent(): Boolean = unknownAtoms().nonEmpty
 
   //
   //  update sub-procedures
@@ -134,7 +132,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def register(a: Atom) {
     if (!status.isDefinedAt(a)) { //use this immediately as test whether the atom exists; all atoms need to have a status
       if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
+
       __allAtoms = __allAtoms + a
+
       status = status.updated(a,out)
       __statusMap = __statusMap.updated(out, __statusMap(out)+a)
 
@@ -165,7 +165,6 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
     __updateStatus(a, out)
-
     setOutSupport(a)
     suppRule = suppRule.updated(a,None)
 //    status(a) = out
@@ -187,7 +186,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status = status.updated(a,newStatus)
 
     __statusMap = __statusMap.updated(newStatus, __statusMap(newStatus)+a)
-    __statusMap = __statusMap.updated(oldStatus,__statusMap(oldStatus)-a)
+    __statusMap = __statusMap.updated(oldStatus, __statusMap(oldStatus)-a)
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -237,10 +236,11 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def unregister(a: Atom): Unit = {
     __allAtoms = __allAtoms - a
+
     val oldStatus = status(a)
     __statusMap = __statusMap.updated(oldStatus,__statusMap(oldStatus)-a)
-    status = status - a
 
+    status = status - a
     cons = cons - a
     supp = supp - a
     suppRule = suppRule - a
@@ -258,11 +258,13 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     invalidateModel()
     //model foreach (status(_) = in)
     model foreach { atom =>
-      status = status.updated(atom,in)
+      //status = status.updated(atom,in)
+      __updateStatus(atom,in)
     }
     //(allAtoms diff model) foreach (status(_) = out)
     (allAtoms diff model) foreach { atom =>
-      status = status.updated(atom,out)
+      //status = status.updated(atom,out)
+      __updateStatus(atom,out)
     }
     try {
       atomsNeedingSupp() foreach setSupport
@@ -289,7 +291,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setOutSupport(a: Atom) {
-    val maybeAtoms: Set[Option[Atom]] = justifications(a) map (findSpoiler(_))
+    val maybeAtoms: Set[Option[Atom]] = justifications(a) map findSpoiler
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
     }

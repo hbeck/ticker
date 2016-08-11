@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val timesUpper = 500
+  val timesUpper = 2
 
   val times = 1 to timesUpper
 
@@ -576,6 +576,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   def test_streaming_1_sampling(doPrint: Boolean = false): Unit = {
 
+    var totalFailures = 0
+    var totalNoModel = 0
+
     for (likelihood <- Seq(0.05, 0.1, 0.25, 0.5, 0.8, 0.95)) {
 
       if (doPrint) println("selection likelihood: "+likelihood)
@@ -697,6 +700,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
       }
 
+      totalFailures += failures
+      totalNoModel += noModel
+
       if (doPrint) {
         //println("\nstreaming likelihood d,e: "+likelihood)
         //printAvoidanceMap(tms)
@@ -705,6 +711,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       }
 
     }
+
+    println("\ntotal failures: "+totalFailures)
+    println("\ntotal noModal: "+totalNoModel)
   }
 
 

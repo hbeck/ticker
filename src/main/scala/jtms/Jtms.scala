@@ -24,8 +24,8 @@ trait Jtms {
   def add(rule: NormalRule)
   def remove(rule: NormalRule)
   //def recompute() //TODO
-  def getModel(): Option[collection.immutable.Set[Atom]]
-  def set(model: collection.immutable.Set[Atom]): Boolean
+  def getModel(): Option[Set[Atom]]
+  def set(model: Set[Atom]): Boolean
 
   //
 
@@ -74,7 +74,7 @@ trait Jtms {
   def outAtoms() = allAtoms filter (status(_) == out)
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
 
-  def hasUnknown = allAtoms exists (status(_) == unknown)
+  def hasUnknown() = allAtoms exists (status(_) == unknown)
 
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
   def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)

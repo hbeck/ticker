@@ -24,7 +24,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   var doJtmsSemanticsCheck = false //for debugging
   var shuffle = true
 
-  override def update(atoms: Predef.Set[Atom]) {
+  override def update(atoms: Set[Atom]) {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
@@ -43,7 +43,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   }
 
-  def updateGreedy(atoms: Predef.Set[Atom]) {
+  def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
     while (hasUnknown) {
