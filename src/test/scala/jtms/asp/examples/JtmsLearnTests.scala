@@ -16,7 +16,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   val none = Set[Atom]()
 
-  val timesUpper = 2
+  val timesUpper = 500
 
   val times = 1 to timesUpper
 
@@ -713,7 +713,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     }
 
     println("\ntotal failures: "+totalFailures)
-    println("\ntotal noModal: "+totalNoModel)
+    //println("total noModel: "+totalNoModel)
   }
 
 

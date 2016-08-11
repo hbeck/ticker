@@ -56,7 +56,7 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     }
   }
 
-  def getOptUnknownOtherThan(a: Option[Atom]): Option[Atom] = { //TODO improve
+  def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = { //TODO improve
 
     val atoms = unknownAtoms
 
@@ -71,11 +71,12 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     }
 
     val list = List[Atom]() ++ atoms
-    val idx = if (shuffle) { util.Random.nextInt(list.size) } else 0
+    val idx = if (shuffle) { random.nextInt(list.size) } else 0
     val elem = list(idx)
 
-    if (a == None) return Some(elem)
-    val elemToAvoid = a.get
+    if (avoid == None) return Some(elem)
+
+    val elemToAvoid = avoid.get
     if (elem != elemToAvoid) return Some(elem)
     return list find (_ != elemToAvoid)
   }
