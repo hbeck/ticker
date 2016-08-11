@@ -18,15 +18,15 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
-  var __statusMap: Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
+  var __atomsWithStatus: Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
 
-  /*
-  override def inAtoms() = __statusMap(in)
+  override def inAtoms() = __atomsWithStatus(in)
 
-  override def outAtoms(): Set[Atom] = __statusMap(out)
+  override def outAtoms(): Set[Atom] = __atomsWithStatus(out)
 
-  override def unknownAtoms(): Set[Atom] = __statusMap(unknown)
-  */
+  override def unknownAtoms(): Set[Atom] = __atomsWithStatus(unknown)
+
+  override def hasUnknown(): Boolean = unknownAtoms().nonEmpty
 
   def update(atoms: Set[Atom])
 
@@ -74,7 +74,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
     val atoms = inAtoms()
     if (atoms exists contradictionAtom) return None //not dealt with; left for old test-cases
-    if (hasUnknown) return None
+    if (hasUnknown()) return None
     Some(atoms)
   }
 
@@ -138,7 +138,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       __allAtoms = __allAtoms + a
 
       status = status.updated(a,out)
-      __statusMap = __statusMap.updated(out, __statusMap(out)+a)
+      __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out)+a)
 
       cons = cons.updated(a,Set[Atom]())
       supp = supp.updated(a,Set[Atom]())
@@ -183,12 +183,16 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 //    suppRule(a) = None
   }
 
-  def __updateStatus(a:Atom, newStatus:Status): Unit ={
-    val oldStatus = status(a)
-    status = status.updated(a,newStatus)
+  def __updateStatus(a:Atom, newStatus:Status): Unit = {
 
-    __statusMap = __statusMap.updated(newStatus, __statusMap(newStatus)+a)
-    __statusMap = __statusMap.updated(oldStatus, __statusMap(oldStatus)-a)
+    val oldStatus = status(a)
+
+    if (oldStatus != newStatus) {
+      status = status.updated(a, newStatus)
+      __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
+      __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
+    }
+
   }
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
@@ -240,7 +244,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     __allAtoms = __allAtoms - a
 
     val oldStatus = status(a)
-    __statusMap = __statusMap.updated(oldStatus,__statusMap(oldStatus)-a)
+    __atomsWithStatus = __atomsWithStatus.updated(oldStatus,__atomsWithStatus(oldStatus)-a)
 
     status = status - a
     cons = cons - a

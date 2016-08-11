@@ -113,9 +113,11 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   }
 
   def chooseOut(atom: Atom): Unit = {
-    //status(a) = out
-    status = status.updated(atom,out)
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"choose")
+
+    //status(a) = out
+    //status = status.updated(atom,out)
+    __updateStatus(atom,out)
 
     val maybeAtoms: Set[Option[Atom]] = openJustifications(atom) map { r => (r.pos find (status(_)==unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)

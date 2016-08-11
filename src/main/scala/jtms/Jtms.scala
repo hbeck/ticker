@@ -73,7 +73,6 @@ trait Jtms {
   def inAtoms() = allAtoms filter (status(_) == in)
   def outAtoms() = allAtoms filter (status(_) == out)
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
-
   def hasUnknown() = allAtoms exists (status(_) == unknown)
 
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
