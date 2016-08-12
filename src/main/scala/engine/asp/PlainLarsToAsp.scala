@@ -50,6 +50,7 @@ object PlainLarsToAsp {
   def nameFor(window: WindowAtom) = {
     val windowFunction = window.windowFunction match {
       case SlidingTimeWindow(size) => f"w_te_$size"
+      case SlidingTupleWindow(size) => f"w_tu_$size"
     }
     val operator = window.temporalModality match {
       case Diamond => "d"
@@ -73,7 +74,9 @@ object PlainLarsToAsp {
   }
 
   def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
-    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
+    val generatedAtoms = windowAtom.windowFunction match {
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
+    }
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
 
@@ -83,7 +86,10 @@ object PlainLarsToAsp {
   def rulesForDiamond(windowAtom: WindowAtom): Set[PinnedRule] = {
     val h = head(windowAtom)
 
-    val generatedAtoms = generateAtomsOfT(windowAtom.windowFunction, windowAtom.atom, T)
+    val generatedAtoms = windowAtom.windowFunction match {
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
+      case SlidingTupleWindow(size) => generateAtomsOfT(size, tupleReference(windowAtom.atom), size)
+    }
 
     val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
 
@@ -104,7 +110,9 @@ object PlainLarsToAsp {
 
     val atomAtTime = windowAtom.atom(timePoint)
 
-    val nowAtoms = generateAtomsOfT(windowAtom.windowFunction, now, timePoint)
+    val nowAtoms = windowAtom.windowFunction match {
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint)
+    }
 
     val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
 
@@ -115,7 +123,9 @@ object PlainLarsToAsp {
     val reachAtom = Atom("reach_" + nameFor(windowAtom))
 
     // we need the reach atom in the form of atom(T-k,T)
-    val reachAtoms = generateAtomsOfT(windowAtom.windowFunction, reachAtom, T) map (a => a(T))
+    val reachAtoms = windowAtom.windowFunction match {
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T) map (a => a(T))
+    }
 
     val reachRules = reachAtoms map (r => AspRule(r, Set(now(T))))
 
@@ -138,13 +148,11 @@ object PlainLarsToAsp {
     }
   }
 
+  def tupleReference(atom: Atom) = Atom(atom.toString + "_TUPLE")
+
   def head(atom: WindowAtom) = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowFunction: WindowFunction, atom: Atom, referenceTime: Time): Set[PinnedAtom] = {
-    val windowSize: Long = windowFunction match {
-      case SlidingTimeWindow(size) => size
-    }
-
+  def generateAtomsOfT(windowSize: Long, atom: Atom, referenceTime: Time): Set[PinnedAtom] = {
     // TODO: current implementation of (... to ...) only works with integer
     val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet

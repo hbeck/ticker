@@ -42,4 +42,9 @@ class NameForSpec extends TransformLarsSpec {
     val window = WindowAtom(SlidingTimeWindow(2), Diamond, b("1"))
     assert(PlainLarsToAsp.nameFor(window) == "w_te_2_d_b")
   }
+
+  "The name for window-atom w_#^1 d b" should "be w_tu_2_d_b" in{
+    val window = WindowAtom(SlidingTupleWindow(2), Diamond, b)
+    assert(PlainLarsToAsp.nameFor(window) == "w_tu_2_d_b")
+  }
 }
