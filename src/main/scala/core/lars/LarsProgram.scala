@@ -13,7 +13,9 @@ case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[
 
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom]
 
-case class LarsProgram(rules: Seq[LarsRule])
+case class LarsProgram(rules: Seq[LarsRule]) {
+  lazy val atoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
+}
 
 object LarsProgram {
   // apply won't work as we have the same signature as the case class :-/

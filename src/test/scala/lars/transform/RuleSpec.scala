@@ -49,4 +49,10 @@ class RuleSpec extends TransformLarsSpec {
 
     PlainLarsToAsp(r) should have size 3
   }
+
+  "A rule containing a window atom aˆ0 d a" should "be transformed into 2 rules" in {
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(0), Diamond, a)))
+
+    PlainLarsToAsp(r) should have size 2
+  }
 }

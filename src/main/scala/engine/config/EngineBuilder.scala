@@ -21,7 +21,10 @@ object BuildEngine {
 }
 
 case class EngineEvaluationConfiguration(program: LarsProgram) {
-  def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(program))
+
+  val sanitizer = SanitizeLarsProgram(program)
+
+  def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(sanitizer.sanitizedProgram))
 
   def useIncremental() = {
     //TODO
