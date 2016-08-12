@@ -7,3 +7,4 @@ sealed trait WindowFunction
 
 
 case class SlidingTimeWindow(windowSize: WindowSize) extends WindowFunction
+case class SlidingTupleWindow(windowSize: WindowSize) extends WindowFunction

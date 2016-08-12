@@ -49,7 +49,7 @@ object PlainLarsToAsp {
 
   def nameFor(window: WindowAtom) = {
     val windowFunction = window.windowFunction match {
-      case SlidingTimeWindow(size) => f"w_$size"
+      case SlidingTimeWindow(size) => f"w_te_$size"
     }
     val operator = window.temporalModality match {
       case Diamond => "d"

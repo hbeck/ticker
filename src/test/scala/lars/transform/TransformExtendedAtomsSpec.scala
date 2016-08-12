@@ -23,22 +23,22 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
     assert(PlainLarsToAsp(AtAtom(t1, a("1"))) == a("1", t1))
   }
 
-  "The window-atom wˆ1 d a" should "be transformed into w_1_d_a(T)" in {
+  "The window-atom wˆ1 d a" should "be transformed into w_te_1_d_a(T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), Diamond, a)
-    assert(PlainLarsToAsp(window) == Atom("w_1_d_a")(T))
+    assert(PlainLarsToAsp(window) == Atom("w_te_1_d_a")(T))
   }
-  "The window-atom wˆ1 b a(1)" should "be transformed into w_1_b_a(1,T)" in {
+  "The window-atom wˆ1 b a(1)" should "be transformed into w_te__b_a(1,T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), Box, a("1"))
-    assert(PlainLarsToAsp(window) == Atom("w_1_b_a")("1", T.toString))
+    assert(PlainLarsToAsp(window) == Atom("w_te_1_b_a")("1", T.toString))
   }
-  "The window-atom wˆ1 at_1 a" should "be transformed into w_1_at_1_a(T)" in {
+  "The window-atom wˆ1 at_1 a" should "be transformed into w_te_1_at_1_a(T)" in {
     val window = WindowAtom(SlidingTimeWindow(1), At(t1), a)
-    assert(PlainLarsToAsp(window) == Atom("w_1_at_1_a")(T))
+    assert(PlainLarsToAsp(window) == Atom("w_te_1_at_1_a")(T))
   }
-  "The window-atom wˆ1 at_U a" should "be transformed into w_1_at_U_a(U, T)" in {
+  "The window-atom wˆ1 at_U a" should "be transformed into w_te_1_at_U_a(U, T)" in {
     val U = TimeVariableWithOffset("U")
     val window = WindowAtom(SlidingTimeWindow(1), At(U), a)
-    assert(PlainLarsToAsp(window) == Atom("w_1_at_U_a")(U)(T))
+    assert(PlainLarsToAsp(window) == Atom("w_te_1_at_U_a")(U)(T))
   }
 
   "An head-atom with a time-variable as last argument" should "not be transformed" in {
