@@ -6,6 +6,8 @@ import fixtures.AtomTestFixture
 import jtms.{Jtms, JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
+import scala.collection.immutable.HashMap
+
 /**
   * Created by hb on 2016-07-31
   */
@@ -383,6 +385,75 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       assert(m contains reach(a, e))
 
       tms.remove(blocked(b, e))
+
+    }
+  }
+
+  test("reach sampling") {
+    test_reach_sampling()
+  }
+
+  test("performance reach sampling") {
+    pending
+    performance_test(10,test_reach_sampling())
+  }
+
+  def test_reach_sampling():Unit = {
+
+    val tms = new JtmsLearn()
+
+    val a = "a"
+    val b = "b"
+    val c = "c"
+    val d = "d"
+    val e = "e"
+    def edge(x: String, y: String) = Atom("edge(" + x + "," + y + ")")
+    def reach(x: String, y: String) = Atom("reach(" + x + "," + y + ")")
+    def blocked(x: String, y: String) = Atom("blocked(" + x + "," + y + ")")
+
+    tms.add(edge(a, b))
+    tms.add(edge(b, c))
+    tms.add(edge(c, d))
+    tms.add(edge(d, e))
+    tms.add(edge(b, e))
+
+    val C = List(a, b, c, d, e)
+    //reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+    for (x <- C) {
+      for (y <- C) {
+        val r = AspRule(reach(x, y), Set(edge(x, y)), Set(blocked(x, y)))
+        tms.add(r)
+        //println(r)
+      }
+    }
+    //reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    for (x <- C) {
+      for (y <- C) {
+        for (z <- C) {
+          val r = AspRule(reach(x, y), Set(reach(x, z), edge(z, y)), Set(blocked(z, y)))
+          tms.add(r)
+          //println(r)
+        }
+      }
+    }
+
+    def m = tms.getModel.get
+
+    val atom: Map[Int,String] = new HashMap[Int,String]() + (0 -> "a") + (1 -> "b") + (2 -> "c") + (3 -> "d") +(4 -> "e")
+
+    times foreach { _ =>
+
+      /* edge(a,b). edge(b,c). edge(c,d). edge(d,e). edge(b,e).
+         reach(X,Y) :- edge(X,Y), not blocked(X,Y).
+         reach(X,Y) :- reach(X,Z), edge(Z,Y), not blocked(Z,Y).
+    */
+
+      val n1 = tms.random.nextInt(5)
+      val diff = 4-n1
+      val n2 = n1 + tms.random.nextInt(diff+1)
+
+      if (tms.random.nextDouble < 0.5) tms add blocked(atom(n1),atom(n2))
+      else tms add blocked(atom(n1), atom(n2))
 
     }
   }
