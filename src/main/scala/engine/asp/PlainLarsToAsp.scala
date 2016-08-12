@@ -76,6 +76,7 @@ object PlainLarsToAsp {
   def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
     val generatedAtoms = windowAtom.windowFunction match {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
+      case SlidingTupleWindow(size) => generateAtomsOfT(size, tupleReference(windowAtom.atom), size)
     }
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
