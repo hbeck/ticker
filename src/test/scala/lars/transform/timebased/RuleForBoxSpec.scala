@@ -1,7 +1,8 @@
-package lars.transform
+package lars.transform.timebased
 
 import core.lars.{Box, SlidingTimeWindow, WindowAtom}
 import engine.asp.PlainLarsToAsp
+import lars.transform.TransformLarsSpec
 import org.scalatest.Matchers._
 
 

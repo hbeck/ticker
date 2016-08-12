@@ -1,8 +1,9 @@
-package lars.transform
+package lars.transform.timebased
 
 import core.AtomWithArgument
 import core.lars._
 import engine.asp.PlainLarsToAsp
+import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
