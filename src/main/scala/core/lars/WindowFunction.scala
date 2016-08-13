@@ -5,6 +5,10 @@ package core.lars
   */
 sealed trait WindowFunction
 
+sealed trait SlidingWindow extends WindowFunction {
+  val windowSize: WindowSize
+}
 
-case class SlidingTimeWindow(windowSize: WindowSize) extends WindowFunction
-case class SlidingTupleWindow(windowSize: WindowSize) extends WindowFunction
+case class SlidingTimeWindow(windowSize: WindowSize) extends SlidingWindow
+
+case class SlidingTupleWindow(windowSize: WindowSize) extends SlidingWindow

@@ -27,7 +27,7 @@ class RuleForDiamondSpec extends TransformLarsSpec {
   it should "contain a_TUPLE(0) for one element" in {
     forExactly(1, PlainLarsToAsp.rulesForDiamond(w_tu_1_d_a)) { rule => rule.body should contain(a_TUPLE(0)) }
   }
-  it should "contain a(1)" in {
+  it should "contain a_TUPLE(1)" in {
     forExactly(1, PlainLarsToAsp.rulesForDiamond(w_tu_1_d_a)) { rule => rule.body should contain(a_TUPLE(1)) }
   }
 

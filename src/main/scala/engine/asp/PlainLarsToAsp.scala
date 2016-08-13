@@ -78,7 +78,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+        (0 to size.toInt) map (rAtom(_)) toSet
       }
     }
 
@@ -94,7 +94,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+        (0 to size.toInt) map (rAtom(_)) toSet
       }
     }
 
@@ -171,4 +171,16 @@ object PlainLarsToAsp {
  */
 case class MappedProgram(mappedRules: Seq[LarsRuleMapping]) extends PinnedProgram {
   override val rules = mappedRules.flatMap(_._2)
+
+  val windowAtoms = mappedRules.
+    map(_._1).
+    flatMap(r => r.body.collect { case w: WindowAtom => w })
+
+  val slidingWindows = windowAtoms.collect { case s: SlidingWindow => s }
+
+  // TODO: when there are no windows - is the maximumWindowSize 0 or None?
+  val maximumWindowSize: WindowSize = slidingWindows.isEmpty match {
+    case false => slidingWindows.maxBy(_.windowSize).windowSize
+    case true => 0
+  }
 }

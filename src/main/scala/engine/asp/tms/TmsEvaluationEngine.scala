@@ -2,10 +2,10 @@ package engine.asp.tms
 
 import core.asp.{AspFact, AspRule, NormalRule}
 import core.{GroundAtom, _}
-import core.lars.TimePoint
+import core.lars.{TimePoint, WindowAtom}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, Result, UnknownResult}
+import engine.{EvaluationEngine, Result, StreamEntry, UnknownResult}
 
 import scala.collection.immutable.{Queue, Stack}
 
@@ -21,13 +21,15 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
   tmsPolicy.initialize(groundRules.map(x => GroundedNormalRule(x)))
 
-  // TODO: wrong position?
+  // TODO: wrong position? Move to Policy?
   var tuplePositions: List[Atom] = List()
+  var extensionalAtomsStream: Map[TimePoint, GroundedStream] = Map()
 
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     tuplePositions = atoms.toList ++ tuplePositions
     cachedResults(time) = prepare(time, atoms.toSet)
+    trimByWindowSize(time)
   }
 
   def prepare(time: TimePoint, atoms: Set[Atom]): Result = {
@@ -83,5 +85,15 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     case g: Predicate => g(timePoint)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
+  }
+
+  // TODO: move into policy?
+  def trimByWindowSize(time: TimePoint) = {
+    tuplePositions = tuplePositions.take((pinnedAspProgram.maximumWindowSize + 1).toInt)
+
+    val atomsToRemove = extensionalAtomsStream.filterKeys(p => p.value < time.value - pinnedAspProgram.maximumWindowSize)
+    extensionalAtomsStream = extensionalAtomsStream -- atomsToRemove.keySet
+
+    atomsToRemove foreach (a => tmsPolicy.remove(a._1)(a._2.toSeq))
   }
 }
