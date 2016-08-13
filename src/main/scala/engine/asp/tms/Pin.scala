@@ -41,6 +41,11 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     AspFact(atom(timePoint))
   }
 
+  def apply(atom: AtomWithArgument): AtomWithArgument = atom match {
+    case t: PinnedAtom => apply(t)
+    case _ => atom
+  }
+
   def apply(atom: PinnedAtom): PinnedAtom = {
     val groundedBaseAtom = atom.timedAtom match {
       case t: PinnedAtom => apply(t)
@@ -67,7 +72,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     }
     case p: Predicate => p
     case a: GroundAtom => a
-    case _ => throw new RuntimeException("cannot ground "+atom) //TODO
+    case _ => throw new RuntimeException("cannot ground " + atom) //TODO
   }
 
   def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))
@@ -103,7 +108,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 }
 
 object GroundedNormalRule {
-  
+
   def apply(rule: NormalRule): GroundRule = {
     if (rule.isGround) {
       AspRule(

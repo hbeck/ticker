@@ -1,10 +1,13 @@
 package engine.asp.tms
 
+import core.asp.{AspFact, AspRule, NormalRule}
 import core.{GroundAtom, _}
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
 import engine.{EvaluationEngine, Result, UnknownResult}
+
+import scala.collection.immutable.{Queue, Stack}
 
 /**
   * Created by FM on 18.05.16.
@@ -18,8 +21,12 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
   tmsPolicy.initialize(groundRules.map(x => GroundedNormalRule(x)))
 
+  // TODO: wrong position?
+  var tuplePositions: List[Atom] = List()
+
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
+    tuplePositions = atoms.toList ++ tuplePositions
     cachedResults(time) = prepare(time, atoms.toSet)
   }
 
@@ -30,16 +37,22 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     // TODO: make it nicer
     val extensionalAtoms = pin.ground(pin.atoms(atoms))
 
-    val add = tmsPolicy.add(time)_
+    val orderedTuples = deriveOrderedTuples
+
+    val add = tmsPolicy.add(time) _
 
     // separating the calls ensures maximum on support for rules
     add(extensionalAtoms.toSeq)
+    add(orderedTuples)
     add(groundedRules)
 
     val model = tmsPolicy.getModel(time)
 
+    val remove = tmsPolicy.remove(time) _
+
+    remove(groundedRules)
     // we never remove extensional atoms explicitly (the policy might do it)
-    tmsPolicy.remove(time)(groundedRules)
+    remove(orderedTuples)
 
     model
   }
@@ -59,6 +72,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
     Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))
   }
+
+  def deriveOrderedTuples = tuplePositions.zipWithIndex.
+    map { v => v._1.asTupleReference(v._2) }.
+    map(x => GroundedNormalRule(AspRule(x)))
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p

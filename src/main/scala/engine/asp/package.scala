@@ -10,9 +10,9 @@ import core._
 package object asp {
   val now = Atom("now")
 
-  type PinnedRule = AspRule[PinnedAtom]
-  type PinnedFact = AspFact[PinnedAtom]
-  type PinnedProgram = AspProgram[PinnedAtom, PinnedRule]
+  type PinnedRule = AspRule[AtomWithArgument]
+  type PinnedFact = AspFact[AtomWithArgument]
+  type PinnedProgram = AspProgram[AtomWithArgument, PinnedRule]
 
   type PinnedModel = Set[PinnedAtom]
   type PinnedStream = Set[PinnedFact]

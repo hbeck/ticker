@@ -1,6 +1,6 @@
 package core.asp
 
-import core.{Atom, PinnedAtom}
+import core.{Atom, AtomWithArgument, PinnedAtom}
 import engine.asp.PinnedRule
 
 
@@ -40,6 +40,6 @@ object AspProgram {
 
   // TODO: this should be generic?
   //  def apply[TAspRule <: AspRuleT[_]](rules: TAspRule*) = FixedAspProgram(rules.toList)
-  def pinned(rules: PinnedRule*): FixedAspProgram[PinnedAtom, PinnedRule]= FixedAspProgram[PinnedAtom, PinnedRule](rules.toList)
-  def pinned(rules: List[PinnedRule]): FixedAspProgram[PinnedAtom, PinnedRule] = FixedAspProgram[PinnedAtom, PinnedRule](rules)
+  def pinned(rules: PinnedRule*): FixedAspProgram[AtomWithArgument, PinnedRule]= FixedAspProgram[AtomWithArgument, PinnedRule](rules.toList)
+  def pinned(rules: List[PinnedRule]): FixedAspProgram[AtomWithArgument, PinnedRule] = FixedAspProgram[AtomWithArgument, PinnedRule](rules)
 }

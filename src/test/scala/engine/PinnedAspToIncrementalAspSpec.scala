@@ -2,9 +2,8 @@ package engine
 
 import core.asp.AspRule
 import core.lars._
-import core.{PinnedAtom, Predicate}
+import core.{Atom, AtomWithArgument, PinnedAtom, Predicate}
 import engine.asp.{PlainLarsToAsp, now}
-import core.{Atom, PinnedAtom, Predicate}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
 import engine.asp.now
@@ -21,19 +20,19 @@ import org.scalatest.Matchers._
 class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
 
   "A rule containing a normal Atom" should "not be modified" in {
-    val rule = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
+    val rule: AspRule[AtomWithArgument] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
 
     PinnedAspToIncrementalAsp(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
   }
 
   "now(T)" should "be removed from a rule" in {
-    val r = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
+    val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
 
     PinnedAspToIncrementalAsp(r, Set()).body should not contain (now(t0))
   }
 
   "The head of a transformed rule" should "not be pinned" in {
-    val r = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
+    val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
 
     PinnedAspToIncrementalAsp(r, Set()).head shouldBe an[Predicate]
   }

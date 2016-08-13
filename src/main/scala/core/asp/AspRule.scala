@@ -42,7 +42,7 @@ object AspRule {
 
   def apply[TAtom <: Atom](head: TAtom, pos: TAtom) = UserDefinedAspRule(head, Set(pos), Set())
 
-  def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom]) = UserDefinedAspRule(head, pos, Set())
+  def apply[TAtom <: Atom, TPos <: TAtom](head: TAtom, pos: Set[TPos]) = UserDefinedAspRule(head, pos.toSet[TAtom], Set[TAtom]())
 
 }
 

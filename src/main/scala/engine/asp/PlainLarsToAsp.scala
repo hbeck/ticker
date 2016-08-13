@@ -2,21 +2,21 @@ package engine.asp
 
 import core.asp.AspRule
 import core.lars._
-import core.{Atom, AtomWithArgument, PinnedAtom}
+import core._
 
 /**
   * Created by FM on 05.05.16.
   */
 object PlainLarsToAsp {
 
-  def apply(headAtom: HeadAtom): PinnedAtom = headAtom match {
+  def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
     case AtAtom(t, a) => a(t)
     // TODO: discuss if this approach is correct: can an head-atom be already pinned?
     case PinnedAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
   }
 
-  def apply(extendedAtom: ExtendedAtom): PinnedAtom = extendedAtom match {
+  def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
     case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
@@ -74,9 +74,12 @@ object PlainLarsToAsp {
   }
 
   def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
-    val generatedAtoms = windowAtom.windowFunction match {
+    val generatedAtoms: Set[AtomWithArgument] = windowAtom.windowFunction match {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
-      case SlidingTupleWindow(size) => generateAtomsOfT(size, tupleReference(windowAtom.atom), size)
+      case SlidingTupleWindow(size) => {
+        val rAtom = tupleReference(windowAtom.atom) _
+        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+      }
     }
 
     val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
@@ -89,7 +92,10 @@ object PlainLarsToAsp {
 
     val generatedAtoms = windowAtom.windowFunction match {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
-      case SlidingTupleWindow(size) => generateAtomsOfT(size, tupleReference(windowAtom.atom), size)
+      case SlidingTupleWindow(size) => {
+        val rAtom = tupleReference(windowAtom.atom) _
+        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+      }
     }
 
     val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
@@ -128,9 +134,9 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T) map (a => a(T))
     }
 
-    val reachRules = reachAtoms map (r => AspRule(r, Set(now(T))))
+    val reachRules = reachAtoms.toSet[AtomWithArgument] map (r => AspRule(r, Set[AtomWithArgument](now(T))))
 
-    val windowRule = AspRule(head(windowAtom), Set(now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
+    val windowRule = AspRule(head(windowAtom), Set[AtomWithArgument](now(T), windowAtom.atom(timeVariable), reachAtom(timeVariable)(T)))
 
     (reachRules + windowRule).toSet
   }
@@ -149,11 +155,11 @@ object PlainLarsToAsp {
     }
   }
 
-  def tupleReference(atom: Atom) = Atom(atom.toString + "_TUPLE")
+  def tupleReference(atom: Atom)(position: Long): GroundAtomWithArguments = atom.asTupleReference(position)
 
-  def head(atom: WindowAtom) = atomFor(atom)(T)
+  def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowSize: Long, atom: Atom, referenceTime: Time): Set[PinnedAtom] = {
+  def generateAtomsOfT(windowSize: Long, atom: Atom, referenceTime: Time): Set[AtomWithArgument] = {
     // TODO: current implementation of (... to ...) only works with integer
     val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet

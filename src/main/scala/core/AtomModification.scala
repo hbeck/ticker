@@ -28,5 +28,8 @@ case class AtomModification(atom: Atom) {
       case false => NonGroundAtom(atom, combinedArguments)
     }
   }
+
   def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
+
+  def asTupleReference(position: Long): GroundAtomWithArguments = GroundAtomWithArguments(Atom(atom.toString + "_TUPLE"), Seq(Value(position)))
 }
