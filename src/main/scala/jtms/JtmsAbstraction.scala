@@ -253,6 +253,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
+    // TODO: this cleanup could only run occasionally (e.g. every 100 removes)
+    __justifications = __justifications.filter(r => r._1 != a)
+
     status = status - a
     cons = cons - a
     supp = supp - a
