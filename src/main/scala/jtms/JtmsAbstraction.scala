@@ -11,14 +11,16 @@ import scala.util.Random
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
   override def allAtoms() = __allAtoms
-  var __allAtoms: Set[Atom]= Set()
+
+  var __allAtoms: Set[Atom] = Set()
 
   override def justifications(a: Atom) = __justifications(a)
+
   var __justifications: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
-  var __atomsWithStatus: Map[Status,Set[Atom]] = Map.empty.withDefaultValue(Set())
+  var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
 
   override def inAtoms() = __atomsWithStatus(in)
 
@@ -34,17 +36,18 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def add(rule: NormalRule): Unit = {
     register(rule)
     if (inconsistent()) {
-      update(unknownAtoms()+rule.head)
+      update(unknownAtoms() + rule.head)
     } else {
       if (status(rule.head) == in) {
-        if (valid(rule)) { //difference to original; optimization for sliding time-based window (support always by latest)
+        if (valid(rule)) {
+          //difference to original; optimization for sliding time-based window (support always by latest)
           setIn(rule)
         }
         return
       }
       if (invalid(rule)) {
         //supp(rule.head) += findSpoiler(rule).get; return
-        supp = supp.updated(rule.head,supp(rule.head)+findSpoiler(rule).get)
+        supp = supp.updated(rule.head, supp(rule.head) + findSpoiler(rule).get)
         return
       }
       val atoms = repercussions(rule.head) + rule.head
@@ -56,7 +59,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     unregister(rule)
     if (inconsistent()) {
       val h = if (allAtoms contains rule.head) Set(rule.head) else Set()
-      update(unknownAtoms()++h)
+      update(unknownAtoms() ++ h)
     } else {
       if (!(allAtoms contains rule.head)) return
       if (status(rule.head) == out) return
@@ -118,7 +121,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (rule.body.isEmpty) __factAtoms = __factAtoms + rule.head
     */
 
-    __justifications = __justifications updated (rule.head, __justifications(rule.head) + rule)
+    __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
     val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) + rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
@@ -126,27 +129,28 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     rule.atoms foreach register
     //rule.body foreach (cons(_) += rule.head)
     rule.body foreach { atom =>
-      cons = cons updated (atom, cons(atom)+rule.head)
+      cons = cons updated(atom, cons(atom) + rule.head)
     }
     true
   }
 
   def register(a: Atom) {
-    if (!status.isDefinedAt(a)) { //use this immediately as test whether the atom exists; all atoms need to have a status
-      if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"register")
+    if (!status.isDefinedAt(a)) {
+      //use this immediately as test whether the atom exists; all atoms need to have a status
+      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
 
       __allAtoms = __allAtoms + a
 
-      status = status.updated(a,out)
-      __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out)+a)
+      status = status.updated(a, out)
+      __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
 
-      cons = cons.updated(a,Set[Atom]())
-      supp = supp.updated(a,Set[Atom]())
-      suppRule = suppRule.updated(a,None)
-//      status(a) = out
-//      cons(a) = Set[Atom]()
-//      supp(a) = Set[Atom]()
-//      suppRule(a) = None
+      cons = cons.updated(a, Set[Atom]())
+      supp = supp.updated(a, Set[Atom]())
+      suppRule = suppRule.updated(a, None)
+      //      status(a) = out
+      //      cons(a) = Set[Atom]()
+      //      supp(a) = Set[Atom]()
+      //      suppRule(a) = None
     }
   }
 
@@ -155,35 +159,35 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
 
   def setIn(rule: NormalRule) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head,in,"set")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
     __updateStatus(rule.head, in)
-    supp = supp.updated(rule.head,rule.body)
-    suppRule = suppRule.updated(rule.head,Some(rule))
-//    status(rule.head) = in
-//    supp(rule.head) = Set() ++ rule.body
-//    suppRule(rule.head) = Some(rule)
+    supp = supp.updated(rule.head, rule.body)
+    suppRule = suppRule.updated(rule.head, Some(rule))
+    //    status(rule.head) = in
+    //    supp(rule.head) = Set() ++ rule.body
+    //    suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a,out,"set")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
     __updateStatus(a, out)
     setOutSupport(a)
-    suppRule = suppRule.updated(a,None)
-//    status(a) = out
-//    setOutSupport(a)
-//    suppRule(a) = None
+    suppRule = suppRule.updated(a, None)
+    //    status(a) = out
+    //    setOutSupport(a)
+    //    suppRule(a) = None
   }
 
   def setUnknown(a: Atom) = {
     __updateStatus(a, unknown)
-    supp = supp.updated(a,Set())
-    suppRule = suppRule.updated(a,None)
-//    status(a) = unknown
-//    supp(a) = Set()
-//    suppRule(a) = None
+    supp = supp.updated(a, Set())
+    suppRule = suppRule.updated(a, None)
+    //    status(a) = unknown
+    //    supp(a) = Set()
+    //    suppRule(a) = None
   }
 
-  def __updateStatus(a:Atom, newStatus:Status): Unit = {
+  def __updateStatus(a: Atom, newStatus: Status): Unit = {
 
     val oldStatus = status(a)
 
@@ -219,7 +223,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
     rules = rules - rule
 
-    __justifications = __justifications updated (rule.head, __justifications(rule.head) filter (_!= rule))
+    __justifications = __justifications updated(rule.head, __justifications(rule.head) filter (_ != rule))
 
     val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) - rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
@@ -236,7 +240,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
     if (!(justifications(rule.head) exists (_.body contains a))) {
       //cons(a) -= rule.head
-      cons = cons.updated(a,cons(a)-rule.head)
+      cons = cons.updated(a, cons(a) - rule.head)
     }
   }
 
@@ -244,16 +248,16 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     __allAtoms = __allAtoms - a
 
     val oldStatus = status(a)
-    __atomsWithStatus = __atomsWithStatus.updated(oldStatus,__atomsWithStatus(oldStatus)-a)
+    __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
     status = status - a
     cons = cons - a
     supp = supp - a
     suppRule = suppRule - a
-//    status remove a
-//    cons remove a
-//    supp remove a
-//    suppRule remove a
+    //    status remove a
+    //    cons remove a
+    //    supp remove a
+    //    suppRule remove a
   }
 
   //
@@ -265,12 +269,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     //model foreach (status(_) = in)
     model foreach { atom =>
       //status = status.updated(atom,in)
-      __updateStatus(atom,in)
+      __updateStatus(atom, in)
     }
     //(allAtoms diff model) foreach (status(_) = out)
     (allAtoms diff model) foreach { atom =>
       //status = status.updated(atom,out)
-      __updateStatus(atom,out)
+      __updateStatus(atom, out)
     }
     try {
       atomsNeedingSupp() foreach setSupport
@@ -287,19 +291,19 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status(a) match {
       case `in` => setInSupport(a)
       case `out` => setOutSupport(a)
-      case `unknown` => supp = supp.updated(a,Set()) //supp(a) = Set()
+      case `unknown` => supp = supp.updated(a, Set()) //supp(a) = Set()
     }
   }
 
   def setInSupport(a: Atom) = justifications(a) find valid match {
-    case Some(rule) => supp = supp.updated(a,rule.body) //supp(a) = Set() ++ rule.body
+    case Some(rule) => supp = supp.updated(a, rule.body) //supp(a) = Set() ++ rule.body
     case _ => throw new IncrementalUpdateFailureException()
   }
 
   def setOutSupport(a: Atom) {
     val maybeAtoms: Set[Option[Atom]] = justifications(a) map findSpoiler
     if (maybeAtoms exists (_.isEmpty)) {
-      throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom "+a)
+      throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom " + a)
     }
     //supp(a) = Set() ++ maybeAtoms map (_.get)
     supp = supp.updated(a, Set() ++ maybeAtoms map (_.get))
