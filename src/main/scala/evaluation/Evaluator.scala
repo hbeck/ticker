@@ -62,18 +62,26 @@ object Evaluator {
     val tms = JtmsGreedy(new Random(1))
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
+    tms.recordStatusSeq = false
+    tms.recordChoiceSeq = false
 
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
 
   def doyleTms(program: LarsProgram) = {
     val tms = JtmsDoyle(new Random(1))
+    tms.recordStatusSeq = false
+    tms.recordChoiceSeq = false
 
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
 
   def learnTms(program: LarsProgram) = {
     val tms = new JtmsLearn(new Random(1))
+    tms.doConsistencyCheck = false
+    tms.doJtmsSemanticsCheck = false
+    tms.recordStatusSeq = false
+    tms.recordChoiceSeq = false
 
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }

@@ -34,6 +34,7 @@ class Deletion extends FlatSpec with AtomTestFixture{
     assert(net.cons.isEmpty)
     assert(net.supp.isEmpty)
 
+    net.__cleanupSupportingData(true)
     assert(net.__rulesAtomsOccursIn.isEmpty)
     assert(net.__justifications.isEmpty)
   }

@@ -231,8 +231,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val atomsToBeRemoved = rule.atoms filter (a => __rulesAtomsOccursIn(a).isEmpty)
     val remainingAtoms = __allAtoms diff atomsToBeRemoved
 
-    // TODO: this cleanup could only run occasionally (e.g. every 100 removes)
-    __rulesAtomsOccursIn = __rulesAtomsOccursIn filter (a => a._2.nonEmpty)
+    __cleanupSupportingData()
 
     atomsToBeRemoved foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
@@ -253,9 +252,6 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    // TODO: this cleanup could only run occasionally (e.g. every 100 removes)
-    __justifications = __justifications.filter(r => r._1 != a)
-
     status = status - a
     cons = cons - a
     supp = supp - a
@@ -264,6 +260,18 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     //    cons remove a
     //    supp remove a
     //    suppRule remove a
+  }
+
+  var __cleanup = 0;
+
+  def __cleanupSupportingData(force: Boolean = false): Unit = {
+    __cleanup = __cleanup + 1
+    if (__cleanup % 1000 == 0 || force) {
+      __cleanup = 0
+
+      __justifications = __justifications filter (r => r._2.nonEmpty)
+      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter (a => a._2.nonEmpty)
+    }
   }
 
   //
