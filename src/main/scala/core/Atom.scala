@@ -33,7 +33,6 @@ trait AtomWithArgument extends Atom {
   def ==(other: AtomWithArgument): Boolean = {
     if (this eq other) return true
     if (this.atom != other.atom) return false
-    // TODO speed up comparison
     if (this.arguments.length != other.arguments.length) return false
     if (!this.arguments.equals(other.arguments)) return false
     true

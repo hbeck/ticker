@@ -8,7 +8,7 @@ import engine._
   * Created by FM on 21.04.16.
   */
 
-case class AspPullEvaluationEngine(private val aspEvaluation: AspEvaluation) extends EvaluationEngine {
+case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation) extends EvaluationEngine {
 
   val atomStream: OrderedAtomStream = new OrderedAtomStream
 

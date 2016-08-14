@@ -17,12 +17,7 @@ case class AtomModification(atom: Atom) {
     }
 
     val combinedArguments = otherArguments ++ arguments
-
-    // TODO: use some real pattern matching
-    //    combinedArguments match {
-    //      case onlyValues: Seq[Value] => GroundAtomWithArguments(atom, onlyValues)
-    //      case _ => AtomWithArguments(atom, combinedArguments)
-    //    }
+    
     combinedArguments.forall(_.isInstanceOf[Value]) match {
       case true => GroundAtomWithArguments(atom, combinedArguments.map(_.asInstanceOf[Value]).toList)
       case false => NonGroundAtom(atom, combinedArguments)

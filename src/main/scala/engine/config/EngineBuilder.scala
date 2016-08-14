@@ -55,17 +55,17 @@ object AspBasedTmsConfiguration {
 case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
 
   def use(evaluationMode: EvaluationMode = Direct) = {
-    val aspEvaluation = buildEvaluationMode(AspEvaluationEngine(streamingAspInterpreter), evaluationMode)
+    val aspEvaluation = buildEvaluationMode(OneShotEvaluationEngine(streamingAspInterpreter), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }
 
-  private def buildEvaluationMode(aspEvaluation: AspEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
+  private def buildEvaluationMode(aspEvaluation: OneShotEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
     case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(aspEvaluation, waitingAtMost)
     case _ => aspEvaluation
   }
 }
 
-case class EvaluationStrategyConfiguration(aspEvaluation: AspEvaluation) {
+case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
   def usePull() = StartableEngineConfiguration(AspPullEvaluationEngine(aspEvaluation))
 
   def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))

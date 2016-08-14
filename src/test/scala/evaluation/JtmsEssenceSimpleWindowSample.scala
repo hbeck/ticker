@@ -16,7 +16,6 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with Time
   val program = LarsProgram.from(
     a <= W(1, Diamond, c),
     c <= W(1, Diamond, a),
-    // TODO: is it not(W(1,Diamond,a)) or W(1, Diamond, not(a))?
     b <= not(W(1, Diamond, a)),
     d <= W(1, Diamond, b),
     d <= W(1, Diamond, c)

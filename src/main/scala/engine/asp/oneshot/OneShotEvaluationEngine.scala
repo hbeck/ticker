@@ -9,15 +9,14 @@ import engine.{Result, _}
 /**
   * Created by FM on 13.05.16.
   */
-trait AspEvaluation {
+trait OneShotEvaluation {
   def apply(timePoint: TimePoint, dataStream: Stream): Result
 }
 
-// TODO: naming?
-case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends AspEvaluation {
+case class OneShotEvaluationEngine(interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
-    val input = AspEvaluationEngine.pinnedInput(time, dataStream)
+    val input = OneShotEvaluationEngine.pinnedInput(time, dataStream)
 
     val aspResult = interpreter(time, input)
 
@@ -32,7 +31,7 @@ case class AspEvaluationEngine(interpreter: StreamingAspInterpreter) extends Asp
   }
 }
 
-object AspEvaluationEngine {
+object OneShotEvaluationEngine {
 
   def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + Pin(time)(now)
 
