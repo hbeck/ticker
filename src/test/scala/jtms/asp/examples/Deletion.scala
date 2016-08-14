@@ -33,7 +33,10 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     assert(net.cons.isEmpty)
     assert(net.supp.isEmpty)
+
+    assert(net.__rulesAtomsOccursIn.isEmpty)
   }
+
 
   "Removing the rule 'a :-c' in a program ('a :- c','a :- c, b')" should "still have cons(c) = a " in {
     val r1 = AspRule(a,Set(c))

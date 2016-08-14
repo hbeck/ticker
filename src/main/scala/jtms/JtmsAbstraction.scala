@@ -231,6 +231,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val atomsToBeRemoved = rule.atoms filter (a => __rulesAtomsOccursIn(a).isEmpty)
     val remainingAtoms = __allAtoms diff atomsToBeRemoved
 
+    // TODO: this cleanup could only run occasionally (e.g. every 100 removes)
+    __rulesAtomsOccursIn = __rulesAtomsOccursIn filter (a => a._2.nonEmpty)
+
     atomsToBeRemoved foreach unregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
 
