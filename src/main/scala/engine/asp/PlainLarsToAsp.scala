@@ -78,7 +78,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to size.toInt) map (rAtom(_)) toSet
+        (0 to (size.toInt-1)) map (rAtom(_)) toSet
       }
     }
 
@@ -94,7 +94,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to size.toInt) map (rAtom(_)) toSet
+        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
       }
     }
 
