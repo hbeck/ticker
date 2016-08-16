@@ -91,10 +91,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
     def updateAfterRuleChange(): Unit = {
+      // TODO: perf: contains takes very long???
       if (ruleMap.contains(stateRules)) {
         currentRulesTabu = ruleMap(stateRules)
       } else {
         currentRulesTabu = new CurrentRulesTabu()
+        // TODO: perf: updated.computeHash takes very long???
         ruleMap = ruleMap.updated(stateRules,currentRulesTabu)
       }
     }
@@ -165,6 +167,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   def stateSnapshot(): Option[PartialState] = {
     val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
+    // TODO: perf: isStateAtom as dict-lookup?
     val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
     Some(PartialState(filteredStatus,collectedSupp))
   }
@@ -181,6 +184,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (atoms.isEmpty) return
 
+    // TODO: perf: find iterates over to many atoms - dict?
     selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))
 
     if (selectedAtom.isEmpty && prevState.isDefined) {

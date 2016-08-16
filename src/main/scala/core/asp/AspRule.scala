@@ -46,7 +46,11 @@ object AspRule {
 
 }
 
-case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]
+case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]{
+  private lazy val precomputedHash = super.hashCode()
+
+  override def hashCode(): Int = precomputedHash
+}
 
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends NormalRule {
   override def toString = {
