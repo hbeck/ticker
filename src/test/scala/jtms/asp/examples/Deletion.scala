@@ -33,6 +33,16 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     assert(net.cons.isEmpty)
     assert(net.supp.isEmpty)
+  }
+
+  it should "have clean caches after deletion" in{
+    val net = new JtmsGreedy()
+    net.add(AspFact(a))
+
+    assume(net.getModel.get == Set(a))
+    assume(net.status(a) == in)
+
+    net.remove(AspFact(a))
 
     net.__cleanupSupportingData(true)
     assert(net.__rulesAtomsOccursIn.isEmpty)
@@ -143,16 +153,21 @@ class Deletion extends FlatSpec with AtomTestFixture{
 
     val net = new JtmsGreedy()
 
+    net.doForceChoiceOrder = true
+    net.choiceSeq = Seq(b,a)
+
     net.add(r0)
     net.add(r1)
     net.add(r2)
-    net.add(r3)
 
+    // do to an optimization these assertions are only valid before a new rule is added
     assume(net.getModel.get == Set(a, b, c))
     assume(net.suppRule(c) == Some(r2))
     assume(net.supp(c) == Set(b))
-    assume(net.cons(a) == Set(b, c))
+    assume(net.cons(a) == Set(b))
     assume(net.cons(b) == Set(c))
+
+    net.add(r3)
 
     net.remove(r0)
 
