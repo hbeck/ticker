@@ -15,5 +15,5 @@ package object lars {
   def W(windowSize: WindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)
 
   type LarsRule = Rule[HeadAtom, ExtendedAtom]
-  //
+
 }
