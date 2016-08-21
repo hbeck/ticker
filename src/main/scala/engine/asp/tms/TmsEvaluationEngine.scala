@@ -1,13 +1,11 @@
 package engine.asp.tms
 
-import core.asp.{AspFact, AspRule, NormalRule}
-import core.{GroundAtom, _}
-import core.lars.{TimePoint, WindowAtom}
+import core._
+import core.asp.AspRule
+import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, Result, StreamEntry, UnknownResult}
-
-import scala.collection.immutable.{Queue, Stack}
+import engine.{EvaluationEngine, Result, UnknownResult}
 
 /**
   * Created by FM on 18.05.16.

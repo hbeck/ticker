@@ -38,15 +38,15 @@ trait Jtms {
 
   def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
 
-  def facts() = rules filter (_.isFact) toSet
+  def facts() = rules filter (_.isFact)
 
   def factAtoms() = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
 
-  def allAtoms(): Set[Atom] = (rules flatMap (_.atoms)) toSet
+  def allAtoms(): Set[Atom] = (rules flatMap (_.atoms))
 
-  def ruleHeads() = rules map (_.head) toSet
+  def ruleHeads() = rules map (_.head)
 
-  def atomsNeedingSupp() = ruleHeads diff factAtoms
+  def atomsNeedingSupp() = ruleHeads diff factAtoms //these are intensional atoms
 
   def underivableAtoms() = allAtoms diff ruleHeads
 

@@ -1,7 +1,7 @@
 package core
 
 import core.asp.{AspFact, BuilderHead}
-import core.lars.{HeadAtom, Time, TimePoint, TimeVariableWithOffset}
+import core.lars._
 
 /**
   * Created by hb on 12/22/15.
@@ -21,10 +21,13 @@ sealed trait Atom extends HeadAtom {
   */
 }
 
-trait GroundAtom extends Atom
+trait GroundAtom extends Atom {
+  override def isGround(): Boolean = true
+  override def assign(assignment: Assignment) = this
+}
 
 trait AtomWithArgument extends Atom {
-  val atom: Atom
+  val atom: Atom //TODO Atom vs Predicate !?
 
   val arguments: Seq[Argument]
 
@@ -56,6 +59,7 @@ trait AtomWithArgument extends Atom {
   }
 
   override def isGround(): Boolean = arguments forall (s => s.isInstanceOf[Value])
+
 }
 
 case class Predicate(caption: String) extends GroundAtom {
@@ -64,15 +68,21 @@ case class Predicate(caption: String) extends GroundAtom {
   override def isGround(): Boolean = true
 }
 
-object Falsum extends GroundAtom {
-  def isGround(): Boolean = true
-}
+object Falsum extends GroundAtom
 
-case class ContradictionAtom(caption: String) extends GroundAtom {
-  def isGround(): Boolean = true
-}
+case class ContradictionAtom(caption: String) extends GroundAtom
 
-case class NonGroundAtom(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument
+case class NonGroundAtom(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument {
+  override def assign(assignment: Assignment): AtomWithArgument = {
+    val newArguments = arguments map { arg =>
+      assignment(arg) match {
+        case Some(value) => value
+        case _ => arg
+      }
+    }
+    NonGroundAtom(atom, newArguments)
+  }
+}
 
 case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
@@ -80,7 +90,7 @@ case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value]) extends Gr
 
 object GroundAtom {
   //TODO type predicate
-  def apply(predicate: Atom, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
+  def apply(atom: Atom, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(atom, arguments.toList)
 }
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
@@ -101,6 +111,9 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
   }
 
   override def isGround(): Boolean = timeAsArgument.isInstanceOf[Value]
+
+  //assume pinned atoms may have variables only in its special time argument
+  override def assign(assignment: Assignment): ExtendedAtom = this
 }
 
 

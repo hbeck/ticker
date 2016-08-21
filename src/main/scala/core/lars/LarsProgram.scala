@@ -1,6 +1,6 @@
 package core.lars
 
-import core.{Fact, Rule}
+import core.Fact
 
 /**
   * Created by FM on 01.05.16.
