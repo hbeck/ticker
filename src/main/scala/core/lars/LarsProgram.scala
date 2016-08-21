@@ -9,9 +9,23 @@ object LarsRule {
   def apply(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]) = UserDefinedLarsRule(head, pos, neg)
 }
 
-case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends LarsRule
+case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends LarsRule {
 
-case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom]
+  override lazy val atoms: Set[ExtendedAtom] = pos union neg + head
+
+  override def from(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): UserDefinedLarsRule = {
+    UserDefinedLarsRule(head,pos,neg)
+  }
+}
+
+case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom] {
+
+  override lazy val atoms: Set[ExtendedAtom] = Set[ExtendedAtom](head)
+
+  override def from(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): LarsFact = {
+    LarsFact(head)
+  }
+}
 
 case class LarsProgram(rules: Seq[LarsRule]) {
   lazy val atoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet

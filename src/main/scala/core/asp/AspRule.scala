@@ -4,10 +4,7 @@ import core.{Atom, Fact, Rule}
 
 sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
-  // TODO: can we move this into Rule[..]?
-  lazy val atoms = body + head
-  // TODO: can we move this into Rule[..]?
-  lazy val isGround: Boolean = atoms forall (_.isGround)
+  override lazy val atoms: Set[TAtom] = body + head
 
   override def toString = {
     val sb = new StringBuilder
@@ -47,12 +44,21 @@ object AspRule {
 }
 
 case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) extends AspRule[TAtom]{
+
+  override def from(h: TAtom, p: Set[TAtom], n: Set[TAtom]): UserDefinedAspRule[TAtom] = {
+    UserDefinedAspRule(h,p,n)
+  }
+
 //  private lazy val precomputedHash = super.hashCode()
 //
 //  override def hashCode(): Int = precomputedHash
 }
 
+//TODO order of args
 case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends NormalRule {
+  override def from(h: Atom, p: Set[Atom], n: Set[Atom]) = {
+    AspRuleFromBacktracking(p,n,h)
+  }
   override def toString = {
     super.toString.replaceAll("<-", "<--")
   }
@@ -69,6 +75,9 @@ object AspFact {
 }
 
 case class UserDefinedAspFact[TAtom <: Atom](head: TAtom) extends AspFact[TAtom] {
+  override def from(h: TAtom, p: Set[TAtom], n: Set[TAtom]): UserDefinedAspFact[TAtom] = {
+    UserDefinedAspFact(h)
+  }
   override def toString = {
     head.toString
   }

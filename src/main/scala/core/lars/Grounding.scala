@@ -6,7 +6,6 @@ package core.lars
 object Grounding {
 
   /*
-
   def apply(program: LarsProgram): LarsProgram = {
     val inspect = LarsProgramInspection(program)
     val groundRules = program.rules flatMap ground(inspect)
@@ -14,33 +13,28 @@ object Grounding {
   }
 
   def ground(inspect: LarsProgramInspection)(rule: LarsRule): Set[LarsRule] = {
-    if (inspect isGround rule) return Set(rule)
+    if (rule isGround) return Set(rule)
     val possibleValuesPerVariable: Map[Variable, Set[Value]] = inspect possibleValuePerVariable rule
-    val assignments: Set[Assignment] = flatten(possibleValuesPerVariable)
+    val assignments: Set[Assignment] = createAssignments(possibleValuesPerVariable)
     var groundRules = Set[LarsRule]()
     for (assignment <- assignments) {
-      groundRules = groundRules + ground(rule,assignment)
+      groundRules = groundRules + rule.assign(assignment)
     }
     groundRules
   }
+  */
 
-  def ground(rule: LarsRule, assignment: Assignment): LarsRule = {
-    val groundHead: HeadAtom = groundAtom(rule.head, assignment)
-    val groundPosBody = rule.pos map (x => groundAtom(x, assignment))
-    val groundNegBody = rule.neg map (x => groundAtom(x, assignment))
-    LarsRule(groundHead,groundPosBody,groundNegBody)
-    LarsRule(Atom("a"),Set(),Set())
+//  def ground(rule: LarsRule, assignment: Assignment): LarsRule = {
+//    val groundHead: HeadAtom = ground(rule.head, assignment)
+//    val groundPosBody = rule.pos map (x => ground(x, assignment))
+//    val groundNegBody = rule.neg map (x => ground(x, assignment))
+//    LarsRule(groundHead,groundPosBody,groundNegBody)
+//  }
+
+  def ground[T <: ExtendedAtom](x: T, assignment: Assignment): T = {
+    if (x.isGround) return x
+    x.assign(assignment).asInstanceOf[T]
   }
-
-  def groundAtom[T <: ExtendedAtom](extAtom: T, assignment: Assignment): T = {
-    if (extAtom.isGround) return
-    extAtom match {
-      case a:HeadAtom =>
-      case => Atom("a")
-    }
-  }
-
-*/
 
 }
 
