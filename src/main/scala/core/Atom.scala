@@ -12,6 +12,8 @@ sealed trait Atom extends HeadAtom {
 
   def isGround(): Boolean
 
+  //override def atom(): Atom = this
+
   /*
   //convenience for testing TODO review
   def apply(int: Int): Atom = PinnedAtom(this,TimePoint(int))
@@ -19,6 +21,7 @@ sealed trait Atom extends HeadAtom {
   //TODO
   def apply(s: String): Atom = Predicate(s)
   */
+
 }
 
 trait GroundAtom extends Atom {
@@ -60,19 +63,28 @@ trait AtomWithArgument extends Atom {
 
   override def isGround(): Boolean = arguments forall (s => s.isInstanceOf[Value])
 
+  override def predicateSymbol() = atom.predicateSymbol
+
 }
 
-case class Predicate(caption: String) extends GroundAtom {
+case class Predicate(caption: String) extends GroundAtom { //TODO
   override def toString = caption
 
   override def isGround(): Boolean = true
+
+  override def predicateSymbol() = caption
+
 }
 
-object Falsum extends GroundAtom
+object Falsum extends GroundAtom {
+  override def predicateSymbol() = "⊥"
+}
 
-case class ContradictionAtom(caption: String) extends GroundAtom
+case class ContradictionAtom(caption: String) extends GroundAtom {
+  override def predicateSymbol() = caption
+}
 
-case class NonGroundAtom(atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument {
+case class NonGroundAtom(override val atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument {
   override def assign(assignment: Assignment): AtomWithArgument = {
     val newArguments = arguments map { arg =>
       assignment(arg) match {
@@ -84,7 +96,7 @@ case class NonGroundAtom(atom: Atom, arguments: Seq[Argument]) extends AtomWithA
   }
 }
 
-case class GroundAtomWithArguments(atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
+case class GroundAtomWithArguments(override val atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
 }
 
@@ -95,7 +107,7 @@ object GroundAtom {
 
 case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
 
-  val atom = timedAtom match {
+  override val atom = timedAtom match {
     case aa: AtomWithArgument => aa.atom
     case _ => timedAtom
   }

@@ -26,6 +26,14 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
     from(assignedHead,assignedPosBody,assignedNegBody)
   }
 
+  def variables(): Set[Variable] = {
+    if (isGround) return Set()
+    atoms flatMap {
+      case a: AtomWithArgument => a.arguments filter (_.isInstanceOf[Variable]) map (_.asInstanceOf[Variable])
+      case _ => Set()
+    }
+  }
+
   //naming it 'apply' causes problems in case classes (ambiguity with use of constructor)
   def from(head: THead, pos: Set[TBody], neg: Set[TBody]): Rule[THead, TBody]
 

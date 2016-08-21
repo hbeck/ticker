@@ -6,11 +6,14 @@ import core.Atom
   * Created by FM on 01.05.16.
   */
 trait ExtendedAtom {
+  //def atom(): Atom
   def isGround(): Boolean
   def assign(assignment: Assignment): ExtendedAtom //not called 'ground' since assignment might be partial
 }
 
-trait HeadAtom extends ExtendedAtom
+trait HeadAtom extends ExtendedAtom {
+  def predicateSymbol(): String
+}
 
 trait GroundExtendedAtom extends ExtendedAtom {
   override def isGround(): Boolean = true
@@ -32,4 +35,5 @@ case class AtAtom(time: Time, atom: Atom) extends HeadAtom {
   //TODO override def isGround(): Boolean = time.isGround() && atom.isGround()
   override def isGround(): Boolean = time.isInstanceOf[TimePoint] && atom.isGround()
   override def assign(assignment: Assignment): ExtendedAtom = atom assign assignment
+  override def predicateSymbol(): String = atom.predicateSymbol()
 }

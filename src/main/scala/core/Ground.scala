@@ -1,6 +1,5 @@
 package core
 
-import core.asp.AspRule
 import core.lars._
 
 
@@ -14,14 +13,14 @@ case class Ground(substitutions: Map[Variable, Value]) {
     case a: AtomWithArgument => this.apply(a)
   }
 
-  def apply(atom: AtomWithArgument): Atom = {
-    val groundedArguments: Seq[Argument] = atom.arguments map {
+  def apply(atomWithArg: AtomWithArgument): Atom = {
+    val groundedArguments: Seq[Argument] = atomWithArg.arguments map {
       // check if we have a substitution for the variable, if not use it as argument
       case v: Variable => substitutions.getOrElse(v, v)
       case v: Value => v
     }
 
-    atom.atom(groundedArguments.toList)
+    atomWithArg.atom(groundedArguments.toList)
   }
 
   def apply(headAtom: HeadAtom): HeadAtom = headAtom match {
