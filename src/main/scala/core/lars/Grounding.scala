@@ -1,6 +1,5 @@
 package core.lars
 
-import core.{Value, Variable}
 
 /**
   * Created by hb on 8/21/16.
@@ -8,6 +7,7 @@ import core.{Value, Variable}
 object Grounding {
 
   /*
+
   def apply(program: LarsProgram): LarsProgram = {
     val inspect = LarsProgramInspection(program)
     val groundRules = program.rules flatMap ground(inspect)
@@ -20,7 +20,6 @@ object Grounding {
     val assignments: Set[Assignment] = createAssignments(possibleValuesPerVariable)
     assignments map (rule.assign(_))
   }
-  */
 
   def ground[T <: ExtendedAtom](x: T, assignment: Assignment): T = {
     if (x.isGround) return x
@@ -66,7 +65,7 @@ object Grounding {
 
 }
 
-/*
+
 case class LarsProgramInspection(program: LarsProgram) {
 
   //def justifications(a: Atom): Set[LarsRule] = program.rules filter (_.head == a) toSet
@@ -76,7 +75,7 @@ case class LarsProgramInspection(program: LarsProgram) {
   //val ruleHeadAtoms = rules map (_.head) collect { case x if x.isInstanceOf[Atom] => x.asInstanceOf[Atom] } //ignore AtAtoms!
   val facts = rules filter (_.isFact)
 
-  val factAtoms = facts map (_.head) collect { case x if x.isInstanceOf[Atom] => x.asInstanceOf[Atom] }
+  val factAtoms = facts map (_.head) collect { case x: Atom => x }
   //val intensionalAtoms = ruleHeadAtoms diff factAtoms
 //  val signals = rules flatMap (r => r.pos union r.neg) collect {
 //    case x if x.isInstanceOf[WindowAtom] => x.asInstanceOf[WindowAtom].atom
@@ -85,20 +84,20 @@ case class LarsProgramInspection(program: LarsProgram) {
   //val allExtendedAtoms: Set[ExtendedAtom] = (rules flatMap (_.atoms)) toSet
 
   val groundFactAtoms = factAtoms filter (_.isGround)
-  val unaryGroundFactAtoms: Map[String, Set[Atom]] = groundFactAtoms filter (_.arity == 1) groupBy (_.predicateSymbol())
-  val nonUnaryGroundFactAtoms: Map[String, Set[Atom]] = groundFactAtoms filter (_.arity > 1) groupBy (_.predicateSymbol())
+  val unaryGroundFactAtoms: Map[Predicate, Set[Atom]] = groundFactAtoms filter (_.arity == 1) groupBy (_.predicate)
+  val nonUnaryGroundFactAtoms: Map[Predicate, Set[Atom]] = groundFactAtoms filter (_.arity > 1) groupBy (_.predicate)
 
   //("a" -> {a(x), a(y)})  ==>  ("a" -> {x,y})
-  val unaryLookup: Map[String,Set[Value]] = unaryGroundFactAtoms mapValues { set =>
+  val unaryLookup: Map[Predicate,Set[Value]] = unaryGroundFactAtoms mapValues { set =>
     set map (atom => atom.asInstanceOf[AtomWithArgument].arguments.head.asInstanceOf[Value])
   }
 
   //("a" -> {a(x,y), a(z,w)})  ==>  ("a" -> (0 -> {x,z}, 1 -> {y,w}))
   val nonUnaryLookup = nonUnaryGroundFactAtoms mapValues { set =>
     set.map(_.asInstanceOf[AtomWithArgument].arguments) //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
-      .flatMap(_.zipWithIndex) // ==> {(0,x), (1,y), (0,z), (1,w)}
-      .groupBy (_._2) //Map(1 -> {(y,1), (w,1)}, 0 -> {(x,0), (z,0)})
-      .mapValues ( _ map (pair => pair._1) ) //Map(1 -> {y,w}, 0 -> {x,z})
+      .flatMap(_.zipWithIndex) // ==> {(x,0), (y,1), (z,0), (w,1)}
+      .groupBy(_._2) //Map(1 -> {(y,1), (w,1)}, 0 -> {(x,0), (z,0)})
+      .mapValues( _ map (pair => pair._1) ) //Map(1 -> {y,w}, 0 -> {x,z})
   }
 
   //rule parts with variables
@@ -115,7 +114,7 @@ case class LarsProgramInspection(program: LarsProgram) {
     val unaryFactAtoms = unaryFactAtomVariableOccurrences(rule).getOrElse(variable,Set())
     //pick random, better use the one with minimal number of values
     if (!unaryFactAtoms.isEmpty) {
-      return unaryLookup(unaryFactAtoms.head.predicateSymbol())
+      return unaryLookup(unaryFactAtoms.head.predicate)
     }
 
     val nonUnaryFactAtoms = nonUnaryFactAtomVariableOccurrences(rule).getOrElse(variable,Set())
@@ -142,6 +141,7 @@ case class LarsProgramInspection(program: LarsProgram) {
     }
   }
 
+  */
+
 
 }
-*/

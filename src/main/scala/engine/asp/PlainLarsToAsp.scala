@@ -174,9 +174,9 @@ case class MappedProgram(mappedRules: Seq[LarsRuleMapping]) extends PinnedProgra
 
   val windowAtoms = mappedRules.
     map(_._1).
-    flatMap(r => r.body.collect { case w: WindowAtom => w })
+    flatMap(r => r.body collect { case w: WindowAtom => w })
 
-  val slidingWindows = windowAtoms.collect { case s: SlidingWindow => s }
+  val slidingWindows = windowAtoms collect { case s: SlidingWindow => s }
 
   // TODO: when there are no windows - is the maximumWindowSize 0 or None?
   val maximumWindowSize: WindowSize = slidingWindows.isEmpty match {
