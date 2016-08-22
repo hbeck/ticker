@@ -51,6 +51,7 @@ object PlainLarsToAsp {
     val windowFunction = window.windowFunction match {
       case SlidingTimeWindow(size) => f"w_te_$size"
       case SlidingTupleWindow(size) => f"w_tu_$size"
+      case FluentWindow => f"w_fl"
     }
     val operator = window.temporalModality match {
       case Diamond => "d"

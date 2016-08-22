@@ -9,6 +9,8 @@ object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
     case SlidingTimeWindow(windowSize) => f"⊞^$windowSize"
+    case SlidingTupleWindow(windowSize)=> f"⊞_#^$windowSize"
+    case FluentWindow=>f"⊞^f"
   }
 
   def apply(temporalOperator: TemporalModality) = temporalOperator match {
@@ -21,19 +23,19 @@ object Format {
     val parts = Seq(
       apply(atom.windowFunction),
       apply(atom.temporalModality),
-      atom.atom
+      atom.atom.predicate
     )
     parts mkString " "
   }
 
   def apply(atom: ExtendedAtom): String = atom match {
     case w: WindowAtom => apply(w)
-    case a: Atom => a.toString
+    case a: Atom => a.predicate.toString
   }
 
   def apply(atom: HeadAtom): String = atom match {
-    case a: Atom => a.toString
-    case at: AtAtom => apply(At(at.time)) + " " + at.atom
+    case a: Atom => a.predicate.toString
+    case at: AtAtom => apply(At(at.time)) + " " + at.atom.predicate
   }
 
   def apply(rule: LarsRule): String = {
