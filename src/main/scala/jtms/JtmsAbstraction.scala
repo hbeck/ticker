@@ -264,7 +264,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __cleanup = 0;
 
-  def __cleanupSupportingData(force: Boolean = false): Unit = {
+  def  __cleanupSupportingData(force: Boolean = false): Unit = {
     __cleanup = __cleanup + 1
     if (__cleanup % 1000 == 0 || force) {
       __cleanup = 0
