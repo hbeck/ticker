@@ -1,6 +1,6 @@
 package clingo
 
-import core._
+import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
 
 /**
@@ -30,8 +30,8 @@ object ClingoConversion {
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
-      case Predicate(caption) => (caption, "")
       case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case x: GroundAtom => (x.predicate.caption, "")
       case _ => (atom.toString, "")
     }
 

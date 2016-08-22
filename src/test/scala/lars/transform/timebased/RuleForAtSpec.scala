@@ -19,8 +19,8 @@ class RuleForAtSpec extends TransformLarsSpec {
   it should "contain now in all rules" in {
     forAll(PlainLarsToAsp.rulesForAt(w_te_1_a_1_a)) {
       rule => rule.body map {
-        case a: AtomWithArgument => a.predicate
-      } should contain(now)
+         a: AtomWithArgument => a.predicate
+      } should contain(now.predicate)
     }
   }
   it should "contain now(t0)" in {

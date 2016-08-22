@@ -2,7 +2,7 @@ package engine
 
 import core.asp.AspRule
 import core.lars._
-import core.{Atom, AtomWithArgument, PinnedAtom, Predicate}
+import core.{not => _, _}
 import engine.asp.{PlainLarsToAsp, now}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
@@ -34,14 +34,14 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   "The head of a transformed rule" should "not be pinned" in {
     val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
 
-    PinnedAspToIncrementalAsp(r, Set()).head shouldBe an[Predicate]
+    PinnedAspToIncrementalAsp(r, Set()).head shouldBe an[PredicateAtom]
   }
 
   "Window-Atoms" should "have no pinned head" in {
     val rules = PlainLarsToAsp(a <= W(1, Diamond, b))
 
     val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
-    forAll(converted)(r => r.head shouldBe an[Predicate])
+    forAll(converted)(r => r.head shouldBe an[PredicateAtom])
   }
 
   "The usage of the window-atom body" should "not be pinned" in {

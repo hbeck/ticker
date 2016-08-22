@@ -34,6 +34,7 @@ case class Predicate(caption: String) {
 
 trait GroundAtom extends Atom {
   override def isGround(): Boolean = true
+
   override def assign(assignment: Assignment) = this
 }
 
@@ -93,8 +94,16 @@ case class GroundAtomWithArguments(override val predicate: Predicate, arguments:
 }
 
 object GroundAtom {
-  def apply(predicate: Predicate, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
+  def apply(predicate: Predicate, arguments: Value*): GroundAtom = {
+    if (arguments.isEmpty)
+      PredicateAtom(predicate)
+    else
+      GroundAtomWithArguments(predicate, arguments.toList)
+  }
 }
+
+// TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
+case class PredicateAtom(predicate: Predicate) extends GroundAtom
 
 case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgument {
 
@@ -127,7 +136,7 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = GroundAtom(Predicate(caption))
+  def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 

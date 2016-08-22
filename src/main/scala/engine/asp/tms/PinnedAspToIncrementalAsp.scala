@@ -31,7 +31,7 @@ object PinnedAspToIncrementalAsp {
 
     AspRule(
       unpin(rule.head),
-      rule.pos filterNot (_.predicate == now) map unpinIfNeeded,
+      rule.pos filterNot (_.atom == now) map unpinIfNeeded,
       rule.neg map unpinIfNeeded
     )
   }
