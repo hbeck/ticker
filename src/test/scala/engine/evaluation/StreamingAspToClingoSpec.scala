@@ -22,7 +22,7 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "An atom 'a(0)'" should "be converted to a(t0)" in {
-    StreamingClingoInterpreter.asPinnedAtom(Set(NonGroundAtom(a, Seq(t0.toString))), t1) should contain(a(t0))
+    StreamingClingoInterpreter.asPinnedAtom(Set(NonGroundAtom(a.predicate, Seq(t0.toString))), t1) should contain(a(t0))
   }
 
   "A model containing a(1), now(0) and a(2)" should "be converted into a(t1), now(t0), a(t2) at t0" in {

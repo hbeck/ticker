@@ -6,11 +6,12 @@ import core.lars._
 /**
   * Created by hb on 12/22/15.
   */
-
 sealed trait Atom extends HeadAtom {
   def arity = 0
 
   def isGround(): Boolean
+
+  val predicate: Predicate
 
   //override def atom(): Atom = this
 
@@ -24,13 +25,16 @@ sealed trait Atom extends HeadAtom {
 
 }
 
+case class Predicate(caption: String) {
+  override def toString = caption
+}
+
 trait GroundAtom extends Atom {
   override def isGround(): Boolean = true
   override def assign(assignment: Assignment) = this
 }
 
 trait AtomWithArgument extends Atom {
-  val atom: Atom //TODO Atom vs Predicate !?
 
   val arguments: Seq[Argument]
 
@@ -38,7 +42,7 @@ trait AtomWithArgument extends Atom {
 
   def ==(other: AtomWithArgument): Boolean = {
     if (this eq other) return true
-    if (this.atom != other.atom) return false
+    if (this.predicate != other.predicate) return false
     if (this.arguments.length != other.arguments.length) return false
     if (!this.arguments.equals(other.arguments)) return false
     true
@@ -51,40 +55,25 @@ trait AtomWithArgument extends Atom {
 
   override def toString = {
     val sb = new StringBuilder
-
-    sb.append(atom).append("(")
-
+    sb.append(predicate).append("(")
     arguments.addString(sb, ",")
-
     sb.append(")")
-
     sb.toString
   }
 
   override def isGround(): Boolean = arguments forall (s => s.isInstanceOf[Value])
 
-  override def predicateSymbol() = atom.predicateSymbol
-
-}
-
-case class Predicate(caption: String) extends GroundAtom { //TODO
-  override def toString = caption
-
-  override def isGround(): Boolean = true
-
-  override def predicateSymbol() = caption
-
 }
 
 object Falsum extends GroundAtom {
-  override def predicateSymbol() = "⊥"
+  override val predicate = Predicate("⊥")
 }
 
 case class ContradictionAtom(caption: String) extends GroundAtom {
-  override def predicateSymbol() = caption
+  override val predicate = Predicate(caption)
 }
 
-case class NonGroundAtom(override val atom: Atom, arguments: Seq[Argument]) extends AtomWithArgument {
+case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argument]) extends AtomWithArgument {
   override def assign(assignment: Assignment): AtomWithArgument = {
     val newArguments = arguments map { arg =>
       assignment(arg) match {
@@ -92,24 +81,23 @@ case class NonGroundAtom(override val atom: Atom, arguments: Seq[Argument]) exte
         case _ => arg
       }
     }
-    NonGroundAtom(atom, newArguments)
+    NonGroundAtom(predicate, newArguments)
   }
 }
 
-case class GroundAtomWithArguments(override val atom: Atom, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
+case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
 }
 
 object GroundAtom {
-  //TODO type predicate
-  def apply(atom: Atom, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(atom, arguments.toList)
+  def apply(predicate: Predicate, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
 }
 
-case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
+case class PinnedAtom(atom: Atom, time: Time) extends AtomWithArgument {
 
-  override val atom = timedAtom match {
-    case aa: AtomWithArgument => aa.atom
-    case _ => timedAtom
+  override val predicate = atom match {
+    case aa: AtomWithArgument => aa.predicate
+    case _ => atom.predicate
   }
 
   val timeAsArgument: Argument = time match {
@@ -117,7 +105,7 @@ case class PinnedAtom(timedAtom: Atom, time: Time) extends AtomWithArgument {
     case t: TimeVariableWithOffset => Variable(t.toString)
   }
 
-  override val arguments = timedAtom match {
+  override val arguments = atom match {
     case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
     case _ => Seq(timeAsArgument)
   }
@@ -136,7 +124,7 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = Predicate(caption)
+  def apply(caption: String): Atom = GroundAtom(Predicate(caption))
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 

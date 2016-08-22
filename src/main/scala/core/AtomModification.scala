@@ -6,14 +6,14 @@ import core.lars.Time
   * Created by FM on 17.06.16.
   */
 case class AtomModification(atom: Atom) {
+
   def apply(time: Time) = PinnedAtom(atom, time)
 
-
   def apply(arguments: List[Argument]): AtomWithArgument = {
-    val baseAtom: (Atom, Seq[Argument]) = atom match {
-      case aa: AtomWithArgument => (aa.atom, aa.arguments)
+    val baseAtom: (Predicate, Seq[Argument]) = atom match {
+      case aa: AtomWithArgument => (aa.predicate, aa.arguments)
       case a: Predicate => (a, Seq())
-      case _ => (atom, Seq())
+      case _ => (atom.predicate, Seq())
     }
 
     val combinedArguments = baseAtom._2 ++ arguments
@@ -26,5 +26,5 @@ case class AtomModification(atom: Atom) {
 
   def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
 
-  def asTupleReference(position: Long): GroundAtomWithArguments = GroundAtomWithArguments(Atom(atom.toString + "_TUPLE"), Seq(Value(position)))
+  def asTupleReference(position: Long): GroundAtomWithArguments = GroundAtomWithArguments(Predicate(atom.toString + "_TUPLE"), Seq(Value(position)))
 }

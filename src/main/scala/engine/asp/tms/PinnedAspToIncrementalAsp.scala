@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
-import core.{Atom, AtomWithArgument, NonGroundAtom, PinnedAtom}
+import core.{Atom, AtomWithArgument, PinnedAtom}
 import engine.asp.{MappedProgram, PinnedRule, now}
 
 /**
@@ -17,7 +17,7 @@ object PinnedAspToIncrementalAsp {
     case _ => atom
   }
 
-  def unpin(pinned: PinnedAtom) = pinned.arguments match {
+  def unpin(pinned: PinnedAtom): Atom = pinned.arguments match {
     case pinned.timeAsArgument :: Nil => pinned.atom
     case _ => pinned.atom(pinned.arguments filter (_ != pinned.timeAsArgument): _*)
   }
@@ -31,7 +31,7 @@ object PinnedAspToIncrementalAsp {
 
     AspRule(
       unpin(rule.head),
-      rule.pos filterNot (_.atom == now) map unpinIfNeeded,
+      rule.pos filterNot (_.predicate == now) map unpinIfNeeded,
       rule.neg map unpinIfNeeded
     )
   }

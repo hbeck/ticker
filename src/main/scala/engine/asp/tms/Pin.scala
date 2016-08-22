@@ -47,7 +47,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 
   def apply(atom: PinnedAtom): PinnedAtom = {
-    val groundedBaseAtom = atom.timedAtom match {
+    val groundedBaseAtom = atom.atom match {
       case t: PinnedAtom => apply(t)
       case a: Atom => a
     }
@@ -70,7 +70,6 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       val g = this.apply(p)
       ground(g)
     }
-    case p: Predicate => p
     case a: GroundAtom => a
     case _ => throw new RuntimeException("cannot ground " + atom) //TODO
   }
@@ -87,7 +86,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 
   def ground(pinnedAtom: PinnedAtom): GroundAtomWithArguments = {
     // TODO: unifiy
-    GroundAtomWithArguments(pinnedAtom.atom, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
+    GroundAtomWithArguments(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
   }
 
   def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)

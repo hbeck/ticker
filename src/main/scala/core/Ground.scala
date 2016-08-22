@@ -13,14 +13,14 @@ case class Ground(substitutions: Map[Variable, Value]) {
     case a: AtomWithArgument => this.apply(a)
   }
 
-  def apply(atomWithArg: AtomWithArgument): Atom = {
-    val groundedArguments: Seq[Argument] = atomWithArg.arguments map {
+  def apply(atomWithArgument: AtomWithArgument): Atom = {
+    val groundedArguments: Seq[Argument] = atomWithArgument.arguments map {
       // check if we have a substitution for the variable, if not use it as argument
       case v: Variable => substitutions.getOrElse(v, v)
       case v: Value => v
     }
 
-    atomWithArg.atom(groundedArguments.toList)
+    AtomModification(atomWithArgument)(groundedArguments.toList)
   }
 
   def apply(headAtom: HeadAtom): HeadAtom = headAtom match {

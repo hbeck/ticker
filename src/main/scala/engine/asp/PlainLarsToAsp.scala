@@ -58,7 +58,7 @@ object PlainLarsToAsp {
       case a: At => f"at_${a.time}"
     }
     val atomName = window.atom match {
-      case aa: AtomWithArgument => aa.atom.toString
+      case aa: AtomWithArgument => aa.predicate.toString
       case a: Atom => a.toString
     }
     f"${windowFunction}_${operator}_${atomName}"

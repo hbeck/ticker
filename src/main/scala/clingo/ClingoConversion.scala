@@ -31,7 +31,7 @@ object ClingoConversion {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case Predicate(caption) => (caption, "")
-      case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case _ => (atom.toString, "")
     }
 
