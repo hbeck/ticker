@@ -1,6 +1,6 @@
 package core.lars
 
-import core.Fact
+import core.{Atom,Fact}
 
 /**
   * Created by FM on 01.05.16.
@@ -18,12 +18,30 @@ case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[
   }
 }
 
+case class UserDefinedBasicLarsRule(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends BasicLarsRule {
+
+  override lazy val atoms: Set[ExtendedAtom] = pos union neg + head
+
+  override def from(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): UserDefinedBasicLarsRule = {
+    UserDefinedBasicLarsRule(head,pos,neg)
+  }
+}
+
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom] {
 
   override lazy val atoms: Set[ExtendedAtom] = Set[ExtendedAtom](head)
 
   override def from(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): LarsFact = {
     LarsFact(head)
+  }
+}
+
+case class BasicLarsFact(head: Atom) extends Fact[Atom, ExtendedAtom] {
+
+  override lazy val atoms: Set[ExtendedAtom] = Set[ExtendedAtom](head)
+
+  override def from(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): BasicLarsFact = {
+    BasicLarsFact(head)
   }
 }
 

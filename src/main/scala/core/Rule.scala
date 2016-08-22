@@ -29,7 +29,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
   def variables(): Set[Variable] = {
     if (isGround) return Set()
     atoms flatMap {
-      case a: AtomWithArgument => a.arguments filter (_.isInstanceOf[Variable]) map (_.asInstanceOf[Variable])
+      case a: AtomWithArgument => a.arguments collect { case v:Variable => v }
       case _ => Set()
     }
   }

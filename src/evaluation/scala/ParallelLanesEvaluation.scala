@@ -1,12 +1,6 @@
-import java.io.File
-import java.util.concurrent.TimeUnit
-
-import com.quantifind.charts.highcharts._
-import com.sun.org.glassfish.external.statistics.Statistic
-import evaluation._
-import core.Atom
-import core.lars.{Diamond, _}
+import core.lars._
 import engine.StreamEntry
+import evaluation._
 import evaluation.reachBlocked.ParallelLanes
 
 /**

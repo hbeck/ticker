@@ -16,4 +16,7 @@ package object lars {
 
   type LarsRule = Rule[HeadAtom, ExtendedAtom]
 
+  //no @; might use more restrictive body atom class later
+  type BasicLarsRule = Rule[Atom, ExtendedAtom]
+
 }
