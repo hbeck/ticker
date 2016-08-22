@@ -5,7 +5,7 @@ import core.asp.AspRule
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, Result, UnknownResult}
+import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
 
 /**
   * Created by FM on 18.05.16.
@@ -70,7 +70,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
       }
     }
 
-    Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))
+    // TODO double-check for results => NoResult?
+    resultingModel match {
+      case Some(m) => Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))
+      case None => NoResult
+    }
   }
 
   def deriveOrderedTuples = tuplePositions.zipWithIndex.

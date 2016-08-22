@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 import com.quantifind.charts.highcharts._
 import com.sun.org.glassfish.external.statistics.Statistic
@@ -83,7 +84,7 @@ object ParallelLanesEvaluation {
 
     val (append, evaluate) = e.streamInputsAsFastAsPossible(inputs)
 
-    ConfigurationResult(instance, append, evaluate)
+    TimingsConfigurationResult(instance, append, evaluate)
   }
 
 

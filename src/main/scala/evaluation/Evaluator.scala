@@ -218,4 +218,19 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
       StatisticResult.fromExecutionTimes(evaluateExecutionTimes)
       )
   }
+
+  def successfulModelComputations(inputs: Seq[StreamEntry]) = {
+    val engine = engineProvider()
+
+    val modelDefined = inputs.zipWithIndex.map(i => {
+      val entry = i._1
+      engine.append(entry.time)(entry.atoms.toSeq: _*)
+
+      val model = engine.evaluate(entry.time)
+
+      (i._2, model.get.isDefined)
+    })
+
+    modelDefined
+  }
 }

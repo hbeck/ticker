@@ -1,7 +1,9 @@
+import java.util.concurrent.TimeUnit
+
 import core.{Atom, StringValue}
 import core.lars._
 import engine.StreamEntry
-import evaluation.{AlgorithmResult, ConfigurationResult, DumpData, Evaluator}
+import evaluation._
 
 import scala.collection.immutable.HashMap
 import scala.util.Random
@@ -10,54 +12,66 @@ import scala.util.Random
   * Created by FM on 21.08.16.
   */
 object P18Evaluation extends P18Program {
+
+  val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
+  val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
+  val all_025 = HashMap(x_1 -> 0.25, x_2 -> 0.25, x_3 -> 0.25, x_4 -> 0.25, y_1 -> 0.25, y_2 -> 0.25)
+
+
   def main(args: Array[String]): Unit = {
+    failures(args)
 
+  }
 
+  def timings(args: Array[String]): Unit = {
     // evaluate everything one time as pre-pre-warmup
-    evaluate(Seq("tms", "learn") toArray)
+    evaluateTimings(Seq("tms", "greedy") toArray)
 
-    val dump = DumpData("Configuration", "node x lanes")
+    val dump = DumpData("Configuration", "Programs")
     val dumpToCsv = dump.printResults("p18-output.csv") _
 
     if (args.length == 0) {
-//      val allOptions = Seq(
-//        Seq("tms", "greedy"),
-//        Seq("tms", "doyle"),
-//        Seq("tms", "learn")
-//        //        Seq("clingo", "push")
-//      )
-//
-//      val allResults = allOptions map (o => evaluate(o.toArray))
-//
-//      dump.plot(allResults)
-//
-//      dumpToCsv(allResults)
+      val allOptions = Seq(
+        Seq("tms", "greedy"),
+        Seq("tms", "doyle"),
+        Seq("tms", "learn")
+        //        Seq("clingo", "push")
+      )
+
+      val allResults = allOptions map (o => evaluateTimings(o.toArray))
+
+      dump.plot(allResults)
+
+      dumpToCsv(allResults)
 
     } else {
-      val results = evaluate(args)
+      val results = evaluateTimings(args)
       dump.plot(Seq(results))
       dumpToCsv(Seq(results))
     }
   }
 
-  val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
-
-  def evaluate(args: Array[String]) = {
+  def evaluateTimings(args: Array[String], timePoints: Long = 500) = {
 
     val random = new Random(1)
 
-    val evaluationOptions = HashMap(all_001 -> Seq(P_1, P_2))
+    val evaluationOptions = HashMap(
+      ("P1,P2: 0.01", all_001) -> Seq(P_1, P_2),
+      ("P1,P2: 0.25", all_025) -> Seq(P_1, P_2)
+    )
 
     val evaluationCombination = evaluationOptions map { o =>
       val program = LarsProgram(o._2 flatMap (_.toSeq))
-      val signals = generateSignals(o._1, random, 0, 2000)
+      val signals = generateSignals(o._1._2, random, 0, timePoints)
 
-      (program, signals)
+      (o._1._1, program, signals)
     }
 
     val option = args.mkString(" ")
 
-    AlgorithmResult(option, evaluationCombination map (c => execute(args ++ Seq("p18"), "all-0.01", c._1, c._2)) toList)
+    Console.out.println("Algorithm: " + option)
+
+    AlgorithmResult(option, evaluationCombination map (c => executeTimings(args ++ Seq("p18"), c._1, c._2, c._3)) toList)
   }
 
   def generateSignals(probabilities: HashMap[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
@@ -70,7 +84,7 @@ object P18Evaluation extends P18Program {
     signals
   }
 
-  def execute(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
+  def executeTimings(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
 
     Console.out.println(f"Evaluating ${instance}")
 
@@ -80,8 +94,70 @@ object P18Evaluation extends P18Program {
 
     val (append, evaluate) = e.streamInputsAsFastAsPossible(signals)
 
-    ConfigurationResult(instance, append, evaluate)
+    TimingsConfigurationResult(instance, append, evaluate)
   }
+
+  def failures(args: Array[String]): Unit = {
+    val dump = DumpData("Configuration", "Instances")
+    val dumpToCsv = dump.printResults("p18-failure-output.csv") _
+
+    if (args.length == 0) {
+      val allOptions = Seq(
+        Seq("tms", "greedy"),
+//        Seq("tms", "doyle"),
+        Seq("tms", "learn")
+        //        Seq("clingo", "push")
+      )
+
+      val allResults = allOptions map (o => evaluateFailures(o.toArray))
+
+      dump.plotFailures(allResults)
+
+      //      dumpToCsv(allResults)
+
+    } else {
+      val results = evaluateFailures(args)
+      dump.plotFailures(Seq(results))
+      //      dumpToCsv(Seq(results))
+    }
+  }
+
+  def evaluateFailures(args: Array[String], timePoints: Long = 1000) = {
+
+    val random = new Random(1)
+
+    val evaluationOptions = HashMap(
+//      ("P4: 0.01", all_001) -> Seq(P_4),
+      ("P4: 0.25", all_025) -> Seq(P_4)
+    )
+
+    val evaluationCombination = evaluationOptions map { o =>
+      val program = LarsProgram(o._2 flatMap (_.toSeq))
+      val signals = generateSignals(o._1._2, random, 0, timePoints)
+
+      (o._1._1, program, signals)
+    }
+
+    val option = args.mkString(" ")
+
+    Console.out.println("Algorithm: " + option)
+
+    AlgorithmResult(option, evaluationCombination map (c => executeFailures(args ++ Seq("p18"), c._1, c._2, c._3)) toList)
+  }
+
+  def executeFailures(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
+
+    Console.out.println(f"Evaluating ${instance}")
+
+    val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
+
+    val e = Evaluator(provider, 1, 2)
+
+    val computations = e.successfulModelComputations(signals)
+
+    SuccessConfigurationResult(instance, computations)
+  }
+
 
 }
 
@@ -120,10 +196,10 @@ trait P18Program {
   val c_i = c(i)
   val d_i = d(i)
 
-  val _1 =StringValue("1")
-  val _2 =StringValue("2")
-  val _3 =StringValue("3")
-  val _4 =StringValue("4")
+  val _1 = StringValue("1")
+  val _2 = StringValue("2")
+  val _3 = StringValue("3")
+  val _4 = StringValue("4")
 
   val x_1: Atom = x(_1)
   val x_2: Atom = x(_2)

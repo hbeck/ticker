@@ -26,7 +26,7 @@ case class StatisticResult(executionTimes: Seq[Duration]) {
   }
 
   def asResult(unit: TimeUnit = TimeUnit.MILLISECONDS) = {
-    
+
     val results = Seq(
       min,
       max,
@@ -47,5 +47,12 @@ object StatisticResult {
   }
 }
 
-case class ConfigurationResult(instanceCaption:String, appendResult:StatisticResult, evaluateResult:StatisticResult)
-case class AlgorithmResult(caption: String, runs:Seq[ConfigurationResult])
+trait ConfigurationResult {
+  val instanceCaption: String
+}
+
+case class TimingsConfigurationResult(instanceCaption: String, appendResult: StatisticResult, evaluateResult: StatisticResult) extends ConfigurationResult
+
+case class SuccessConfigurationResult(instanceCaption: String, successFailures: Seq[(Int, Boolean)]) extends ConfigurationResult
+
+case class AlgorithmResult[TResult <: ConfigurationResult](caption: String, runs: Seq[TResult])
