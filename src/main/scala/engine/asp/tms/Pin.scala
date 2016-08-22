@@ -84,9 +84,9 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def ground(pinnedAtom: PinnedAtom): GroundAtomWithArguments = {
+  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
     // TODO: unifiy
-    GroundAtomWithArguments(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
+    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
   }
 
   def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)

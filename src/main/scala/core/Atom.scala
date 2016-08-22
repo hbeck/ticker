@@ -138,6 +138,11 @@ object Atom {
 
   def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
 
+  def apply(predicate: Predicate, arguments: Seq[Argument]) = arguments.forall(_.isInstanceOf[Value]) match {
+    case true => GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]).toList: _*)
+    case false => NonGroundAtom(predicate, arguments)
+  }
+
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 
   implicit def headAtomToFact(atom: Atom): AspFact[Atom] = AspFact[Atom](atom)

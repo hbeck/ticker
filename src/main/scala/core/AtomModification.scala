@@ -16,12 +16,7 @@ case class AtomModification(atom: Atom) {
       case _ => (atom.predicate, Seq())
     }
 
-    val combinedArguments = baseAtom._2 ++ arguments
-
-    combinedArguments.forall(_.isInstanceOf[Value]) match {
-      case true => GroundAtom(baseAtom._1, combinedArguments.map(_.asInstanceOf[Value]).toList: _*)
-      case false => NonGroundAtom(baseAtom._1, combinedArguments)
-    }
+    Atom(baseAtom._1, baseAtom._2 ++ arguments)
   }
 
   def apply(arguments: Argument*): Atom = this.apply(arguments.toList)
