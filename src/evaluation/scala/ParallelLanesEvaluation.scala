@@ -5,6 +5,7 @@ import com.sun.org.glassfish.external.statistics.Statistic
 import evaluation._
 import core.Atom
 import core.lars.{Diamond, _}
+import engine.StreamEntry
 import evaluation.reachBlocked.ParallelLanes
 
 /**
@@ -78,7 +79,7 @@ object ParallelLanesEvaluation {
     val e = Evaluator(provider, 1, 2)
 
     val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
-    val inputs: Seq[(TimePoint, Seq[Atom])] = obstacles zip (Stream from 1) map (t => (TimePoint(t._2), t._1.toSeq))
+    val inputs: Seq[StreamEntry] = obstacles zip (Stream from 1) map (t => StreamEntry(TimePoint(t._2), t._1.toSet))
 
     val (append, evaluate) = e.streamInputsAsFastAsPossible(inputs)
 

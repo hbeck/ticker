@@ -2,7 +2,7 @@ package evaluation
 
 import core.Atom
 import core.lars.{Duration, LarsProgram, TimePoint}
-import engine.EvaluationEngine
+import engine.{EvaluationEngine, StreamEntry}
 import engine.asp.oneshot.EvaluationMode
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
@@ -192,7 +192,7 @@ object Evaluator {
 
 case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, repetitions: Int = 5) {
 
-  def streamInputsAsFastAsPossible(inputs: Seq[(TimePoint, Seq[Atom])]): (StatisticResult, StatisticResult) = {
+  def streamInputsAsFastAsPossible(inputs: Seq[StreamEntry]): (StatisticResult, StatisticResult) = {
     val appendExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
     val evaluateExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
 
@@ -200,9 +200,9 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
       val engine = new TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
 
       inputs.foreach(i => {
-        engine.append(i._1)(i._2: _*)
+        engine.append(i.time)(i.atoms.toSeq: _*)
 
-        engine.evaluate(i._1)
+        engine.evaluate(i.time)
       })
     }
 
