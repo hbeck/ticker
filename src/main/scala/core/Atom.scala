@@ -7,6 +7,9 @@ import core.lars._
   * Created by hb on 12/22/15.
   */
 sealed trait Atom extends HeadAtom {
+
+  override val atom = this
+
   def arity = 0
 
   def isGround(): Boolean
@@ -93,7 +96,7 @@ object GroundAtom {
   def apply(predicate: Predicate, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
 }
 
-case class PinnedAtom(atom: Atom, time: Time) extends AtomWithArgument {
+case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgument {
 
   override val predicate = atom match {
     case aa: AtomWithArgument => aa.predicate

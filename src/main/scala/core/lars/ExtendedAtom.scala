@@ -6,7 +6,7 @@ import core.Atom
   * Created by FM on 01.05.16.
   */
 trait ExtendedAtom {
-  //def atom(): Atom //TODO
+  val atom: Atom //TODO
   def isGround(): Boolean
   def assign(assignment: Assignment): ExtendedAtom //not called 'ground' since assignment might be partial
 }
