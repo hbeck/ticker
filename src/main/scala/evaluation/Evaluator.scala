@@ -14,9 +14,81 @@ import scala.collection.mutable.ArrayBuffer
 //import scala.reflect.runtime._
 import scala.util.Random
 
+sealed trait OptionIdentifier {
+  val option: String
+  val description: String
+}
+
+sealed trait OptionValue extends OptionIdentifier {
+  val value: String
+}
+
+sealed trait EvaluationType extends OptionValue {
+  val value: String
+  val description = "Evaluation-Type"
+  val option = "et"
+}
+
+object Tms extends EvaluationType {
+  val value = "tms"
+}
+
+object Clingo extends EvaluationType {
+  val value = "clingo"
+}
+
+sealed trait EvaluationModifier extends OptionValue {
+  val value: String
+  val description = "Evaluation-Modifier"
+  val option = "em"
+}
+
+object Greedy extends EvaluationModifier {
+  val value = "greedy"
+}
+
+object Doyle extends EvaluationModifier {
+  val value = "Doyle"
+}
+
+object Learn extends EvaluationModifier {
+  val value = "Learn"
+}
+
+object Input extends OptionIdentifier {
+  val option = "in"
+  val description = "Input-File"
+}
+
+case class Input(value: String) extends OptionValue {
+  val option = "in"
+  val description = "Input-File"
+}
+
 object Evaluator {
 
+  val options: Set[OptionIdentifier] = Set(Tms, Clingo, Greedy, Doyle, Learn, Input)
+
+  def argsParser(args: Array[String]): Set[OptionValue] = {
+    val foundOptions = args.zip(args.tail).
+      map(arg => {
+        val matchedOption = options.
+          filter(o => o.option == arg._1).
+          collectFirst {
+            case o: OptionValue => o
+            case o: Input => Input(arg._2)
+          }
+        matchedOption
+      }).
+      filter(o => o.isDefined).
+      map(o => o.get)
+
+    foundOptions.toSet
+  }
+
   def buildEngineFromArguments(args: Array[String], programLoader: String => LarsProgram): EvaluationEngine = {
+
+    val arguments = argsParser(args)
     if (args.length != 3) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
@@ -36,16 +108,19 @@ object Evaluator {
   }
 
 
-  def buildEngine(program: LarsProgram, evaluationType: String, evaluationModifier: String): Option[EvaluationEngine] = {
+  def buildEngine(program: LarsProgram,
+                  evaluationType: String,
+                  evaluationModifier: String,
+                  random: Random = new Random(1)): Option[EvaluationEngine] = {
     // TODO: not nice
 
     if (evaluationType == "tms") {
       if (evaluationModifier == "greedy") {
-        return Some(greedyTms(program))
+        return Some(greedyTms(program, random))
       } else if (evaluationModifier == "doyle") {
-        return Some(doyleTms(program))
-      } else if(evaluationModifier=="learn"){
-        return Some(learnTms(program))
+        return Some(doyleTms(program, random))
+      } else if (evaluationModifier == "learn") {
+        return Some(learnTms(program, random))
       }
     } else if (evaluationType == "clingo") {
       if (evaluationModifier == "push") {
@@ -58,8 +133,8 @@ object Evaluator {
     None
   }
 
-  def greedyTms(program: LarsProgram) = {
-    val tms = JtmsGreedy(new Random(1))
+  def greedyTms(program: LarsProgram, random: Random = new Random(1)) = {
+    val tms = JtmsGreedy(random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -68,16 +143,16 @@ object Evaluator {
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def doyleTms(program: LarsProgram) = {
-    val tms = JtmsDoyle(new Random(1))
+  def doyleTms(program: LarsProgram, random: Random = new Random(1)) = {
+    val tms = JtmsDoyle(random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
     BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def learnTms(program: LarsProgram) = {
-    val tms = new JtmsLearn(new Random(1))
+  def learnTms(program: LarsProgram, random: Random = new Random(1)) = {
+    val tms = new JtmsLearn(random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -101,12 +176,16 @@ object Evaluator {
 
     Console.out.println("You specified: " + args.mkString(" "))
 
-    Console.out.println("Usage: Evaluator <evaluation-type> <evaluation-modifier> <input-file>")
+    val optionsUsage = options.map(o => f"-${o.option} <value>")
+
+    Console.out.println("Usage: Evaluator " + optionsUsage.mkString(" "))
     Console.err.println()
-    Console.out.println("evaluation-type: asp or tms")
-    Console.out.println("evaluation-modifier: greedy or doyle")
-    Console.out.println("   asp: pull or push")
-    Console.out.println("   tms: greedy or doyle")
+
+    val optionsDescription = options.
+      groupBy(o => o.description).
+      map(o => f"${o._1}: " + o._2.collect { case a: OptionValue => a.value })
+
+    Console.out.println(optionsDescription.mkString("\n"))
     System.exit(-1)
   }
 }

@@ -21,17 +21,7 @@ class ATupleWindowDiamondSample extends ConfigurableEvaluationSpec with TimeTest
     a <= WindowAtom(SlidingTupleWindow(2), Diamond, d)
   )
 
-  def engineWithStream = {
-    info("Given '{t1 -> a}, {t2 -> a}' ")
-
-    evaluationEngine.append(t1)(a)
-    evaluationEngine.append(t2)(a)
-
-    evaluationEngine
-  }
-
-
-  "An empty program" should "not lead to a at t0" in {
+  "An empty program" should "not lead to a at 0" in {
     evaluationEngine.evaluate(t0).get.value shouldNot contain(a)
   }
 
