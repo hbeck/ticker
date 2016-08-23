@@ -34,8 +34,20 @@ case class Predicate(caption: String) {
 
 trait GroundAtom extends Atom {
   override def isGround(): Boolean = true
+
   override def assign(assignment: Assignment) = this
 }
+
+object Falsum extends GroundAtom {
+  override val predicate = Predicate("⊥")
+}
+
+case class ContradictionAtom(caption: String) extends GroundAtom {
+  override val predicate = Predicate(caption)
+}
+
+// TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
+case class PredicateAtom(predicate: Predicate) extends GroundAtom
 
 trait AtomWithArgument extends Atom {
 
@@ -68,13 +80,13 @@ trait AtomWithArgument extends Atom {
 
 }
 
-object Falsum extends GroundAtom {
-  override val predicate = Predicate("⊥")
+object AtomWithArgument {
+  def apply(predicate: Predicate, arguments: Seq[Argument]): AtomWithArgument = arguments.forall(_.isInstanceOf[Value]) match {
+    case true => GroundAtomWithArguments(predicate, arguments.map(_.asInstanceOf[Value]).toList)
+    case false => NonGroundAtom(predicate, arguments)
+  }
 }
 
-case class ContradictionAtom(caption: String) extends GroundAtom {
-  override val predicate = Predicate(caption)
-}
 
 case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argument]) extends AtomWithArgument {
   override def assign(assignment: Assignment): AtomWithArgument = {
@@ -93,8 +105,14 @@ case class GroundAtomWithArguments(override val predicate: Predicate, arguments:
 }
 
 object GroundAtom {
-  def apply(predicate: Predicate, arguments: Value*): GroundAtomWithArguments = GroundAtomWithArguments(predicate, arguments.toList)
+  def apply(predicate: Predicate, arguments: Value*): GroundAtom = {
+    if (arguments.isEmpty)
+      PredicateAtom(predicate)
+    else
+      GroundAtomWithArguments(predicate, arguments.toList)
+  }
 }
+
 
 case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgument {
 
@@ -127,7 +145,12 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = GroundAtom(Predicate(caption))
+  def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
+
+  def apply(predicate: Predicate, arguments: Seq[Argument]) = arguments.forall(_.isInstanceOf[Value]) match {
+    case true => GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]).toList: _*)
+    case false => NonGroundAtom(predicate, arguments)
+  }
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
 

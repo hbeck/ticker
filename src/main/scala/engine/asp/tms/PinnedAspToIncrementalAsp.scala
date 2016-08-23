@@ -19,7 +19,7 @@ object PinnedAspToIncrementalAsp {
 
   def unpin(pinned: PinnedAtom): Atom = pinned.arguments match {
     case pinned.timeAsArgument :: Nil => pinned.atom
-    case _ => pinned.atom(pinned.arguments filter (_ != pinned.timeAsArgument): _*)
+    case _ => Atom(pinned.predicate, pinned.arguments filter (_ != pinned.timeAsArgument))
   }
 
   def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {
@@ -31,7 +31,7 @@ object PinnedAspToIncrementalAsp {
 
     AspRule(
       unpin(rule.head),
-      rule.pos filterNot (_.predicate == now) map unpinIfNeeded,
+      rule.pos filterNot (_.atom == now) map unpinIfNeeded,
       rule.neg map unpinIfNeeded
     )
   }

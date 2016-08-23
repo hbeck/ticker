@@ -5,6 +5,8 @@ package core.lars
   */
 sealed trait WindowFunction
 
+object FluentWindow extends WindowFunction
+
 sealed trait SlidingWindow extends WindowFunction {
   val windowSize: WindowSize
 }

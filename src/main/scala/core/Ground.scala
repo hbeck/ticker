@@ -20,7 +20,7 @@ case class Ground(substitutions: Map[Variable, Value]) {
       case v: Value => v
     }
 
-    AtomModification(atomWithArgument)(groundedArguments.toList)
+    Atom(atomWithArgument.predicate, groundedArguments.toList)
   }
 
   def apply(headAtom: HeadAtom): HeadAtom = headAtom match {
