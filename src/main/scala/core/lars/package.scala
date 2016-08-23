@@ -14,6 +14,8 @@ package object lars {
 
   def W(windowSize: WindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)
 
+  def Fluent(atom: Atom) = WindowAtom(FluentWindow, Diamond, atom)
+
   type LarsRule = Rule[HeadAtom, ExtendedAtom]
 
 }

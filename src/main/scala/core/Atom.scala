@@ -38,6 +38,17 @@ trait GroundAtom extends Atom {
   override def assign(assignment: Assignment) = this
 }
 
+object Falsum extends GroundAtom {
+  override val predicate = Predicate("⊥")
+}
+
+case class ContradictionAtom(caption: String) extends GroundAtom {
+  override val predicate = Predicate(caption)
+}
+
+// TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
+case class PredicateAtom(predicate: Predicate) extends GroundAtom
+
 trait AtomWithArgument extends Atom {
 
   val arguments: Seq[Argument]
@@ -69,13 +80,13 @@ trait AtomWithArgument extends Atom {
 
 }
 
-object Falsum extends GroundAtom {
-  override val predicate = Predicate("⊥")
+object AtomWithArgument {
+  def apply(predicate: Predicate, arguments: Seq[Argument]): AtomWithArgument = arguments.forall(_.isInstanceOf[Value]) match {
+    case true => GroundAtomWithArguments(predicate, arguments.map(_.asInstanceOf[Value]).toList)
+    case false => NonGroundAtom(predicate, arguments)
+  }
 }
 
-case class ContradictionAtom(caption: String) extends GroundAtom {
-  override val predicate = Predicate(caption)
-}
 
 case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argument]) extends AtomWithArgument {
   override def assign(assignment: Assignment): AtomWithArgument = {
@@ -102,8 +113,6 @@ object GroundAtom {
   }
 }
 
-// TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
-case class PredicateAtom(predicate: Predicate) extends GroundAtom
 
 case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgument {
 

@@ -23,4 +23,12 @@ case class AtomModification(atom: Atom) {
 
   // TODO: include arguments in atom-name?
   def asTupleReference(position: Long): GroundAtomWithArguments = GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(Value(position)))
+
+  def asFluentReference(): AtomWithArgument = {
+    val arguments = atom match {
+      case aa: AtomWithArgument => aa.arguments
+      case a: Atom => Seq()
+    }
+    AtomWithArgument(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
+  }
 }

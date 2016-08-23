@@ -76,7 +76,7 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to (size.toInt-1)) map (rAtom(_)) toSet
+        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
       }
     }
 
@@ -92,14 +92,17 @@ object PlainLarsToAsp {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+        (0 until size.toInt) map (rAtom(_))
       }
+      case FluentWindow => Seq(windowAtom.atom.asFluentReference())
+
     }
 
     val rules = generatedAtoms map (a => AspRule(h, Set(now(T), a)))
 
     rules.toSet
   }
+
 
   def rulesForAt(windowAtom: WindowAtom): Set[PinnedRule] = {
     val at = windowAtom.temporalModality.asInstanceOf[At]
@@ -145,7 +148,11 @@ object PlainLarsToAsp {
       case aa: AtomWithArgument => aa.arguments
       case a: Atom => Seq()
     }
-    val atomsWithArguments = atom.apply(previousArguments: _*)
+    val filteredAtomArguments = windowAtom.windowFunction match {
+      case FluentWindow => previousArguments take 1
+      case _ => previousArguments
+    }
+    val atomsWithArguments = atom.apply(filteredAtomArguments: _*)
 
     windowAtom.temporalModality match {
       case At(v: TimeVariableWithOffset) => atomsWithArguments(v)

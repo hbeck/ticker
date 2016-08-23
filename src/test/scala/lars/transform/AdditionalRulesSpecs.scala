@@ -22,4 +22,7 @@ class AdditionalRulesSpecs extends TransformLarsSpec {
   "A box-window atom" should "be transformed into some rule" in {
     assert(PlainLarsToAsp.additionalRules(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
   }
+  "A fluent-window atom" should "be transformed into some rule" in {
+    assert(PlainLarsToAsp.additionalRules(Fluent(a)).nonEmpty)
+  }
 }
