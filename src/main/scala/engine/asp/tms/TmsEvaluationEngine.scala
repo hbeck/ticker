@@ -1,7 +1,7 @@
 package engine.asp.tms
 
 import core._
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
@@ -22,10 +22,12 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
   // TODO: wrong position? Move to Policy?
   var tuplePositions: List[Atom] = List()
   var extensionalAtomsStream: Map[TimePoint, GroundedStream] = Map()
+  var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     tuplePositions = atoms.toList ++ tuplePositions
+    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
     cachedResults(time) = prepare(time, atoms.toSet)
     trimByWindowSize(time)
   }
@@ -38,6 +40,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     val extensionalAtoms = pin.ground(pin.atoms(atoms))
 
     val orderedTuples = deriveOrderedTuples
+    val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact(_)).toSeq
 
     val add = tmsPolicy.add(time) _
 
@@ -45,6 +48,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     add(extensionalAtoms.toSeq)
     add(orderedTuples)
     add(groundedRules)
+    add(fluentTuples)
 
     val model = tmsPolicy.getModel(time)
 
@@ -53,6 +57,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     remove(groundedRules)
     // we never remove extensional atoms explicitly (the policy might do it)
     remove(orderedTuples)
+    remove(fluentTuples)
 
     model
   }
@@ -83,7 +88,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimeValue)) => PinnedAtom(GroundAtom(p),t.timePoint)
+    case GroundAtomWithArguments(p: Predicate, Seq(t: TimeValue)) => PinnedAtom(GroundAtom(p), t.timePoint)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
   }
@@ -96,5 +101,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     extensionalAtomsStream = extensionalAtomsStream -- atomsToRemove.keySet
 
     atomsToRemove foreach (a => tmsPolicy.remove(a._1)(a._2.toSeq))
+  }
+
+  def asFluentMap(atom: Atom) = {
+    val arguments = atom match {
+      case aa: AtomWithArgument => aa.arguments take 1
+      case _ => Seq()
+    }
+
+    (atom.predicate, arguments)
   }
 }
