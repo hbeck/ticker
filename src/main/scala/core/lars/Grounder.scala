@@ -10,13 +10,13 @@ import scala.collection.immutable.HashMap
   *
   * Created by hb on 8/21/16.
   */
-object Grounding {
+case class Grounder(program: LarsProgram) {
 
-  def apply(program: LarsProgram): LarsProgram = {
-    val inspect = LarsProgramInspection(program)
-    val groundRules = program.rules flatMap ground(inspect)
-    LarsProgram(groundRules)
-  }
+  lazy val inspect = LarsProgramInspection(program)
+  lazy val groundRules = program.rules flatMap ground(inspect)
+  lazy val groundProgram = LarsProgram(groundRules)
+
+  // private:
 
   def ground(inspect: LarsProgramInspection)(rule: LarsRule): Set[LarsRule] = {
     if (rule isGround) return Set(rule)

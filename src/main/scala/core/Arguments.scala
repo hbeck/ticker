@@ -18,7 +18,9 @@ object Argument {
   implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
 }
 
-case class Variable(name: String) extends Argument
+case class Variable(name: String) extends Argument {
+  override def toString = name
+}
 
 object Variable {
   implicit def convertToVariable(name: String): Variable = {

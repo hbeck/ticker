@@ -51,6 +51,42 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
       false
     }
   }
+
+  override def toString(): String = {
+    val sb = new StringBuilder
+    def result: String = sb.toString
+
+    sb.append(head)
+    if (pos.isEmpty && neg.isEmpty) {
+      return result
+    }
+    sb.append(" :- ")
+
+    //pos
+    if (pos.size == 1) {
+      sb.append(pos.head)
+    } else if (pos.size > 1) {
+      sb.append(pos.head)
+      pos.tail foreach (sb.append(", ").append(_))
+    }
+
+    if (neg.isEmpty) {
+      return result
+    }
+    if (pos.nonEmpty) {
+      sb.append(", not ")
+    }
+
+  //neg
+    if (neg.size == 1) {
+      sb.append(neg.head)
+    } else if (neg.size > 1) {
+      sb.append(neg.head)
+      neg.tail foreach (sb.append(", not ").append(_))
+    }
+
+    return result
+  }
 }
 
 trait Fact[THead <: HeadAtom, TBody <: ExtendedAtom] extends Rule[THead, TBody] {

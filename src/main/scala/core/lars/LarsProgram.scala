@@ -25,6 +25,7 @@ case class UserDefinedBasicLarsRule(head: Atom, pos: Set[ExtendedAtom], neg: Set
   override def from(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): UserDefinedBasicLarsRule = {
     UserDefinedBasicLarsRule(head,pos,neg)
   }
+
 }
 
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom] {
@@ -47,6 +48,19 @@ case class BasicLarsFact(head: Atom) extends Fact[Atom, ExtendedAtom] {
 
 case class LarsProgram(rules: Seq[LarsRule]) {
   lazy val atoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
+  override def toString(): String = {
+    val sb = new StringBuilder
+    sb.append("{")
+    if (rules.nonEmpty) {
+      sb.append(" ").append(rules.head)
+      if (rules.size>1) {
+        rules.tail foreach (sb.append("; ").append(_))
+      }
+      sb.append(" ")
+    }
+    sb.append("}")
+    sb.toString
+  }
 }
 
 object LarsProgram {

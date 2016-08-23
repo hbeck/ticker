@@ -47,7 +47,9 @@ case class ContradictionAtom(caption: String) extends GroundAtom {
 }
 
 // TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
-case class PredicateAtom(predicate: Predicate) extends GroundAtom
+case class PredicateAtom(predicate: Predicate) extends GroundAtom {
+  override def toString = predicate.toString
+}
 
 trait AtomWithArgument extends Atom {
 
