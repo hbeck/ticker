@@ -26,8 +26,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
     from(assignedHead,assignedPosBody,assignedNegBody)
   }
 
-  def variables(): Set[Variable] = {
-    if (isGround) return Set()
+  lazy val variables: Set[Variable] = {
     atoms flatMap {
       case a: AtomWithArgument => a.arguments collect { case v:Variable => v }
       case _ => Set()

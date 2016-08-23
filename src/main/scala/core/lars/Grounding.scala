@@ -1,5 +1,9 @@
 package core.lars
 
+import core._
+
+import scala.collection.immutable.HashMap
+
 
 /**
   * applicable only to lars programs without "@"
@@ -7,8 +11,6 @@ package core.lars
   * Created by hb on 8/21/16.
   */
 object Grounding {
-
-  /*
 
   def apply(program: LarsProgram): LarsProgram = {
     val inspect = LarsProgramInspection(program)
@@ -87,7 +89,7 @@ case class LarsProgramInspection(program: LarsProgram) {
   val groundFactAtomPredicates = groundFactAtoms map (_.predicate)
   //do not allow/consider non-ground facts! but fact atoms may appear non-ground in bodies of rules
   //however: for non ground, we must identify different variable names used in atoms!
-  val nonGroundFactPredicates = rules flatMap (_.body) collect {
+  val nonGroundFactAtomPredicates = rules flatMap (_.body) collect {
     case b:Atom if groundFactAtomPredicates.contains(b.predicate) => b.predicate
   }
 
@@ -95,7 +97,7 @@ case class LarsProgramInspection(program: LarsProgram) {
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
 
   val nonGroundRuleHeadPredicates = rules map (_.head) collect { case x: NonGroundAtom => x.predicate }
-  val nonGroundIntensionalPredicates = nonGroundRuleHeadPredicates diff nonGroundFactPredicates
+  val nonGroundIntensionalPredicates = nonGroundRuleHeadPredicates diff nonGroundFactAtomPredicates
 
   val justificationsOfNonGroundIntensionalPredicate: Map[Predicate, Set[BasicLarsRule]] =
     rules filter (r => !r.isFact && r.head.isInstanceOf[NonGroundAtom]) groupBy (_.head.predicate)
@@ -104,26 +106,38 @@ case class LarsProgramInspection(program: LarsProgram) {
   val groundIntensionalAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundIntensionalAtoms groupBy (_.predicate)
 
   //("a" -> {a(x,y), a(z,w)})  ==>  ("a" -> (0 -> {x,z}, 1 -> {y,w}))
-  def makeLookupMap(atomsPerPredicate: Map[Predicate, Set[GroundAtom]]): Map[Predicate,Map[Int,Set[Value]]] = {
+  def makeValueLookupMap(atomsPerPredicate: Map[Predicate, Set[GroundAtom]]): Map[Predicate,Map[Int,Set[Value]]] = {
     atomsPerPredicate mapValues { set =>
       set.map(_.asInstanceOf[AtomWithArgument].arguments) //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
         .flatMap(_.zipWithIndex) // ==> {(x,0), (y,1), (z,0), (w,1)}
-        .groupBy(_._2) //Map(1 -> {(y,1), (w,1)}, 0 -> {(x,0), (z,0)})
-        .mapValues(_ map (pair => pair._1.asInstanceOf[Value])) //Map(1 -> {y,w}, 0 -> {x,z})
+        .groupBy { case (v,idx) => idx } //Map(1 -> {(y,1), (w,1)}, 0 -> {(x,0), (z,0)})
+        .mapValues(_ map { case (v,idx) => v.asInstanceOf[Value] }) //Map(1 -> {y,w}, 0 -> {x,z})
     }
   }
 
-  val groundFactAtomValuesLookup: Map[Predicate,Map[Int,Set[Value]]] = makeLookupMap(groundFactAtomsPerPredicate)
-  val groundIntensionalValuesLookup: Map[Predicate,Map[Int,Set[Value]]] = makeLookupMap(groundIntensionalAtomsPerPredicate)
+  val groundFactAtomValuesLookup: Map[Predicate,Map[Int,Set[Value]]] = makeValueLookupMap(groundFactAtomsPerPredicate)
+  val groundIntensionalValuesLookup: Map[Predicate,Map[Int,Set[Value]]] = makeValueLookupMap(groundIntensionalAtomsPerPredicate)
 
-  //rule parts with variables
-  val nonGroundIntensionalAtomsPerVariable: Map[BasicLarsRule, Map[Variable,Set[NonGroundAtom]]]
-  val nonGroundFactAtomsPerVariable: Map[BasicLarsRule,Map[Variable,Set[NonGroundAtom]]] //extensional atoms for which ground fact exists per assumption
+  //for every rule, group the atoms where each rule's variable appears in
+  //restriction to those in positive body
+  def makeAtomLookupMap(predicates: Set[Predicate]): Map[BasicLarsRule,Map[Variable,Set[NonGroundAtom]]] = {
+    def atomsPerVariable(rule:BasicLarsRule): Map[Variable,Set[NonGroundAtom]] = {
+      def atomsWithVar(v: Variable): Set[NonGroundAtom] = rule.pos collect {
+        case atom:NonGroundAtom if (predicates contains atom.predicate) && atom.variables.contains(v) => atom
+      }
+      val variableOccurrences: Map[Variable,Set[NonGroundAtom]] = (rule.variables map (v => (v,atomsWithVar(v)))).toMap
+      variableOccurrences
+    }
+    rules filterNot (_.isGround) map (r => (r,atomsPerVariable(r))) toMap
+  }
+
+  val nonGroundFactAtomsPerVariableInRule = makeAtomLookupMap(nonGroundFactAtomPredicates)
+  val nonGroundIntensionalAtomsPerVariableInRule = makeAtomLookupMap(nonGroundIntensionalPredicates)
 
   //
 
   def possibleVariableValues(rule: LarsRule): Map[Variable, Set[Value]] = {
-    rule.variables() map (v => (v,possibleValuesForVariable(rule,v))) toMap
+    rule.variables map (v => (v,possibleValuesForVariable(rule,v))) toMap
   }
 
   def possibleValuesForVariable(rule: LarsRule, variable: Variable): Set[Value] = {
@@ -133,15 +147,16 @@ case class LarsProgramInspection(program: LarsProgram) {
     //per convention, a variable now cannot occur in a signal only.
     //we test first for fact atoms, then we try intentional atoms.
 
-    val nonGroundFactAtoms = nonGroundFactAtomsPerVariable(r).getOrElse(variable,Set())
+    val nonGroundFactAtoms = nonGroundFactAtomsPerVariableInRule(r).getOrElse(variable,Set())
+
     //pick random, better use the one with minimal number of values
-    if (!nonGroundFactAtoms.isEmpty) {
+    if (nonGroundFactAtoms.nonEmpty) {
       val fact = nonGroundFactAtoms.head
       val idx = fact.arguments.indexOf(variable)
       return groundFactAtomValuesLookup(fact.predicate)(idx)
     }
 
-    val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariable(r).getOrElse(variable,Set())
+    val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(r).getOrElse(variable,Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
       throw new RuntimeException("variable "+variable+" appears in "+r+" only in a signal.")
     }
@@ -150,24 +165,50 @@ case class LarsProgramInspection(program: LarsProgram) {
     // that may match the intensional atom
     // (safety conditions just as for negation)
 
-    //TODO all, initially only first:
-    val intAtom: NonGroundAtom = nonGroundIntensionalAtoms.head
-    val arg = intAtom.arguments.indexOf(variable)
-    findValuesForPredicateArg(intAtom.predicate,arg)
+    nonGroundIntensionalAtoms flatMap { atom =>
+      val idx = atom.arguments.indexOf(variable)
+      lookupOrFindValuesForPredicateArg(atom.predicate,idx)
+    }
 
   }
 
-  def findValuesForPredicateArg(predicate: Predicate, arg: Int): Set[Value] = {
+  var valuesForPredicateArg: Map[Predicate, Map[Int, Set[Value]]] = HashMap[Predicate, Map[Int, Set[Value]]]()
+
+  def lookupOrFindValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
+
+    var cacheForPredicate: Option[Map[Int, Set[Value]]] = valuesForPredicateArg.get(predicate)
+    var valuesForArg: Option[Set[Value]] = None
+    if (cacheForPredicate.isDefined) {
+      valuesForArg = cacheForPredicate.get.get(argumentIdx)
+      if (valuesForArg.isDefined) return valuesForArg.get
+    }
+
+    val values = findValuesForPredicateArg(predicate: Predicate, argumentIdx: Int)
+
+    valuesForArg = Some(values)
+
+    if (cacheForPredicate.isDefined) {
+      cacheForPredicate = Some(cacheForPredicate.get + (argumentIdx -> values))
+    } else {
+      cacheForPredicate = Some(Map((argumentIdx -> values)))
+    }
+
+    valuesForPredicateArg = valuesForPredicateArg.updated(predicate,cacheForPredicate.get)
+
+    values
+  }
+
+  def findValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
 
     //note: non-ground fact atoms (in rule bodies) can only match with their ground instances,
     //whereas intensional atoms may occur ground and non-ground, and the non-ground instances
     //must ground in fact atoms (per convention)
 
     if (factAtomPredicates contains predicate) {
-      return groundFactAtomValuesLookup(predicate)(arg)
+      return groundFactAtomValuesLookup(predicate)(argumentIdx)
     }
 
-    val groundIntensional: Set[Value] = groundIntensionalValuesLookup(predicate).getOrElse(arg,Set())
+    val groundIntensional: Set[Value] = groundIntensionalValuesLookup(predicate).getOrElse(argumentIdx,Set())
     if (!nonGroundIntensionalPredicates.contains(predicate)) {
       return groundIntensional
     }
@@ -175,10 +216,9 @@ case class LarsProgramInspection(program: LarsProgram) {
     val justifications: Set[BasicLarsRule] = justificationsOfNonGroundIntensionalPredicate(predicate)
 
     val variableSources: Set[(Predicate,Int)] = justifications flatMap { rule =>
-      val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(arg).asInstanceOf[Variable]
+      val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
       val allSources: Set[(Predicate, Int)] = rule.body collect {
-        case x: NonGroundAtom if x.variables().contains(variable) =>
-          (x.predicate, x.arguments.indexOf(variable))
+        case x: NonGroundAtom if x.variables.contains(variable) => (x.predicate, x.arguments.indexOf(variable))
       }
       val groundFactAtomSources: Set[(Predicate, Int)] = allSources filter { case (p,i) => groundFactAtomPredicates.contains(p) }
       if (groundFactAtomSources.nonEmpty) {
@@ -188,12 +228,9 @@ case class LarsProgramInspection(program: LarsProgram) {
       }
     }
 
-    val nonGroundIntensional: Set[Value] = variableSources flatMap { case (predicate,arg) => findValuesForPredicateArg(predicate,arg) }
+    val nonGroundIntensional: Set[Value] = variableSources flatMap { case (predicate,idx) => lookupOrFindValuesForPredicateArg(predicate,idx) }
 
     groundIntensional ++ nonGroundIntensional
-
   }
-
-  */
 
 }
