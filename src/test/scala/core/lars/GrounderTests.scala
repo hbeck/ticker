@@ -81,12 +81,73 @@ class GrounderTests extends FunSuite {
     val gr1 = r1
     val gr2 = rule("b(x)","a(x)")
     val gp = program(gr1,gr2)
-    println(gp)
+    //println(gp)
     val grounder = Grounder(p)
 
-    grounder.inspect.rules foreach println
+    //grounder.inspect.rules foreach println
 
     assert(grounder.groundProgram==gp)
+  }
+
+  test("gt4") {
+
+    val r1 = fact("a(x)")
+    val r2 = rule("b(V)","c(V)")
+    val r3 = rule("c(V)","a(V)")
+    val p = program(r1,r2,r3)
+
+    val gr1 = r1
+    val gr2 = rule("b(x)","c(x)")
+    val gr3 = rule("c(x)","a(x)")
+    val gp = program(gr1,gr2,gr3)
+    val grounder = Grounder(p)
+
+    printInspect(grounder)
+
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == Set(strVal("x")))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == Set(strVal("x")))
+
+    assert(grounder.groundProgram==gp)
+  }
+
+  def printInspect(grounder: Grounder): Unit = {
+    val i = grounder.inspect
+
+    println("facts: atoms:")
+    println("  ground atoms:     "+i.groundFactAtoms)
+    println("  non-ground preds: "+i.nonGroundFactAtomPredicates)
+    println("intensional:")
+    println("  ground atoms:     "+i.groundIntensionalAtoms)
+    println("  non-ground preds: "+i.nonGroundIntensionalPredicates)
+    println()
+    println("non-ground fact atoms/var in rule:\n")
+    printNestedMap(i.nonGroundFactAtomsPerVariableInRule)
+    println()
+    println("non-ground intensional atoms/var in rule:\n")
+    printNestedMap(i.nonGroundIntensionalAtomsPerVariableInRule)
+    println()
+    println("ground fact atom values lookup:\n")
+    printNestedMap(i.groundFactAtomValuesLookup)
+    println()
+    println("values for predicate arg:\n")
+    printNestedMap(i.valuesForPredicateArg)
+
+  }
+
+  def printNestedMap[T1,T2,T3](map: Map[T1,Map[T2,Set[T3]]]): Unit = {
+    for ((k,v) <- map) {
+      println(k+":")
+      for ((k2,set) <- v) {
+        print("  "+k2+" -> {")
+        if (set.nonEmpty){
+          print(set.head)
+          if (set.size > 1) {
+            set.tail foreach (elem => print(", "+elem))
+          }
+        }
+        println("}")
+      }
+    }
   }
 
 }

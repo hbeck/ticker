@@ -87,7 +87,7 @@ case class LarsProgramInspection(program: LarsProgram) {
   val groundFacts = rules filter (r => r.isFact && r.head.isInstanceOf[GroundAtom])
   val groundFactAtoms = groundFacts map (_.head.asInstanceOf[GroundAtom])
   val groundFactAtomPredicates = groundFactAtoms map (_.predicate)
-  //do not allow/consider non-ground facts! but fact atoms may appear non-ground in bodies of rules
+  //do not allow/consider facts to appear only non-ground! but fact atoms may appear non-ground in bodies of rules
   //however: for non ground, we must identify different variable names used in atoms!
   val nonGroundFactAtomPredicates = rules flatMap (_.body) collect {
     case b:Atom if groundFactAtomPredicates.contains(b.predicate) => b.predicate
@@ -95,6 +95,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
   val groundRuleHeadAtoms = rules map (_.head) collect { case x: GroundAtom => x }
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
+  val groundIntensionalPredicates = groundIntensionalAtoms map (_.predicate)
 
   val nonGroundRuleHeadPredicates = rules map (_.head) collect { case x: NonGroundAtom => x.predicate }
   val nonGroundIntensionalPredicates = nonGroundRuleHeadPredicates diff nonGroundFactAtomPredicates
@@ -208,7 +209,13 @@ case class LarsProgramInspection(program: LarsProgram) {
       return groundFactAtomValuesLookup(predicate)(argumentIdx)
     }
 
-    val groundIntensional: Set[Value] = groundIntensionalValuesLookup(predicate).getOrElse(argumentIdx,Set())
+    val groundIntensional: Set[Value] =
+      if (groundIntensionalPredicates contains predicate) {
+        groundIntensionalValuesLookup(predicate).getOrElse(argumentIdx,Set())
+      } else {
+        Set()
+      }
+
     if (!nonGroundIntensionalPredicates.contains(predicate)) {
       return groundIntensional
     }
