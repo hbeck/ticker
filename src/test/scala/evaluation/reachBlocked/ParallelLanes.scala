@@ -38,6 +38,23 @@ trait ParallelLanes extends ReachBlockedProgram {
 
   def generateProgram(nodes: Int, lanes: Int, generateRedundantRules: Boolean = false) = {
 
+    generateEdges(nodes, lanes)
+
+    var p = Set[LarsRule]()
+
+    for (x <- availableNodes) {
+      for (y <- availableNodes) {
+        for (z <- availableNodes) {
+          val g = Ground(Map(X -> x, Y -> y, Z -> z))
+          p = p ++ (baseProgram.rules filter (r => generateRedundantRules || (r == reach_X_Z && x != z) || r != reach_X_Z && x != y) map (g.apply))
+        }
+      }
+    }
+
+    LarsProgram(p.toSeq union edges)
+  }
+
+  private def generateEdges(nodes: Int, lanes: Int): Unit = {
     this.lanes = lanes
     this.nodes = nodes
 
@@ -56,19 +73,17 @@ trait ParallelLanes extends ReachBlockedProgram {
     generatedNodes = edgeAndAtoms.filter(_._1.isDefined).map(_._1.get)
     availableNodes = generatedNodes union Seq(startNode, endNode)
     edges = edgeAndAtoms map (_._2) map (a => LarsFact(a))
+  }
 
-    var p = Set[LarsRule]()
+  def generateProgramWithGrounding(nodes: Int, lanes: Int) = {
+    generateEdges(nodes, lanes)
 
-    for (x <- availableNodes) {
-      for (y <- availableNodes) {
-        for (z <- availableNodes) {
-          val g = Ground(Map(X -> x, Y -> y, Z -> z))
-          p = p ++ (baseProgram.rules filter (r => generateRedundantRules || (r == reach_X_Z && x != z) || r != reach_X_Z && x != y) map (g.apply))
-        }
-      }
-    }
+    val program = LarsProgram(baseProgram.rules ++ edges)
 
-    LarsProgram(p.toSeq union edges)
+    val grounder = Grounder(program)
+
+    grounder.groundProgram
+
   }
 
   def nodesAt(lane: Int) = generatedNodes.drop(lane * nodes).take(nodes)

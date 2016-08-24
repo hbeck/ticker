@@ -15,7 +15,7 @@ import scala.concurrent.duration.{Deadline, Duration}
   * Created by FM on 11.07.16.
   */
 class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPushEngine with ParallelLanes {
-  val program = generateProgram(3, 3)
+  val program = generateProgramWithGrounding(3, 3)
 
   val obstacles = generatedNodes.map(obstacle(_)).toSet.subsets().toList
 

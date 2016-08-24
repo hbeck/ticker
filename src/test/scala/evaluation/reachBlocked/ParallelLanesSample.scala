@@ -17,7 +17,7 @@ import scala.util.Random
 //@NoTmsDirectPolicy
 class ParallelLanesSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine with ParallelLanes {
 
-  val program = generateProgram(1, 2)
+  val program = generateProgramWithGrounding(3, 3)
 
   "Unblocked paths" should "lead to reach(a,b) at t0" in {
     evaluationEngine.evaluate(t0).get.get should contain(reach_a_b)

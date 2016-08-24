@@ -67,7 +67,7 @@ object ParallelLanesEvaluation {
     Console.out.println(f"Evaluating ${instance}")
 
     val pl = new ParallelLanes {}
-    val program = pl.generateProgram(nodes, lanes)
+    val program = pl.generateProgramWithGrounding(nodes, lanes)
 
     val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
 
