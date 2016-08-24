@@ -52,6 +52,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       sb.append("State[").append("\n\t\tstatus: ").append(status).append("\n\t\tsupport: ").append(support).append("]")
       sb.toString
     }
+
+
+    private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PartialState.this)
+
+    override def hashCode(): Int = precomputedHash
+
+    //    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
   }
 
   def saveState() {
