@@ -13,10 +13,12 @@ import scala.collection.immutable.HashMap
 case class Grounder(program: LarsProgram) {
 
   lazy val inspect = LarsProgramInspection(program)
-  lazy val groundRules = program.rules flatMap ground(inspect)
+  lazy val groundRules = program.rules flatMap Grounder.ground(inspect)
   lazy val groundProgram = LarsProgram(groundRules)
 
-  // private:
+}
+
+object Grounder {
 
   def ground(inspect: LarsProgramInspection)(rule: LarsRule): Set[LarsRule] = {
     if (rule isGround) return Set(rule)
@@ -24,10 +26,6 @@ case class Grounder(program: LarsProgram) {
     val assignments: Set[Assignment] = Grounder.createAssignments(possibleVariableValues)
     assignments map (rule.assign(_))
   }
-
-}
-
-object Grounder {
 
   def createAssignments(possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[Assignment] = {
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
@@ -60,14 +58,13 @@ object Grounder {
 
 }
 
-
 case class LarsProgramInspection(program: LarsProgram) {
 
   //ignore AtAtoms throughout
 
-  val rules: Set[BasicLarsRule] = program.rules collect { case r if r.head.isInstanceOf[Atom] => asBasic(r) } toSet
+  val rules: Set[BasicLarsRule] = program.rules collect { case r if r.head.isInstanceOf[Atom] => asBasicRule(r) } toSet
 
-  def asBasic(rule: LarsRule): BasicLarsRule = {
+  def asBasicRule(rule: LarsRule): BasicLarsRule = {
     UserDefinedBasicLarsRule(rule.head.asInstanceOf[Atom],rule.pos,rule.neg)
   }
 
@@ -127,6 +124,8 @@ case class LarsProgramInspection(program: LarsProgram) {
   val nonGroundIntensionalAtomsPerVariableInRule = makeAtomLookupMap(nonGroundIntensionalPredicates)
 
   //
+  //
+  //
 
   def possibleVariableValues(rule: LarsRule): Map[Variable, Set[Value]] = {
     rule.variables map (v => (v,possibleValuesForVariable(rule,v))) toMap
@@ -134,7 +133,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
   def possibleValuesForVariable(rule: LarsRule, variable: Variable): Set[Value] = {
 
-    val r = asBasic(rule)
+    val r = asBasicRule(rule)
 
     //per convention, a variable now cannot occur in a signal only.
     //we test first for fact atoms, then we try intentional atoms.
@@ -226,7 +225,7 @@ case class LarsProgramInspection(program: LarsProgram) {
       }
     }
 
-    val nonGroundIntensional: Set[Value] = variableSources flatMap { case (predicate,idx) => lookupOrFindValuesForPredicateArg(predicate,idx) }
+    val nonGroundIntensional: Set[Value] = variableSources collect { case (pred,idx) if (pred!=predicate) => lookupOrFindValuesForPredicateArg(pred,idx) } flatten
 
     groundIntensional ++ nonGroundIntensional
   }
