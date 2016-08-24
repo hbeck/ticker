@@ -12,9 +12,9 @@ import scala.collection.immutable.HashMap
   */
 case class Grounder(program: LarsProgram) {
 
-  lazy val inspect = LarsProgramInspection(program)
-  lazy val groundRules = program.rules flatMap Grounder.ground(inspect)
-  lazy val groundProgram = LarsProgram(groundRules)
+  val inspect = LarsProgramInspection(program)
+  val groundRules = program.rules flatMap Grounder.ground(inspect)
+  val groundProgram = LarsProgram(groundRules)
 
 }
 

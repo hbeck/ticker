@@ -386,53 +386,88 @@ class GrounderTests extends FunSuite {
     assert(grounder.groundProgram == gp)
   }
 
-  /*
-
   test("gt11") {
 
     val a12 = fact("a(x1,x2)")
     val a23 = fact("a(x2,x3)")
     val a34 = fact("a(x3,x4)")
 
-    val ri1 = rule("i(X,Y)","a(X,Y)")
-    val ri2 = rule("i(X,Y)","i(X,Z), i(Z,Y)")
+    val ri1 = rule("i(X,Y) :- a(X,Y)")
+    val ri2 = rule("i(X,Y) :- i(X,Z), i(Z,Y)")
 
-    val p = program(a12,a23,a34)
+    val p = program(a12,a23,a34,ri1,ri2)
 
     val manualGrounding: Set[LarsRule] = Set(
-      rule("i(x1,x2) :- a(x1,x2)"),
-      rule("i(x2,x3) :- a(x2,x3)"),
       rule("i(x3,x4) :- a(x3,x4)"),
-      rule("i(x1,x3) :- i(x1,x2), i(x2,x3)"),
+      rule("i(x2,x2) :- a(x2,x2)"),
+      rule("i(x1,x3) :- a(x1,x3)"),
+      rule("i(x1,x4) :- a(x1,x4)"),
+      rule("i(x3,x2) :- a(x3,x2)"),
+      rule("i(x2,x3) :- a(x2,x3)"),
+      rule("i(x1,x2) :- a(x1,x2)"),
+      rule("i(x2,x4) :- a(x2,x4)"),
+      rule("i(x3,x3) :- a(x3,x3)"),
+      rule("i(x3,x2) :- i(x3,x3), i(x3,x2)"),
+      rule("i(x3,x3) :- i(x3,x1), i(x1,x3)"),
+      rule("i(x3,x4) :- i(x3,x1), i(x1,x4)"),
+      rule("i(x3,x3) :- i(x3,x2), i(x2,x3)"),
+      rule("i(x1,x3) :- i(x1,x1), i(x1,x3)"),
+      rule("i(x1,x3) :- i(x1,x4), i(x4,x3)"),
+      rule("i(x3,x3) :- i(x3,x4), i(x4,x3)"),
+      rule("i(x2,x2) :- i(x2,x1), i(x1,x2)"),
+      rule("i(x3,x2) :- i(x3,x2), i(x2,x2)"),
+      rule("i(x1,x4) :- i(x1,x3), i(x3,x4)"),
       rule("i(x1,x4) :- i(x1,x2), i(x2,x4)"),
+      rule("i(x1,x4) :- i(x1,x4), i(x4,x4)"),
+      rule("i(x3,x3) :- i(x3,x3)"),
+      rule("i(x3,x4) :- i(x3,x2), i(x2,x4)"),
+      rule("i(x2,x3) :- i(x2,x2), i(x2,x3)"),
+      rule("i(x1,x4) :- i(x1,x1), i(x1,x4)"),
+      rule("i(x1,x2) :- i(x1,x1), i(x1,x2)"),
+      rule("i(x1,x3) :- i(x1,x2), i(x2,x3)"),
+      rule("i(x2,x3) :- i(x2,x3), i(x3,x3)"),
+      rule("i(x1,x2) :- i(x1,x2), i(x2,x2)"),
+      rule("i(x2,x4) :- i(x2,x2), i(x2,x4)"),
+      rule("i(x3,x2) :- i(x3,x1), i(x1,x2)"),
+      rule("i(x3,x2) :- i(x3,x4), i(x4,x2)"),
+      rule("i(x2,x4) :- i(x2,x1), i(x1,x4)"),
+      rule("i(x1,x2) :- i(x1,x3), i(x3,x2)"),
+      rule("i(x3,x4) :- i(x3,x4), i(x4,x4)"),
+      rule("i(x2,x3) :- i(x2,x1), i(x1,x3)"),
+      rule("i(x2,x3) :- i(x2,x4), i(x4,x3)"),
+      rule("i(x3,x4) :- i(x3,x3), i(x3,x4)"),
+      rule("i(x2,x2) :- i(x2,x2)"),
+      rule("i(x2,x2) :- i(x2,x3), i(x3,x2)"),
+      rule("i(x1,x2) :- i(x1,x4), i(x4,x2)"),
+      rule("i(x2,x2) :- i(x2,x4), i(x4,x2)"),
+      rule("i(x2,x4) :- i(x2,x4), i(x4,x4)"),
+      rule("i(x1,x3) :- i(x1,x3), i(x3,x3)"),
       rule("i(x2,x4) :- i(x2,x3), i(x3,x4)")
     )
 
     val rules = Seq[LarsRule](a12,a23,a34) ++ manualGrounding
-
     val gp = LarsProgram(rules)
+
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVal("x1","x2"))
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVal("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVal("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVal("x1","x2"))
+    printInspect(grounder)
 
-    val r:LarsRule = rule("i(y3,x1)","i(x1,y3)")
-    assert(grounder.groundProgram.rules.contains(r))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVal("x1","x2","x3"))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVal("x2","x3","x4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVal("x1","x2","x3"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVal("x2","x3","x4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Z")) == strVal("x1","x2","x3","x4"))
 
     //println(grounder.groundProgram.rules)
 
-    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
-    //
-    //    println("only in computed: "+LarsProgram(onlyInComputed))
-    //    println("only in expected: "+LarsProgram(onlyInExpected))
+//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//    println("only in computed: "+LarsProgram(onlyInComputed))
+//    println("only in expected: "+LarsProgram(onlyInExpected))
 
     assert(grounder.groundProgram == gp)
   }
-
-  */
 
   //
   //
