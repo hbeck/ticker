@@ -51,9 +51,16 @@ class GrounderTests extends FunSuite {
   def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else StringValue(s)
 
   def fact(s:String):LarsRule = LarsFact(atom(s))
-  def rule(head:String,pos:String):LarsRule = LarsRule(atom(head),Set(atom(pos)),Set())
+  def rule(head:String,pos:String):LarsRule = LarsRule(atom(head),parseSpaceSeparatedAtoms(pos),Set())
+  def rule(head:String,pos:String,neg:String):LarsRule = LarsRule(atom(head),parseSpaceSeparatedAtoms(pos),parseSpaceSeparatedAtoms(neg))
+
   def program(rules:LarsRule*):LarsProgram = LarsProgram(rules)
   def ground(p:LarsProgram) = Grounder(p).groundProgram
+
+  //a(x,y) b(y,z) ==> use , only within atoms and use white space only to split atoms
+  def parseSpaceSeparatedAtoms(s: String): Set[ExtendedAtom] = {
+    s.split(" ") map (atom(_)) toSet
+  }
 
   //
   //
@@ -271,6 +278,70 @@ class GrounderTests extends FunSuite {
 
     assert(grounder.groundProgram == gp)
   }
+
+  test("grounding rules") {
+    val ri1 = rule("i(X,Y)","a(X) b(Y)")
+    assert(!ri1.isGround)
+    assert(ri1.atoms forall (_.isInstanceOf[NonGroundAtom]))
+    val a1 = Assignment(Map(v("X") -> "x1", v("Y") -> "y1"))
+    val gri1 = ri1.assign(a1)
+    assert(gri1.isGround)
+    assert(gri1 == rule("i(x1,y1)","a(x1) b(y1)"))
+
+    val ri2 = rule("i(X,Y)","a(X) b(Y)","c(Y) d(Y)")
+    assert(!ri2.isGround)
+    assert(ri2.atoms forall (_.isInstanceOf[NonGroundAtom]))
+    val a2 = Assignment(Map(v("X") -> "x1", v("Y") -> "y1"))
+    val gri2 = ri2.assign(a2)
+    assert(gri2.isGround)
+    assert(gri2 == rule("i(x1,y1)","a(x1) b(y1)","c(y1) d(y1)"))
+  }
+
+  test("gt9") {
+
+    val ax1 = fact("a(x1)")
+    val ax2 = fact("a(x2)")
+    val bx1 = fact("b(y1)")
+    val bx2 = fact("b(y2)")
+
+    val ri = rule("i(X,Y)","a(X) b(Y)")
+    val rj = rule("j(X)","i(X,Y)")
+    val p = program(ax1,ax2,bx1,bx2,ri,rj)
+
+    val manualGrounding: Set[LarsRule] = {
+      for (x <- Set("x1", "x2"); y <- Set("y1", "y2")) yield {
+        val a = Assignment(Map(v("X") -> x, v("Y") -> y))
+        val gri: LarsRule = ri.assign(a)
+        val grj: LarsRule = rj.assign(a)
+        Set[LarsRule](gri, grj)
+      }
+    }.flatten
+
+    val rules = Seq[LarsRule](ax1,ax2,bx1,bx2) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(ri,v("X")) == strVal("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(ri,v("Y")) == strVal("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(rj,v("X")) == strVal("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(rj,v("Y")) == strVal("y1","y2"))
+
+    //    println("expected program")
+    //    gp.rules foreach println
+    //
+    //    println("\ngrounded program")
+    //    grounder.groundProgram.rules foreach println
+
+    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //    println("only in computed: "+onlyInComputed)
+    //    println("only in expected: "+onlyInExpected)
+
+    assert(grounder.groundProgram == gp)
+  }
+
 
   //
   //

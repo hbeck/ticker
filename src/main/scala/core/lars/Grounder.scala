@@ -25,11 +25,6 @@ case class Grounder(program: LarsProgram) {
     assignments map (rule.assign(_))
   }
 
-  //  def ground[T <: ExtendedAtom](x: T, assignment: Assignment): T = {
-  //    if (x.isGround) return x
-  //    x.assign(assignment).asInstanceOf[T]
-  //  }
-
 }
 
 object Grounder {
@@ -155,7 +150,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(r).getOrElse(variable,Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("variable "+variable+" appears in "+r+" only in a signal.")
+      throw new RuntimeException("variable "+variable+" does not appear in "+r+" in an fact atom or intensional atom")
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values
