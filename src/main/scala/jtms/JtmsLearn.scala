@@ -173,11 +173,15 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   }
 
   def stateSnapshot(): Option[PartialState] = {
-    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
+//    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
+    val filteredStatus = status   filterKeys stateAtoms.contains
     // TODO: perf: isStateAtom as dict-lookup?
-    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
+//    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
+    val collectedSupp = supp filterKeys stateAtoms.contains collect { case (atom,set) => (atom,set diff extensionalAtoms) }
     Some(PartialState(filteredStatus,collectedSupp))
   }
+
+  def stateAtoms = inAtoms union outAtoms diff extensionalAtoms
 
   //skip facts! - for asp they are irrelevant, for tms they change based on time - no stable basis
   def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !extensional(a)
@@ -186,7 +190,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     state = stateSnapshot()
 
-    val atomSet = (unknownAtoms filter (!extensional(_)))
+//    val atomSet = (unknownAtoms filter (!extensional(_)))
+    val atomSet = unknownAtoms diff extensionalAtoms
     val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
 
     if (atoms.isEmpty) return

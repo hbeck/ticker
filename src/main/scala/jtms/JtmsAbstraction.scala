@@ -22,6 +22,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
 
+  var __extensionalAtoms: Set[Atom] = Set()
+
   override def inAtoms() = __atomsWithStatus(in)
 
   override def outAtoms(): Set[Atom] = __atomsWithStatus(out)
@@ -29,6 +31,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def unknownAtoms(): Set[Atom] = __atomsWithStatus(unknown)
 
   override def hasUnknown(): Boolean = unknownAtoms().nonEmpty
+
+  override def extensionalAtoms(): Set[Atom] = __extensionalAtoms
 
   def update(atoms: Set[Atom])
 
@@ -144,6 +148,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       status = status.updated(a, out)
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
 
+      if(extensional(a))
+        __extensionalAtoms = __extensionalAtoms +a
+
       cons = cons.updated(a, Set[Atom]())
       supp = supp.updated(a, Set[Atom]())
       suppRule = suppRule.updated(a, None)
@@ -256,6 +263,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     cons = cons - a
     supp = supp - a
     suppRule = suppRule - a
+
+    if(extensional(a))
+      __extensionalAtoms = __extensionalAtoms - a
     //    status remove a
     //    cons remove a
     //    supp remove a
