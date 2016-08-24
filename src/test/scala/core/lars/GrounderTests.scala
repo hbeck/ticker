@@ -47,7 +47,7 @@ class GrounderTests extends FunSuite {
 
   def p(s:String) = Predicate(s)
   def strVal(s:String): Value = StringValue(s)
-  def strVal(ss:String*): Set[Value] = ss map (StringValue(_)) toSet
+  def strVals(ss:String*): Set[Value] = ss map (StringValue(_)) toSet
   def v(s:String) = Variable(s)
   def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else StringValue(s)
 
@@ -202,7 +202,7 @@ class GrounderTests extends FunSuite {
     val gp = program(gax,gay,gr3x,gr3y)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVal("x","y"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
     assert(grounder.groundProgram == gp)
   }
 
@@ -223,8 +223,8 @@ class GrounderTests extends FunSuite {
     val gp = program(gax,gay,gr2x,gr2y,gr3x,gr3y)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVal("x","y"))
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVal("x","y"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVals("x","y"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
 
     assert(grounder.groundProgram == gp)
   }
@@ -246,7 +246,7 @@ class GrounderTests extends FunSuite {
     val gp = program(gax,gay,gaz,gr3x,gr3y,gr3z)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVal("x","y","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y","z"))
 
     assert(grounder.groundProgram == gp)
   }
@@ -272,8 +272,8 @@ class GrounderTests extends FunSuite {
     val gp = program(gax,gay,gaz,gr2x,gr2y,gr2z,gr3x,gr3y,gr3z)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVal("x","y","z"))
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVal("x","y","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVals("x","y","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y","z"))
 
 //    println("expected program")
 //    gp.rules foreach println
@@ -333,10 +333,10 @@ class GrounderTests extends FunSuite {
     val gp = LarsProgram(rules)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(ri,v("X")) == strVal("x1","x2"))
-    assert(grounder.inspect.possibleValuesForVariable(ri,v("Y")) == strVal("y1","y2"))
-    assert(grounder.inspect.possibleValuesForVariable(rj,v("X")) == strVal("x1","x2"))
-    assert(grounder.inspect.possibleValuesForVariable(rj,v("Y")) == strVal("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(ri,v("X")) == strVals("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(ri,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(rj,v("X")) == strVals("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(rj,v("Y")) == strVals("y1","y2"))
     assert(grounder.groundProgram == gp)
   }
 
@@ -367,15 +367,15 @@ class GrounderTests extends FunSuite {
     val gp = LarsProgram(rules)
     val grounder = Grounder(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVal("x1","x2"))
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVal("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVal("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVal("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVals("x1","x2"))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVals("y3","y4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVals("y3","y4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVals("x1","x2"))
 
     val r:LarsRule = rule("i(y3,x1) :- i(x1,y3)")
     assert(grounder.groundProgram.rules.contains(r))
 
-    //println(grounder.groundProgram.rules)
+    //println(LarsProgram(grounder.groundProgram.rules))
 
 //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
 //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
@@ -450,13 +450,13 @@ class GrounderTests extends FunSuite {
 
     val grounder = Grounder(p)
 
-    printInspect(grounder)
+    //printInspect(grounder)
 
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVal("x1","x2","x3"))
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVal("x2","x3","x4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVal("x1","x2","x3"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVal("x2","x3","x4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Z")) == strVal("x1","x2","x3","x4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVals("x1","x2","x3"))
+    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVals("x2","x3","x4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVals("x1","x2","x3"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVals("x2","x3","x4"))
+    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Z")) == strVals("x1","x2","x3","x4"))
 
     //println(grounder.groundProgram.rules)
 
@@ -467,7 +467,62 @@ class GrounderTests extends FunSuite {
 //    println("only in expected: "+LarsProgram(onlyInExpected))
 
     assert(grounder.groundProgram == gp)
+
   }
+
+  test("gt12") {
+
+    val a1 = fact("a(x)")
+    val b11 = fact("b(x,y1)")
+    val b12 = fact("b(x,y2)")
+    val c1 = fact("c(y1)")
+    val c2 = fact("c(y2)")
+    val d12 = fact("d(x,y2)")
+
+    val r1 = rule("i(X,Y) :- a(X), i(X,Y)")
+    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y)")
+    val r3 = rule("j(X,Y) :- b(X,Z), c(Y)")
+
+    val p = program(a1,b11,b12,c1,c2,d12,r1,r2,r3)
+
+    val manualGrounding: Set[LarsRule] = Set(
+      rule("i(x,y1) :- a(x), i(x,y1)"),
+      rule("i(x,y2) :- a(x), i(x,y2)"),
+      rule("i(x,y1) :- j(x,y1), not d(x,y1)"),
+      rule("i(x,y2) :- j(x,y2), not d(x,y2)"),
+      rule("j(x,y1) :- b(x,y1), c(y1)"),
+      rule("j(x,y2) :- b(x,y1), c(y2)"),
+      rule("j(x,y1) :- b(x,y2), c(y1)"),
+      rule("j(x,y2) :- b(x,y2), c(y2)")
+    )
+
+    val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Z")) == strVals("y1","y2"))
+
+//    println(LarsProgram(grounder.groundProgram.rules))
+//
+//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//    println("only in computed: "+LarsProgram(onlyInComputed))
+//    println("only in expected: "+LarsProgram(onlyInExpected))
+//
+//    printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+  }
+
+  //TODO test with ground intensional
 
   //
   //

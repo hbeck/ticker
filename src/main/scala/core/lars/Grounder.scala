@@ -214,7 +214,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
     val variableSources: Set[(Predicate,Int)] = justifications flatMap { rule =>
       val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
-      val allSources: Set[(Predicate, Int)] = rule.body collect {
+      val allSources: Set[(Predicate, Int)] = rule.pos collect { //neg ignored!
         case x: NonGroundAtom if x.variables.contains(variable) => (x.predicate, x.arguments.indexOf(variable))
       }
       val groundFactAtomSources: Set[(Predicate, Int)] = allSources filter { case (p,i) => groundFactAtomPredicates.contains(p) }
@@ -225,7 +225,10 @@ case class LarsProgramInspection(program: LarsProgram) {
       }
     }
 
-    val nonGroundIntensional: Set[Value] = variableSources collect { case (pred,idx) if (pred!=predicate) => lookupOrFindValuesForPredicateArg(pred,idx) } flatten
+    val nonGroundIntensional: Set[Value] = variableSources collect {
+      //escaping infinite loops by pred!=predicate
+      case (pred,idx) if (pred!=predicate) => lookupOrFindValuesForPredicateArg(pred,idx)
+    } flatten
 
     groundIntensional ++ nonGroundIntensional
   }
