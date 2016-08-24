@@ -49,6 +49,11 @@ case class ContradictionAtom(caption: String) extends GroundAtom {
 // TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
 case class PredicateAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
+
+
+  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PredicateAtom.this)
+
+  override def hashCode(): Int = precomputedHash
 }
 
 trait AtomWithArgument extends Atom {
@@ -104,6 +109,10 @@ case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argum
 
 case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
+
+  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(GroundAtomWithArguments.this)
+
+  override def hashCode(): Int = precomputedHash
 }
 
 object GroundAtom {

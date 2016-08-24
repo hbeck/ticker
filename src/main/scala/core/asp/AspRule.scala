@@ -49,9 +49,11 @@ case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: 
     UserDefinedAspRule(h,p,n)
   }
 
-//  private lazy val precomputedHash = super.hashCode()
-//
-//  override def hashCode(): Int = precomputedHash
+  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
+
+  override def hashCode(): Int = precomputedHash
+
+//    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
 }
 
 //TODO order of args
