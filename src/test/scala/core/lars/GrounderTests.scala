@@ -1,6 +1,9 @@
 package core.lars
 
+import core.Model
 import core._
+import core.asp._
+import jtms.JtmsGreedy
 import org.scalatest.FunSuite
 
 /**
@@ -73,6 +76,23 @@ class GrounderTests extends FunSuite {
     s.split(" ") map (atom(_)) toSet
   }
 
+  //use only for asp fragment!
+  def asAspProgram(larsProgram: LarsProgram): NormalProgram = {
+    val aspRules: Seq[NormalRule] = larsProgram.rules map (asAspRule(_))
+    AspProgram(aspRules.toList)
+  }
+
+  def asAspRule(larsRule: LarsRule): NormalRule = {
+    val head = larsRule.head.atom //we are not using @ here
+    val pos = larsRule.pos map (_.asInstanceOf[Atom])
+    val neg = larsRule.neg map (_.asInstanceOf[Atom])
+    UserDefinedAspRule(head,pos,neg)
+  }
+
+  def modelFromClingo(s:String): Model = {
+    s.split(" ") map (atom(_)) toSet
+  }
+
   //
   //
   //
@@ -105,6 +125,13 @@ class GrounderTests extends FunSuite {
     //grounder.inspect.rules foreach println
 
     assert(grounder.groundProgram==gp)
+
+    val model = modelFromClingo("a(x) b(x)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
+
   }
 
   test("gt4") {
@@ -124,6 +151,12 @@ class GrounderTests extends FunSuite {
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == Set(strVal("x")))
 
     assert(grounder.groundProgram==gp)
+
+    val model = modelFromClingo("a(x) c(x) b(x)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   val X = v("X")
@@ -204,6 +237,12 @@ class GrounderTests extends FunSuite {
 
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) a(y) b(x) b(y)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("gt6") {
@@ -227,6 +266,12 @@ class GrounderTests extends FunSuite {
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
 
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) a(y) c(x) c(y) b(x) b(y)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("gt7") {
@@ -249,6 +294,12 @@ class GrounderTests extends FunSuite {
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y","z"))
 
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) a(y) a(z) c(x) c(y) c(z)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("gt8") {
@@ -288,6 +339,12 @@ class GrounderTests extends FunSuite {
 //    println("only in expected: "+onlyInExpected)
 
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) a(y) a(z) c(x) c(y) c(z) b(x) b(y) b(z)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("grounding rules") {
@@ -338,6 +395,12 @@ class GrounderTests extends FunSuite {
     assert(grounder.inspect.possibleValuesForVariable(rj,v("X")) == strVals("x1","x2"))
     assert(grounder.inspect.possibleValuesForVariable(rj,v("Y")) == strVals("y1","y2"))
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x1) a(x2) b(y1) b(y2) i(x1,y1) i(x2,y1) i(x1,y2) i(x2,y2) j(x1) j(x2)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("gt10") {
@@ -384,6 +447,12 @@ class GrounderTests extends FunSuite {
 //    println("only in expected: "+LarsProgram(onlyInExpected))
 
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x1) a(x2) b(y3) b(y4) i(x1,y3) i(x2,y3) i(x1,y4) i(x2,y4) i(y3,x1) i(y3,x2) i(y4,x1) i(y4,x2)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
   test("gt11") {
@@ -468,6 +537,12 @@ class GrounderTests extends FunSuite {
 
     assert(grounder.groundProgram == gp)
 
+    val model = modelFromClingo("a(x1,x2) a(x2,x3) a(x3,x4) i(x1,x2) i(x2,x3) i(x3,x4) i(x1,x3) i(x2,x4) i(x1,x4)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
+
   }
 
   test("gt12") {
@@ -520,9 +595,69 @@ class GrounderTests extends FunSuite {
 //    printInspect(grounder)
 
     assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) b(x,y1) b(x,y2) c(y1) c(y2) d(x,y2) j(x,y1) j(x,y2) i(x,y1)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
   }
 
-  //TODO test with ground intensional
+  test("gt13") {
+
+    val a = fact("a(x,y)")
+    val b = fact("b(y)")
+
+    val r1 = rule("i(X,Y) :- a(X,Y), b(Y)")
+    val r2 = rule("i(z,z) :- i(X,Y), not d(X,Y)")
+    val r3 = rule("j(X,Y) :- i(X,Y)")
+
+    val p = program(a,b,r1,r2,r3)
+
+    val manualGrounding: Set[LarsRule] = Set(
+      rule("i(x,y) :- a(x,y), b(y)"),
+      rule("i(z,z) :- i(x,y), not d(x,y)"),
+      rule("i(z,z) :- i(z,z), not d(z,z)"),
+      rule("i(z,z) :- i(z,y), not d(z,y)"),
+      rule("i(z,z) :- i(x,z), not d(x,z)"),
+      rule("j(z,y) :- i(z,y)"),
+      rule("j(x,z) :- i(x,z)"),
+      rule("j(x,y) :- i(x,y)"),
+      rule("j(z,z) :- i(z,z)")
+    )
+
+    val rules = Seq[LarsRule](a,b) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y","z"))
+
+//    println(LarsProgram(grounder.groundProgram.rules))
+//
+//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//    println("only in computed: "+LarsProgram(onlyInComputed))
+//    println("only in expected: "+LarsProgram(onlyInExpected))
+//
+//    printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x,y) b(y) i(x,y) i(z,z) j(x,y) j(z,z)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
+  }
+
+  //TODO window atoms
 
   //
   //
