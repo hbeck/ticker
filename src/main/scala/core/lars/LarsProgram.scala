@@ -61,6 +61,9 @@ case class LarsProgram(rules: Seq[LarsRule]) {
     sb.append("}")
     sb.toString
   }
+  def ==(other: LarsProgram): Boolean = {
+    this.rules.toSet == other.rules.toSet //TODO does it create problems somewhere to use Set[LarsRule] in constructor?
+  }
 }
 
 object LarsProgram {

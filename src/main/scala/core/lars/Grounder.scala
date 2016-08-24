@@ -21,50 +21,46 @@ case class Grounder(program: LarsProgram) {
   def ground(inspect: LarsProgramInspection)(rule: LarsRule): Set[LarsRule] = {
     if (rule isGround) return Set(rule)
     val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
-    val assignments: Set[Assignment] = createAssignments(possibleVariableValues)
+    val assignments: Set[Assignment] = Grounder.createAssignments(possibleVariableValues)
     assignments map (rule.assign(_))
   }
 
-  def ground[T <: ExtendedAtom](x: T, assignment: Assignment): T = {
-    if (x.isGround) return x
-    x.assign(assignment).asInstanceOf[T]
-  }
+  //  def ground[T <: ExtendedAtom](x: T, assignment: Assignment): T = {
+  //    if (x.isGround) return x
+  //    x.assign(assignment).asInstanceOf[T]
+  //  }
+
+}
+
+object Grounder {
 
   def createAssignments(possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[Assignment] = {
-
-    // X -> { x1, x2 }
-    // Y -> { y1, y2 }
-    // Z -> { z1, z2 }
-    // =>
-    // X -> { {(X,x1)}, {(X,x2)} }
-    // Y -> { {(Y,y1)}, {(Y,y2)} }
-    // Z -> { {(Z,z1)}, {(Z,z2)} }
-    val pairSingletons: Map[Variable,Set[Set[(Variable,Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
-
-    val seq: Seq[Set[Set[(Variable,Value)]]] = pairSingletons.values.toSeq
-
-    //{ {(X,x1)}, {(X,x2)} } cross { {(Y,y1)}, {(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
-    //==>
-    //{ {(X,x1),(Y,y1)}, {(X,x2),(Y,y1)}, {(X,x1),(Y,y2)}, {(X,x2),(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
-    //==>
-    //{ {(X,x1),(Y,y1),(Z,z1)}, {(X,x2),(Y,y1),(Z,z1)}, {(X,x1),(Y,y2),(Z,z1)}, {(X,x2,(Y,y2),(Z,z1)},
-    //  {(X,x1),(Y,y1),(Z,z2)}, {(X,x2),(Y,y1),(Z,z2)}, {(X,x1),(Y,y2),(Z,z2)}, {(X,x2,(Y,y2),(Z,z2))} }
-    val preparedAssignments: Set[Set[(Variable, Value)]] = seq.reduce((s1, s2) => cross(s1,s2))
-
+    val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
+    val preparedAssignments: Set[Set[(Variable, Value)]] = pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2))
     preparedAssignments map (set => Assignment(set.toMap))
   }
 
-  def makePairedWithValueSingletons(possibleValuesPerVariable: Map[Variable,Set[Value]]): Map[Variable,Set[Set[(Variable,Value)]]] = {
-    possibleValuesPerVariable map { x =>
-      val variable = x._1
-      val valueSet = x._2
-      val pairedWithValue: Set[(Variable,Value)] = valueSet map (value => (variable,value))
-      (variable,Set(pairedWithValue))
-    }
+  // X -> { x1, x2 }
+  // Y -> { y1, y2 }
+  // Z -> { z1, z2 }
+  // =>
+  // [ { {(X,x1)}, {(X,x2)} }
+  //   { {(Y,y1)}, {(Y,y2)} }
+  //   { {(Z,z1)}, {(Z,z2)} } ]
+  def makePairedWithValueSingletons(possibleValuesPerVariable: Map[Variable,Set[Value]]): Seq[Set[Set[(Variable,Value)]]] = {
+    possibleValuesPerVariable map {
+      case (variable,valueSet) => valueSet map (value => Set((variable, value))) // {{(X,x1)},{(X,x2)}}
+    } toSeq
   }
 
-  def cross[T](set1: Set[Set[T]], set2: Set[Set[T]]): Set[Set[T]] = {
-    for (x <- set1; y <- set2) yield x union y
+  //{ {(X,x1)}, {(X,x2)} } cross { {(Y,y1)}, {(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
+  //==>
+  //{ {(X,x1),(Y,y1)}, {(X,x2),(Y,y1)}, {(X,x1),(Y,y2)}, {(X,x2),(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
+  //==>
+  //{ {(X,x1),(Y,y1),(Z,z1)}, {(X,x2),(Y,y1),(Z,z1)}, {(X,x1),(Y,y2),(Z,z1)}, {(X,x2,(Y,y2),(Z,z1)},
+  //  {(X,x1),(Y,y1),(Z,z2)}, {(X,x2),(Y,y1),(Z,z2)}, {(X,x1),(Y,y2),(Z,z2)}, {(X,x2,(Y,y2),(Z,z2))} }
+  def cross[T](sets1: Set[Set[T]], sets2: Set[Set[T]]): Set[Set[T]] = {
+    for (s1 <- sets1; s2 <- sets2) yield s1 union s2
   }
 
 }
