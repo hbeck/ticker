@@ -76,23 +76,31 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
 
+  case class PrecomputedHashCodeOfHashSet(rules:HashSet[NormalRule]){
+    def contains(rule:NormalRule)=rules.contains(rule)
+    private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PrecomputedHashCodeOfHashSet.this)
+
+    override def hashCode(): Int = precomputedHash
+
+  }
+
   class AllRulesTabu() {
 
-    var ruleMap: Map[Set[NormalRule],CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
+    var ruleMap: Map[PrecomputedHashCodeOfHashSet,CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
 
-    var stateRules: Set[NormalRule] = new HashSet[NormalRule]()
+    var stateRules: PrecomputedHashCodeOfHashSet =PrecomputedHashCodeOfHashSet(HashSet())
     var currentRulesTabu = new CurrentRulesTabu()
 
     def add(rule: NormalRule): Unit = {
       if (!stateRules.contains(rule)) {
-        stateRules = stateRules + rule
+        stateRules = PrecomputedHashCodeOfHashSet(stateRules.rules + rule)
         updateAfterRuleChange()
       }
     }
 
     def remove(rule: NormalRule): Unit = {
       if (stateRules.contains(rule)) {
-        stateRules = stateRules - rule
+        stateRules = PrecomputedHashCodeOfHashSet(stateRules.rules - rule)
         updateAfterRuleChange()
       }
     }
@@ -197,7 +205,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     if (atoms.isEmpty) return
 
     // TODO: perf: find iterates over to many atoms - dict?
-    selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))
+    val tabuAtoms = tabu.atomsToAvoid()
+    selectedAtom = atoms find (!tabuAtoms.contains(_))
+//    selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))
 
     if (selectedAtom.isEmpty && prevState.isDefined) {
       tabu.avoid(prevState.get,prevSelectedAtom.get)
