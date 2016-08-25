@@ -80,10 +80,15 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
 
-  case class PrecomputedHashCodeOfHashSet(rules: HashSet[NormalRule]) {
+  case class PrecomputedHashCodeOfHashSet(rules: HashSet[NormalRule], incrementalHash: Long = IncrementalHashCode.emptyHash) {
+
     def contains(rule: NormalRule) = rules.contains(rule)
 
-    private val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PrecomputedHashCodeOfHashSet.this)
+    def + (rule:NormalRule) = PrecomputedHashCodeOfHashSet(rules + rule, IncrementalHashCode.addHashCode(incrementalHash,rule))
+    def - (rule:NormalRule) = PrecomputedHashCodeOfHashSet(rules - rule, IncrementalHashCode.removeHashCode(incrementalHash,rule))
+
+//    private val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PrecomputedHashCodeOfHashSet.this)
+    private val precomputedHash =incrementalHash.hashCode()
 
     override def hashCode(): Int = precomputedHash
 
@@ -98,14 +103,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     def add(rule: NormalRule): Unit = {
       if (!stateRules.contains(rule)) {
-        stateRules = PrecomputedHashCodeOfHashSet(stateRules.rules + rule)
+        stateRules = stateRules + rule
         updateAfterRuleChange()
       }
     }
 
     def remove(rule: NormalRule): Unit = {
       if (stateRules.contains(rule)) {
-        stateRules = PrecomputedHashCodeOfHashSet(stateRules.rules - rule)
+        stateRules = stateRules - rule
         updateAfterRuleChange()
       }
     }

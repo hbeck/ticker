@@ -360,16 +360,16 @@ object IncrementalHashCode {
 
   def hash(atoms: Set[Atom]) = atoms.foldLeft(emptyHash)(addHashCode)
 
-  def addHashCode(hash: Long, atom: Atom): Long = {
+  def addHashCode(hash: Long, item: Any): Long = {
 
-    val newHash = (hash ) + atom.hashCode()
+    val newHash = (hash ) + item.hashCode()
 
     newHash
   }
 
   def removeHashCode(hash: Long, element: Any): Long = {
-    val newHash = (hash - element.hashCode()) / 16777619
-
+//    val newHash = (hash - element.hashCode()) / 16777619
+    val newHash = hash - element.hashCode()
     newHash
   }
 }
