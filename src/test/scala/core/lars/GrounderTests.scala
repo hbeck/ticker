@@ -545,6 +545,64 @@ class GrounderTests extends FunSuite {
 
   }
 
+  test("gt12w") {
+
+    val a1 = fact("a(x)")
+    val b11 = fact("b(x,y1)")
+    val b12 = fact("b(x,y2)")
+    val c1 = fact("c(y1)")
+    val c2 = fact("c(y2)")
+    val d12 = fact("d(x,y2)")
+
+    val r1 = rule("i(X,Y) :- a(X), i(X,Y), w_sig1(Y)")
+    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y), not w_sig2(X,Y)")
+    val r3 = rule("j(X,Y) :- b(X,Z), c(Y), not w_sig3(X,Z,Y)")
+
+    val p = program(a1,b11,b12,c1,c2,d12,r1,r2,r3)
+
+    val manualGrounding: Set[LarsRule] = Set(
+      rule("i(x,y1) :- a(x), i(x,y1), w_sig1(y1)"),
+      rule("i(x,y2) :- a(x), i(x,y2), w_sig1(y2)"),
+      rule("i(x,y1) :- j(x,y1), not d(x,y1), not w_sig2(x,y1)"),
+      rule("i(x,y2) :- j(x,y2), not d(x,y2), not w_sig2(x,y2)"),
+      rule("j(x,y1) :- b(x,y1), c(y1), not w_sig3(x,y1,y1)"),
+      rule("j(x,y2) :- b(x,y1), c(y2), not w_sig3(x,y1,y2)"),
+      rule("j(x,y1) :- b(x,y2), c(y1), not w_sig3(x,y2,y1)"),
+      rule("j(x,y2) :- b(x,y2), c(y2), not w_sig3(x,y2,y2)")
+    )
+
+    val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Z")) == strVals("y1","y2"))
+
+//    println(LarsProgram(grounder.groundProgram.rules))
+//
+//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//    println("only in computed: "+LarsProgram(onlyInComputed))
+//    println("only in expected: "+LarsProgram(onlyInExpected))
+//
+//    printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("a(x) b(x,y1) b(x,y2) c(y1) c(y2) d(x,y2) j(x,y1) j(x,y2) i(x,y1)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
+  }
+
   test("gt12") {
 
     val a1 = fact("a(x)")
@@ -584,15 +642,15 @@ class GrounderTests extends FunSuite {
     assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y1","y2"))
     assert(grounder.inspect.possibleValuesForVariable(r3,v("Z")) == strVals("y1","y2"))
 
-//    println(LarsProgram(grounder.groundProgram.rules))
-//
-//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
-//
-//    println("only in computed: "+LarsProgram(onlyInComputed))
-//    println("only in expected: "+LarsProgram(onlyInExpected))
-//
-//    printInspect(grounder)
+    //    println(LarsProgram(grounder.groundProgram.rules))
+    //
+    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //    println("only in computed: "+LarsProgram(onlyInComputed))
+    //    println("only in expected: "+LarsProgram(onlyInExpected))
+    //
+    //    printInspect(grounder)
 
     assert(grounder.groundProgram == gp)
 

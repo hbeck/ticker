@@ -53,7 +53,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       sb.toString
     }
 
-
     private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PartialState.this)
 
     override def hashCode(): Int = precomputedHash

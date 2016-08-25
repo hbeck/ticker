@@ -41,6 +41,10 @@ case class TimeValue(timePoint: TimePoint) extends Value {
   override def toString = timePoint.value.toString
 }
 
+case class IntValue(int: Int) extends Value {
+  override def toString = ""+int
+}
+
 object Value {
   def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
 

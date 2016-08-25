@@ -170,3 +170,99 @@ object Atom {
   implicit def asAtomModification(atom: Atom): AtomModification = AtomModification(atom)
 }
 
+//auxiliary atom for arithmetic. stripped off rules by Grounder
+trait RelationAtom extends Atom {
+  def holds(): Boolean
+}
+
+abstract class BinaryRelationAtom(x: Argument, y: Argument) extends RelationAtom {
+
+    override def isGround(): Boolean = x.isInstanceOf[Value] && y.isInstanceOf[Value]
+
+    override def assign(assignment: Assignment): ExtendedAtom = {
+      val xArg: Argument = assignment(x) match { case Some(value) => value; case _ => x }
+      val yArg: Argument = assignment(y) match { case Some(value) => value; case _ => y }
+      this(xArg,yArg)
+    }
+
+}
+
+abstract class BinaryNumericRelationAtom(x: Argument, y: Argument) extends BinaryRelationAtom(x,y) {
+
+  def holds(): Boolean = {
+    if (!x.isInstanceOf[IntValue] || !y.isInstanceOf[IntValue])
+      return false
+
+    val i = x.asInstanceOf[IntValue].int
+    val j = y.asInstanceOf[IntValue].int
+
+    holds(i,j)
+  }
+
+  def holds(i: Int, j: Int): Boolean
+}
+
+abstract class TernaryRelationAtom(x: Argument, y: Argument, z: Argument) extends RelationAtom {
+
+  override def isGround(): Boolean = x.isInstanceOf[Value] && y.isInstanceOf[Value] && z.isInstanceOf[Value]
+
+  override def assign(assignment: Assignment): ExtendedAtom = {
+    val xArg: Argument = assignment(x) match { case Some(value) => value; case _ => x }
+    val yArg: Argument = assignment(y) match { case Some(value) => value; case _ => y }
+    val zArg: Argument = assignment(z) match { case Some(value) => value; case _ => z }
+    this(xArg,yArg,zArg)
+  }
+}
+
+abstract class TernaryNumericRelationAtom(x: Argument, y: Argument, z: Argument) extends TernaryRelationAtom(x,y,z) {
+
+  def holds(): Boolean = {
+    if (!x.isInstanceOf[IntValue] || !y.isInstanceOf[IntValue] || !z.isInstanceOf[IntValue])
+      return false
+
+    val i = x.asInstanceOf[IntValue].int
+    val j = y.asInstanceOf[IntValue].int
+    val k = z.asInstanceOf[IntValue].int
+
+    holds(i,j,k)
+  }
+
+  def holds(i: Int, j: Int, k: Int): Boolean
+}
+
+case class Neq(x: Argument, y: Argument) extends BinaryRelationAtom(x,y) {
+  override val predicate: Predicate = Predicate("neq")
+  override def holds(): Boolean = {
+    if (!x.isInstanceOf[Value] || !y.isInstanceOf[Value])
+      return false
+    //just compare based on string:
+    val xStr = x.asInstanceOf[Value].toString
+    val yStr = y.asInstanceOf[Value].toString
+    xStr != yStr
+  }
+}
+
+case class Leq(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x,y) {
+  override val predicate: Predicate = Predicate("leq")
+  override def holds(i: Int, j: Int): Boolean = i <= j
+}
+case class Geq(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x,y) {
+  override val predicate: Predicate = Predicate("geq")
+  override def holds(i: Int, j: Int): Boolean = i >= j
+}
+case class Lt(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x,y) {
+  override val predicate: Predicate = Predicate("lt")
+  override def holds(i: Int, j: Int): Boolean = i < j
+}
+case class Gt(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x,y) {
+  override val predicate: Predicate = Predicate("gt")
+  override def holds(i: Int, j: Int): Boolean = i > j
+}
+case class Sum(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x,y,z) {
+  override def holds(i: Int, j: Int, k: Int): Boolean = i + j == k
+  override val predicate: Predicate = Predicate("sum")
+}
+case class Product(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x,y,z) {
+  override def holds(i: Int, j: Int, k: Int): Boolean = i * j == k
+  override val predicate: Predicate = Predicate("product")
+}
