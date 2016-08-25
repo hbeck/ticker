@@ -12,7 +12,7 @@ import org.scalatest.FunSuite
 class GrounderTests extends FunSuite {
 
   //"a(x,Y)" ==> Seq("a","x","Y")
-  def atom(s:String): Atom = {
+  def atom(s:String): ExtendedAtom = {
     val str = if (s.startsWith("not ")) s.substring(4) else s
     if (!str.contains("(")) return PredicateAtom(p(str))
     val commasOnly = str.substring(0,str.size-1).replace("(",",")
@@ -21,17 +21,28 @@ class GrounderTests extends FunSuite {
   }
 
   //Seq("a","x","Y") ==> NonGroundAtom(a,{x,Y})
-  def atom(ss:Seq[String]): Atom = {
+  def atom(ss:Seq[String]): ExtendedAtom = {
     assert(ss.size>0)
     if (ss.size == 1)
       PredicateAtom(p(ss(0)))
     else {
-      val p = Predicate(ss(0))
+      var s = ss(0)
+      var isWindowAtom = false
+      if (s.contains("_")) { //convention that window atom is used as w_a(...)
+        isWindowAtom = true
+        s = s.split("_")(1)
+      }
+      val p = Predicate(s)
       val args = ss.tail map arg
-      if (args forall (_.isInstanceOf[StringValue]))
-        GroundAtomWithArguments(p, args map (_.asInstanceOf[Value]))
+      val atom =
+        if (args forall (_.isInstanceOf[StringValue]))
+          GroundAtomWithArguments(p, args map (_.asInstanceOf[Value]))
+        else
+          NonGroundAtom(p, args)
+      if (isWindowAtom)
+        WindowAtom(SlidingTimeWindow(7),Diamond,atom) //doesn't matter which one
       else
-        NonGroundAtom(p, args)
+        atom
     }
   }
 
@@ -54,11 +65,11 @@ class GrounderTests extends FunSuite {
   def v(s:String) = Variable(s)
   def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else StringValue(s)
 
-  def fact(s:String):LarsRule = LarsFact(atom(s))
+  def fact(s:String):LarsRule = LarsFact(atom(s).asInstanceOf[Atom])
   def rule(all:String): LarsRule = {
     if (!all.contains(" :- ")) return fact(all)
     val hbStr = all.split(" :- ")
-    val head:HeadAtom = atom(hbStr(0)) //not Atom! using atom to parse predicate symbol
+    val head:HeadAtom = atom(hbStr(0)).asInstanceOf[Atom] //not *A*tom! using atom to parse predicate symbol
     val bodyParts = hbStr(1).split(", ")
     val posBodyParts = bodyParts filterNot (_.trim.startsWith("not"))
     val negBodyParts = bodyParts filter (_.trim.startsWith("not"))
@@ -90,7 +101,7 @@ class GrounderTests extends FunSuite {
   }
 
   def modelFromClingo(s:String): Model = {
-    s.split(" ") map (atom(_)) toSet
+    s.split(" ") map (atom(_).asInstanceOf[Atom]) toSet
   }
 
   //
@@ -545,63 +556,7 @@ class GrounderTests extends FunSuite {
 
   }
 
-  test("gt12w") {
 
-    val a1 = fact("a(x)")
-    val b11 = fact("b(x,y1)")
-    val b12 = fact("b(x,y2)")
-    val c1 = fact("c(y1)")
-    val c2 = fact("c(y2)")
-    val d12 = fact("d(x,y2)")
-
-    val r1 = rule("i(X,Y) :- a(X), i(X,Y), w_sig1(Y)")
-    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y), not w_sig2(X,Y)")
-    val r3 = rule("j(X,Y) :- b(X,Z), c(Y), not w_sig3(X,Z,Y)")
-
-    val p = program(a1,b11,b12,c1,c2,d12,r1,r2,r3)
-
-    val manualGrounding: Set[LarsRule] = Set(
-      rule("i(x,y1) :- a(x), i(x,y1), w_sig1(y1)"),
-      rule("i(x,y2) :- a(x), i(x,y2), w_sig1(y2)"),
-      rule("i(x,y1) :- j(x,y1), not d(x,y1), not w_sig2(x,y1)"),
-      rule("i(x,y2) :- j(x,y2), not d(x,y2), not w_sig2(x,y2)"),
-      rule("j(x,y1) :- b(x,y1), c(y1), not w_sig3(x,y1,y1)"),
-      rule("j(x,y2) :- b(x,y1), c(y2), not w_sig3(x,y1,y2)"),
-      rule("j(x,y1) :- b(x,y2), c(y1), not w_sig3(x,y2,y1)"),
-      rule("j(x,y2) :- b(x,y2), c(y2), not w_sig3(x,y2,y2)")
-    )
-
-    val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
-
-    val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
-
-    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
-    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
-    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x"))
-    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y1","y2"))
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x"))
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y1","y2"))
-    assert(grounder.inspect.possibleValuesForVariable(r3,v("Z")) == strVals("y1","y2"))
-
-//    println(LarsProgram(grounder.groundProgram.rules))
-//
-//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
-//
-//    println("only in computed: "+LarsProgram(onlyInComputed))
-//    println("only in expected: "+LarsProgram(onlyInExpected))
-//
-//    printInspect(grounder)
-
-    assert(grounder.groundProgram == gp)
-
-    val model = modelFromClingo("a(x) b(x,y1) b(x,y2) c(y1) c(y2) d(x,y2) j(x,y1) j(x,y2) i(x,y1)")
-
-    val asp = asAspProgram(grounder.groundProgram)
-    val tms = JtmsGreedy(asp)
-    assert(tms.getModel.get == model)
-  }
 
   test("gt12") {
 
@@ -661,6 +616,60 @@ class GrounderTests extends FunSuite {
     assert(tms.getModel.get == model)
   }
 
+  test("gt12w") {
+
+    val a1 = fact("a(x)")
+    val b11 = fact("b(x,y1)")
+    val b12 = fact("b(x,y2)")
+    val c1 = fact("c(y1)")
+    val c2 = fact("c(y2)")
+    val d12 = fact("d(x,y2)")
+
+    val r1 = rule("i(X,Y) :- a(X), i(X,Y), w_sig1(Y)")
+    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y), not w_sig2(X,Y)")
+    val r3 = rule("j(X,Y) :- b(X,Z), c(Y), not w_sig3(X,Z,Y)")
+
+    val p = program(a1,b11,b12,c1,c2,d12,r1,r2,r3)
+
+    val manualGrounding: Set[LarsRule] = Set(
+      rule("i(x,y1) :- a(x), i(x,y1), w_sig1(y1)"),
+      rule("i(x,y2) :- a(x), i(x,y2), w_sig1(y2)"),
+      rule("i(x,y1) :- j(x,y1), not d(x,y1), not w_sig2(x,y1)"),
+      rule("i(x,y2) :- j(x,y2), not d(x,y2), not w_sig2(x,y2)"),
+      rule("j(x,y1) :- b(x,y1), c(y1), not w_sig3(x,y1,y1)"),
+      rule("j(x,y2) :- b(x,y1), c(y2), not w_sig3(x,y1,y2)"),
+      rule("j(x,y1) :- b(x,y2), c(y1), not w_sig3(x,y2,y1)"),
+      rule("j(x,y2) :- b(x,y2), c(y2), not w_sig3(x,y2,y2)")
+    )
+
+    val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y1","y2"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Z")) == strVals("y1","y2"))
+
+    //    println(LarsProgram(grounder.groundProgram.rules))
+    //
+    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //    println("only in computed: "+LarsProgram(onlyInComputed))
+    //    println("only in expected: "+LarsProgram(onlyInExpected))
+    //
+    //    printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    //no semantics comparison with asp
+  }
+
   test("gt13") {
 
     val a = fact("a(x,y)")
@@ -715,7 +724,55 @@ class GrounderTests extends FunSuite {
     assert(tms.getModel.get == model)
   }
 
-  //TODO window atoms
+  test("gt13w") {
+
+    val a = fact("a(x,y)")
+    val b = fact("b(y)")
+
+    val r1 = rule("i(X,Y) :- a(X,Y), b(Y), w_sig2(X,Y)")
+    val r2 = rule("i(z,z) :- i(X,Y), w_sig1(X), not d(X,Y)")
+    val r3 = rule("j(X,Y) :- i(X,Y), w_sig1(X), w_sig3(X,X,Y)")
+
+    val p = program(a,b,r1,r2,r3)
+
+    val manualGrounding: Set[LarsRule] = Set(
+      rule("i(x,y) :- a(x,y), b(y), w_sig2(x,y)"),
+      rule("i(z,z) :- i(x,y), w_sig1(x), not d(x,y)"),
+      rule("i(z,z) :- i(z,z), w_sig1(z), not d(z,z)"),
+      rule("i(z,z) :- i(z,y), w_sig1(z), not d(z,y)"),
+      rule("i(z,z) :- i(x,z), w_sig1(x), not d(x,z)"),
+      rule("j(z,y) :- i(z,y), w_sig1(z), w_sig3(z,z,y)"),
+      rule("j(x,z) :- i(x,z), w_sig1(x), w_sig3(x,x,z)"),
+      rule("j(x,y) :- i(x,y), w_sig1(x), w_sig3(x,x,y)"),
+      rule("j(z,z) :- i(z,z), w_sig1(z), w_sig3(z,z,z)")
+    )
+
+    val rules = Seq[LarsRule](a,b) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = Grounder(p)
+
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
+    assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("X")) == strVals("x","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r2,v("Y")) == strVals("y","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("X")) == strVals("x","z"))
+    assert(grounder.inspect.possibleValuesForVariable(r3,v("Y")) == strVals("y","z"))
+
+    //    println(LarsProgram(grounder.groundProgram.rules))
+    //
+    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //    println("only in computed: "+LarsProgram(onlyInComputed))
+    //    println("only in expected: "+LarsProgram(onlyInExpected))
+    //
+    //    printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    //no semantics comparison with asp
+  }
 
   //
   //

@@ -65,7 +65,7 @@ case class LarsProgramInspection(program: LarsProgram) {
   val rules: Set[BasicLarsRule] = program.rules collect { case r if r.head.isInstanceOf[Atom] => asBasicRule(r) } toSet
 
   def asBasicRule(rule: LarsRule): BasicLarsRule = {
-    UserDefinedBasicLarsRule(rule.head.asInstanceOf[Atom],rule.pos,rule.neg)
+    UserDefinedBasicLarsRule(rule.head.asInstanceOf[Atom],rule.pos)
   }
 
   val facts = rules filter (_.isFact)
