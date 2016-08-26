@@ -21,10 +21,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
+  var __stateHash:  Long = IncrementalHashCode.emptyHash
 
   var __extensionalAtoms: Set[Atom] = Set()
 
   var __suppHash: Map[Atom, Long] = Map()
+  
 
   override def inAtoms() = __atomsWithStatus(in)
 
@@ -148,6 +150,10 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       __allAtoms = __allAtoms + a
 
       status = status.updated(a, out)
+
+      if(!extensionalAtoms().contains(a))
+        __stateHash = IncrementalHashCode.addHashCode(__stateHash,(a, out))
+
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
 
       if (extensional(a))
@@ -201,6 +207,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
 
     if (oldStatus != newStatus) {
+      if(!extensionalAtoms().contains(a)) {
+        if (oldStatus == in || oldStatus == out)
+          __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
+        if(newStatus==in || newStatus == out)
+          __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
+      }
       status = status.updated(a, newStatus)
       __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
       __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
@@ -260,6 +272,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
     val oldStatus = status(a)
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
+
+    if(!extensionalAtoms().contains(a) && (oldStatus==in ||oldStatus==out))
+      __stateHash = IncrementalHashCode.removeHashCode(__stateHash,(a, oldStatus))
 
     status = status - a
     cons = cons - a
