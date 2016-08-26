@@ -1,8 +1,8 @@
 package core.lars
 
-import core.{Model, _}
 import core.asp._
-import jtms.{JtmsLearn, JtmsGreedy}
+import core.{Model, _}
+import jtms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 /**
@@ -1043,7 +1043,6 @@ class GrounderTests extends FunSuite {
     val inputProgram = LarsProgram(schedulingProgram.rules ++ facts)
     val grounder = Grounder(inputProgram)
 
-    //println(grounder.groundProgram)
 
     //
     // variables to iterate over
@@ -1078,7 +1077,7 @@ class GrounderTests extends FunSuite {
       }
     }
 
-    //println("#rules in ground program: "+grounder.groundProgram.rules.size)
+    println("#rules in ground program: "+grounder.groundProgram.rules.size)
 
     // printInspect(grounder)
 
@@ -1110,9 +1109,15 @@ class GrounderTests extends FunSuite {
     }
 
     println("failures: "+failures)
+    val tabu = tms.tabu
+    val currentRulesTabu = tabu.currentRulesTabu
+
+    println(currentRulesTabu.atomsToAvoid())
+
+    println("size of avoidance map: "+currentRulesTabu.avoidanceMap.size)
+
 
   }
-
 
   //
   //

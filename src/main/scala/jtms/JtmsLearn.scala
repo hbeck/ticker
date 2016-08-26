@@ -10,7 +10,7 @@ object JtmsLearn {
 
   def apply(P: NormalProgram): JtmsLearn = {
     val net = new JtmsLearn()
-    P.rules foreach net.add
+    P.rules foreach net.add //TODO note that in this initialization, we would not quire to save all rules in the ruleMap of tabu (in our intended use cases)
     net
   }
 
@@ -46,7 +46,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     resetSavedState
   }
 
-  case class PartialState( support: Map[Atom, Long], stateHash:Long) {
+  case class PartialState(support: Map[Atom, Long], stateHash:Long) {
 //  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
@@ -90,6 +90,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     private val precomputedHash =incrementalHash.hashCode()
 
     override def hashCode(): Int = precomputedHash
+
+    override def toString(): String = "preHash["+incrementalHash+"]: "+rules.toString
 
   }
 
@@ -204,7 +206,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
 
-    Some(PartialState( collectedSupp, __stateHash))
+    Some(PartialState(collectedSupp, __stateHash))
   }
 
   def stateAtoms = (inAtoms union outAtoms) diff extensionalAtoms
