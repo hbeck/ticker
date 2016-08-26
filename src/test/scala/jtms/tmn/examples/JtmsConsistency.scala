@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import core.asp.{AspFact, AspRule}
-import core.{Atom, ContradictionAtom}
+import core.{Predicate, Atom, ContradictionAtom}
 import jtms.JtmsDoyle
 import org.scalatest.FunSuite
 
@@ -22,7 +22,7 @@ class JtmsConsistency extends FunSuite {
   val r2 = Atom("r2")
   val x = Atom("x")
 
-  val n = ContradictionAtom("n")
+  val n = ContradictionAtom(Predicate("n"))
 
   val none = Set[Atom]()
 

@@ -10,7 +10,7 @@ import org.scalatest.FlatSpec
   */
 class AspConversionSpecs extends FlatSpec with AtomTestFixture {
 
-  val Falsum = new ContradictionAtom("n")
+  val Falsum = new ContradictionAtom(Predicate("n"))
 
   "A premise A" should "be transformed into the expression 'a.'" in {
     val premise = AspFact(a)

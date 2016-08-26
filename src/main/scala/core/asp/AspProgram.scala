@@ -1,6 +1,6 @@
 package core.asp
 
-import core.{Atom, AtomWithArgument, PinnedAtom}
+import core.{Atom, AtomWithArgument}
 import engine.asp.PinnedRule
 
 
@@ -9,7 +9,7 @@ import engine.asp.PinnedRule
   */
 trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
   val rules: Seq[TAspRule]
-  lazy val atoms = this.rules.flatMap(_.atoms)
+  lazy val atoms = this.rules.flatMap(_.atoms) //TODO return type is not a set!
 }
 
 //trait AspProgramTT[TAtom <: Atom] {

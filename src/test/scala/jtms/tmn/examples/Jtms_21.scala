@@ -1,13 +1,13 @@
 package jtms.tmn.examples
 
-import core.{Atom, ContradictionAtom}
 import core.asp.{AspFact, AspRule}
+import core.{ContradictionAtom, Predicate}
 
 /**
   * Created by FM on 11.02.16.
   */
 class Jtms_21 extends JtmsSpec {
-  val N_contr = ContradictionAtom("N_contr")
+  val N_contr = ContradictionAtom(Predicate("N_contr"))
 
   val j7 = AspRule(N_contr, Set(b), Set(c))
 

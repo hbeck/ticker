@@ -32,7 +32,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       saveState
     }
     while (hasUnknown) {
-      unknownAtoms foreach findStatus
+      unknownAtoms foreach findStatus //TODO could limit to transitive consequences of previously set head atom
       selectNextAtom()
       selectedAtom match {
         case Some(atom) => {
@@ -226,6 +226,22 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     // TODO: perf: find iterates over to many atoms - dict?
     val tabuAtoms = tabu.atomsToAvoid()
+
+
+    /*
+    // <new160826>
+    val nonContradictionAtoms = atoms filterNot (_.isInstanceOf[ContradictionAtom])
+    if (nonContradictionAtoms.isEmpty) {
+      selectedAtom = atoms find (!tabuAtoms.contains(_))
+    } else {
+      selectedAtom = nonContradictionAtoms find (!tabuAtoms.contains(_))
+      if (selectedAtom.isEmpty) {
+        selectedAtom = (atoms filter (_.isInstanceOf[ContradictionAtom])) find (!tabuAtoms.contains(_))
+      }
+    }
+    //</new160826>
+    */
+
     selectedAtom = atoms find (!tabuAtoms.contains(_))
     //    selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))
 

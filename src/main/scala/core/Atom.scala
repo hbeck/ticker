@@ -42,8 +42,8 @@ object Falsum extends GroundAtom {
   override val predicate = Predicate("⊥")
 }
 
-case class ContradictionAtom(caption: String) extends GroundAtom {
-  override val predicate = Predicate(caption)
+case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
+  override def toString = "!"+predicate.toString
 }
 
 // TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments

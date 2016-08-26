@@ -11,7 +11,7 @@ import org.scalatest.FlatSpec
 trait Jtms_21_Behavior extends JtmsSpec {
   this: FlatSpec =>
 
-  val Falsum = new ContradictionAtom("f")
+  val Falsum = new ContradictionAtom(Predicate("f"))
   val j7: NormalRule = AspRule.pos(b).neg(c).head(Falsum)
 
   def p = {

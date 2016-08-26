@@ -18,7 +18,7 @@ class PQSRSample extends FlatSpec with EvaluateAspImplementations {
   val s = Atom("s")
   val r = Atom("r")
 
-  val Falsum = new ContradictionAtom("n")
+  val Falsum = new ContradictionAtom(Predicate("n"))
 
   val programSFirst = AspProgram(
     AspRule(p, Set(q), Set(s)),
@@ -47,7 +47,7 @@ class PQSRSample extends FlatSpec with EvaluateAspImplementations {
 
   //constraints not implemented
 //  def withKillClause(evaluation: Evaluation) = {
-//    val c = ContradictionAtom("c")
+//    val c = ContradictionAtom(Predicate("c"))
 //    val p = programQFirst + Rule(c, Set(q), Set(r)) //Q first!
 //
 //    it should "generate only one model" in {

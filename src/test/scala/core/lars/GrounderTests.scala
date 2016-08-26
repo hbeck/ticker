@@ -13,7 +13,7 @@ class GrounderTests extends FunSuite {
   //"a(x,Y)" ==> Seq("a","x","Y")
   def atom(s:String): ExtendedAtom = {
     val str = if (s.startsWith("not ")) s.substring(4) else s
-    if (!str.contains("(")) return PredicateAtom(p(str))
+    if (!str.contains("(")) return noArgsAtom(str)
     val commasOnly = str.substring(0,str.size-1).replace("(",",")
     val seq: Seq[String] = commasOnly.split(",").toSeq
     atom(seq)
@@ -23,7 +23,7 @@ class GrounderTests extends FunSuite {
   def atom(ss:Seq[String]): ExtendedAtom = {
     assert(ss.size>0)
     if (ss.size == 1)
-      PredicateAtom(p(ss(0)))
+      noArgsAtom(ss(0))
     else {
       var s = ss(0)
       var isWindowAtom = false
@@ -43,6 +43,15 @@ class GrounderTests extends FunSuite {
       else
         atom
     }
+  }
+
+  def noArgsAtom(s:String):GroundAtom = {
+    val pred = Predicate(s)
+    if (s.startsWith("xx"))
+      ContradictionAtom(pred)
+    else
+      PredicateAtom(pred)
+
   }
 
   test("parsing") {
@@ -1002,24 +1011,25 @@ class GrounderTests extends FunSuite {
   // scheduling examples
   //
 
+  //convention has contradiction atoms with xx (for easy parsing above)
   val schedulingProgram = LarsProgram(Seq[LarsRule](
     rule("task(T) :- duration(T,D)"),
     rule("assign(M,T,P) :- machine(M), task(T), timepoint(P), not n_assign(M,T,P)"),
     rule("n_assign(M,T,P) :- machine(M), task(T), timepoint(P), not assign(M,T,P)"),
-    rule("x1 :- assign(M,T,P), n_assign(M,T,P), not x1"),
+    rule("xx1 :- assign(M,T,P), n_assign(M,T,P), not xx1"),
     rule("some_assign(T) :- assign(M,T,P)"),
-    rule("x2 :- task(T), not some_assign(T), not x2"),
-    rule("x3 :- assign(M1,T,P1), assign(M2,T,P2), neq(M1,M2), not x3"),
-    rule("x4 :- assign(M1,T,P1), assign(M2,T,P2), neq(P1,P2), not x4"),
-    rule("x5 :- assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), sum(P1,D,Z), lt(P2,Z), timepoint(Z), not x5"),
+    rule("xx2 :- task(T), not some_assign(T), not xx2"),
+    rule("xx3 :- assign(M1,T,P1), assign(M2,T,P2), neq(M1,M2), not xx3"),
+    rule("xx4 :- assign(M1,T,P1), assign(M2,T,P2), neq(P1,P2), not xx4"),
+    rule("xx5 :- assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), sum(P1,D,Z), lt(P2,Z), timepoint(Z), not xx5"),
     rule("finish(T,Z) :- assign(M,T,P), duration(T,D), sum(P,D,Z), timepoint(Z)"),
-    rule("x6 :- finish(T,Z), deadline(E), lt(E,Z), not x6"), //using different variable for deadline than for duration!
+    rule("xx6 :- finish(T,Z), deadline(E), lt(E,Z), not xx6"), //using different variable for deadline than for duration!
     rule("busy_at(M,P2) :- assign(M,T,P1), duration(T,D), sum(P1,D,Z), timepoint(P2), leq(P1,P2), lt(P2,Z), timepoint(Z)"),
     rule("idle_at(M,P) :- machine(M), timepoint(P), not busy_at(M,P)"),
-    rule("x7 :- idle_at(M,P1), assign(M2,T,P2), lt(P1,P2), not x7"),
+    rule("xx7 :- idle_at(M,P1), assign(M2,T,P2), lt(P1,P2), not xx7"),
     rule("some_busy_at(P) :- busy_at(M,P)"),
     rule("none_busy_at(P) :- timepoint(P), not some_busy_at(P)"),
-    rule("x8 :- none_busy_at(P1), some_busy_at(P2), lt(P1,P2), not x8"),
+    rule("xx8 :- none_busy_at(P1), some_busy_at(P2), lt(P1,P2), not xx8"),
     rule("n_max_finish(P1) :- finish(T1,P1), finish(T2,P2), lt(P1,P2)"),
     rule("max_finish(P) :- finish(T,P), not n_max_finish(P)")
   ))
@@ -1091,7 +1101,14 @@ class GrounderTests extends FunSuite {
 
     val asp = asAspProgram(grounder.groundProgram)
 
+//    println("contradiction atoms:")
+//    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
+
+
     val tms = JtmsLearn(asp)
+    tms.shuffle = false
+
+    //asp.rules foreach println
 
     var failures = 0
     for (attempt <- 1 to 1000) {
@@ -1111,11 +1128,8 @@ class GrounderTests extends FunSuite {
     println("failures: "+failures)
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
-
-    println(currentRulesTabu.atomsToAvoid())
-
-    println("size of avoidance map: "+currentRulesTabu.avoidanceMap.size)
-
+    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
+    //println(tms.status)
 
   }
 
