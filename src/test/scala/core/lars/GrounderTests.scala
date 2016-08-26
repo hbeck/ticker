@@ -868,7 +868,7 @@ class GrounderTests extends FunSuite {
 
     val rules = facts ++ manualGrounding
 
-    println("#rules: "+rules.size)
+    //println("#rules: "+rules.size)
 
     val gp = LarsProgram(rules)
 //
@@ -898,6 +898,104 @@ class GrounderTests extends FunSuite {
     val asp = asAspProgram(grounder.groundProgram)
     val tms = JtmsGreedy(asp)
     assert(tms.getModel.get == model)
+  }
+
+  test("gt rel 2") {
+
+    val r1 = rule("c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z), sum(X,Y,Z), lt(Z,2)")
+    val r2 = rule("d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z), sum(X,Y,Z), lt(Z,2)")
+
+    val facts: Seq[LarsRule] = Seq(
+      fact("int(0)"),
+      fact("int(1)"),
+      fact("int(2)"),
+      fact("a(0)"),
+      fact("a(1)"),
+      fact("b(0)"),
+      fact("b(1)")
+    )
+
+    assert(facts forall (_.head.isInstanceOf[GroundAtom]))
+
+    val inputProgram = LarsProgram(facts ++ Seq(r1,r2))
+    val grounder = Grounder(inputProgram)
+
+    //println(grounder.groundProgram)
+
+    //
+    // initial tests, variables to iterate over
+    //
+
+    val valuesA = intVals("0","1")
+    val valuesB = intVals("0","1")
+    val valuesInt = intVals("0","1","2")
+
+    Seq(r1,r2) foreach { r =>
+      assert(grounder.inspect.possibleValuesForVariable(r,v("X")) == valuesA)
+      assert(grounder.inspect.possibleValuesForVariable(r,v("Y")) == valuesB)
+      assert(grounder.inspect.possibleValuesForVariable(r,v("Z")) == valuesInt)
+    }
+
+
+    //
+    //  craft expected ground program
+    //
+
+    //note that template does not include the auxiliary relation atoms!
+    val tmp1 = "c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z)"
+    val tmp2 = "d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z)"
+
+    val groupsOfGroundings: Set[Set[LarsRule]] =
+      for (x <- (valuesA map asInt); y <- (valuesB map asInt); z <- (valuesInt map asInt)
+           if {
+             (x + y == z) && (z < 2)
+           }
+      ) yield {
+        def replaceIn(template:String) = template
+          .replaceAll("X", ""+x)
+          .replaceAll("Y", ""+y)
+          .replaceAll("Z", ""+z)
+
+        Set(rule(replaceIn(tmp1)),rule(replaceIn(tmp2)))
+      }
+
+    val manualGrounding: Set[LarsRule] = groupsOfGroundings.flatten
+
+    val rules = facts ++ manualGrounding
+
+    //println("#rules: "+rules.size)
+    //rules foreach { r => println(LarsProgram(Seq(r))) }
+
+    val gp = LarsProgram(rules)
+    //
+//        val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//        val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//        println("only in computed: "+LarsProgram(onlyInComputed))
+//        println("only in expected: "+LarsProgram(onlyInExpected))
+
+    // printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    /* clingo models projected to c/2: */
+    val clingoModelStrings = Set(
+      "c(0,0) c(0,1) c(1,0)",
+      "c(0,0) c(1,0)",
+      "c(0,0) c(0,1)",
+      "c(0,0)",
+      "c(0,1) c(1,0)",
+      "c(0,1)",
+      "c(1,0)")
+
+    val models = clingoModelStrings map modelFromClingo
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    val projectedModel = tms.getModel.get filter (_.predicate.caption == "c")
+//    println("projected model: "+projectedModel)
+
+    assert(models contains projectedModel)
   }
 
   //
