@@ -45,10 +45,20 @@ case class IntValue(int: Int) extends Value {
   override def toString = ""+int
 }
 
+object IntValue {
+  def apply(value: String): IntValue = IntValue(Integer.parseInt(value))
+}
+
 object Value {
   def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
 
-  def apply(value: String): Value = StringValue(value)
+  def apply(value: String): Value = if (value forall (_.isDigit)) {
+    IntValue(Integer.parseInt(value))
+  } else {
+    StringValue(value)
+  }
+
+  def apply(value: Int): Value = IntValue(value)
 
   implicit def convertToValue(value: String): Value = {
     if (value.head.isUpper)

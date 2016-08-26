@@ -18,16 +18,6 @@ case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[
   }
 }
 
-case class UserDefinedBasicLarsRule(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom] = Set()) extends BasicLarsRule {
-
-  override lazy val atoms: Set[ExtendedAtom] = pos union neg + head
-
-  override def from(head: Atom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): UserDefinedBasicLarsRule = {
-    UserDefinedBasicLarsRule(head,pos,neg)
-  }
-
-}
-
 case class LarsFact(head: HeadAtom) extends Fact[HeadAtom, ExtendedAtom] {
 
   override lazy val atoms: Set[ExtendedAtom] = Set[ExtendedAtom](head)

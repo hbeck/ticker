@@ -96,14 +96,14 @@ object AtomWithArgument {
 
 
 case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argument]) extends AtomWithArgument {
-  override def assign(assignment: Assignment): AtomWithArgument = {
+  override def assign(assignment: Assignment): Atom = {
     val newArguments = arguments map { arg =>
       assignment(arg) match {
         case Some(value) => value
         case _ => arg
       }
     }
-    NonGroundAtom(predicate, newArguments)
+    Atom(predicate, newArguments)
   }
 }
 
@@ -170,6 +170,7 @@ object Atom {
   implicit def asAtomModification(atom: Atom): AtomModification = AtomModification(atom)
 }
 
+/*
 //auxiliary atom for arithmetic. stripped off rules by Grounder
 trait RelationAtom extends Atom {
   def holds(): Boolean
@@ -266,3 +267,4 @@ case class Product(x: Argument, y: Argument, z: Argument) extends TernaryNumeric
   override def holds(i: Int, j: Int, k: Int): Boolean = i * j == k
   override val predicate: Predicate = Predicate("product")
 }
+*/

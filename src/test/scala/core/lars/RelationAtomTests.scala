@@ -10,7 +10,7 @@ class RelationAtomTests extends FunSuite {
 
   implicit def toIntValue(i:Int) = IntValue(i)
   implicit def toStringValue(s:String) = StringValue(s)
-
+  /*
   test("relation atom test 1") {
 
     assert(Neq("a","b").holds())
@@ -44,5 +44,11 @@ class RelationAtomTests extends FunSuite {
     assert(Product(1,2,2).holds())
 
   }
+
+  test("relation atom test 2") {
+    assert(Neq("a","b").isInstanceOf[RelationAtom])
+    assert(Leq(Variable("X"),Variable("Y")).isInstanceOf[RelationAtom])
+  }
+  */
 
 }

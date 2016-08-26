@@ -1,11 +1,9 @@
 package evaluation
 
-import core.Atom
-import core.lars.{Duration, LarsProgram, TimePoint}
-import engine.{EvaluationEngine, StreamEntry}
-import engine.asp.oneshot.EvaluationMode
+import core.lars.LarsProgram
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
+import engine.{EvaluationEngine, StreamEntry}
 import jtms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 
 import scala.collection.mutable.ArrayBuffer
@@ -222,7 +220,7 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
   def successfulModelComputations(inputs: Seq[StreamEntry]) = {
     val engine = engineProvider()
 
-    val modelDefined = inputs.zipWithIndex.map(i => {
+    val modelDefined = inputs.zipWithIndex.map(i => { //TODO use destruction with case instead of ._1 ._2
       val entry = i._1
       engine.append(entry.time)(entry.atoms.toSeq: _*)
 

@@ -1,7 +1,6 @@
 package core.lars
 
-import core.Model
-import core._
+import core.{Model, _}
 import core.asp._
 import jtms.JtmsGreedy
 import org.scalatest.FunSuite
@@ -34,11 +33,11 @@ class GrounderTests extends FunSuite {
       }
       val p = Predicate(s)
       val args = ss.tail map arg
-      val atom =
-        if (args forall (_.isInstanceOf[StringValue]))
-          GroundAtomWithArguments(p, args map (_.asInstanceOf[Value]))
-        else
-          NonGroundAtom(p, args)
+      val atom = Atom(p,args)
+//        if (args forall (_.isInstanceOf[Value]))
+//          GroundAtomWithArguments(p, args map (_.asInstanceOf[Value]))
+//        else
+//          NonGroundAtom(p, args)
       if (isWindowAtom)
         WindowAtom(SlidingTimeWindow(7),Diamond,atom) //doesn't matter which one
       else
@@ -62,8 +61,11 @@ class GrounderTests extends FunSuite {
   def p(s:String) = Predicate(s)
   def strVal(s:String): Value = StringValue(s)
   def strVals(ss:String*): Set[Value] = ss map (StringValue(_)) toSet
+  def strVals(ss:List[String]): Set[Value] = ss map (StringValue(_)) toSet
+  def intVals(list: String*): Set[Value] = list map (IntValue(_)) toSet
+
   def v(s:String) = Variable(s)
-  def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else StringValue(s)
+  def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else Value(s)
 
   def fact(s:String):LarsRule = LarsFact(atom(s).asInstanceOf[Atom])
   def rule(all:String): LarsRule = {
@@ -774,9 +776,161 @@ class GrounderTests extends FunSuite {
     //no semantics comparison with asp
   }
 
+  def asInt(v:Value):Int = v match {
+    case StringValue(s) => Integer.parseInt(s)
+    case IntValue(i) => i
+    case _ => throw new RuntimeException("argument %s cannot be casted to int".format(v))
+  }
+
+  test("gt rel 1") {
+    /*
+      % every machine can process only one task at a time
+      :- assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2),
+         duration(T1,D), sum(P1,D,Z), lt(P2,Z).
+     */
+
+    val r = rule("vals(M,T1,T2,P1,P2,D,Z) :- timepoint(Z), assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), sum(P1,D,Z), lt(P2,Z)")
+
+    val facts: Seq[LarsRule] = Seq(
+      fact("assign(m1,t1,0)"),
+      fact("assign(m2,t2,1)"),
+      fact("assign(m2,t3,2)"),
+      fact("duration(t1,4)"),
+      fact("duration(t2,2)"),
+      fact("duration(t3,3)"),
+      fact("timepoint(0)"),
+      fact("timepoint(1)"),
+      fact("timepoint(2)"),
+      fact("timepoint(3)"),
+      fact("timepoint(4)"),
+      fact("timepoint(5)"),
+      fact("timepoint(6)"),
+      fact("timepoint(7)"),
+      fact("timepoint(8)"),
+      fact("timepoint(9)"),
+      fact("timepoint(10)")
+    )
+
+    assert(facts forall (_.head.isInstanceOf[GroundAtom]))
+
+    val inputProgram = LarsProgram(facts ++ Seq(r))
+    val grounder = Grounder(inputProgram)
+
+    //println(grounder.groundProgram)
+
+    //
+    // initial tests, variables to iterate over
+    //
+
+    val list0to10 = (for (i <- 0 to 10) yield ""+i).toList
+
+    val valuesM = strVals("m1","m2")
+    val valuesT1 = strVals("t1","t2","t3")
+    val valuesT2 = valuesT1
+    val valuesP1 = intVals("0","1","2")
+    val valuesP2 = valuesP1
+    val valuesZ = intVals(list0to10: _*)
+    val valuesD = intVals("4","2","3")
+
+    assert(grounder.inspect.possibleValuesForVariable(r,v("M")) == valuesM)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("T1")) == valuesT1)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("T2")) == valuesT2)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("P1")) == valuesP1)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("P2")) == valuesP2)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("Z")) == valuesZ)
+    assert(grounder.inspect.possibleValuesForVariable(r,v("D")) == valuesD)
+
+    //
+    //  craft expected ground program
+    //
+
+    //note that template does not include the auxiliary relation atoms!
+    val template = "vals(M,T1,T2,P1,P2,D,Z) :- timepoint(Z), assign(M,T1,P1), assign(M,T2,P2), duration(T1,D)"
+
+    val manualGrounding: Set[LarsRule] =
+      for (m <- valuesM; t1 <- valuesT1; t2 <- valuesT2;
+           p1 <- valuesP1; p2 <- valuesP2; z <- valuesZ; d <- valuesD
+           if {
+             t1 != t2 && asInt(p1) <= asInt(p2) && (asInt(p1) + asInt(d) == asInt(z)) && asInt(p2) < asInt(z)
+           }
+      ) yield {
+        val str = template
+          .replaceAll("M", m.toString)
+          .replaceAll("T1", t1.toString)
+          .replaceAll("T2", t2.toString)
+          .replaceAll("P1", p1.toString)
+          .replaceAll("P2", p2.toString)
+          .replaceAll("D", d.toString)
+          .replaceAll("Z", z.toString)
+
+        rule(str)
+      }
+
+    val rules = facts ++ manualGrounding
+
+    println("#rules: "+rules.size)
+
+    val gp = LarsProgram(rules)
+//
+//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//    println("only in computed: "+LarsProgram(onlyInComputed))
+//    println("only in expected: "+LarsProgram(onlyInExpected))
+
+    // printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    // ground rule that needs to fire:
+    // from clingo:
+    // vals(m2,t2,t3,1,2,2,3) :- 1+2=3, assign(m2,t2,1), 1<=2, duration(t2,2), 2<3, t2!=t3, timepoint(3), assign(m2,t3,2).
+    val firingRule = rule("vals(m2,t2,t3,1,2,2,3) :- assign(m2,t2,1), duration(t2,2), timepoint(3), assign(m2,t3,2)")
+    assert(grounder.groundProgram.rules contains firingRule)
+
+    val clingoModelStr =
+      "assign(m1,t1,0) assign(m2,t2,1) assign(m2,t3,2) duration(t1,4) duration(t2,2) duration(t3,3) "+
+        "timepoint(0) timepoint(1) timepoint(2) timepoint(3) timepoint(4) timepoint(5) timepoint(6) "+
+        "timepoint(7) timepoint(8) timepoint(9) timepoint(10) vals(m2,t2,t3,1,2,2,3)"
+
+    val model = modelFromClingo(clingoModelStr)
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    assert(tms.getModel.get == model)
+  }
+
   //
   //
   //
+
+  //    val output = "x :- leq(1,1), assign(m1,t3,1), lt(1,5), sum(1,4,5), duration(t3,4), timepoint(5), neq(t3,t1), assign(m1,t1,1), not x"
+  //
+  //    def parseFirstOf(pred: String): String = {
+  //      val idx0 = output.indexOf(pred)
+  //      val idx1 = output.indexOf("(",idx0) + 1
+  //      val idx2 = output.indexOf(",",idx1)
+  //      output.substring(idx1,idx2)
+  //    }
+  //
+  //    def parseSecondOf(pred: String): String = {
+  //      val idx0 = output.indexOf(pred)
+  //      val idx1 = output.indexOf("(",idx0)+1
+  //      val idx2 = output.indexOf(",",idx1)+1
+  //      var idx3 = output.indexOf(")",idx2)
+  //      if (idx3 == -1) idx3 = output.indexOf(",",idx2)
+  //      output.substring(idx2,idx3)
+  //    }
+  //
+  //    def i(s: String):Int =  Integer.parseInt(s)
+  //
+  //    val m = parseFirstOf("assign")
+  //    val t1 = parseFirstOf("neq")
+  //    val t2 = parseSecondOf("neq")
+  //    val d = i(parseSecondOf("duration"))
+  //    val p1 = i(parseFirstOf("leq"))
+  //    val p2 = i(parseSecondOf("leq"))
+  //    val z = i(parseFirstOf("timepoint"))
 
   def printInspect(grounder: Grounder): Unit = {
     val i = grounder.inspect

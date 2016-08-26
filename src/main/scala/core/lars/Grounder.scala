@@ -21,16 +21,66 @@ case class Grounder(program: LarsProgram) {
 object Grounder {
 
   def ground(inspect: LarsProgramInspection)(rule: LarsRule): Set[LarsRule] = {
-    if (rule isGround) return Set(rule)
+    if (rule isGround) {
+      if (rule.isFact) return Set(rule)
+      else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
+    }
     val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
     val assignments: Set[Assignment] = Grounder.createAssignments(possibleVariableValues)
-    assignments map (rule.assign(_)) filter (relationsHold(_))
+    assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
   }
 
-  def relationsHold(rule: LarsRule):Boolean = {
-    val posRelations: Set[RelationAtom] = rule.pos collect { case a:RelationAtom => a }
-    val negRelations: Set[RelationAtom] = rule.neg collect { case a:RelationAtom => a }
-    (posRelations forall (_.holds)) && (negRelations.forall (!_.holds))
+  def relationsHold(rule: LarsRule): Boolean = {
+    (rule.pos map (_.atom) filter isRelationAtom forall (a => holds(a))) &&
+    (rule.neg map (_.atom) filter isRelationAtom forall (a => !holds(a)))
+  }
+
+  def deleteAuxiliaryAtoms(rule: LarsRule): LarsRule = {
+    val corePosAtoms: Set[ExtendedAtom] = rule.pos collect { case a:Atom if !isRelationAtom(a) => a }
+    val coreNegAtoms: Set[ExtendedAtom] = rule.neg collect { case a:Atom if !isRelationAtom(a) => a }
+    UserDefinedLarsRule(rule.head.asInstanceOf[Atom],corePosAtoms,coreNegAtoms)
+  }
+
+  //note: creating new traits and case classes for 'RelationAtoms' would complicate things too much
+  //i) we would have mixes of {GroundAtom,NonGroundAtom} with {RelationAtom, normal atoms}
+  //ii) ensure that for the special predicate names, RelationAtom instances are generated
+  //there, one still would have to make a pattern matching over predicate names somewhere/somehow
+  //since this plays a role only at the level of grounding, we can do it here directly and keeping
+  //the class hierarchy of atoms simple/uniform.
+  def isRelationAtom(atom: Atom): Boolean = atom.predicate.caption match {
+    case "neq" => true
+    case "leq" => true
+    case "lt" => true
+    case "geq" => true
+    case "gt" => true
+    case "sum" => true
+    case "product" => true
+    case _ => false
+  }
+
+  def holds(relationAtom: Atom): Boolean = {
+    if (!relationAtom.isGround())
+      throw new RuntimeException("illegal use. relation atom must be ground when tested whether it holds.")
+
+    val atom = relationAtom.asInstanceOf[GroundAtomWithArguments]
+    val args = atom.arguments
+
+    def i(idx: Int):Int = args(idx) match {
+      case IntValue(k) => k
+      case StringValue(s) => Integer.parseInt(s)
+      case _ => throw new RuntimeException("unknown value "+args(idx)+" in non-ground relation atom "+atom)
+    }
+
+    relationAtom.predicate.caption match {
+      case "neq" => args(0) != args(1)
+      case "leq" => i(0) <= i(1)
+      case "lt" => i(0) < i(1)
+      case "geq" => i(0) >= i(1)
+      case "gt" => i(0) > i(1)
+      case "sum" => i(0) + i(1) == i(2)
+      case "product" => i(0) * i(1) == i(2)
+      case _ => false
+    }
   }
 
   def createAssignments(possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[Assignment] = {
@@ -68,37 +118,36 @@ case class LarsProgramInspection(program: LarsProgram) {
 
   //ignore AtAtoms throughout
 
-  val ruleParts: Set[BasicLarsRule] = program.rules collect { case r if r.head.isInstanceOf[Atom] => asCoreRules(r) } toSet
+  val ruleCores: Set[LarsRule] = program.rules collect { case r if r.head.isInstanceOf[Atom] => reduceToCore(r) } toSet
 
   //delete negative body, window atoms, and auxiliary relation expressions (for arithmetic)
   //these are considered later in grounding itself, but not for finding variables
-  def asCoreRules(rule: LarsRule): BasicLarsRule = {
-    val posAtoms: Set[ExtendedAtom] = rule.pos filter (a => a.isInstanceOf[Atom] && !a.isInstanceOf[RelationAtom])
-    UserDefinedBasicLarsRule(rule.head.asInstanceOf[Atom],posAtoms)
+  def reduceToCore(rule: LarsRule): LarsRule = {
+    val coreAtoms: Set[ExtendedAtom] = rule.pos collect { case a:Atom if !Grounder.isRelationAtom(a) => a }
+    UserDefinedLarsRule(rule.head.asInstanceOf[Atom],coreAtoms)
   }
 
-  val facts = ruleParts filter (_.isFact)
+  val facts = ruleCores filter (_.isFact)
   val factAtoms = facts map (_.head)
-  val factAtomPredicates = factAtoms map (_.predicate)
+  val factAtomPredicates = factAtoms map (_.atom.predicate)
 
-  val groundFacts = ruleParts filter (r => r.isFact && r.head.isInstanceOf[GroundAtom])
-  val groundFactAtoms = groundFacts map (_.head.asInstanceOf[GroundAtom])
+  val groundFactAtoms = factAtoms collect { case a:GroundAtom => a }
   val groundFactAtomPredicates = groundFactAtoms map (_.predicate)
   //do not allow/consider facts to appear only non-ground! but fact atoms may appear non-ground in bodies of rules
   //however: for non ground, we must identify different variable names used in atoms!
-  val nonGroundFactAtomPredicates = ruleParts flatMap (_.pos) collect {
+  val nonGroundFactAtomPredicates = ruleCores flatMap (_.pos) collect {
     case b:Atom if groundFactAtomPredicates.contains(b.predicate) => b.predicate
   }
 
-  val groundRuleHeadAtoms = ruleParts map (_.head) collect { case x: GroundAtom => x }
+  val groundRuleHeadAtoms = ruleCores map (_.head) collect { case x: GroundAtom => x }
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
   val groundIntensionalPredicates = groundIntensionalAtoms map (_.predicate)
 
-  val nonGroundRuleHeadPredicates = ruleParts map (_.head) collect { case x: NonGroundAtom => x.predicate }
+  val nonGroundRuleHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate }
   val nonGroundIntensionalPredicates = nonGroundRuleHeadPredicates diff nonGroundFactAtomPredicates
 
-  val justificationsOfNonGroundIntensionalPredicate: Map[Predicate, Set[BasicLarsRule]] =
-    ruleParts filter (r => !r.isFact && r.head.isInstanceOf[NonGroundAtom]) groupBy (_.head.predicate)
+  val justificationsOfNonGroundIntensionalPredicate: Map[Predicate, Set[LarsRule]] =
+    ruleCores filter (r => !r.isFact && r.head.isInstanceOf[NonGroundAtom]) groupBy (_.head.atom.predicate)
 
   val groundFactAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundFactAtoms groupBy (_.predicate)
   val groundIntensionalAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundIntensionalAtoms groupBy (_.predicate)
@@ -118,15 +167,15 @@ case class LarsProgramInspection(program: LarsProgram) {
 
   //for every rule, group the atoms where each rule's variable appears in
   //restriction to those in positive body
-  def makeAtomLookupMap(predicates: Set[Predicate]): Map[BasicLarsRule,Map[Variable,Set[NonGroundAtom]]] = {
-    def atomsPerVariable(rule:BasicLarsRule): Map[Variable,Set[NonGroundAtom]] = {
+  def makeAtomLookupMap(predicates: Set[Predicate]): Map[LarsRule,Map[Variable,Set[NonGroundAtom]]] = {
+    def atomsPerVariable(rule:LarsRule): Map[Variable,Set[NonGroundAtom]] = {
       def atomsWithVar(v: Variable): Set[NonGroundAtom] = rule.pos collect {
         case atom:NonGroundAtom if (predicates contains atom.predicate) && atom.variables.contains(v) => atom
       }
       val variableOccurrences: Map[Variable,Set[NonGroundAtom]] = (rule.variables map (v => (v,atomsWithVar(v)))).toMap
       variableOccurrences
     }
-    ruleParts filterNot (_.isGround) map (r => (r,atomsPerVariable(r))) toMap
+    ruleCores filterNot (_.isGround) map (r => (r,atomsPerVariable(r))) toMap
   }
 
   val nonGroundFactAtomsPerVariableInRule = makeAtomLookupMap(nonGroundFactAtomPredicates)
@@ -142,12 +191,12 @@ case class LarsProgramInspection(program: LarsProgram) {
 
   def possibleValuesForVariable(rule: LarsRule, variable: Variable): Set[Value] = {
 
-    val r = asCoreRules(rule) //window variables and variables in negative body must occur elsewhere
+    val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere
 
     //per convention, a variable now cannot occur in a signal only.
     //we test first for fact atoms, then we try intentional atoms.
 
-    val nonGroundFactAtoms = nonGroundFactAtomsPerVariableInRule(r).getOrElse(variable,Set())
+    val nonGroundFactAtoms = nonGroundFactAtomsPerVariableInRule(coreRule).getOrElse(variable,Set())
 
     //pick random, better use the one with minimal number of values
     if (nonGroundFactAtoms.nonEmpty) {
@@ -156,9 +205,9 @@ case class LarsProgramInspection(program: LarsProgram) {
       return groundFactAtomValuesLookup(fact.predicate)(idx)
     }
 
-    val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(r).getOrElse(variable,Set())
+    val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable,Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("variable "+variable+" does not appear in "+r+" in an fact atom or intensional atom")
+      throw new RuntimeException("variable "+variable+" does not appear in "+coreRule+" in an fact atom or intensional atom")
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values
@@ -219,7 +268,7 @@ case class LarsProgramInspection(program: LarsProgram) {
       return groundIntensional
     }
 
-    val justifications: Set[BasicLarsRule] = justificationsOfNonGroundIntensionalPredicate(predicate)
+    val justifications: Set[LarsRule] = justificationsOfNonGroundIntensionalPredicate(predicate)
 
     val variableSources: Set[(Predicate,Int)] = justifications flatMap { rule =>
       val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
