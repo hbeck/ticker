@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.{JtmsBeierleFixed, JtmsGreedy}
+import jtms.{JtmsLearn, JtmsBeierleFixed, JtmsGreedy}
 import org.scalatest.FunSuite
 
 /**
@@ -15,7 +15,8 @@ class AspConsistency extends FunSuite with AtomTestFixture{
 
   //def jtmsImpl = JtmsBeierleFixed
   //def jtmsImpl = JtmsDoyle
-  def jtmsImpl = JtmsGreedy
+  //def jtmsImpl = JtmsGreedy
+  def jtmsImpl() = new JtmsLearn()
 
   val times = 1 to 100
 
