@@ -46,7 +46,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     resetSavedState
   }
 
-  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Long], stateHash:Long) {
+  case class PartialState( support: Map[Atom, Long], stateHash:Long) {
 //  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
@@ -55,7 +55,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
 
-    private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode((support, stateHash))
+    private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PartialState.this)
 
     override def hashCode(): Int = precomputedHash
 
@@ -196,7 +196,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): Option[PartialState] = {
     //    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
     val currentStateAtoms = stateAtoms
-    val filteredStatus = status filterKeys currentStateAtoms.contains
+//    val filteredStatus = status filterKeys currentStateAtoms.contains
     // TODO: perf: isStateAtom as dict-lookup?
     //    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
 //    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
@@ -205,7 +205,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
 
-    Some(PartialState(filteredStatus, collectedSupp, __stateHash))
+    Some(PartialState( collectedSupp, __stateHash))
   }
 
   def stateAtoms = (inAtoms union outAtoms) diff extensionalAtoms
