@@ -50,7 +50,10 @@ class JtmsBeierle() extends JtmsAbstraction {
     register(rule)
     if (status(rule.head) == in) return
     //if (invalid(rule)) { supp(rule.head) += findSpoiler(rule).get; return }
-    if (invalid(rule)) { supp = supp.updated(rule.head, supp(rule.head)+findSpoiler(rule).get); return }
+    if (invalid(rule)) {
+      addSupport(rule.head, findSpoiler(rule).get);
+      return
+    }
     //2
     if (step2(rule)) return
     //3 (first part)
@@ -276,7 +279,7 @@ class JtmsBeierle() extends JtmsAbstraction {
 
   override def setInSupport(a: Atom) = justifications(a) find foundedValid match {
     case Some(rule) => {
-      supp = supp.updated(a,rule.body)
+      setSupport(a,rule.body)
       suppRule = suppRule.updated(a,Some(rule))
 //      supp(a) = Set() ++ rule.body
 //      suppRule(a) = Some(rule)

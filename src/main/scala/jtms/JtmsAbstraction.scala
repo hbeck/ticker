@@ -21,8 +21,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
+  var __stateHash:  Long = IncrementalHashCode.emptyHash
 
   var __extensionalAtoms: Set[Atom] = Set()
+
+  var __suppHash: Map[Atom, Long] = Map()
+  
 
   override def inAtoms() = __atomsWithStatus(in)
 
@@ -51,7 +55,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       }
       if (invalid(rule)) {
         //supp(rule.head) += findSpoiler(rule).get; return
-        supp = supp.updated(rule.head, supp(rule.head) + findSpoiler(rule).get)
+        addSupport(rule.head,  findSpoiler(rule).get)
         return
       }
       val atoms = repercussions(rule.head) + rule.head
@@ -146,13 +150,17 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       __allAtoms = __allAtoms + a
 
       status = status.updated(a, out)
+
+      if(!extensionalAtoms().contains(a))
+        __stateHash = IncrementalHashCode.addHashCode(__stateHash,(a, out))
+
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
 
-      if(extensional(a))
-        __extensionalAtoms = __extensionalAtoms +a
+      if (extensional(a))
+        __extensionalAtoms = __extensionalAtoms + a
 
       cons = cons.updated(a, Set[Atom]())
-      supp = supp.updated(a, Set[Atom]())
+      clearSupport(a)
       suppRule = suppRule.updated(a, None)
       //      status(a) = out
       //      cons(a) = Set[Atom]()
@@ -168,7 +176,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   def setIn(rule: NormalRule) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
     __updateStatus(rule.head, in)
-    supp = supp.updated(rule.head, rule.body)
+    setSupport(rule.head, rule.body)
     suppRule = suppRule.updated(rule.head, Some(rule))
     //    status(rule.head) = in
     //    supp(rule.head) = Set() ++ rule.body
@@ -187,7 +195,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def setUnknown(a: Atom) = {
     __updateStatus(a, unknown)
-    supp = supp.updated(a, Set())
+    clearSupport(a)
     suppRule = suppRule.updated(a, None)
     //    status(a) = unknown
     //    supp(a) = Set()
@@ -199,6 +207,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
 
     if (oldStatus != newStatus) {
+      if(!extensionalAtoms().contains(a)) {
+        if (oldStatus == in || oldStatus == out)
+          __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
+        if(newStatus==in || newStatus == out)
+          __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
+      }
       status = status.updated(a, newStatus)
       __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
       __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
@@ -259,12 +273,16 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
+    if(!extensionalAtoms().contains(a) && (oldStatus==in ||oldStatus==out))
+      __stateHash = IncrementalHashCode.removeHashCode(__stateHash,(a, oldStatus))
+
     status = status - a
     cons = cons - a
     supp = supp - a
+    __suppHash = __suppHash - a
     suppRule = suppRule - a
 
-    if(extensional(a))
+    if (extensional(a))
       __extensionalAtoms = __extensionalAtoms - a
     //    status remove a
     //    cons remove a
@@ -274,7 +292,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __cleanup = 0;
 
-  def  __cleanupSupportingData(force: Boolean = false): Unit = {
+  def __cleanupSupportingData(force: Boolean = false): Unit = {
     __cleanup = __cleanup + 1
     if (__cleanup % 1000 == 0 || force) {
       __cleanup = 0
@@ -315,12 +333,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     status(a) match {
       case `in` => setInSupport(a)
       case `out` => setOutSupport(a)
-      case `unknown` => supp = supp.updated(a, Set()) //supp(a) = Set()
+      case `unknown` => clearSupport(a) //supp(a) = Set()
     }
   }
 
   def setInSupport(a: Atom) = justifications(a) find valid match {
-    case Some(rule) => supp = supp.updated(a, rule.body) //supp(a) = Set() ++ rule.body
+    case Some(rule) => setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
     case _ => throw new IncrementalUpdateFailureException()
   }
 
@@ -330,7 +348,43 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom " + a)
     }
     //supp(a) = Set() ++ maybeAtoms map (_.get)
-    supp = supp.updated(a, Set() ++ maybeAtoms map (_.get))
+    setSupport(a,  maybeAtoms map (_.get))
   }
 
+
+  def clearSupport(a:Atom): Unit ={
+    supp = supp.updated(a, Set())
+    __suppHash = __suppHash.updated(a, IncrementalHashCode.emptyHash)
+  }
+  def setSupport(a: Atom, atoms: Set[Atom]): Unit = {
+    supp = supp.updated(a, atoms)
+    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff extensionalAtoms))
+  }
+
+  def addSupport(a:Atom, newAtom:Atom): Unit ={
+    supp = supp.updated(a, supp(a) + newAtom)
+    if(!extensionalAtoms().contains(newAtom))
+      __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a),newAtom))
+  }
+
+}
+
+object IncrementalHashCode {
+
+  val emptyHash: Long = Set().hashCode()
+
+  def hash(atoms: Set[Atom]) = atoms.foldLeft(emptyHash)(addHashCode)
+
+  def addHashCode(hash: Long, item: Any): Long = {
+
+    val newHash = (hash ) + item.hashCode()
+
+    newHash
+  }
+
+  def removeHashCode(hash: Long, element: Any): Long = {
+//    val newHash = (hash - element.hashCode()) / 16777619
+    val newHash = hash - element.hashCode()
+    newHash
+  }
 }
