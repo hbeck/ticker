@@ -659,13 +659,13 @@ class GrounderTests extends FunSuite {
 
     //    println(LarsProgram(grounder.groundProgram.rules))
     //
-    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
-    //
-    //    println("only in computed: "+LarsProgram(onlyInComputed))
-    //    println("only in expected: "+LarsProgram(onlyInExpected))
-    //
-    //    printInspect(grounder)
+//        val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//        val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//
+//        println("only in computed: "+LarsProgram(onlyInComputed))
+//        println("only in expected: "+LarsProgram(onlyInExpected))
+//
+//        printInspect(grounder)
 
     assert(grounder.groundProgram == gp)
 

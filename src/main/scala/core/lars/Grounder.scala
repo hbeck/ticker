@@ -36,8 +36,10 @@ object Grounder {
   }
 
   def deleteAuxiliaryAtoms(rule: LarsRule): LarsRule = {
-    val corePosAtoms: Set[ExtendedAtom] = rule.pos collect { case a:Atom if !isRelationAtom(a) => a }
-    val coreNegAtoms: Set[ExtendedAtom] = rule.neg collect { case a:Atom if !isRelationAtom(a) => a }
+//    val corePosAtoms: Set[ExtendedAtom] = rule.pos collect { case a:Atom if !isRelationAtom(a) => a }
+//    val coreNegAtoms: Set[ExtendedAtom] = rule.neg collect { case a:Atom if !isRelationAtom(a) => a }
+    val corePosAtoms: Set[ExtendedAtom] = rule.pos filter (x => !isRelationAtom(x))
+    val coreNegAtoms: Set[ExtendedAtom] = rule.neg filter (x => !isRelationAtom(x))
     UserDefinedLarsRule(rule.head.asInstanceOf[Atom],corePosAtoms,coreNegAtoms)
   }
 
@@ -47,14 +49,17 @@ object Grounder {
   //there, one still would have to make a pattern matching over predicate names somewhere/somehow
   //since this plays a role only at the level of grounding, we can do it here directly and keeping
   //the class hierarchy of atoms simple/uniform.
-  def isRelationAtom(atom: Atom): Boolean = atom.predicate.caption match {
-    case "neq" => true
-    case "leq" => true
-    case "lt" => true
-    case "geq" => true
-    case "gt" => true
-    case "sum" => true
-    case "product" => true
+  def isRelationAtom(x: ExtendedAtom): Boolean = x match {
+    case a:Atom =>  a.predicate.caption match {
+      case "neq" => true
+      case "leq" => true
+      case "lt" => true
+      case "geq" => true
+      case "gt" => true
+      case "sum" => true
+      case "product" => true
+      case _ => false
+    }
     case _ => false
   }
 
