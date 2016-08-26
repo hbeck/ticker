@@ -27,7 +27,7 @@ class GrounderTests extends FunSuite {
     else {
       var s = ss(0)
       var isWindowAtom = false
-      if (s.contains("_")) { //convention that window atom is used as w_a(...)
+      if (s.startsWith("w_")) { //convention for name of window atom
         isWindowAtom = true
         s = s.split("_")(1)
       }
@@ -993,10 +993,157 @@ class GrounderTests extends FunSuite {
     val asp = asAspProgram(grounder.groundProgram)
     val tms = JtmsGreedy(asp)
     val projectedModel = tms.getModel.get filter (_.predicate.caption == "c")
-//    println("projected model: "+projectedModel)
+    //    println("projected model: "+projectedModel)
 
     assert(models contains projectedModel)
   }
+
+  //
+  // scheduling examples
+  //
+
+  val schedulingProgram = LarsProgram(Seq[LarsRule](
+    rule("task(T) :- duration(T,D)"),
+    rule("assign(M,T,P) :- machine(M), task(T), timepoint(P), not n_assign(M,T,P)"),
+    rule("n_assign(M,T,P) :- machine(M), task(T), timepoint(P), not assign(M,T,P)"),
+    rule("x1 :- assign(M,T,P), n_assign(M,T,P), not x1"),
+    rule("some_assign(T) :- assign(M,T,P)"),
+    rule("x2 :- task(T), not some_assign(T), not x2"),
+    rule("x3 :- assign(M1,T,P1), assign(M2,T,P2), neq(M1,M2), not x3"),
+    rule("x4 :- assign(M1,T,P1), assign(M2,T,P2), neq(P1,P2), not x4"),
+    rule("x5 :- assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), sum(P1,D,Z), lt(P2,Z), timepoint(Z), not x5"),
+    rule("finish(T,Z) :- assign(M,T,P), duration(T,D), sum(P,D,Z), timepoint(Z)"),
+    rule("x6 :- finish(T,Z), deadline(E), lt(E,Z), not x6"), //using different variable for deadline than for duration!
+    rule("busy_at(M,P2) :- assign(M,T,P1), duration(T,D), sum(P1,D,Z), timepoint(P2), leq(P1,P2), lt(P2,Z), timepoint(Z)"),
+    rule("idle_at(M,P) :- machine(M), timepoint(P), not busy_at(M,P)"),
+    rule("x7 :- idle_at(M,P1), assign(M2,T,P2), lt(P1,P2), not x7"),
+    rule("some_busy_at(P) :- busy_at(M,P)"),
+    rule("none_busy_at(P) :- timepoint(P), not some_busy_at(P)"),
+    rule("x8 :- none_busy_at(P1), some_busy_at(P2), lt(P1,P2), not x8"),
+    rule("n_max_finish(P1) :- finish(T1,P1), finish(T2,P2), lt(P1,P2)"),
+    rule("max_finish(P) :- finish(T,P), not n_max_finish(P)")
+  ))
+
+  test("gt scheduling 0") {
+    //schedulingProgram.rules foreach println
+
+    val facts: Seq[LarsRule] = Seq(
+      fact("deadline(2)"),
+      fact("timepoint(0)"),
+      fact("timepoint(1)"),
+      fact("timepoint(2)"),
+      fact("timepoint(3)"),
+      fact("timepoint(4)"),
+      fact("machine(m1)"),
+      fact("machine(m2)"),
+      fact("duration(t1,1)"),
+      fact("duration(t2,2)")
+    )
+
+    val inputProgram = LarsProgram(schedulingProgram.rules ++ facts)
+    val grounder = Grounder(inputProgram)
+
+    //println(grounder.groundProgram)
+
+    //
+    // initial tests, variables to iterate over
+    //
+
+    val possibleValuesMap: Map[String,Set[Value]] = Map(
+      "M" -> strVals("m1","m2"),
+      "M1" -> strVals("m1","m2"),
+      "M2" -> strVals("m1","m2"),
+      "T" -> strVals("t1","t2"),
+      "T1" -> strVals("t1","t2"),
+      "T2" -> strVals("t1","t2"),
+      "P" -> intVals("0","1","2","3","4"),
+      "P1" -> intVals("0","1","2","3","4"),
+      "P1" -> intVals("0","1","2","3","4"),
+      "D" -> intVals("1","2"),
+      "Z" -> intVals("0","1","2","3","4"),
+      "E" -> intVals("2")
+    )
+
+    inputProgram.rules foreach { r =>
+      for ((variableStr,possibleValues) <- possibleValuesMap) {
+        if (r.variables.contains(Variable(variableStr))) {
+          if (grounder.inspect.possibleValuesForVariable(r,Variable(variableStr)) != possibleValues) {
+            println("rule: "+r)
+            println("variable: "+variableStr)
+            println("expected values: "+possibleValues)
+            println("actual values:   "+grounder.inspect.possibleValuesForVariable(r,Variable(variableStr)))
+            assert(false)
+          }
+        }
+      }
+    }
+
+
+    //
+    //  craft expected ground program
+    //
+
+     /*
+    //note that template does not include the auxiliary relation atoms!
+    val tmp1 = "c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z)"
+    val tmp2 = "d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z)"
+
+    val groupsOfGroundings: Set[Set[LarsRule]] =
+      for (x <- (valuesA map asInt); y <- (valuesB map asInt); z <- (valuesInt map asInt)
+           if {
+             (x + y == z) && (z < 2)
+           }
+      ) yield {
+        def replaceIn(template:String) = template
+          .replaceAll("X", ""+x)
+          .replaceAll("Y", ""+y)
+          .replaceAll("Z", ""+z)
+
+        Set(rule(replaceIn(tmp1)),rule(replaceIn(tmp2)))
+      }
+
+    val manualGrounding: Set[LarsRule] = groupsOfGroundings.flatten
+
+    val rules = facts ++ manualGrounding
+
+    //println("#rules: "+rules.size)
+    //rules foreach { r => println(LarsProgram(Seq(r))) }
+
+    val gp = LarsProgram(rules)
+    //
+    //        val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //        val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //        println("only in computed: "+LarsProgram(onlyInComputed))
+    //        println("only in expected: "+LarsProgram(onlyInExpected))
+
+    // printInspect(grounder)
+
+    assert(grounder.groundProgram == gp)
+
+    /* clingo models projected to c/2: */
+    val clingoModelStrings = Set(
+      "c(0,0) c(0,1) c(1,0)",
+      "c(0,0) c(1,0)",
+      "c(0,0) c(0,1)",
+      "c(0,0)",
+      "c(0,1) c(1,0)",
+      "c(0,1)",
+      "c(1,0)")
+
+    val models = clingoModelStrings map modelFromClingo
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = JtmsGreedy(asp)
+    val projectedModel = tms.getModel.get filter (_.predicate.caption == "c")
+    //    println("projected model: "+projectedModel)
+
+    assert(models contains projectedModel)
+    */
+
+
+  }
+
 
   //
   //
