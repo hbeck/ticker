@@ -2,7 +2,7 @@ package core.lars
 
 import core.asp._
 import core.{Model, _}
-import jtms.{JtmsGreedy, JtmsLearn}
+import jtms.{JtmsLearn, JtmsGreedy}
 import org.scalatest.FunSuite
 
 /**
@@ -1111,6 +1111,7 @@ class GrounderTests extends FunSuite {
     //asp.rules foreach println
 
     var failures = 0
+    /*
     for (attempt <- 1 to 1000) {
       tms.getModel match {
         case Some(model) => {
@@ -1124,12 +1125,94 @@ class GrounderTests extends FunSuite {
         }
       }
     }
+    */
+
+    val additionalFacts: Seq[NormalRule] = Seq(
+      fact("assign(m1,t1,0)"),
+      fact("assign(m2,t2,0)"),
+      fact("n_assign(m1,t1,1)"), //notable, the above ('positive') assignments do not help much, since there is not knowledge about the expressed explicit condradiction with n_assign
+      fact("n_assign(m1,t1,2)"),
+      fact("n_assign(m1,t1,3)"),
+      fact("n_assign(m1,t1,4)"),
+      fact("n_assign(m1,t2,0)"),
+      fact("n_assign(m1,t2,1)"),
+      fact("n_assign(m1,t2,2)"),
+      fact("n_assign(m1,t2,3)"),
+      fact("n_assign(m1,t2,4)"),
+      fact("n_assign(m2,t1,0)"),
+      fact("n_assign(m2,t1,1)"),
+      fact("n_assign(m2,t1,2)"),
+      fact("n_assign(m2,t1,3)"),
+      fact("n_assign(m2,t1,4)"),
+      fact("n_assign(m2,t2,1)"),
+      fact("n_assign(m2,t2,2)"),
+      fact("n_assign(m2,t2,3)"),
+      fact("n_assign(m2,t2,4)"),
+      fact("some_assign(t1)"),
+      fact("some_assign(t2)"),
+      fact("finish(t1,1)"),
+      fact("finish(t2,2)"),
+      fact("busy_at(m1,0)"),
+      fact("busy_at(m2,0)"),
+      fact("busy_at(m2,1)"),
+      fact("idle_at(m1,1)"),
+      fact("idle_at(m1,2)"),
+      fact("idle_at(m1,3)"),
+      fact("idle_at(m1,4)"),
+      fact("idle_at(m2,2)"),
+      fact("idle_at(m2,3)"),
+      fact("idle_at(m2,4)"),
+      fact("some_busy_at(0)"),
+      fact("some_busy_at(1)"),
+      fact("none_busy_at(2)"),
+      fact("none_busy_at(3)"),
+      fact("none_busy_at(4)"),
+      fact("n_max_finish(1)"),
+      fact("max_finish(2)")
+    ) map asAspRule
+
+    var haveModel: Boolean = false
+    for (f <- additionalFacts) {
+      tms.add(f)
+      tms.getModel match {
+        case Some(model) => {
+          val projectedModel = model filter (_.predicate.caption == "assign")
+          if (!haveModel) {
+            println("have it after inserting " + f)
+            println("projected model: " + projectedModel)
+            haveModel = true
+          }
+          assert(models contains projectedModel)
+        }
+        case None => {
+          failures = failures + 1
+
+          var attempts = 0
+          while (tms.getModel == None && attempts < 50) {
+            attempts = attempts + 1
+            tms.recompute()
+          }
+          if (tms.getModel.isDefined){
+            println("computed model after "+attempts+" recomputations")
+            val projectedModel = tms.getModel.get filter (_.predicate.caption == "assign")
+            assert(models contains projectedModel)
+          } else {
+            println("fail: "+f)
+          }
+          if (haveModel) println("failed again after inserting "+f)
+          haveModel = false
+
+        }
+      }
+    }
 
     println("failures: "+failures)
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
     println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
     //println(tms.status)
+
+
 
   }
 
