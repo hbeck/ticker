@@ -2,7 +2,7 @@ package core.lars
 
 import core.{Model, _}
 import core.asp._
-import jtms.JtmsGreedy
+import jtms.{JtmsLearn, JtmsGreedy}
 import org.scalatest.FunSuite
 
 /**
@@ -1046,101 +1046,70 @@ class GrounderTests extends FunSuite {
     //println(grounder.groundProgram)
 
     //
-    // initial tests, variables to iterate over
+    // variables to iterate over
     //
 
-    val possibleValuesMap: Map[String,Set[Value]] = Map(
-      "M" -> strVals("m1","m2"),
-      "M1" -> strVals("m1","m2"),
-      "M2" -> strVals("m1","m2"),
-      "T" -> strVals("t1","t2"),
-      "T1" -> strVals("t1","t2"),
-      "T2" -> strVals("t1","t2"),
-      "P" -> intVals("0","1","2","3","4"),
-      "P1" -> intVals("0","1","2","3","4"),
-      "P1" -> intVals("0","1","2","3","4"),
-      "D" -> intVals("1","2"),
-      "Z" -> intVals("0","1","2","3","4"),
-      "E" -> intVals("2")
+    val possibleValuesMap: Map[Variable,Set[Value]] = Map(
+      v("M") -> strVals("m1","m2"),
+      v("M1") -> strVals("m1","m2"),
+      v("M2") -> strVals("m1","m2"),
+      v("T") -> strVals("t1","t2"),
+      v("T1") -> strVals("t1","t2"),
+      v("T2") -> strVals("t1","t2"),
+      v("P") -> intVals("0","1","2","3","4"),
+      v("P1") -> intVals("0","1","2","3","4"),
+      v("P1") -> intVals("0","1","2","3","4"),
+      v("D") -> intVals("1","2"),
+      v("Z") -> intVals("0","1","2","3","4"),
+      v("E") -> intVals("2")
     )
 
     inputProgram.rules foreach { r =>
-      for ((variableStr,possibleValues) <- possibleValuesMap) {
-        if (r.variables.contains(Variable(variableStr))) {
-          if (grounder.inspect.possibleValuesForVariable(r,Variable(variableStr)) != possibleValues) {
+      for ((variable,possibleValues) <- possibleValuesMap) {
+        if (r.variables.contains(variable)) {
+          if (grounder.inspect.possibleValuesForVariable(r,variable) != possibleValues) {
             println("rule: "+r)
-            println("variable: "+variableStr)
+            println("variable: "+variable.name)
             println("expected values: "+possibleValues)
-            println("actual values:   "+grounder.inspect.possibleValuesForVariable(r,Variable(variableStr)))
+            println("actual values:   "+grounder.inspect.possibleValuesForVariable(r,variable))
             assert(false)
           }
         }
       }
     }
 
-
-    //
-    //  craft expected ground program
-    //
-
-     /*
-    //note that template does not include the auxiliary relation atoms!
-    val tmp1 = "c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z)"
-    val tmp2 = "d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z)"
-
-    val groupsOfGroundings: Set[Set[LarsRule]] =
-      for (x <- (valuesA map asInt); y <- (valuesB map asInt); z <- (valuesInt map asInt)
-           if {
-             (x + y == z) && (z < 2)
-           }
-      ) yield {
-        def replaceIn(template:String) = template
-          .replaceAll("X", ""+x)
-          .replaceAll("Y", ""+y)
-          .replaceAll("Z", ""+z)
-
-        Set(rule(replaceIn(tmp1)),rule(replaceIn(tmp2)))
-      }
-
-    val manualGrounding: Set[LarsRule] = groupsOfGroundings.flatten
-
-    val rules = facts ++ manualGrounding
-
-    //println("#rules: "+rules.size)
-    //rules foreach { r => println(LarsProgram(Seq(r))) }
-
-    val gp = LarsProgram(rules)
-    //
-    //        val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-    //        val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
-    //
-    //        println("only in computed: "+LarsProgram(onlyInComputed))
-    //        println("only in expected: "+LarsProgram(onlyInExpected))
+    //println("#rules in ground program: "+grounder.groundProgram.rules.size)
 
     // printInspect(grounder)
 
-    assert(grounder.groundProgram == gp)
-
-    /* clingo models projected to c/2: */
+    // clingo models projected to c/2:
     val clingoModelStrings = Set(
-      "c(0,0) c(0,1) c(1,0)",
-      "c(0,0) c(1,0)",
-      "c(0,0) c(0,1)",
-      "c(0,0)",
-      "c(0,1) c(1,0)",
-      "c(0,1)",
-      "c(1,0)")
+      "assign(m1,t1,0) assign(m2,t2,0)",
+      "assign(m1,t2,0) assign(m2,t1,0)"
+    )
 
     val models = clingoModelStrings map modelFromClingo
 
     val asp = asAspProgram(grounder.groundProgram)
-    val tms = JtmsGreedy(asp)
-    val projectedModel = tms.getModel.get filter (_.predicate.caption == "c")
-    //    println("projected model: "+projectedModel)
 
-    assert(models contains projectedModel)
-    */
+    val tms = JtmsLearn(asp)
 
+    var failures = 0
+    for (attempt <- 1 to 1000) {
+      tms.getModel match {
+        case Some(model) => {
+          val projectedModel = model filter (_.predicate.caption == "assign")
+          println("projected model: "+projectedModel)
+          assert(models contains projectedModel)
+        }
+        case None => {
+          failures = failures + 1
+          tms.recompute()
+        }
+      }
+    }
+
+    println("failures: "+failures)
 
   }
 
