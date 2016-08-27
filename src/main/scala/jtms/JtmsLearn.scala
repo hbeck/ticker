@@ -177,7 +177,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     def __cleanup(): Unit = {
       cleanupCounter = cleanupCounter + 1
       if (cleanupCounter % triggerCount == 0) {
-        // throw away the bottom x %. Value choosen so all test cases run through
+        // throw away the bottom x %. Value chosen so all test cases run through
         val threshold = maxValue * thresholdPercent
         val stateToKeep = counter.filter { case (state, c) => c.value > threshold } keySet
 

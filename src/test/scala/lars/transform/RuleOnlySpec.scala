@@ -10,7 +10,7 @@ import org.scalatest.Matchers._
   */
 class RuleOnlySpec extends TransformLarsSpec {
 
-  "A fact" should "be translated in an fact with now(T) in the body" in {
+  "A fact" should "be translated in a fact with now(T) in the body" in {
     val f = LarsFact(a)
 
     PlainLarsToAsp.rule(f).body should contain(now(T))

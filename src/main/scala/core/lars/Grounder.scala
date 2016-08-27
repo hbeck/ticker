@@ -56,6 +56,8 @@ object Grounder {
       case "lt" => true
       case "geq" => true
       case "gt" => true
+      case "pow" => true
+      case "mod" => true
       case "sum" => true
       case "product" => true
       case _ => false
@@ -82,6 +84,8 @@ object Grounder {
       case "lt" => i(0) < i(1)
       case "geq" => i(0) >= i(1)
       case "gt" => i(0) > i(1)
+      case "pow" => Math.pow(i(0),i(1)).toInt == i(2)
+      case "mod" => i(0) % i(1) == i(2)
       case "sum" => i(0) + i(1) == i(2)
       case "product" => i(0) * i(1) == i(2)
       case _ => false
@@ -212,7 +216,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable,Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("variable "+variable+" does not appear in "+coreRule+" in an fact atom or intensional atom")
+      throw new RuntimeException("variable "+variable+" does not appear in "+coreRule+" in a fact atom or intensional atom")
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values
@@ -275,7 +279,22 @@ case class LarsProgramInspection(program: LarsProgram) {
 
     val justifications: Set[LarsRule] = justificationsOfNonGroundIntensionalPredicate(predicate)
 
-    val variableSources: Set[(Predicate,Int)] = justifications flatMap { rule =>
+    //first consider head atoms where the given argument appears ground
+    val tuple: (Set[LarsRule], Set[LarsRule]) = justifications partition { rule =>
+      val arg = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx)
+      arg.isInstanceOf[Value]
+    }
+    val justificationsWithValue = tuple._1
+    val justificationsWithVariable = tuple._2
+
+    val semiGroundIntensional: Set[Value] = justificationsWithValue map { rule =>
+      val arg = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx)
+      arg.asInstanceOf[Value]
+    }
+
+    //second, consider head atoms where the given argument appears non-ground.
+    //there we have to retrieve values from the rule body, potentially recursively
+    val variableSources: Set[(Predicate,Int)] = justificationsWithVariable flatMap { rule =>
       val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
       val allSources: Set[(Predicate, Int)] = rule.pos collect { //neg ignored!
         case x: NonGroundAtom if x.variables.contains(variable) => (x.predicate, x.arguments.indexOf(variable))
@@ -293,7 +312,7 @@ case class LarsProgramInspection(program: LarsProgram) {
       case (pred,idx) if (pred!=predicate) => lookupOrFindValuesForPredicateArg(pred,idx)
     } flatten
 
-    groundIntensional ++ nonGroundIntensional
+    groundIntensional ++ semiGroundIntensional ++ nonGroundIntensional
   }
 
 }

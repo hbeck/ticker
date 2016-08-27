@@ -2,7 +2,7 @@ package core.lars
 
 import core.asp._
 import core.{Model, _}
-import jtms.{JtmsLearn, JtmsGreedy}
+import jtms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 /**
@@ -1212,7 +1212,125 @@ class GrounderTests extends FunSuite {
     println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
     //println(tms.status)
 
+  }
 
+  test("bit 1") {
+
+    /*
+    highest_exponent(5). % 2^X
+    max_level(M) :- highest_exponent(E), M = E - 1.
+    level(0..M) :- max_level(M).
+    */
+
+    val bitEncodingProgram = LarsProgram(Seq[LarsRule](
+      rule("bit(L,1) :- level(L), not bit(L,0)"),
+      rule("bit(L,0) :- level(L), not bit(L,1)"),
+      rule("flip(L) :- level(L), not n_flip(L)"),
+      rule("n_flip(L) :- level(L), not flip(L)"),
+      rule("use_bit(L,1) :- bit(L,1), not flip(L)"),
+      rule("use_bit(L,0) :- bit(L,1), flip(L)"),
+      rule("use_bit(L,0) :- bit(L,0), not flip(L)"),
+      rule("use_bit(L,1) :- bit(L,0), flip(L)"),
+      rule("sum_at(0,B) :- use_bit(0,B)"),
+      rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), use_bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
+      rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), use_bit(L,0), int(C)"),
+      rule("id(C) :- max_level(L), sum_at(L,C)"),
+      rule("xx1 :- id(C), mod(C,10,9), not xx1")
+    ))
+
+    val highestExponent = 4 //2^X
+    val maxLevel = highestExponent - 1
+
+    val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
+    val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
+
+    val facts: Seq[LarsRule] =
+      (levels map (l => fact("level("+l+")"))) ++
+        (ints map (i => fact("int("+i+")")))
+
+    val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
+
+    //println(inputProgram)
+    val grounder = Grounder(inputProgram)
+
+    //printInspect(grounder)
+
+    //
+    // variables to iterate over
+    //
+
+    val possibleValuesMap: Map[Variable,Set[Value]] = Map(
+      v("L") -> (levels map (IntValue(_)) toSet),
+      v("L0") -> (levels map (IntValue(_)) toSet),
+      v("C") -> (ints map (IntValue(_)) toSet),
+      v("C0") -> (ints map (IntValue(_)) toSet),
+      v("X") -> (ints map (IntValue(_)) toSet),
+      v("B") -> (Set(0,1) map (IntValue(_)) toSet)
+    )
+
+
+
+    inputProgram.rules foreach { r =>
+      for ((variable,possibleValues) <- possibleValuesMap) {
+        if (r.variables.contains(variable)) {
+          if (grounder.inspect.possibleValuesForVariable(r,variable) != possibleValues) {
+            println("rule: "+r)
+            println("variable: "+variable.name)
+            println("expected values: "+possibleValues)
+            println("actual values:   "+grounder.inspect.possibleValuesForVariable(r,variable))
+            assert(false)
+          }
+        }
+      }
+    }
+
+    println("#rules in ground program: "+grounder.groundProgram.rules.size)
+
+    /*
+
+    // printInspect(grounder)
+
+    // clingo models projected to c/2:
+    val clingoModelStrings = Set(
+      "assign(m1,t1,0) assign(m2,t2,0)",
+      "assign(m1,t2,0) assign(m2,t1,0)"
+    )
+
+    val models = clingoModelStrings map modelFromClingo
+
+    val asp = asAspProgram(grounder.groundProgram)
+
+    //    println("contradiction atoms:")
+    //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
+
+
+    val tms = JtmsLearn(asp)
+    tms.shuffle = false
+
+    //asp.rules foreach println
+
+    var failures = 0
+    /*
+    for (attempt <- 1 to 1000) {
+      tms.getModel match {
+        case Some(model) => {
+          val projectedModel = model filter (_.predicate.caption == "assign")
+          println("projected model: "+projectedModel)
+          assert(models contains projectedModel)
+        }
+        case None => {
+          failures = failures + 1
+          tms.recompute()
+        }
+      }
+    }
+    */
+    println("failures: "+failures)
+    val tabu = tms.tabu
+    val currentRulesTabu = tabu.currentRulesTabu
+    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
+    //println(tms.status)
+    */
 
   }
 
