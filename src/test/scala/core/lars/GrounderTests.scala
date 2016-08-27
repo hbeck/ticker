@@ -1118,6 +1118,7 @@ class GrounderTests extends FunSuite {
           val projectedModel = model filter (_.predicate.caption == "assign")
           println("projected model: "+projectedModel)
           assert(models contains projectedModel)
+          tms.recompute()
         }
         case None => {
           failures = failures + 1
@@ -1234,7 +1235,7 @@ class GrounderTests extends FunSuite {
       rule("sum_at(0,B) :- use_bit(0,B)"),
       rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), use_bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
       rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), use_bit(L,0), int(C)"),
-      rule("id(C) :- max_level(L), sum_at(L,C)"),
+      rule("id(C) :- max_level(M), sum_at(M,C)"),
       rule("xx1 :- id(C), mod(C,10,9), not xx1")
     ))
 
@@ -1246,12 +1247,16 @@ class GrounderTests extends FunSuite {
 
     val facts: Seq[LarsRule] =
       (levels map (l => fact("level("+l+")"))) ++
-        (ints map (i => fact("int("+i+")")))
+      (ints map (i => fact("int("+i+")"))) :+
+      fact("max_level("+maxLevel+")")
+
 
     val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
 
     //println(inputProgram)
     val grounder = Grounder(inputProgram)
+
+    //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
 
     //printInspect(grounder)
 
@@ -1265,10 +1270,9 @@ class GrounderTests extends FunSuite {
       v("C") -> (ints map (IntValue(_)) toSet),
       v("C0") -> (ints map (IntValue(_)) toSet),
       v("X") -> (ints map (IntValue(_)) toSet),
-      v("B") -> (Set(0,1) map (IntValue(_)) toSet)
+      v("B") -> (Set(0,1) map (IntValue(_)) toSet),
+      v("M") -> Set(IntValue(maxLevel))
     )
-
-
 
     inputProgram.rules foreach { r =>
       for ((variable,possibleValues) <- possibleValuesMap) {
@@ -1286,23 +1290,12 @@ class GrounderTests extends FunSuite {
 
     println("#rules in ground program: "+grounder.groundProgram.rules.size)
 
-    /*
-
     // printInspect(grounder)
-
-    // clingo models projected to c/2:
-    val clingoModelStrings = Set(
-      "assign(m1,t1,0) assign(m2,t2,0)",
-      "assign(m1,t2,0) assign(m2,t1,0)"
-    )
-
-    val models = clingoModelStrings map modelFromClingo
 
     val asp = asAspProgram(grounder.groundProgram)
 
     //    println("contradiction atoms:")
     //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
-
 
     val tms = JtmsLearn(asp)
     tms.shuffle = false
@@ -1310,27 +1303,36 @@ class GrounderTests extends FunSuite {
     //asp.rules foreach println
 
     var failures = 0
-    /*
-    for (attempt <- 1 to 1000) {
+
+    for (attempt <- 1 to 10000) {
       tms.getModel match {
         case Some(model) => {
-          val projectedModel = model filter (_.predicate.caption == "assign")
-          println("projected model: "+projectedModel)
-          assert(models contains projectedModel)
+//          val projectedModel = model filter (Set("use_bit","id") contains _.predicate.caption)
+//          println("projected model: "+projectedModel)
         }
         case None => {
+          //println("fail")
           failures = failures + 1
-          tms.recompute()
         }
       }
+      tms.recompute()
     }
-    */
+
+    tms.getModel match {
+      case Some(model) => {
+        val projectedModel = model filter (Set("use_bit","id") contains _.predicate.caption)
+        println("projected model: "+projectedModel)
+      }
+      case _ =>
+    }
+
     println("failures: "+failures)
+
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
     println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
     //println(tms.status)
-    */
+    
 
   }
 
