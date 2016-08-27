@@ -46,8 +46,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     resetSavedState
   }
 
-  case class PartialState(support: Map[Atom, Long], stateHash:Long) {
-//  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Set[Atom]]) {
+  case class PartialState(support: Map[Atom, Long], stateHash: Long) {
+    //  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Set[Atom]]) {
     override def toString: String = {
       val sb = new StringBuilder
       sb.append("State[").append("\n\t\tstatus: ").append(status).append("\n\t\tsupport: ").append(support).append("]")
@@ -83,19 +83,29 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     def contains(rule: NormalRule) = rules.contains(rule)
 
-    def + (rule:NormalRule) = PrecomputedHashCodeOfHashSet(rules + rule, IncrementalHashCode.addHashCode(incrementalHash,rule))
-    def - (rule:NormalRule) = PrecomputedHashCodeOfHashSet(rules - rule, IncrementalHashCode.removeHashCode(incrementalHash,rule))
+    def +(rule: NormalRule) = PrecomputedHashCodeOfHashSet(rules + rule, IncrementalHashCode.addHashCode(incrementalHash, rule))
 
-//    private val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PrecomputedHashCodeOfHashSet.this)
-    private val precomputedHash =incrementalHash.hashCode()
+    def -(rule: NormalRule) = PrecomputedHashCodeOfHashSet(rules - rule, IncrementalHashCode.removeHashCode(incrementalHash, rule))
+
+    //    private val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PrecomputedHashCodeOfHashSet.this)
+    private val precomputedHash = incrementalHash.hashCode()
 
     override def hashCode(): Int = precomputedHash
 
-    override def toString(): String = "preHash["+incrementalHash+"]: "+rules.toString
+    override def toString(): String = "preHash[" + incrementalHash + "]: " + rules.toString
 
   }
 
   class AllRulesTabu() {
+
+    var counter: Map[PrecomputedHashCodeOfHashSet, MutableCounter] = Map.empty
+
+    val doCleanup = true
+
+    var cleanupCounter = 0
+
+    val thresholdPercent = 0.4
+    val triggerCount = 10000
 
     var ruleMap: Map[PrecomputedHashCodeOfHashSet, CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
 
@@ -113,13 +123,28 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       if (stateRules.contains(rule)) {
         stateRules = stateRules - rule
         updateAfterRuleChange()
+
+        if (doCleanup)
+          __cleanup()
       }
     }
+
+    var maxValue = 0
 
     def updateAfterRuleChange(): Unit = {
       // TODO: perf: contains takes very long???
       if (ruleMap.contains(stateRules)) {
         currentRulesTabu = ruleMap(stateRules)
+        if (doCleanup) {
+          val count = counter.get(stateRules)
+          if (count.isDefined) {
+            val value = count.get.increment()
+            maxValue = Math.max(maxValue, value)
+          } else {
+            counter = counter updated(stateRules, new MutableCounter)
+          }
+
+        }
       } else {
         currentRulesTabu = new CurrentRulesTabu()
         // TODO: perf: updated.computeHash takes very long???
@@ -147,6 +172,31 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       }
       sb.toString
     }
+
+
+    def __cleanup(): Unit = {
+      cleanupCounter = cleanupCounter + 1
+      if (cleanupCounter % triggerCount == 0) {
+        // throw away the bottom x %. Value choosen so all test cases run through
+        val threshold = maxValue * thresholdPercent
+        val stateToKeep = counter.filter { case (state, c) => c.value > threshold } keySet
+
+        Console.out.println("Cleanup with threshold " + threshold)
+
+        counter = counter filterKeys stateToKeep
+        ruleMap = ruleMap filterKeys stateToKeep
+      }
+    }
+  }
+
+  class MutableCounter {
+    var value: Int = 1
+
+    def increment() = {
+      value = value + 1
+      value
+    }
+
   }
 
   class CurrentRulesTabu() {
@@ -197,13 +247,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   def stateSnapshot(): Option[PartialState] = {
     //    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
     val currentStateAtoms = stateAtoms
-//    val filteredStatus = status filterKeys currentStateAtoms.contains
+    //    val filteredStatus = status filterKeys currentStateAtoms.contains
     // TODO: perf: isStateAtom as dict-lookup?
     //    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
-//    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
+    //    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
     val collectedSupp = __suppHash filterKeys currentStateAtoms.contains
 
-//     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
+    //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
 
     Some(PartialState(collectedSupp, __stateHash))
