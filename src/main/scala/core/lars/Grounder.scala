@@ -138,6 +138,15 @@ object Grounder {
 
   //keep those results of cross reduction where relation atoms in given rule hold
   def assignAndFilter(rule: LarsRule, assignments: Set[Set[(Variable, Value)]]): Set[LarsRule] = {
+    /*var rules = Set[LarsRule]()
+    for (assignment <- assignments) {
+      groundingIfRelationsHold(rule,assignment) match {
+        case Some(groundRule) => rules = rules + groundRule
+        case None =>
+      }
+    }
+    rules
+    */
     assignments map {
       case assignment:Set[(Variable,Value)] => groundingIfRelationsHold(rule,assignment)
     } collect {
