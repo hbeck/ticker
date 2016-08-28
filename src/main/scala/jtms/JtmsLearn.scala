@@ -103,7 +103,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     var counter: Map[PrecomputedHashCodeOfHashSet, MutableCounter] = Map.empty
 
-    val doCleanup = true
+    val doCleanup = false //TODO
 
     var cleanupCounter = 0
 

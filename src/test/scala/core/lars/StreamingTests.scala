@@ -1,8 +1,9 @@
 package core.lars
 
 import common.Util.printTime
+import core.asp.{AspRule, AspFact, NormalRule}
 import core.lars.Util._
-import core.{Atom, IntValue, Value, Variable}
+import core._
 import jtms.JtmsLearn
 import org.scalatest.FunSuite
 
@@ -12,11 +13,12 @@ import org.scalatest.FunSuite
   */
 class StreamingTests extends FunSuite {
 
-  test("streaming bits 1") {
-
-    pending
+  test("streaming bits 1 manual mapping") {
 
     val useGrounding = true
+
+    val highestExponent = 5 //2^X
+    val maxLevel = highestExponent - 1
 
     val groundLarsProgram = if (useGrounding) {
 
@@ -33,12 +35,12 @@ class StreamingTests extends FunSuite {
         rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
         rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
         rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1"),
-        rule("bit(L,1) :- level(L), w_d_20_signal(L)") //new rule
+        rule("xx1 :- id(C), mod(C,10,K), geq(K,2), int(K), not xx1")
+        //rule("bit(L,1) :- level(L), w_d_20_signal(L)") //new rule
       ))
 
-      val highestExponent = 5 //2^X
-      val maxLevel = highestExponent - 1
+      //val highestExponent = 5 //2^X
+      //val maxLevel = highestExponent - 1 moved above
 
       val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
       val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
@@ -48,13 +50,15 @@ class StreamingTests extends FunSuite {
           (ints map (i => fact("int("+i+")"))) :+
           fact("max_level("+maxLevel+")")
 
-
       val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
+
+      /*
       val signalL:Atom = atom("signal(L)").asInstanceOf[Atom]
       //println(signalL)
       val wat = WindowAtom(SlidingTimeWindow(20),Diamond,signalL)
       //inputProgram.atoms filter (_.isInstanceOf[WindowAtom]) foreach println
       assert(inputProgram.atoms contains wat)
+      */
 
       //println(inputProgram)
       val grounder = printTime("grounding time") {
@@ -95,14 +99,11 @@ class StreamingTests extends FunSuite {
       grounder.groundProgram
 
     } else { //no grounding, use predefined program
-    val filename = "/ground-programs/bit2.rules" //TODO
+    val filename = "/ground-programs/bit2.rules"
       readProgramFromFile(filename)
     } //end assignment of groundLarsProgram
 
-    println("#rules in ground program: " + groundLarsProgram)
-
-    val asp = aspProgramAt(groundLarsProgram,1)
-    asp.rules foreach (r => if (r.toString.contains("w_")) println(r))
+    val asp = asAspProgram(groundLarsProgram)
 
     //    println("contradiction atoms:")
     //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
@@ -113,54 +114,131 @@ class StreamingTests extends FunSuite {
       asp.rules foreach tms.add
     }
 
-    //asp.rules foreach println
+    // manual window stuff:
+
+    //rule("bit(L,1) :- level(L), w_d_20_signal(L)")
+    val staticRuleTemplate = "bit(L,1) :- level(L), wd20signal(L)"
+    for (level <- 0 to maxLevel) {
+      val ruleString = staticRuleTemplate.replaceAll("L",""+level)
+      tms add asAspRule(rule(ruleString))
+    }
+
+    println("#rules in asp program: " + asp.rules.size)
+
+    //
+    //
+
+    val windowSize = 20
 
     var failures = if (tms.getModel == None) 1 else 0
-    var modelFoundInAttempt:Int = 0
 
-    val start2 = System.currentTimeMillis()
-    var end2 = -1L
+    def projected(model: Model) = model filter (a => Set("bit","id","signal") contains (a.predicate.toString))
 
-    /*
-    tms.add(asAspRule(rule("bit(0,0)")))
-    tms.add(asAspRule(rule("bit(1,0)")))
-    tms.add(asAspRule(rule("bit(2,0)")))
-    tms.add(asAspRule(rule("bit(3,1)")))
-    */
+    val insertProbability = 0.001
 
-    for (attempt <- 1 to 10000) {
+    var factsWithinWindowSize = Map[Int,Set[NormalRule]]()
+
+    var idCount = Map[Int,Int]() //id 2 nr of models which had it
+
+    val lengthOfTimeline = 1000
+    val reportEvery = 50
+
+    def makePinnedAtom(level:Int, timepoint: Int) = {
+      PinnedAtom(Atom("signal("+level+"+)"), TimePoint(timepoint))
+    }
+
+    def makeSignalFact(level: Int, timepoint: Int): NormalRule = {
+      AspFact(makePinnedAtom(level,timepoint))
+    }
+
+    def makeDynamicSignalRule(level:Int, timepoint: Int): NormalRule = {
+      val pa = PinnedAtom(Atom("signal("+level+"+)"), TimePoint(timepoint))
+      val p = Predicate("wd20signal")
+      val intVal = IntValue(level)
+      val head = GroundAtomWithArguments(p,Seq[Value](intVal))
+      AspRule(head,pa)
+    }
+
+    for (timepoint <- 1 to lengthOfTimeline) {
+
+      //1 add streaming facts
+      var addedNewFact = false
+      for (level <- 0 to maxLevel){
+        if (tms.random.nextDouble() < insertProbability) {
+          val signal:NormalRule = makeSignalFact(level,timepoint)
+          println("+"+signal)
+          tms add signal
+          addedNewFact = true
+          val set = factsWithinWindowSize.getOrElse(timepoint,Set()) + signal
+          factsWithinWindowSize = factsWithinWindowSize.updated(timepoint,set)
+        }
+      }
+
+      //2 add new rules
+      for (level <- 0 to maxLevel) {
+        val signalRule: NormalRule = makeDynamicSignalRule(level,timepoint)
+        if (timepoint == 1) {
+          println(signalRule)
+        }
+        tms add makeDynamicSignalRule(level,timepoint)
+      }
+
+      //3 remove old rules
+      val deletionTimepoint = timepoint - windowSize - 1
+      for (level <- 0 to maxLevel) {
+        tms remove makeDynamicSignalRule(level,deletionTimepoint)
+      }
+
+      //5 remove old facts
+      factsWithinWindowSize.getOrElse(deletionTimepoint,Set()) foreach { signal =>
+        tms remove signal
+      }
+      if (factsWithinWindowSize.contains(deletionTimepoint)) {
+        factsWithinWindowSize = factsWithinWindowSize - deletionTimepoint
+      }
+
+      if (!addedNewFact && tms.inconsistent()) tms.recompute()
+
+      //
+
       tms.getModel match {
         case Some(model) => {
-          //          val projectedModel = model filter (Set("use_bit","id") contains _.predicate.caption)
-          //          println("projected model: "+projectedModel)
-          end2 = System.currentTimeMillis()
-          if (modelFoundInAttempt==0) modelFoundInAttempt = attempt
+          if (idCount.isEmpty) { //print first model
+            println("\t"+timepoint+" -> "+projected(model))
+          }
+          val id: Int = Integer.parseInt( projected(model).head.asInstanceOf[AtomWithArgument].arguments(0).toString )
+          val count = idCount.getOrElse(id,0)
+          idCount = idCount + (id -> (count + 1))
+          //end2 = System.currentTimeMillis()
+          //println(timepoint+" -> "+projected(model))
         }
         case None => {
           //println("fail")
           failures = failures + 1
-          tms.recompute()
+          //println(timepoint+" -> \n"+factsWithinWindowSize)
+          //println(timepoint+" -> ["+failures+"]")
+        }
+      }
+
+      if (timepoint % reportEvery == 0) {
+        tms.getModel() match {
+          case Some(m) => println("\t"+timepoint+" -> "+projected(m))
+          case None => println("\t"+timepoint+" -> ---")
         }
       }
     }
 
-    tms.getModel match {
-      case Some(model) => {
-        val projectedModel = model filter (Set("bit","id") contains _.predicate.caption)
-        println("projected model: "+projectedModel)
-        val time = (1.0*(end2-start2)/1000.0)
-        println("time to compute model: "+time+" sec")
-        println("after "+modelFoundInAttempt+" attempts, i.e., "+(time/(1.0*modelFoundInAttempt)+" sec/attempt"))
-      }
-      case _ =>
-    }
+    println("\nfacts within window size:")
+    println(factsWithinWindowSize)
+
+    println("\nid count:")
+    println(idCount)
 
     println("failures: "+failures)
-
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
     println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
-    //println(currentRulesTabu.avoidanceMap)
+    println(currentRulesTabu.avoidanceMap) //TODO signals are in state, shouldn't be!
     //println(tms.status)
 
 

@@ -1,7 +1,7 @@
 package core.lars
 
 import core._
-import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
+import core.asp._
 
 import scala.io.Source
 
