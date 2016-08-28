@@ -1,6 +1,5 @@
 package core.lars
 
-import common.Util.printTime
 import core._
 
 import scala.collection.immutable.HashMap
@@ -26,15 +25,8 @@ object Grounder {
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
     }
-    println("rule: "+rule)
-    val possibleVariableValues: Map[Variable, Set[Value]] = printTime("  possibleVariableValues") {
-       inspect possibleVariableValues rule
-    }
-    val groundRules: Set[LarsRule] = printTime("  assignAndFilter") {
-      Grounder.assignAndFilter(rule, possibleVariableValues)
-    }
-    groundRules
-    //assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
+    val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
+    ground(rule, possibleVariableValues)
   }
 
   def relationsHold(rule: LarsRule): Boolean = {
@@ -97,20 +89,15 @@ object Grounder {
     }
   }
 
-  def assignAndFilter(rule: LarsRule, possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[LarsRule] = {
-    val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = printTime("    makePairedWithValueSingletons") {
-      makePairedWithValueSingletons(possibleValuesPerVariable)
+  def ground(rule: LarsRule, possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[LarsRule] = {
+    val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
+    val relationAtoms: Set[AtomWithArgument] = rule.atoms collect { case a:AtomWithArgument if isRelationAtom(a) => a }
+    def holdsPartially = allGroundedRelationsHold(relationAtoms) _
+    val preparedAssignments: Set[Set[(Variable, Value)]] = {
+      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2) filter holdsPartially) //filter
     }
-    val relationAtoms: Set[ExtendedAtom] = rule.atoms collect { case a:AtomWithArgument if isRelationAtom(a) => a }
-    def holdsPartially = relationsHoldWhereFixed(relationAtoms) _
-    val preparedAssignments: Set[Set[(Variable, Value)]] = printTime("    pairSingletonsPerVariable") {
-      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2) filter holdsPartially)
-    }
-    println("    #preparedAssignments: "+preparedAssignments.size)
-    val groundRules: Set[LarsRule] = printTime("    groundRules") {
-       assign(rule,preparedAssignments)
-    }
-    groundRules map deleteAuxiliaryAtoms
+    val groundRules: Set[LarsRule] = assign(rule,preparedAssignments) //assign
+    groundRules map deleteAuxiliaryAtoms //cut
   }
 
   // X -> { x1, x2 }
@@ -140,10 +127,8 @@ object Grounder {
     preparedAssignments map (a => rule.assign(Assignment(a.toMap)))
   }
 
-  def relationsHoldWhereFixed(relationAtoms: Set[ExtendedAtom])(partialAssignment: Set[(Variable,Value)]): Boolean = {
-    val groundRelationAtoms: Set[Atom] = relationAtoms collect {
-      case a:AtomWithArgument => assign(a,partialAssignment)
-    } filter (_.isGround)
+  def allGroundedRelationsHold(relationAtoms: Set[AtomWithArgument])(partialAssignment: Set[(Variable,Value)]): Boolean = {
+    val groundRelationAtoms: Set[Atom] = relationAtoms map (assign(_,partialAssignment)) filter (_.isGround)
     groundRelationAtoms forall holds
   }
 
