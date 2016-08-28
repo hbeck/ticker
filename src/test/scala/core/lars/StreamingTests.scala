@@ -12,7 +12,9 @@ import org.scalatest.FunSuite
   */
 class StreamingTests extends FunSuite {
 
-  test("bit 2 lars 1") {
+  test("streaming bits 1") {
+
+    pending
 
     val useGrounding = true
 
@@ -99,7 +101,7 @@ class StreamingTests extends FunSuite {
 
     println("#rules in ground program: " + groundLarsProgram)
 
-    val asp = aspProgram(groundLarsProgram)
+    val asp = aspProgramAt(groundLarsProgram,1)
     asp.rules foreach (r => if (r.toString.contains("w_")) println(r))
 
     //    println("contradiction atoms:")

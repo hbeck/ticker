@@ -1,7 +1,5 @@
-import java.util.concurrent.TimeUnit
-
-import core.{Atom, StringValue}
 import core.lars._
+import core.{Atom, StringValue}
 import engine.StreamEntry
 import evaluation._
 
@@ -11,7 +9,7 @@ import scala.util.Random
 /**
   * Created by FM on 21.08.16.
   */
-object P18Evaluation extends P18Program {
+object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead of ._1, ._2 ...
 
   val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
   val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
@@ -61,22 +59,23 @@ object P18Evaluation extends P18Program {
     )
 
     val evaluationCombination = evaluationOptions map { o =>
-      val program = LarsProgram(o._2 flatMap (_.toSeq))
+      val program = LarsProgram(o._2 flatMap (_.toSeq)) //TODO
       val signals = generateSignals(o._1._2, random, 0, timePoints)
 
-      (o._1._1, program, signals)
+      (o._1._1, program, signals) //TODO
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
+    //TODO
     AlgorithmResult(option, evaluationCombination map (c => executeTimings(args ++ Seq("p18"), c._1, c._2, c._3)) toList)
   }
 
   def generateSignals(probabilities: HashMap[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
     val signals = (t0.value to t1.value) map (t => {
-      val atoms = (probabilities filter (random.nextDouble() <= _._2) keys) toSet
+      val atoms = (probabilities filter (random.nextDouble() <= _._2) keys) toSet //TODO
 
       StreamEntry(TimePoint(t), atoms)
     })
@@ -88,7 +87,7 @@ object P18Evaluation extends P18Program {
 
     Console.out.println(f"Evaluating ${instance}")
 
-    val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
+    val provider = () => Evaluator.buildEngineFromArguments(args, s => program) //TODO use def
 
     val e = Evaluator(provider, 1, 2)
 
@@ -132,17 +131,17 @@ object P18Evaluation extends P18Program {
     )
 
     val evaluationCombination = evaluationOptions map { o =>
-      val program = LarsProgram(o._2 flatMap (_.toSeq))
+      val program = LarsProgram(o._2 flatMap (_.toSeq)) //TODO
       val signals = generateSignals(o._1._2, random, 0, timePoints)
 
-      (o._1._1, program, signals)
+      (o._1._1, program, signals) //TODO
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
-    AlgorithmResult(option, evaluationCombination map (c => executeFailures(args ++ Seq("p18"), c._1, c._2, c._3)) toList)
+    AlgorithmResult(option, evaluationCombination map (c => executeFailures(args ++ Seq("p18"), c._1, c._2, c._3)) toList) //TODO
   }
 
   def executeFailures(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {

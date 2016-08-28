@@ -86,7 +86,7 @@ object Evaluator {
 
   def buildEngineFromArguments(args: Array[String], programLoader: String => LarsProgram): EvaluationEngine = {
 
-    val arguments = argsParser(args)
+    val arguments = argsParser(args) //TODO never used
     if (args.length != 3) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
