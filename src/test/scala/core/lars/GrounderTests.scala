@@ -1,60 +1,16 @@
 package core.lars
 
 import common.Util.printTime
+import core._
 import core.asp._
-import core.{Model, _}
+import core.lars.Util._
 import jtms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
-
-import scala.io.Source
 
 /**
   * Created by hb on 8/23/16.
   */
 class GrounderTests extends FunSuite {
-
-  //"a(x,Y)" ==> Seq("a","x","Y")
-  def atom(s:String): ExtendedAtom = {
-    val str = if (s.startsWith("not ")) s.substring(4) else s
-    if (!str.contains("(")) return noArgsAtom(str)
-    val commasOnly = str.substring(0,str.size-1).replace("(",",")
-    val seq: Seq[String] = commasOnly.split(",").toSeq
-    atom(seq)
-  }
-
-  //Seq("a","x","Y") ==> NonGroundAtom(a,{x,Y})
-  def atom(ss:Seq[String]): ExtendedAtom = {
-    assert(ss.size>0)
-    if (ss.size == 1)
-      noArgsAtom(ss(0))
-    else {
-      val s = ss(0)
-      if (s.startsWith("w_")) { //convention for name of window atom: w_d_7_a(foo,X) says Time Window with size 7 Diamond a
-        val parts = s.split("_")
-        val temporalModality = parts(1) match {
-          case "d" => Diamond
-          case "b" => Box
-          case x => throw new RuntimeException("window "+s+" atom cannot be parsed. unknown temporal modality "+x)
-        }
-        val size = Integer.parseInt(parts(2))
-        val a = atom(parts(3)).asInstanceOf[Atom]
-        WindowAtom(SlidingTimeWindow(size),temporalModality,a) //doesn't matter which one
-      } else {
-        val p = Predicate(s)
-        val args = ss.tail map arg
-        Atom(p,args)
-      }
-    }
-  }
-
-  def noArgsAtom(s:String):GroundAtom = {
-    val pred = Predicate(s)
-    if (s.startsWith("xx"))
-      ContradictionAtom(pred)
-    else
-      PredicateAtom(pred)
-
-  }
 
   test("parsing") {
     assert(atom("a")==PredicateAtom(p("a")))
@@ -63,58 +19,6 @@ class GrounderTests extends FunSuite {
     assert(atom("a(X)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X")))
     assert(atom("a(X,y)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X",StringValue("y"))))
     assert(atom("a(y,X)")==NonGroundAtom(Predicate("a"),Seq[Argument](StringValue("y"),"X")))
-  }
-
-  //
-  //
-  //
-
-  def p(s:String) = Predicate(s)
-  def strVal(s:String): Value = StringValue(s)
-  def strVals(ss:String*): Set[Value] = ss map (StringValue(_)) toSet
-  def strVals(ss:List[String]): Set[Value] = ss map (StringValue(_)) toSet
-  def intVals(list: String*): Set[Value] = list map (IntValue(_)) toSet
-
-  def v(s:String) = Variable(s)
-  def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else Value(s)
-
-  def fact(s:String):LarsRule = LarsFact(atom(s).asInstanceOf[Atom])
-  def rule(all:String): LarsRule = {
-    if (!all.contains(" :- ")) return fact(all)
-    val hbStr = all.split(" :- ")
-    val head:HeadAtom = atom(hbStr(0)).asInstanceOf[Atom] //not *A*tom! using atom to parse predicate symbol
-    val bodyParts = hbStr(1).split(", ")
-    val posBodyParts = bodyParts filterNot (_.trim.startsWith("not"))
-    val negBodyParts = bodyParts filter (_.trim.startsWith("not"))
-    val pos:Set[ExtendedAtom] = posBodyParts map (atom(_)) toSet
-    val neg:Set[ExtendedAtom] = negBodyParts map (atom(_)) toSet
-
-    LarsRule(head,pos,neg)
-  }
-
-  def program(rules:LarsRule*):LarsProgram = LarsProgram(rules)
-  def ground(p:LarsProgram) = Grounder(p).groundProgram
-
-  //a(x,y) b(y,z) ==> use , only within atoms and use white space only to split atoms
-  def parseSpaceSeparatedAtoms(s: String): Set[ExtendedAtom] = {
-    s.split(" ") map (atom(_)) toSet
-  }
-
-  //use only for asp fragment!
-  def asAspProgram(larsProgram: LarsProgram): NormalProgram = {
-    val aspRules: Seq[NormalRule] = larsProgram.rules map (asAspRule(_))
-    AspProgram(aspRules.toList)
-  }
-
-  def asAspRule(larsRule: LarsRule): NormalRule = {
-    val head = larsRule.head.atom //we are not using @ here
-    val pos = larsRule.pos map (_.asInstanceOf[Atom])
-    val neg = larsRule.neg map (_.asInstanceOf[Atom])
-    UserDefinedAspRule(head,pos,neg)
-  }
-
-  def modelFromClingo(s:String): Model = {
-    s.split(" ") map (atom(_).asInstanceOf[Atom]) toSet
   }
 
   //
@@ -789,12 +693,6 @@ class GrounderTests extends FunSuite {
     //no semantics comparison with asp
   }
 
-  def asInt(v:Value):Int = v match {
-    case StringValue(s) => Integer.parseInt(s)
-    case IntValue(i) => i
-    case _ => throw new RuntimeException("argument %s cannot be casted to int".format(v))
-  }
-
   test("gt rel 1") {
     /*
       % every machine can process only one task at a time
@@ -1219,12 +1117,6 @@ class GrounderTests extends FunSuite {
 
   }
 
-  def readProgramFromFile(filename: String): LarsProgram = {
-    val source = Source.fromURL(getClass.getResource(filename))
-    val rules = source.getLines().toSeq map rule
-    LarsProgram(rules)
-  }
-
   test("bit 1") {
 
     val useGrounding = false //false = save time
@@ -1519,157 +1411,6 @@ class GrounderTests extends FunSuite {
 
   }
 
-  test("bit 2 lars 1") {
-
-    pending
-
-    val useGrounding = true
-
-    val asp = if (useGrounding) {
-
-      /*
-      highest_exponent(5). % 2^X
-      max_level(M) :- highest_exponent(E), M = E - 1.
-      level(0..M) :- max_level(M).
-      */
-
-      val bitEncodingProgram = LarsProgram(Seq[LarsRule](
-        rule("bit(L,1) :- level(L), not bit(L,0)"),
-        rule("bit(L,0) :- level(L), not bit(L,1)"),
-        rule("sum_at(0,B) :- bit(0,B)"),
-        rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
-        rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
-        rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1"),
-        rule("bit(L,1) :- level(L), w_d_20_signal(L)") //new rule
-      ))
-
-      val highestExponent = 5 //2^X; prepared program has 2^7
-      val maxLevel = highestExponent - 1
-
-      val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
-      val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
-
-      val facts: Seq[LarsRule] =
-        (levels map (l => fact("level("+l+")"))) ++
-          (ints map (i => fact("int("+i+")"))) :+
-          fact("max_level("+maxLevel+")")
-
-
-      val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
-
-      //println(inputProgram)
-      val grounder = printTime("grounding time") {
-        Grounder(inputProgram)
-      }
-
-      //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
-      println(LarsProgram(grounder.groundRules))
-
-      //printInspect(grounder)
-
-      //
-      // variables to iterate over
-      //
-
-      val possibleValuesMap: Map[Variable, Set[Value]] = Map(
-        v("L") -> (levels map (IntValue(_)) toSet),
-        v("L0") -> (levels map (IntValue(_)) toSet),
-        v("C") -> (ints map (IntValue(_)) toSet),
-        v("C0") -> (ints map (IntValue(_)) toSet),
-        v("X") -> (ints map (IntValue(_)) toSet),
-        v("B") -> (Set(0, 1) map (IntValue(_)) toSet),
-        v("M") -> Set(IntValue(maxLevel)),
-        v("K") -> (ints map (IntValue(_)) toSet)
-      )
-
-      inputProgram.rules foreach { r =>
-        for ((variable, possibleValues) <- possibleValuesMap) {
-          if (r.variables.contains(variable)) {
-            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
-              println("rule: " + r)
-              println("variable: " + variable.name)
-              println("expected values: " + possibleValues)
-              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
-              assert(false)
-            }
-          }
-        }
-      }
-
-      println("#rules in ground program: " + grounder.groundProgram.rules.size)
-
-      // printInspect(grounder)
-
-      asAspProgram(grounder.groundProgram)
-
-    } else { //no grounding, use predefined program
-      val filename = "/ground-programs/bit2.rules"
-      val groundLarsProgram = readProgramFromFile(filename)
-      asAspProgram(groundLarsProgram)
-    }
-
-    //    println("contradiction atoms:")
-    //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
-
-    val tms = new JtmsLearn()
-    tms.shuffle = false
-    printTime("time to add all ground rules") {
-      asp.rules foreach tms.add
-    }
-
-    //asp.rules foreach println
-
-    var failures = if (tms.getModel == None) 1 else 0
-    var modelFoundInAttempt:Int = 0
-
-    val start2 = System.currentTimeMillis()
-    var end2 = -1L
-
-    tms.add(asAspRule(rule("bit(0,0)")))
-    tms.add(asAspRule(rule("bit(1,0)")))
-    tms.add(asAspRule(rule("bit(2,0)")))
-    tms.add(asAspRule(rule("bit(3,1)")))
-
-    for (attempt <- 1 to 10000) {
-      tms.getModel match {
-        case Some(model) => {
-          //          val projectedModel = model filter (Set("use_bit","id") contains _.predicate.caption)
-          //          println("projected model: "+projectedModel)
-          end2 = System.currentTimeMillis()
-          if (modelFoundInAttempt==0) modelFoundInAttempt = attempt
-        }
-        case None => {
-          //println("fail")
-          failures = failures + 1
-          tms.recompute()
-        }
-      }
-    }
-
-    tms.getModel match {
-      case Some(model) => {
-        val projectedModel = model filter (Set("bit","id") contains _.predicate.caption)
-        println("projected model: "+projectedModel)
-        val time = (1.0*(end2-start2)/1000.0)
-        println("time to compute model: "+time+" sec")
-        println("after "+modelFoundInAttempt+" attempts, i.e., "+(time/(1.0*modelFoundInAttempt)+" sec/attempt"))
-      }
-      case _ =>
-    }
-
-    println("failures: "+failures)
-
-    val tabu = tms.tabu
-    val currentRulesTabu = tabu.currentRulesTabu
-    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
-    //println(currentRulesTabu.avoidanceMap)
-    //println(tms.status)
-
-
-  }
-
-
   //
   //
   //
@@ -1702,44 +1443,6 @@ class GrounderTests extends FunSuite {
   //    val p2 = i(parseSecondOf("leq"))
   //    val z = i(parseFirstOf("timepoint"))
 
-  def printInspect(grounder: Grounder): Unit = {
-    val i = grounder.inspect
 
-    println("facts: atoms:")
-    println("  ground atoms:     "+i.groundFactAtoms)
-    println("  non-ground preds: "+i.nonGroundFactAtomPredicates)
-    println("intensional:")
-    println("  ground atoms:     "+i.groundIntensionalAtoms)
-    println("  non-ground preds: "+i.nonGroundIntensionalPredicates)
-    println()
-    println("non-ground fact atoms/var in rule:\n")
-    printNestedMap(i.nonGroundFactAtomsPerVariableInRule)
-    println()
-    println("non-ground intensional atoms/var in rule:\n")
-    printNestedMap(i.nonGroundIntensionalAtomsPerVariableInRule)
-    println()
-    println("ground fact atom values lookup:\n")
-    printNestedMap(i.groundFactAtomValuesLookup)
-    println()
-    println("values for predicate arg:\n")
-    printNestedMap(i.valuesForPredicateArg)
-
-  }
-
-  def printNestedMap[T1,T2,T3](map: Map[T1,Map[T2,Set[T3]]]): Unit = {
-    for ((k,v) <- map) {
-      println(k+":")
-      for ((k2,set) <- v) {
-        print("  "+k2+" -> {")
-        if (set.nonEmpty){
-          print(set.head)
-          if (set.size > 1) {
-            set.tail foreach (elem => print(", "+elem))
-          }
-        }
-        println("}")
-      }
-    }
-  }
 
 }
