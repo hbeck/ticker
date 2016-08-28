@@ -10,6 +10,7 @@ object JtmsLearn {
 
   def apply(P: NormalProgram): JtmsLearn = {
     val net = new JtmsLearn()
+    net.shuffle = false
     P.rules foreach net.add //TODO note that in this initialization, we would not quire to save all rules in the ruleMap of tabu (in our intended use cases)
     net
   }
@@ -21,6 +22,8 @@ object JtmsLearn {
   *
   */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
+
+  shuffle = false
 
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown

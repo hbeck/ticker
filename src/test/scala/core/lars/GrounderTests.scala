@@ -1217,95 +1217,97 @@ class GrounderTests extends FunSuite {
 
   test("bit 1") {
 
-    /*
-    highest_exponent(5). % 2^X
-    max_level(M) :- highest_exponent(E), M = E - 1.
-    level(0..M) :- max_level(M).
-    */
+    val useGrounding = false //false = save time
 
-    val bitEncodingProgram = LarsProgram(Seq[LarsRule](
-      rule("bit(L,1) :- level(L), not bit(L,0)"),
-      rule("bit(L,0) :- level(L), not bit(L,1)"),
-      rule("flip(L) :- level(L), not n_flip(L)"),
-      rule("n_flip(L) :- level(L), not flip(L)"),
-      rule("use_bit(L,1) :- bit(L,1), not flip(L)"),
-      rule("use_bit(L,0) :- bit(L,1), flip(L)"),
-      rule("use_bit(L,0) :- bit(L,0), not flip(L)"),
-      rule("use_bit(L,1) :- bit(L,0), flip(L)"),
-      rule("sum_at(0,B) :- use_bit(0,B)"),
-      rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), use_bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
-      rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), use_bit(L,0), int(C)"),
-      rule("id(C) :- max_level(M), sum_at(M,C)"),
-      rule("xx1 :- id(C), mod(C,10,9), not xx1")
-    ))
+    val asp = if (useGrounding) {
 
-    val highestExponent = 5 //2^X
-    val maxLevel = highestExponent - 1
+      /*
+      highest_exponent(5). % 2^X
+      max_level(M) :- highest_exponent(E), M = E - 1.
+      level(0..M) :- max_level(M).
+      */
 
-    val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
-    val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
+      val bitEncodingProgram = LarsProgram(Seq[LarsRule](
+        rule("bit(L,1) :- level(L), not bit(L,0)"),
+        rule("bit(L,0) :- level(L), not bit(L,1)"),
+        rule("flip(L) :- level(L), not n_flip(L)"),
+        rule("n_flip(L) :- level(L), not flip(L)"),
+        rule("use_bit(L,1) :- bit(L,1), not flip(L)"),
+        rule("use_bit(L,0) :- bit(L,1), flip(L)"),
+        rule("use_bit(L,0) :- bit(L,0), not flip(L)"),
+        rule("use_bit(L,1) :- bit(L,0), flip(L)"),
+        rule("sum_at(0,B) :- use_bit(0,B)"),
+        rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), use_bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
+        rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), use_bit(L,0), int(C)"),
+        rule("id(C) :- max_level(M), sum_at(M,C)"),
+        rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1") //geq(K,8) this allows 80% of assignments
+      ))
 
-    val facts: Seq[LarsRule] =
-      (levels map (l => fact("level("+l+")"))) ++
-      (ints map (i => fact("int("+i+")"))) :+
-      fact("max_level("+maxLevel+")")
+      val highestExponent = 5 //2^X
+      val maxLevel = highestExponent - 1
+
+      val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
+      val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
+
+      val facts: Seq[LarsRule] =
+        (levels map (l => fact("level("+l+")"))) ++
+          (ints map (i => fact("int("+i+")"))) :+
+          fact("max_level("+maxLevel+")")
 
 
-    val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
+      val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
 
-    //spare grounding
-    /*
+      //println(inputProgram)
+      val start = System.currentTimeMillis()
+      val grounder = Grounder(inputProgram)
+      val end = System.currentTimeMillis()
 
-    //println(inputProgram)
-    val start = System.currentTimeMillis()
-    val grounder = Grounder(inputProgram)
-    val end = System.currentTimeMillis()
+      println("grounding time: " + (1.0 * (end - start) / 1000.0) + " sec.")
 
-    println("grounding time: "+(1.0*(end-start)/1000.0)+" sec.")
+      //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
+      println(LarsProgram(grounder.groundRules))
 
-    //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
-    println(LarsProgram(grounder.groundRules))
+      //printInspect(grounder)
 
-    //printInspect(grounder)
+      //
+      // variables to iterate over
+      //
 
-    //
-    // variables to iterate over
-    //
+      val possibleValuesMap: Map[Variable, Set[Value]] = Map(
+        v("L") -> (levels map (IntValue(_)) toSet),
+        v("L0") -> (levels map (IntValue(_)) toSet),
+        v("C") -> (ints map (IntValue(_)) toSet),
+        v("C0") -> (ints map (IntValue(_)) toSet),
+        v("X") -> (ints map (IntValue(_)) toSet),
+        v("B") -> (Set(0, 1) map (IntValue(_)) toSet),
+        v("M") -> Set(IntValue(maxLevel)),
+        v("K") -> (ints map (IntValue(_)) toSet)
+      )
 
-    val possibleValuesMap: Map[Variable,Set[Value]] = Map(
-      v("L") -> (levels map (IntValue(_)) toSet),
-      v("L0") -> (levels map (IntValue(_)) toSet),
-      v("C") -> (ints map (IntValue(_)) toSet),
-      v("C0") -> (ints map (IntValue(_)) toSet),
-      v("X") -> (ints map (IntValue(_)) toSet),
-      v("B") -> (Set(0,1) map (IntValue(_)) toSet),
-      v("M") -> Set(IntValue(maxLevel))
-    )
-
-    inputProgram.rules foreach { r =>
-      for ((variable,possibleValues) <- possibleValuesMap) {
-        if (r.variables.contains(variable)) {
-          if (grounder.inspect.possibleValuesForVariable(r,variable) != possibleValues) {
-            println("rule: "+r)
-            println("variable: "+variable.name)
-            println("expected values: "+possibleValues)
-            println("actual values:   "+grounder.inspect.possibleValuesForVariable(r,variable))
-            assert(false)
+      inputProgram.rules foreach { r =>
+        for ((variable, possibleValues) <- possibleValuesMap) {
+          if (r.variables.contains(variable)) {
+            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
+              println("rule: " + r)
+              println("variable: " + variable.name)
+              println("expected values: " + possibleValues)
+              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
+              assert(false)
+            }
           }
         }
       }
+
+      println("#rules in ground program: " + grounder.groundProgram.rules.size)
+
+      // printInspect(grounder)
+
+      asAspProgram(grounder.groundProgram)
+
+    } else { //no grounding, use predefined program
+      val groundLarsProgram = LarsProgram(bitEncodingExample1GroundRules20PercentAcceptance map rule)
+      asAspProgram(groundLarsProgram)
     }
-
-    println("#rules in ground program: "+grounder.groundProgram.rules.size)
-
-    // printInspect(grounder)
-
-    val asp = asAspProgram(grounder.groundProgram)
-    */
-    val groundLarsProgram = LarsProgram(bitEncodingExample1GroundRules map rule)
-
-    val asp = asAspProgram(groundLarsProgram)
-
 
     //    println("contradiction atoms:")
     //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
@@ -1363,7 +1365,7 @@ class GrounderTests extends FunSuite {
 
   }
 
-  val bitEncodingExample1GroundRules = Seq[String](
+  val bitEncodingExample1GroundRules20PercentAcceptance = Seq[String](
     "bit(4,1) :- level(4), not bit(4,0)",
     "bit(1,1) :- level(1), not bit(1,0)",
     "bit(2,1) :- level(2), not bit(2,0)",
@@ -1673,9 +1675,12 @@ class GrounderTests extends FunSuite {
     "id(0) :- max_level(4), sum_at(4,0)",
     "id(20) :- max_level(4), sum_at(4,20)",
     "id(11) :- max_level(4), sum_at(4,11)",
-    "xx1 :- id(19), not xx1",
-    "xx1 :- id(29), not xx1",
-    "xx1 :- id(9), not xx1",
+    "xx1 :- id(19), int(9), not xx1",
+    "xx1 :- id(29), int(9), not xx1",
+    "xx1 :- id(28), int(8), not xx1",
+    "xx1 :- id(9), int(9), not xx1",
+    "xx1 :- id(18), int(8), not xx1",
+    "xx1 :- id(8), int(8), not xx1",
     "level(0)",
     "level(1)",
     "level(2)",
@@ -1716,6 +1721,483 @@ class GrounderTests extends FunSuite {
     "int(32)",
     "max_level(4)"
   ) // end bitEncodingExample1GroundRules
+
+
+  test("bit 2") {
+
+    val useGrounding = false //false = save time
+
+    val asp = if (useGrounding) {
+
+      /*
+      highest_exponent(5). % 2^X
+      max_level(M) :- highest_exponent(E), M = E - 1.
+      level(0..M) :- max_level(M).
+      */
+
+      val bitEncodingProgram = LarsProgram(Seq[LarsRule](
+        rule("bit(L,1) :- level(L), not bit(L,0)"),
+        rule("bit(L,0) :- level(L), not bit(L,1)"),
+        rule("sum_at(0,B) :- bit(0,B)"),
+        rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
+        rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
+        rule("id(C) :- max_level(M), sum_at(M,C)"),
+        rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1")
+      ))
+
+      val highestExponent = 5 //2^X
+      val maxLevel = highestExponent - 1
+
+      val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
+      val ints:Seq[Int] = for (i <- 0 to Math.pow(2,highestExponent).toInt) yield i
+
+      val facts: Seq[LarsRule] =
+        (levels map (l => fact("level("+l+")"))) ++
+          (ints map (i => fact("int("+i+")"))) :+
+          fact("max_level("+maxLevel+")")
+
+
+      val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
+
+      //println(inputProgram)
+      val start = System.currentTimeMillis()
+      val grounder = Grounder(inputProgram)
+      val end = System.currentTimeMillis()
+
+      println("grounding time: " + (1.0 * (end - start) / 1000.0) + " sec.")
+
+      //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
+      println(LarsProgram(grounder.groundRules))
+
+      //printInspect(grounder)
+
+      //
+      // variables to iterate over
+      //
+
+      val possibleValuesMap: Map[Variable, Set[Value]] = Map(
+        v("L") -> (levels map (IntValue(_)) toSet),
+        v("L0") -> (levels map (IntValue(_)) toSet),
+        v("C") -> (ints map (IntValue(_)) toSet),
+        v("C0") -> (ints map (IntValue(_)) toSet),
+        v("X") -> (ints map (IntValue(_)) toSet),
+        v("B") -> (Set(0, 1) map (IntValue(_)) toSet),
+        v("M") -> Set(IntValue(maxLevel)),
+        v("K") -> (ints map (IntValue(_)) toSet)
+      )
+
+      inputProgram.rules foreach { r =>
+        for ((variable, possibleValues) <- possibleValuesMap) {
+          if (r.variables.contains(variable)) {
+            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
+              println("rule: " + r)
+              println("variable: " + variable.name)
+              println("expected values: " + possibleValues)
+              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
+              assert(false)
+            }
+          }
+        }
+      }
+
+      println("#rules in ground program: " + grounder.groundProgram.rules.size)
+
+      // printInspect(grounder)
+
+      asAspProgram(grounder.groundProgram)
+
+    } else { //no grounding, use predefined program
+      val groundLarsProgram = LarsProgram(bitEncodingExample2GroundRules20PercentAcceptance map rule)
+      asAspProgram(groundLarsProgram)
+    }
+
+    //    println("contradiction atoms:")
+    //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
+
+    val tms = new JtmsLearn()
+    tms.shuffle = false
+    val start1 = System.currentTimeMillis()
+    asp.rules foreach tms.add
+    val end1 = System.currentTimeMillis()
+    println("time to add all ground rules: "+(1.0*(end1-start1)/1000.0)+" sec")
+
+    //asp.rules foreach println
+
+    var failures = if (tms.getModel == None) 1 else 0
+    var modelFoundInAttempt:Int = 0
+
+    val start2 = System.currentTimeMillis()
+    var end2 = -1L
+
+    tms.add(asAspRule(rule("bit(0,0)")))
+    tms.add(asAspRule(rule("bit(1,0)")))
+    tms.add(asAspRule(rule("bit(2,0)")))
+    tms.add(asAspRule(rule("bit(3,1)")))
+
+    for (attempt <- 1 to 10000) {
+      tms.getModel match {
+        case Some(model) => {
+          //          val projectedModel = model filter (Set("use_bit","id") contains _.predicate.caption)
+          //          println("projected model: "+projectedModel)
+          end2 = System.currentTimeMillis()
+          if (modelFoundInAttempt==0) modelFoundInAttempt = attempt
+        }
+        case None => {
+          //println("fail")
+          failures = failures + 1
+          tms.recompute()
+        }
+      }
+    }
+
+    tms.getModel match {
+      case Some(model) => {
+        val projectedModel = model filter (Set("bit","id") contains _.predicate.caption)
+        println("projected model: "+projectedModel)
+        val time = (1.0*(end2-start2)/1000.0)
+        println("time to compute model: "+time+" sec")
+        println("after "+modelFoundInAttempt+" attempts, i.e., "+(time/(1.0*modelFoundInAttempt)+" sec/attempt"))
+      }
+      case _ =>
+    }
+
+    println("failures: "+failures)
+
+    val tabu = tms.tabu
+    val currentRulesTabu = tabu.currentRulesTabu
+    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
+    //println(currentRulesTabu.avoidanceMap)
+    //println(tms.status)
+
+
+  }
+
+  val bitEncodingExample2GroundRules20PercentAcceptance  = Seq[String](
+    "bit(4,1) :- level(4), not bit(4,0)",
+    "bit(1,1) :- level(1), not bit(1,0)",
+    "bit(2,1) :- level(2), not bit(2,0)",
+    "bit(3,1) :- level(3), not bit(3,0)",
+    "bit(0,1) :- level(0), not bit(0,0)",
+    "bit(1,0) :- level(1), not bit(1,1)",
+    "bit(0,0) :- level(0), not bit(0,1)",
+    "bit(3,0) :- level(3), not bit(3,1)",
+    "bit(2,0) :- level(2), not bit(2,1)",
+    "bit(4,0) :- level(4), not bit(4,1)",
+    "sum_at(0,0) :- bit(0,0)",
+    "sum_at(0,1) :- bit(0,1)",
+    "sum_at(3,23) :- int(23), int(8), sum_at(2,15), bit(3,1)",
+    "sum_at(4,19) :- int(19), bit(4,1), sum_at(3,3), int(16)",
+    "sum_at(1,7) :- bit(1,1), sum_at(0,5), int(7), int(2)",
+    "sum_at(1,27) :- bit(1,1), sum_at(0,25), int(27), int(2)",
+    "sum_at(2,20) :- int(4), bit(2,1), int(20), sum_at(1,16)",
+    "sum_at(2,12) :- int(4), bit(2,1), sum_at(1,8), int(12)",
+    "sum_at(3,21) :- int(8), sum_at(2,13), int(21), bit(3,1)",
+    "sum_at(3,32) :- sum_at(2,24), int(8), int(32), bit(3,1)",
+    "sum_at(4,17) :- int(17), sum_at(3,1), bit(4,1), int(16)",
+    "sum_at(3,11) :- int(8), int(11), sum_at(2,3), bit(3,1)",
+    "sum_at(1,5) :- bit(1,1), sum_at(0,3), int(5), int(2)",
+    "sum_at(1,2) :- bit(1,1), sum_at(0,0), int(2)",
+    "sum_at(2,32) :- sum_at(1,28), int(4), bit(2,1), int(32)",
+    "sum_at(1,3) :- bit(1,1), sum_at(0,1), int(3), int(2)",
+    "sum_at(1,26) :- bit(1,1), int(26), sum_at(0,24), int(2)",
+    "sum_at(2,31) :- int(4), bit(2,1), int(31), sum_at(1,27)",
+    "sum_at(1,21) :- bit(1,1), sum_at(0,19), int(21), int(2)",
+    "sum_at(1,20) :- bit(1,1), int(20), sum_at(0,18), int(2)",
+    "sum_at(2,25) :- int(4), bit(2,1), int(25), sum_at(1,21)",
+    "sum_at(3,13) :- int(8), int(13), bit(3,1), sum_at(2,5)",
+    "sum_at(1,4) :- int(4), bit(1,1), sum_at(0,2), int(2)",
+    "sum_at(4,32) :- bit(4,1), int(32), int(16), sum_at(3,16)",
+    "sum_at(1,18) :- bit(1,1), int(18), sum_at(0,16), int(2)",
+    "sum_at(2,18) :- int(4), int(18), bit(2,1), sum_at(1,14)",
+    "sum_at(4,31) :- int(31), sum_at(3,15), bit(4,1), int(16)",
+    "sum_at(1,10) :- bit(1,1), sum_at(0,8), int(10), int(2)",
+    "sum_at(2,6) :- int(4), bit(2,1), int(6), sum_at(1,2)",
+    "sum_at(3,10) :- sum_at(2,2), int(10), int(8), bit(3,1)",
+    "sum_at(3,17) :- sum_at(2,9), int(17), int(8), bit(3,1)",
+    "sum_at(4,23) :- int(23), bit(4,1), sum_at(3,7), int(16)",
+    "sum_at(1,31) :- bit(1,1), int(31), sum_at(0,29), int(2)",
+    "sum_at(1,11) :- bit(1,1), sum_at(0,9), int(11), int(2)",
+    "sum_at(1,9) :- bit(1,1), int(9), sum_at(0,7), int(2)",
+    "sum_at(4,24) :- bit(4,1), int(24), int(16), sum_at(3,8)",
+    "sum_at(2,23) :- int(4), bit(2,1), int(23), sum_at(1,19)",
+    "sum_at(1,32) :- bit(1,1), int(32), sum_at(0,30), int(2)",
+    "sum_at(2,10) :- int(4), bit(2,1), int(10), sum_at(1,6)",
+    "sum_at(3,15) :- sum_at(2,7), int(8), int(15), bit(3,1)",
+    "sum_at(2,27) :- int(4), bit(2,1), int(27), sum_at(1,23)",
+    "sum_at(1,12) :- bit(1,1), sum_at(0,10), int(12), int(2)",
+    "sum_at(4,21) :- bit(4,1), sum_at(3,5), int(21), int(16)",
+    "sum_at(1,28) :- bit(1,1), int(28), sum_at(0,26), int(2)",
+    "sum_at(4,25) :- sum_at(3,9), int(25), bit(4,1), int(16)",
+    "sum_at(1,17) :- bit(1,1), int(17), int(2), sum_at(0,15)",
+    "sum_at(1,19) :- int(19), bit(1,1), sum_at(0,17), int(2)",
+    "sum_at(3,25) :- int(25), int(8), bit(3,1), sum_at(2,17)",
+    "sum_at(3,19) :- int(19), int(8), bit(3,1), sum_at(2,11)",
+    "sum_at(1,23) :- bit(1,1), int(23), sum_at(0,21), int(2)",
+    "sum_at(3,9) :- int(8), int(9), sum_at(2,1), bit(3,1)",
+    "sum_at(3,27) :- int(8), int(27), sum_at(2,19), bit(3,1)",
+    "sum_at(2,9) :- int(4), bit(2,1), sum_at(1,5), int(9)",
+    "sum_at(1,29) :- int(29), sum_at(0,27), bit(1,1), int(2)",
+    "sum_at(2,22) :- int(4), bit(2,1), sum_at(1,18), int(22)",
+    "sum_at(2,19) :- int(19), int(4), sum_at(1,15), bit(2,1)",
+    "sum_at(3,29) :- int(29), sum_at(2,21), int(8), bit(3,1)",
+    "sum_at(1,6) :- bit(1,1), sum_at(0,4), int(6), int(2)",
+    "sum_at(4,30) :- bit(4,1), int(30), int(16), sum_at(3,14)",
+    "sum_at(3,8) :- int(8), sum_at(2,0), bit(3,1)",
+    "sum_at(1,15) :- bit(1,1), int(15), sum_at(0,13), int(2)",
+    "sum_at(4,29) :- int(29), bit(4,1), sum_at(3,13), int(16)",
+    "sum_at(2,15) :- int(4), bit(2,1), int(15), sum_at(1,11)",
+    "sum_at(3,16) :- int(8), sum_at(2,8), int(16), bit(3,1)",
+    "sum_at(2,7) :- int(4), bit(2,1), sum_at(1,3), int(7)",
+    "sum_at(2,14) :- int(4), bit(2,1), sum_at(1,10), int(14)",
+    "sum_at(1,16) :- bit(1,1), sum_at(0,14), int(16), int(2)",
+    "sum_at(1,25) :- sum_at(0,23), bit(1,1), int(25), int(2)",
+    "sum_at(2,29) :- int(29), int(4), bit(2,1), sum_at(1,25)",
+    "sum_at(2,21) :- int(4), bit(2,1), sum_at(1,17), int(21)",
+    "sum_at(3,12) :- int(8), sum_at(2,4), bit(3,1), int(12)",
+    "sum_at(4,28) :- int(28), sum_at(3,12), bit(4,1), int(16)",
+    "sum_at(4,22) :- bit(4,1), int(16), sum_at(3,6), int(22)",
+    "sum_at(3,24) :- sum_at(2,16), int(8), int(24), bit(3,1)",
+    "sum_at(1,24) :- bit(1,1), sum_at(0,22), int(24), int(2)",
+    "sum_at(2,30) :- int(4), bit(2,1), sum_at(1,26), int(30)",
+    "sum_at(2,5) :- int(4), bit(2,1), int(5), sum_at(1,1)",
+    "sum_at(1,14) :- sum_at(0,12), bit(1,1), int(14), int(2)",
+    "sum_at(4,20) :- sum_at(3,4), int(20), bit(4,1), int(16)",
+    "sum_at(3,14) :- sum_at(2,6), int(8), int(14), bit(3,1)",
+    "sum_at(2,26) :- int(4), bit(2,1), int(26), sum_at(1,22)",
+    "sum_at(3,30) :- int(8), int(30), sum_at(2,22), bit(3,1)",
+    "sum_at(2,11) :- sum_at(1,7), int(4), bit(2,1), int(11)",
+    "sum_at(4,18) :- int(18), sum_at(3,2), bit(4,1), int(16)",
+    "sum_at(1,30) :- bit(1,1), int(30), sum_at(0,28), int(2)",
+    "sum_at(2,16) :- int(4), bit(2,1), sum_at(1,12), int(16)",
+    "sum_at(3,31) :- sum_at(2,23), int(31), int(8), bit(3,1)",
+    "sum_at(4,27) :- bit(4,1), int(27), sum_at(3,11), int(16)",
+    "sum_at(2,13) :- int(4), bit(2,1), sum_at(1,9), int(13)",
+    "sum_at(3,18) :- int(18), int(8), bit(3,1), sum_at(2,10)",
+    "sum_at(3,28) :- sum_at(2,20), int(28), int(8), bit(3,1)",
+    "sum_at(4,26) :- bit(4,1), int(26), int(16), sum_at(3,10)",
+    "sum_at(2,17) :- int(4), bit(2,1), int(17), sum_at(1,13)",
+    "sum_at(3,26) :- int(8), int(26), sum_at(2,18), bit(3,1)",
+    "sum_at(4,16) :- bit(4,1), sum_at(3,0), int(16)",
+    "sum_at(2,24) :- int(4), bit(2,1), int(24), sum_at(1,20)",
+    "sum_at(2,8) :- int(4), bit(2,1), int(8), sum_at(1,4)",
+    "sum_at(1,8) :- bit(1,1), int(8), sum_at(0,6), int(2)",
+    "sum_at(2,28) :- int(4), bit(2,1), int(28), sum_at(1,24)",
+    "sum_at(3,20) :- int(20), int(8), sum_at(2,12), bit(3,1)",
+    "sum_at(3,22) :- int(8), sum_at(2,14), int(22), bit(3,1)",
+    "sum_at(2,4) :- int(4), bit(2,1), sum_at(1,0)",
+    "sum_at(1,13) :- bit(1,1), int(13), sum_at(0,11), int(2)",
+    "sum_at(1,22) :- bit(1,1), sum_at(0,20), int(22), int(2)",
+    "sum_at(3,0) :- sum_at(2,0), bit(3,0), int(0)",
+    "sum_at(2,8) :- sum_at(1,8), bit(2,0), int(8)",
+    "sum_at(2,4) :- sum_at(1,4), bit(2,0), int(4)",
+    "sum_at(3,14) :- sum_at(2,14), bit(3,0), int(14)",
+    "sum_at(3,11) :- sum_at(2,11), bit(3,0), int(11)",
+    "sum_at(3,22) :- sum_at(2,22), bit(3,0), int(22)",
+    "sum_at(4,23) :- sum_at(3,23), bit(4,0), int(23)",
+    "sum_at(4,8) :- sum_at(3,8), bit(4,0), int(8)",
+    "sum_at(3,2) :- sum_at(2,2), bit(3,0), int(2)",
+    "sum_at(3,8) :- sum_at(2,8), bit(3,0), int(8)",
+    "sum_at(4,27) :- sum_at(3,27), bit(4,0), int(27)",
+    "sum_at(2,2) :- sum_at(1,2), bit(2,0), int(2)",
+    "sum_at(4,2) :- sum_at(3,2), bit(4,0), int(2)",
+    "sum_at(1,9) :- sum_at(0,9), bit(1,0), int(9)",
+    "sum_at(3,13) :- sum_at(2,13), bit(3,0), int(13)",
+    "sum_at(3,24) :- sum_at(2,24), bit(3,0), int(24)",
+    "sum_at(4,28) :- sum_at(3,28), bit(4,0), int(28)",
+    "sum_at(2,17) :- sum_at(1,17), bit(2,0), int(17)",
+    "sum_at(1,15) :- sum_at(0,15), bit(1,0), int(15)",
+    "sum_at(1,30) :- sum_at(0,30), bit(1,0), int(30)",
+    "sum_at(1,3) :- sum_at(0,3), bit(1,0), int(3)",
+    "sum_at(4,20) :- sum_at(3,20), bit(4,0), int(20)",
+    "sum_at(3,5) :- sum_at(2,5), bit(3,0), int(5)",
+    "sum_at(4,17) :- sum_at(3,17), bit(4,0), int(17)",
+    "sum_at(4,0) :- sum_at(3,0), bit(4,0), int(0)",
+    "sum_at(4,15) :- sum_at(3,15), bit(4,0), int(15)",
+    "sum_at(1,32) :- sum_at(0,32), bit(1,0), int(32)",
+    "sum_at(1,25) :- sum_at(0,25), bit(1,0), int(25)",
+    "sum_at(3,17) :- sum_at(2,17), bit(3,0), int(17)",
+    "sum_at(1,26) :- sum_at(0,26), bit(1,0), int(26)",
+    "sum_at(2,32) :- sum_at(1,32), bit(2,0), int(32)",
+    "sum_at(2,30) :- sum_at(1,30), bit(2,0), int(30)",
+    "sum_at(3,26) :- sum_at(2,26), bit(3,0), int(26)",
+    "sum_at(4,32) :- sum_at(3,32), bit(4,0), int(32)",
+    "sum_at(3,31) :- sum_at(2,31), bit(3,0), int(31)",
+    "sum_at(2,9) :- sum_at(1,9), bit(2,0), int(9)",
+    "sum_at(2,7) :- sum_at(1,7), bit(2,0), int(7)",
+    "sum_at(4,11) :- sum_at(3,11), bit(4,0), int(11)",
+    "sum_at(1,19) :- sum_at(0,19), bit(1,0), int(19)",
+    "sum_at(2,25) :- sum_at(1,25), bit(2,0), int(25)",
+    "sum_at(1,1) :- sum_at(0,1), bit(1,0), int(1)",
+    "sum_at(2,22) :- sum_at(1,22), bit(2,0), int(22)",
+    "sum_at(1,4) :- sum_at(0,4), bit(1,0), int(4)",
+    "sum_at(3,30) :- sum_at(2,30), bit(3,0), int(30)",
+    "sum_at(1,2) :- sum_at(0,2), bit(1,0), int(2)",
+    "sum_at(2,11) :- sum_at(1,11), bit(2,0), int(11)",
+    "sum_at(4,5) :- sum_at(3,5), bit(4,0), int(5)",
+    "sum_at(4,6) :- sum_at(3,6), bit(4,0), int(6)",
+    "sum_at(3,27) :- sum_at(2,27), bit(3,0), int(27)",
+    "sum_at(1,27) :- sum_at(0,27), bit(1,0), int(27)",
+    "sum_at(2,18) :- sum_at(1,18), bit(2,0), int(18)",
+    "sum_at(4,12) :- sum_at(3,12), bit(4,0), int(12)",
+    "sum_at(1,14) :- sum_at(0,14), bit(1,0), int(14)",
+    "sum_at(3,32) :- sum_at(2,32), bit(3,0), int(32)",
+    "sum_at(1,0) :- sum_at(0,0), bit(1,0), int(0)",
+    "sum_at(4,30) :- sum_at(3,30), bit(4,0), int(30)",
+    "sum_at(3,10) :- sum_at(2,10), bit(3,0), int(10)",
+    "sum_at(4,10) :- sum_at(3,10), bit(4,0), int(10)",
+    "sum_at(4,31) :- sum_at(3,31), bit(4,0), int(31)",
+    "sum_at(1,5) :- sum_at(0,5), bit(1,0), int(5)",
+    "sum_at(3,7) :- sum_at(2,7), bit(3,0), int(7)",
+    "sum_at(2,29) :- sum_at(1,29), bit(2,0), int(29)",
+    "sum_at(3,9) :- sum_at(2,9), bit(3,0), int(9)",
+    "sum_at(2,21) :- sum_at(1,21), bit(2,0), int(21)",
+    "sum_at(1,18) :- sum_at(0,18), bit(1,0), int(18)",
+    "sum_at(3,3) :- sum_at(2,3), bit(3,0), int(3)",
+    "sum_at(1,23) :- sum_at(0,23), bit(1,0), int(23)",
+    "sum_at(1,22) :- sum_at(0,22), bit(1,0), int(22)",
+    "sum_at(1,16) :- sum_at(0,16), bit(1,0), int(16)",
+    "sum_at(2,28) :- sum_at(1,28), bit(2,0), int(28)",
+    "sum_at(4,7) :- sum_at(3,7), bit(4,0), int(7)",
+    "sum_at(1,31) :- sum_at(0,31), bit(1,0), int(31)",
+    "sum_at(3,6) :- sum_at(2,6), bit(3,0), int(6)",
+    "sum_at(1,7) :- sum_at(0,7), bit(1,0), int(7)",
+    "sum_at(3,21) :- sum_at(2,21), bit(3,0), int(21)",
+    "sum_at(4,9) :- sum_at(3,9), bit(4,0), int(9)",
+    "sum_at(3,28) :- sum_at(2,28), bit(3,0), int(28)",
+    "sum_at(4,25) :- sum_at(3,25), bit(4,0), int(25)",
+    "sum_at(4,4) :- sum_at(3,4), bit(4,0), int(4)",
+    "sum_at(3,12) :- sum_at(2,12), bit(3,0), int(12)",
+    "sum_at(4,19) :- sum_at(3,19), bit(4,0), int(19)",
+    "sum_at(3,15) :- sum_at(2,15), bit(3,0), int(15)",
+    "sum_at(3,29) :- sum_at(2,29), bit(3,0), int(29)",
+    "sum_at(2,20) :- sum_at(1,20), bit(2,0), int(20)",
+    "sum_at(2,3) :- sum_at(1,3), bit(2,0), int(3)",
+    "sum_at(1,8) :- sum_at(0,8), bit(1,0), int(8)",
+    "sum_at(2,12) :- sum_at(1,12), bit(2,0), int(12)",
+    "sum_at(4,21) :- sum_at(3,21), bit(4,0), int(21)",
+    "sum_at(4,1) :- sum_at(3,1), bit(4,0), int(1)",
+    "sum_at(1,6) :- sum_at(0,6), bit(1,0), int(6)",
+    "sum_at(2,10) :- sum_at(1,10), bit(2,0), int(10)",
+    "sum_at(4,22) :- sum_at(3,22), bit(4,0), int(22)",
+    "sum_at(4,16) :- sum_at(3,16), bit(4,0), int(16)",
+    "sum_at(2,6) :- sum_at(1,6), bit(2,0), int(6)",
+    "sum_at(4,3) :- sum_at(3,3), bit(4,0), int(3)",
+    "sum_at(2,23) :- sum_at(1,23), bit(2,0), int(23)",
+    "sum_at(4,14) :- sum_at(3,14), bit(4,0), int(14)",
+    "sum_at(2,1) :- sum_at(1,1), bit(2,0), int(1)",
+    "sum_at(2,5) :- sum_at(1,5), bit(2,0), int(5)",
+    "sum_at(2,13) :- sum_at(1,13), bit(2,0), int(13)",
+    "sum_at(1,17) :- sum_at(0,17), bit(1,0), int(17)",
+    "sum_at(1,13) :- sum_at(0,13), bit(1,0), int(13)",
+    "sum_at(2,27) :- sum_at(1,27), bit(2,0), int(27)",
+    "sum_at(3,20) :- sum_at(2,20), bit(3,0), int(20)",
+    "sum_at(4,24) :- sum_at(3,24), bit(4,0), int(24)",
+    "sum_at(2,31) :- sum_at(1,31), bit(2,0), int(31)",
+    "sum_at(4,13) :- sum_at(3,13), bit(4,0), int(13)",
+    "sum_at(2,14) :- sum_at(1,14), bit(2,0), int(14)",
+    "sum_at(2,16) :- sum_at(1,16), bit(2,0), int(16)",
+    "sum_at(1,12) :- sum_at(0,12), bit(1,0), int(12)",
+    "sum_at(3,1) :- sum_at(2,1), bit(3,0), int(1)",
+    "sum_at(1,24) :- sum_at(0,24), bit(1,0), int(24)",
+    "sum_at(1,29) :- sum_at(0,29), bit(1,0), int(29)",
+    "sum_at(1,21) :- sum_at(0,21), bit(1,0), int(21)",
+    "sum_at(4,29) :- sum_at(3,29), bit(4,0), int(29)",
+    "sum_at(2,24) :- sum_at(1,24), bit(2,0), int(24)",
+    "sum_at(1,20) :- sum_at(0,20), bit(1,0), int(20)",
+    "sum_at(1,10) :- sum_at(0,10), bit(1,0), int(10)",
+    "sum_at(2,0) :- sum_at(1,0), bit(2,0), int(0)",
+    "sum_at(3,19) :- sum_at(2,19), bit(3,0), int(19)",
+    "sum_at(2,19) :- sum_at(1,19), bit(2,0), int(19)",
+    "sum_at(4,26) :- sum_at(3,26), bit(4,0), int(26)",
+    "sum_at(2,26) :- sum_at(1,26), bit(2,0), int(26)",
+    "sum_at(1,11) :- sum_at(0,11), bit(1,0), int(11)",
+    "sum_at(3,25) :- sum_at(2,25), bit(3,0), int(25)",
+    "sum_at(2,15) :- sum_at(1,15), bit(2,0), int(15)",
+    "sum_at(4,18) :- sum_at(3,18), bit(4,0), int(18)",
+    "sum_at(1,28) :- sum_at(0,28), bit(1,0), int(28)",
+    "sum_at(3,16) :- sum_at(2,16), bit(3,0), int(16)",
+    "sum_at(3,23) :- sum_at(2,23), bit(3,0), int(23)",
+    "sum_at(3,18) :- sum_at(2,18), bit(3,0), int(18)",
+    "sum_at(3,4) :- sum_at(2,4), bit(3,0), int(4)",
+    "id(24) :- max_level(4), sum_at(4,24)",
+    "id(30) :- max_level(4), sum_at(4,30)",
+    "id(2) :- max_level(4), sum_at(4,2)",
+    "id(26) :- max_level(4), sum_at(4,26)",
+    "id(7) :- max_level(4), sum_at(4,7)",
+    "id(6) :- max_level(4), sum_at(4,6)",
+    "id(15) :- max_level(4), sum_at(4,15)",
+    "id(17) :- max_level(4), sum_at(4,17)",
+    "id(23) :- max_level(4), sum_at(4,23)",
+    "id(18) :- max_level(4), sum_at(4,18)",
+    "id(29) :- max_level(4), sum_at(4,29)",
+    "id(10) :- max_level(4), sum_at(4,10)",
+    "id(22) :- max_level(4), sum_at(4,22)",
+    "id(25) :- max_level(4), sum_at(4,25)",
+    "id(5) :- max_level(4), sum_at(4,5)",
+    "id(31) :- max_level(4), sum_at(4,31)",
+    "id(13) :- max_level(4), sum_at(4,13)",
+    "id(16) :- max_level(4), sum_at(4,16)",
+    "id(4) :- max_level(4), sum_at(4,4)",
+    "id(3) :- max_level(4), sum_at(4,3)",
+    "id(12) :- max_level(4), sum_at(4,12)",
+    "id(28) :- max_level(4), sum_at(4,28)",
+    "id(14) :- max_level(4), sum_at(4,14)",
+    "id(1) :- max_level(4), sum_at(4,1)",
+    "id(27) :- max_level(4), sum_at(4,27)",
+    "id(21) :- max_level(4), sum_at(4,21)",
+    "id(9) :- max_level(4), sum_at(4,9)",
+    "id(8) :- max_level(4), sum_at(4,8)",
+    "id(32) :- max_level(4), sum_at(4,32)",
+    "id(19) :- max_level(4), sum_at(4,19)",
+    "id(0) :- max_level(4), sum_at(4,0)",
+    "id(20) :- max_level(4), sum_at(4,20)",
+    "id(11) :- max_level(4), sum_at(4,11)",
+    "xx1 :- id(19), int(9), not xx1",
+    "xx1 :- id(29), int(9), not xx1",
+    "xx1 :- id(28), int(8), not xx1",
+    "xx1 :- id(9), int(9), not xx1",
+    "xx1 :- id(18), int(8), not xx1",
+    "xx1 :- id(8), int(8), not xx1",
+    "level(0)",
+    "level(1)",
+    "level(2)",
+    "level(3)",
+    "level(4)",
+    "int(0)",
+    "int(1)",
+    "int(2)",
+    "int(3)",
+    "int(4)",
+    "int(5)",
+    "int(6)",
+    "int(7)",
+    "int(8)",
+    "int(9)",
+    "int(10)",
+    "int(11)",
+    "int(12)",
+    "int(13)",
+    "int(14)",
+    "int(15)",
+    "int(16)",
+    "int(17)",
+    "int(18)",
+    "int(19)",
+    "int(20)",
+    "int(21)",
+    "int(22)",
+    "int(23)",
+    "int(24)",
+    "int(25)",
+    "int(26)",
+    "int(27)",
+    "int(28)",
+    "int(29)",
+    "int(30)",
+    "int(31)",
+    "int(32)",
+    "max_level(4)"
+  )
 
   //
   //
