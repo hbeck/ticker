@@ -37,8 +37,6 @@ object Grounder {
     //assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
   }
 
-
-
   def relationsHold(rule: LarsRule): Boolean = {
     (rule.pos map (_.atom) filter isRelationAtom forall (a => holds(a))) &&
     (rule.neg map (_.atom) filter isRelationAtom forall (a => !holds(a)))
@@ -103,14 +101,20 @@ object Grounder {
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = printTime("    makePairedWithValueSingletons") {
       makePairedWithValueSingletons(possibleValuesPerVariable)
     }
+    val relationAtoms: Set[ExtendedAtom] = rule.atoms collect { case a:AtomWithArgument if isRelationAtom(a) => a }
+    def holdsPartially = relationsHoldWhereFixed(relationAtoms) _
     val preparedAssignments: Set[Set[(Variable, Value)]] = printTime("    pairSingletonsPerVariable") {
-      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2))
+      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2) filter holdsPartially)
     }
     println("    #preparedAssignments: "+preparedAssignments.size)
-    val filteredGroundRules: Set[LarsRule] = printTime("    filteredGroundRules") {
-      assignAndFilter(rule,preparedAssignments)
+//    val filteredGroundRules: Set[LarsRule] = printTime("    filteredGroundRules") {
+//      assignAndFilter(rule,preparedAssignments)
+//    }
+//    filteredGroundRules
+    val groundRules: Set[LarsRule] = printTime("    groundRules") {
+       assign(rule,preparedAssignments)
     }
-    filteredGroundRules
+    groundRules
   }
 
   // X -> { x1, x2 }
@@ -136,23 +140,26 @@ object Grounder {
     for (s1 <- sets1; s2 <- sets2) yield s1 union s2
   }
 
-  //keep those results of cross reduction where relation atoms in given rule hold
-  def assignAndFilter(rule: LarsRule, assignments: Set[Set[(Variable, Value)]]): Set[LarsRule] = {
-    var rules = Set[LarsRule]()
-    for (assignment <- assignments) {
-      groundingIfRelationsHold(rule,assignment) match {
-        case Some(groundRule) => rules = rules + groundRule
-        case None =>
+  def assign(rule: LarsRule, preparedAssignments: Set[Set[(Variable,Value)]]): Set[LarsRule] = {
+    preparedAssignments map (a => rule.assign(Assignment(a.toMap)))
+  }
+
+  def relationsHoldWhereFixed(relationAtoms: Set[ExtendedAtom])(partialAssignment: Set[(Variable,Value)]): Boolean = {
+    val groundRelationAtoms: Set[Atom] = relationAtoms collect {
+      case a:AtomWithArgument => assign(a,partialAssignment)
+    } filter (_.isGround)
+    groundRelationAtoms forall holds
+  }
+
+  def assign(relationAtom: AtomWithArgument, partialBindings: Set[(Variable,Value)]): Atom = {
+    val assignment = partialBindings.toMap
+    val newArguments = relationAtom.arguments map { arg =>
+      arg match {
+        case variable: Variable => assignment.getOrElse(variable,arg)
+        case value:Value => value
       }
     }
-    rules
-    /*
-    assignments map {
-      case assignment:Set[(Variable,Value)] => groundingIfRelationsHold(rule,assignment)
-    } collect {
-      case Some(groundRule) => groundRule
-    }
-    */
+    Atom(relationAtom.predicate, newArguments)
   }
 
   def groundingIfRelationsHold(rule: LarsRule, bindings: Set[(Variable,Value)]): Option[LarsRule] = {
