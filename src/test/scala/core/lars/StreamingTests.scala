@@ -140,11 +140,13 @@ class StreamingTests extends FunSuite {
 
     var idCount = Map[Int,Int]() //id 2 nr of models which had it
 
-    val lengthOfTimeline = 1000
+    val lengthOfTimeline = 500
     val reportEvery = 50
 
     def makePinnedAtom(level:Int, timepoint: Int) = {
-      PinnedAtom(Atom("signal("+level+"+)"), TimePoint(timepoint))
+      val p = Predicate("signal")
+      val a = GroundAtomWithArguments(p,Seq[Value](Value(""+level)))
+      PinnedAtom(a, TimePoint(timepoint))
     }
 
     def makeSignalFact(level: Int, timepoint: Int): NormalRule = {
@@ -152,12 +154,21 @@ class StreamingTests extends FunSuite {
     }
 
     def makeDynamicSignalRule(level:Int, timepoint: Int): NormalRule = {
-      val pa = PinnedAtom(Atom("signal("+level+"+)"), TimePoint(timepoint))
-      val p = Predicate("wd20signal")
-      val intVal = IntValue(level)
-      val head = GroundAtomWithArguments(p,Seq[Value](intVal))
+      val levelVal = IntValue(level)
+      val headPredicate = Predicate("wd20signal")
+      val head = GroundAtomWithArguments(headPredicate,Seq[Value](levelVal))
+      val signalPredicate = Predicate("signal")
+      val signalGroundAtom = GroundAtomWithArguments(signalPredicate,Seq[Value](levelVal))
+      val pa = PinnedAtom(signalGroundAtom, TimePoint(timepoint))
       AspRule(head,pa)
     }
+
+    tms add makeSignalFact(0,1)
+    tms add makeSignalFact(1,1)
+    tms add makeSignalFact(2,1)
+    tms add makeSignalFact(3,1)
+    tms add makeSignalFact(4,1)
+    //=> 31; mod 10 == 1
 
     for (timepoint <- 1 to lengthOfTimeline) {
 
@@ -166,7 +177,7 @@ class StreamingTests extends FunSuite {
       for (level <- 0 to maxLevel){
         if (tms.random.nextDouble() < insertProbability) {
           val signal:NormalRule = makeSignalFact(level,timepoint)
-          println("+"+signal)
+          if (insertProbability <= 0.05) println("+"+signal)
           tms add signal
           addedNewFact = true
           val set = factsWithinWindowSize.getOrElse(timepoint,Set()) + signal
@@ -197,6 +208,10 @@ class StreamingTests extends FunSuite {
         factsWithinWindowSize = factsWithinWindowSize - deletionTimepoint
       }
 
+//      if (timepoint == 1) {
+//        tms.rules foreach { r => val s = r.toString; if (s.contains("signal")) println(s) }
+//      }
+
       if (!addedNewFact && tms.inconsistent()) tms.recompute()
 
       //
@@ -220,7 +235,7 @@ class StreamingTests extends FunSuite {
         }
       }
 
-      if (timepoint % reportEvery == 0) {
+      if (timepoint < 50 || timepoint % reportEvery == 0) {
         tms.getModel() match {
           case Some(m) => println("\t"+timepoint+" -> "+projected(m))
           case None => println("\t"+timepoint+" -> ---")
