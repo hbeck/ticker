@@ -107,14 +107,10 @@ object Grounder {
       pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2) filter holdsPartially)
     }
     println("    #preparedAssignments: "+preparedAssignments.size)
-//    val filteredGroundRules: Set[LarsRule] = printTime("    filteredGroundRules") {
-//      assignAndFilter(rule,preparedAssignments)
-//    }
-//    filteredGroundRules
     val groundRules: Set[LarsRule] = printTime("    groundRules") {
        assign(rule,preparedAssignments)
     }
-    groundRules
+    groundRules map deleteAuxiliaryAtoms
   }
 
   // X -> { x1, x2 }
@@ -160,13 +156,6 @@ object Grounder {
       }
     }
     Atom(relationAtom.predicate, newArguments)
-  }
-
-  def groundingIfRelationsHold(rule: LarsRule, bindings: Set[(Variable,Value)]): Option[LarsRule] = {
-    val map: Map[Variable, Value] = bindings.toMap
-    val assigned: LarsRule = rule.assign(new Assignment(map))
-    if (relationsHold(assigned)) Some(deleteAuxiliaryAtoms(assigned))
-    else None
   }
 
 }
