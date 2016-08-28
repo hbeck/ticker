@@ -11,10 +11,10 @@ import evaluation.Evaluator
 object GenericEvaluator {
 
   def main(args: Array[String]): Unit = {
-    val engine = Evaluator.buildEngineFromArguments(args, loadProgram)
+//    val engine = Evaluator.buildEngineFromArguments(args, loadProgram)
 
     // feed data
-    engine.append(1)(Atom("a"))
+//    engine.append(1)(Atom("a"))
   }
 
 

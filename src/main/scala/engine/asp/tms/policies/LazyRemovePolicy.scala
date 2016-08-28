@@ -17,7 +17,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
   var markedForDelete: mutable.Map[TimePoint, Set[GroundRule]] = mutable.Map()
   var reverseDeleteMap: mutable.Map[GroundRule, TimePoint] = mutable.Map()
 
-  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
+  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.asNormalRule(x)))
 
   override def remove(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = {
     rules foreach markAsDeleted(timePoint)
@@ -32,7 +32,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
 
     val newRules = rules filterNot markedAsDeleteEntries.contains
 
-    newRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
+    newRules foreach (x => tms.add(GroundRule.asNormalRule(x)))
 
     removeExpiredRules(timePoint)
   }
@@ -62,7 +62,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
     expiredTimePoints.foreach(t => {
       val rules = markedForDelete.remove(t).get
       rules foreach (r => {
-        tms.remove(GroundRule.toNormalRule(r))
+        tms.remove(GroundRule.asNormalRule(r))
         reverseDeleteMap remove (r)
       })
     })

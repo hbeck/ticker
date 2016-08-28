@@ -125,7 +125,7 @@ object GroundedNormalRule {
 object GroundRule {
 
   // TODO: get rid of this (Ground Rule should be a normal rule - types don't work currently)
-  def toNormalRule(rule: GroundRule): NormalRule = {
+  def asNormalRule(rule: GroundRule): NormalRule = {
     AspRule(rule.head.asInstanceOf[Atom], rule.pos map (_.asInstanceOf[Atom]), rule.neg map (_.asInstanceOf[Atom]))
   }
 }
