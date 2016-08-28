@@ -22,7 +22,7 @@ object ParallelLanesEvaluation {
         Seq("tms", "greedy"),
         Seq("tms", "doyle"),
         Seq("tms", "learn")
-//        Seq("clingo", "push")
+        //        Seq("clingo", "push")
       )
 
       val allResults = allOptions map (o => evaluate(o.toArray))
@@ -55,7 +55,7 @@ object ParallelLanesEvaluation {
 
     val option = args.mkString(" ")
 
-    AlgorithmResult(option, evaluationOptions map (o => execute(args ++ Seq("parallel"), o._1, o._2)) toList)
+    AlgorithmResult(option, evaluationOptions map (o => execute(args, o._1, o._2)) toList)
   }
 
 
@@ -69,7 +69,7 @@ object ParallelLanesEvaluation {
     val pl = new ParallelLanes {}
     val program = pl.generateProgramWithGrounding(nodes, lanes)
 
-    val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
+    val provider = () => Evaluator.buildEngineFromArguments(args, program)
 
     val e = Evaluator(provider, 1, 2)
 

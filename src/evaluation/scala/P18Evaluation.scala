@@ -69,8 +69,7 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
 
     Console.out.println("Algorithm: " + option)
 
-    //TODO
-    AlgorithmResult(option, evaluationCombination map (c => executeTimings(args ++ Seq("p18"), c._1, c._2, c._3)) toList)
+    AlgorithmResult(option, evaluationCombination map (c => executeTimings(args , c._1, c._2, c._3)) toList)
   }
 
   def generateSignals(probabilities: HashMap[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
@@ -87,7 +86,7 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
 
     Console.out.println(f"Evaluating ${instance}")
 
-    val provider = () => Evaluator.buildEngineFromArguments(args, s => program) //TODO use def
+    val provider = () => Evaluator.buildEngineFromArguments(args,  program)
 
     val e = Evaluator(provider, 1, 2)
 
@@ -148,7 +147,7 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
 
     Console.out.println(f"Evaluating ${instance}")
 
-    val provider = () => Evaluator.buildEngineFromArguments(args, s => program)
+    val provider = () => Evaluator.buildEngineFromArguments(args,  program)
 
     val e = Evaluator(provider, 1, 2)
 

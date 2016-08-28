@@ -84,13 +84,13 @@ object Evaluator {
     foundOptions.toSet
   }
 
-  def buildEngineFromArguments(args: Array[String], programLoader: String => LarsProgram): EvaluationEngine = {
+  def buildEngineFromArguments(args: Array[String], program: LarsProgram): EvaluationEngine = {
 
-    val arguments = argsParser(args) //TODO never used
-    if (args.length != 3) {
+    val arguments = argsParser(args)
+    if (args.length != 2) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
-    val program = programLoader(args(2))
+//    val program = programLoader(args(2))
 
     val evaluationType = args(0)
     val evaluationModifier = args(1)
