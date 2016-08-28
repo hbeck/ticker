@@ -225,6 +225,7 @@ class GrounderTests extends FunSuite {
     assert(result == expected)
   }
 
+  /*
   test("create assignment 1") {
 
     val possibleValuesPerVariable: Map[Variable,Set[Value]] = Map(X -> Set(x1,x2), Y -> Set(y1,y2), Z -> Set(z1,z2))
@@ -242,6 +243,7 @@ class GrounderTests extends FunSuite {
 
     assert(Grounder.createAssignments(possibleValuesPerVariable) == expectedAssignments)
   }
+  */
 
   test("gt5") {
 
@@ -2198,6 +2200,8 @@ class GrounderTests extends FunSuite {
     "int(32)",
     "max_level(4)"
   )
+
+
 
   //
   //

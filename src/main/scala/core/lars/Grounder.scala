@@ -3,7 +3,7 @@ package core.lars
 import common.Util.printTime
 import core._
 
-import scala.collection.immutable.{HashSet, HashMap}
+import scala.collection.immutable.HashMap
 
 
 /**
@@ -30,20 +30,10 @@ object Grounder {
     val possibleVariableValues: Map[Variable, Set[Value]] = printTime("  possibleVariableValues") {
        inspect possibleVariableValues rule
     }
-    val assignments: HashSet[Assignment] = printTime("  create assignments") {
-      HashSet() ++ Grounder.createAssignments(possibleVariableValues)
+    val groundRules: Set[LarsRule] = printTime("  assignAndFilter") {
+      Grounder.assignAndFilter(rule, possibleVariableValues)
     }
-    println("  #assignments: "+assignments.size)
-    val rules00: HashSet[LarsRule] = printTime("  rule assign") {
-      assignments map rule.assign
-    }
-    val rules01: Set[LarsRule] = printTime("  filter relationsHold") {
-      rules00 filter relationsHold
-    }
-    val rules02: Set[LarsRule] = printTime("  deleteAuxiliary") {
-      rules01 map deleteAuxiliaryAtoms
-    }
-    rules02
+    groundRules
     //assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
   }
 
@@ -55,8 +45,6 @@ object Grounder {
   }
 
   def deleteAuxiliaryAtoms(rule: LarsRule): LarsRule = {
-//    val corePosAtoms: Set[ExtendedAtom] = rule.pos collect { case a:Atom if !isRelationAtom(a) => a }
-//    val coreNegAtoms: Set[ExtendedAtom] = rule.neg collect { case a:Atom if !isRelationAtom(a) => a }
     val corePosAtoms: Set[ExtendedAtom] = rule.pos filter (x => !isRelationAtom(x))
     val coreNegAtoms: Set[ExtendedAtom] = rule.neg filter (x => !isRelationAtom(x))
     UserDefinedLarsRule(rule.head.asInstanceOf[Atom],corePosAtoms,coreNegAtoms)
@@ -78,7 +66,7 @@ object Grounder {
       case "pow" => true
       case "mod" => true
       case "sum" => true
-      case "product" => true
+      case "prod" => true
       case _ => false
     }
     case _ => false
@@ -104,24 +92,25 @@ object Grounder {
       case "geq" => i(0) >= i(1)
       case "gt" => i(0) > i(1)
       case "pow" => Math.pow(i(0),i(1)).toInt == i(2)
-      case "mod" => i(0) % i(1) == i(2)
+      case "mod" => (i(1) > 0) && (i(0) % i(1) == i(2))
       case "sum" => i(0) + i(1) == i(2)
-      case "product" => i(0) * i(1) == i(2)
+      case "prod" => i(0) * i(1) == i(2)
       case _ => false
     }
   }
 
-  def createAssignments(possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[Assignment] = {
+  def assignAndFilter(rule: LarsRule, possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[LarsRule] = {
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = printTime("    makePairedWithValueSingletons") {
       makePairedWithValueSingletons(possibleValuesPerVariable)
     }
     val preparedAssignments: Set[Set[(Variable, Value)]] = printTime("    pairSingletonsPerVariable") {
       pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2))
     }
-    val assignments: Set[Assignment] = printTime("    preparedAssignments map") {
-      preparedAssignments map (set => Assignment(set.toMap))
+    println("    #preparedAssignments: "+preparedAssignments.size)
+    val filteredGroundRules: Set[LarsRule] = printTime("    filteredGroundRules") {
+      assignAndFilter(rule,preparedAssignments)
     }
-    assignments
+    filteredGroundRules
   }
 
   // X -> { x1, x2 }
@@ -145,6 +134,22 @@ object Grounder {
   //  {(X,x1),(Y,y1),(Z,z2)}, {(X,x2),(Y,y1),(Z,z2)}, {(X,x1),(Y,y2),(Z,z2)}, {(X,x2,(Y,y2),(Z,z2))} }
   def cross[T](sets1: Set[Set[T]], sets2: Set[Set[T]]): Set[Set[T]] = {
     for (s1 <- sets1; s2 <- sets2) yield s1 union s2
+  }
+
+  //keep those results of cross reduction where relation atoms in given rule hold
+  def assignAndFilter(rule: LarsRule, assignments: Set[Set[(Variable, Value)]]): Set[LarsRule] = {
+    assignments map {
+      case assignment:Set[(Variable,Value)] => groundingIfRelationsHold(rule,assignment)
+    } collect {
+      case Some(groundRule) => groundRule
+    }
+  }
+
+  def groundingIfRelationsHold(rule: LarsRule, bindings: Set[(Variable,Value)]): Option[LarsRule] = {
+    val map: Map[Variable, Value] = bindings.toMap
+    val assigned: LarsRule = rule.assign(new Assignment(map))
+    if (relationsHold(assigned)) Some(deleteAuxiliaryAtoms(assigned))
+    else None
   }
 
 }
@@ -242,7 +247,7 @@ case class LarsProgramInspection(program: LarsProgram) {
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable,Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("variable "+variable+" does not appear in "+coreRule+" in a fact atom or intensional atom")
+      throw new RuntimeException("variable "+variable+" does not appear in a fact atom or intensional atom in rule "+coreRule)
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values
