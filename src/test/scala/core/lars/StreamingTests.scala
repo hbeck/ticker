@@ -14,7 +14,7 @@ class StreamingTests extends FunSuite {
 
   test("streaming bits 1") {
 
-    pending
+
 
     val useGrounding = true
 

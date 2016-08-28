@@ -1,6 +1,7 @@
 import java.util.concurrent.TimeUnit
 
-import common.Util._
+
+import core.lars.Util._
 import core._
 import core.lars._
 import engine.StreamEntry
@@ -8,7 +9,6 @@ import evaluation._
 
 import scala.collection.immutable.HashMap
 import scala.util.Random
-import engine.ProgramLoader._
 
 /**
   * Created by FM on 21.08.16.

@@ -2,6 +2,8 @@ package core.lars
 
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
+import engine.asp.{GroundRule, PlainLarsToAsp}
+import engine.asp.tms.{GroundRule, GroundedNormalRule, Pin, PinnedAspToIncrementalAsp}
 
 import scala.io.Source
 
@@ -160,10 +162,19 @@ object Util {
   }
 
   def aspProgramAt(groundLarsProgram: LarsProgram, time: Int): NormalProgram = {
-    //TODO ???
-    AspProgram(List())
-  }
+    val aspProgramWithVariables = PlainLarsToAsp(groundLarsProgram)
 
+
+    val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
+    val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
+
+    val timePoint: TimePoint = 1
+    val pin = Pin(timePoint)
+    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground map GroundRule.asNormalRule
+
+
+    AspProgram((groundRules ++ pinnedRules).toList)
+  }
 
 
 }
