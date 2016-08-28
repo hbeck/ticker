@@ -1,8 +1,9 @@
 package core.lars
 
+import common.Util.printTime
 import core._
 
-import scala.collection.immutable.HashMap
+import scala.collection.immutable.{HashSet, HashMap}
 
 
 /**
@@ -25,10 +26,28 @@ object Grounder {
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
     }
-    val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
-    val assignments: Set[Assignment] = Grounder.createAssignments(possibleVariableValues)
-    assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
+    println("rule: "+rule)
+    val possibleVariableValues: Map[Variable, Set[Value]] = printTime("  possibleVariableValues") {
+       inspect possibleVariableValues rule
+    }
+    val assignments: HashSet[Assignment] = printTime("  create assignments") {
+      HashSet() ++ Grounder.createAssignments(possibleVariableValues)
+    }
+    println("  #assignments: "+assignments.size)
+    val rules00: HashSet[LarsRule] = printTime("  rule assign") {
+      assignments map rule.assign
+    }
+    val rules01: Set[LarsRule] = printTime("  filter relationsHold") {
+      rules00 filter relationsHold
+    }
+    val rules02: Set[LarsRule] = printTime("  deleteAuxiliary") {
+      rules01 map deleteAuxiliaryAtoms
+    }
+    rules02
+    //assignments map rule.assign filter relationsHold map deleteAuxiliaryAtoms
   }
+
+
 
   def relationsHold(rule: LarsRule): Boolean = {
     (rule.pos map (_.atom) filter isRelationAtom forall (a => holds(a))) &&
@@ -93,9 +112,16 @@ object Grounder {
   }
 
   def createAssignments(possibleValuesPerVariable: Map[Variable,Set[Value]]): Set[Assignment] = {
-    val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
-    val preparedAssignments: Set[Set[(Variable, Value)]] = pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2))
-    preparedAssignments map (set => Assignment(set.toMap))
+    val pairSingletonsPerVariable: Seq[Set[Set[(Variable,Value)]]] = printTime("    makePairedWithValueSingletons") {
+      makePairedWithValueSingletons(possibleValuesPerVariable)
+    }
+    val preparedAssignments: Set[Set[(Variable, Value)]] = printTime("    pairSingletonsPerVariable") {
+      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1,s2))
+    }
+    val assignments: Set[Assignment] = printTime("    preparedAssignments map") {
+      preparedAssignments map (set => Assignment(set.toMap))
+    }
+    assignments
   }
 
   // X -> { x1, x2 }

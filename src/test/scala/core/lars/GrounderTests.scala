@@ -1725,7 +1725,7 @@ class GrounderTests extends FunSuite {
 
   test("bit 2") {
 
-    val useGrounding = false //false = save time
+    val useGrounding = true //false = save time
 
     val asp = if (useGrounding) {
 
