@@ -17,7 +17,7 @@ class StreamingTests extends FunSuite {
 
     val useGrounding = true
 
-    val highestExponent = 6 //2^X
+    val highestExponent = 5 //2^X
     val maxLevel = highestExponent - 1
 
     val groundLarsProgram = if (useGrounding) {
@@ -171,8 +171,8 @@ class StreamingTests extends FunSuite {
 
     val windowSize = 20
     val insertProbability = 0.05
-    val lengthOfTimeline = 50000
-    val reportEvery = 500
+    val lengthOfTimeline = 5000
+    val reportEvery = 250
 
     var lastFailed = tms.getModel == None
 
@@ -222,7 +222,7 @@ class StreamingTests extends FunSuite {
 //      }
 
       if (lastFailed && tms.getModel.isDefined) {
-        println(timepoint+" -> "+tms.getModel.get)
+        println(timepoint+" -> "+projected(tms.getModel.get))
       }
 
       if (!addedNewFact && tms.inconsistent()) tms.recompute()

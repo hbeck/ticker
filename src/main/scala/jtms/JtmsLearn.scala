@@ -27,7 +27,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
-    //test avoidance map before determining further consequences
+    //test avoidance map before determining further consequences:
     selectNextAtom()
     if (selectedAtom.isEmpty) {
       atomsNeedingSupp() foreach setUnknown
