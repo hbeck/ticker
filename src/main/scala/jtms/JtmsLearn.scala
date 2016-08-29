@@ -99,16 +99,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   }
 
-  class AllRulesTabu() {
+  class AllRulesTabu() extends FrequencyCount[PrecomputedHashCodeOfHashSet] {
 
-    var counter: Map[PrecomputedHashCodeOfHashSet, MutableCounter] = Map.empty
-
-    val doCleanup = true //TODO
-
-    var cleanupCounter = 0
-
-    val thresholdPercent = 0.4
-    val triggerCount = 10000
+    var triggerCount = 10000
 
     var ruleMap: Map[PrecomputedHashCodeOfHashSet, CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
 
@@ -127,31 +120,21 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         stateRules = stateRules - rule
         updateAfterRuleChange()
 
-        if (doCleanup)
-          __cleanup()
+        ruleMap = cleanupState(ruleMap)
       }
     }
 
-    var maxValue = 0
 
     def updateAfterRuleChange(): Unit = {
       if (ruleMap.contains(stateRules)) {
         currentRulesTabu = ruleMap(stateRules)
-        if (doCleanup) {
-          val count = counter.get(stateRules)
-          if (count.isDefined) {
-            val value = count.get.increment()
-            maxValue = Math.max(maxValue, value)
-          } else {
-            counter = counter.updated(stateRules, new MutableCounter)
-          }
-
-        }
+        recordUsage(stateRules)
       } else {
         currentRulesTabu = new CurrentRulesTabu()
         ruleMap = ruleMap.updated(stateRules, currentRulesTabu)
       }
     }
+
 
     def avoid(state: PartialState, atomToAvoid: Atom): Unit = {
       currentRulesTabu.save(state, atomToAvoid)
@@ -175,40 +158,24 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
 
 
-    def __cleanup(): Unit = {
-      cleanupCounter = cleanupCounter + 1
-      if (cleanupCounter % triggerCount == 0) {
-        // throw away the bottom x %. Value chosen so all test cases run through
-        val threshold = maxValue * thresholdPercent
-        val stateToKeep = counter.filter { case (state, c) => c.value > threshold } keySet
-
-        Console.out.println("Cleanup with threshold " + threshold)
-
-        counter = counter filterKeys stateToKeep
-        ruleMap = ruleMap filterKeys stateToKeep
-      }
-    }
   }
 
-  class MutableCounter {
-    var value: Int = 1
 
-    def increment() = {
-      value = value + 1
-      value
-    }
+  class CurrentRulesTabu() extends FrequencyCount[PartialState] {
+    var triggerCount: Int = 100
 
-  }
-
-  class CurrentRulesTabu() {
-    var avoidanceMap = new HashMap[PartialState, Set[Atom]]
+    var avoidanceMap: Map[PartialState, Set[Atom]] = Map()
 
     def save(state: PartialState, atomToAvoid: Atom): Unit = {
       val set: Set[Atom] = avoidanceMap.getOrElse(state, Set()) + atomToAvoid
       avoidanceMap = avoidanceMap.updated(state, set)
     }
 
-    def atomsToAvoid() = avoidanceMap.getOrElse(state.get, Set[Atom]())
+    def atomsToAvoid() = {
+      avoidanceMap = cleanupState(avoidanceMap)
+      recordUsage(state.get)
+      avoidanceMap.getOrElse(state.get, Set[Atom]())
+    }
   }
 
   val tabu = new AllRulesTabu()
@@ -305,6 +272,63 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       }
     }
     */
+
+  }
+
+}
+
+trait FrequencyCount[THash] {
+  val typeName = this.getClass.toGenericString
+
+  var counter: Map[THash, MutableCounter] = Map.empty
+
+  var doCleanup = true
+
+  var cleanupCounter = 0
+
+  var thresholdPercent = 0.4
+  var triggerCount: Int
+
+  var maxValue = 0
+
+  def cleanupState[TValue](stateToCleanup: Map[THash, TValue]): Map[THash, TValue] = {
+    if (doCleanup) {
+      cleanupCounter = cleanupCounter + 1
+      if (cleanupCounter % triggerCount == 0) {
+        // throw away the bottom x %. Value chosen so all test cases run through :)
+        val threshold = maxValue * thresholdPercent
+        val stateToKeep = counter.filter { case (_, c) => c.value > threshold } keySet
+
+        Console.out.println(f"Cleanup $typeName with threshold $threshold, keeping ${stateToKeep.size} items")
+
+        counter = counter filterKeys stateToKeep
+        return stateToCleanup filterKeys stateToKeep
+      }
+    }
+    stateToCleanup
+  }
+
+  def recordUsage(value: THash): Unit = {
+    if (doCleanup) {
+      val count = counter.get(value)
+      if (count.isDefined) {
+        val value = count.get.increment()
+        maxValue = Math.max(maxValue, value)
+      } else {
+        counter = counter.updated(value, new MutableCounter)
+      }
+
+    }
+  }
+
+
+  class MutableCounter {
+    var value: Int = 1
+
+    def increment() = {
+      value = value + 1
+      value
+    }
 
   }
 
