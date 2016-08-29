@@ -213,7 +213,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   val tabu = new AllRulesTabu()
 
-
   override def register(rule: NormalRule): Boolean = {
     val newRule = super.register(rule)
     if (!newRule) {
