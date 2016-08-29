@@ -46,7 +46,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
 
       p.println(captions.mkString(";"))
 
-      val resultStrings = results.flatMap(a => a.runs flatMap(r => r.successFailures map {
+      val resultStrings = results.flatMap(a => a.runs flatMap (r => r.successFailures map {
         case (time, success) => Seq(a.caption, r.instanceCaption, time.toString, success.toString)
       }))
 
@@ -80,9 +80,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
       xAxis = Some(Array(xAxis)),
       yAxis = Some(Array(Axis(title = Some(AxisTitle("Median [ms]")))))
     )
-    new HighchartsStyles {
-      override def reloadJs = ""
-    } plot (c)
+    plot(c)
   }
 
   def dataSeries(result: AlgorithmResult[TimingsConfigurationResult]) = {
@@ -101,7 +99,13 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
       xAxis = Some(Array(xAxis)),
       yAxis = Some(Array(Axis(title = Some(AxisTitle("Failure [ms]")))))
     )
-    com.quantifind.charts.Highcharts.plot(c)
+    plot(c)
+  }
+
+  def plot(chart: Highchart): Unit = {
+    new HighchartsStyles {
+      override def reloadJs = ""
+    } plot (chart)
   }
 
   def dataSeriesFailures(result: AlgorithmResult[SuccessConfigurationResult]) = {
