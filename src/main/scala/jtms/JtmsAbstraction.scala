@@ -10,9 +10,17 @@ import scala.util.Random
   */
 abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with ChoiceControl {
 
+  def isChoiceAtom(atom: Atom) = atom.predicate.toString == "bit" //TODO
+
+  def unknownChoiceAtoms() = unknownAtoms() filter isChoiceAtom
+
+  //
+
   override def allAtoms() = __allAtoms
 
   var __allAtoms: Set[Atom] = Set()
+
+  var __choiceAtoms: Set[Atom] = Set()
 
   override def justifications(a: Atom) = __justifications(a)
 
@@ -21,7 +29,9 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
-  var __stateHash:  Long = IncrementalHashCode.emptyHash
+  var __stateHash: Long = IncrementalHashCode.emptyHash
+
+  var __lightweightStateHash: Long = IncrementalHashCode.emptyHash
 
   //atoms from streaming; specific logic beyond tms
   var __signals: Set[Atom] = Set()
@@ -152,7 +162,10 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
       status = status.updated(a, out)
 
-      if (isSignal(a)) {
+      if (isChoiceAtom(a)) {
+        __choiceAtoms = __choiceAtoms + a
+        __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, out))
+      } else if (isSignal(a)) {
         __signals = __signals + a
       } else {
         __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, out))
@@ -208,11 +221,19 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
 
     if (oldStatus != newStatus) {
-      if(!signals().contains(a)) {
-        if (oldStatus == in || oldStatus == out)
+      if (!signals().contains(a)) {
+        if (oldStatus == in || oldStatus == out) {
           __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
-        if(newStatus==in || newStatus == out)
+          if (isChoiceAtom(a)) {
+            __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash, (a, oldStatus))
+          }
+        }
+        if (newStatus == in || newStatus == out) {
           __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
+          if (isChoiceAtom(a)) {
+            __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, newStatus))
+          }
+        }
       }
       status = status.updated(a, newStatus)
       __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
@@ -272,10 +293,19 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     __allAtoms = __allAtoms - a
 
     val oldStatus = status(a)
+
+    if (isChoiceAtom(a)) {
+      __choiceAtoms = __choiceAtoms - a
+      if (oldStatus == in || oldStatus == out) {
+        __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash,(a, oldStatus))
+      }
+    }
+
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    if(!signals().contains(a) && (oldStatus==in ||oldStatus==out))
+    if (!signals().contains(a) && (oldStatus==in ||oldStatus==out)) {
       __stateHash = IncrementalHashCode.removeHashCode(__stateHash,(a, oldStatus))
+    }
 
     status = status - a
     cons = cons - a

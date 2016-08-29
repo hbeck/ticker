@@ -65,7 +65,7 @@ class StreamingTests extends FunSuite {
         Grounder(inputProgram)
       }
 
-      //println(LarsProgram(grounder.groundRules))
+      println(LarsProgram(grounder.groundRules))
       //printInspect(grounder)
 
       //
@@ -128,13 +128,9 @@ class StreamingTests extends FunSuite {
     //
     //
 
-
-
     var failures = if (tms.getModel == None) 1 else 0
 
     def projected(model: Model) = model filter (a => Set("bit","id","signal") contains (a.predicate.toString))
-
-
 
     var factsWithinWindowSize = Map[Int,Set[NormalRule]]()
 
@@ -171,7 +167,7 @@ class StreamingTests extends FunSuite {
 
     val windowSize = 20
     val insertProbability = 0.05
-    val lengthOfTimeline = 5000
+    val lengthOfTimeline = 2000
     val reportEvery = 250
 
     var lastFailed = tms.getModel == None
