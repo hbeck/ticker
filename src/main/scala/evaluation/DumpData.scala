@@ -74,12 +74,17 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
   def plot(results: Seq[AlgorithmResult[TimingsConfigurationResult]]): Unit = {
     val series = results map dataSeries
 
-    val xAxis = Axis(categories = Some(results.head.runs.map(_.instanceCaption).toArray), axisType = Some(AxisType.category))
+    val xAxis = Axis(
+      categories = Some(results.head.runs.map(_.instanceCaption).toArray),
+      axisType = Some(AxisType.category)
+    )
     val c = Highchart(series,
       chart = Chart(zoomType = Zoom.xy),
+
       xAxis = Some(Array(xAxis)),
       yAxis = Some(Array(Axis(title = Some(AxisTitle("Median [ms]")))))
     )
+
     plot(c)
   }
 
@@ -87,13 +92,20 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
     val data = result.runs.zipWithIndex.map {
       case (r, i) => Data(i, r.appendResult.median.toUnit(TimeUnit.MILLISECONDS), name = r.instanceCaption)
     }
-    Series(data, name = Some(result.caption))
+    Series(data, name = Some(result.caption), chart = SeriesType.column)
   }
 
   def plotFailures(results: Seq[AlgorithmResult[SuccessConfigurationResult]]): Unit = {
     val series = results flatMap dataSeriesFailures
 
-    val xAxis = Axis(categories = Some(results.head.runs.map(_.instanceCaption).toArray))
+
+    val xAxis = Axis(
+      categories = Some(results.head.runs.map(_.instanceCaption).toArray),
+      labels = AxisLabel(
+        step = (results map (r => r.runs.map(rr => rr.successFailures.size) sum) sum) / 20,
+        maxStaggerLines = 1
+      )
+    )
     val c = Highchart(series,
       chart = Chart(zoomType = Zoom.xy),
       xAxis = Some(Array(xAxis)),
@@ -109,7 +121,16 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
   }
 
   def dataSeriesFailures(result: AlgorithmResult[SuccessConfigurationResult]) = {
-    val series = result.runs.map(r => (r.instanceCaption, r.successFailures.map(sf => Data(sf._1, sf._2.compare(false)))))
-    series map (s => Series(s._2, name = Some(result.caption + s._1)))
+
+    val series = result.runs.map(
+      r => {
+        val aggregatedFailures = r.successFailures.scanLeft((0, 0)) {
+          case (agg, value) => (value._1, agg._2 + value._2.compareTo(false))
+        } map {
+          sf => Data(sf._1, sf._2)
+        }
+        (r.instanceCaption, aggregatedFailures)
+      })
+    series map (s => Series(s._2, name = Some(result.caption + s._1), chart = SeriesType.area))
   }
 }
