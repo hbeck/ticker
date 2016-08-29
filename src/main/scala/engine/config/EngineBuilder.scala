@@ -18,9 +18,12 @@ import scala.util.Random
   */
 object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
+
 }
 
 case class EngineEvaluationConfiguration(program: LarsProgram) {
+
+  def fromArguments(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(program).build(evaluationType, evaluationModifier)
 
   //val sanitizer = SanitizeLarsProgram(program)
 

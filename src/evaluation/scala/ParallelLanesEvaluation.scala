@@ -11,13 +11,14 @@ object ParallelLanesEvaluation {
   def main(args: Array[String]): Unit = {
 
 
-    // evaluate everything one time as pre-pre-warmup
-    evaluate(Seq("tms", "greedy") toArray)
-
     val dump = DumpData("Configuration", "node x lanes")
     val dumpToCsv = dump.printResults("output.csv") _
 
     if (args.length == 0) {
+      // evaluate everything one time as pre-pre-warmup
+      evaluate(Seq("tms", "greedy") toArray)
+
+
       val allOptions = Seq(
         Seq("tms", "greedy"),
         Seq("tms", "doyle"),
@@ -55,7 +56,11 @@ object ParallelLanesEvaluation {
 
     val option = args.mkString(" ")
 
-    AlgorithmResult(option, evaluationOptions map (o => execute(args, o._1, o._2)) toList)
+    val results = evaluationOptions map {
+      case (nodes, lanes) => execute(args, nodes, lanes)
+    }
+
+    AlgorithmResult(option, results toList)
   }
 
 
@@ -63,22 +68,17 @@ object ParallelLanesEvaluation {
 
     val instance = f"${nodes}x${lanes}"
 
-
-    Console.out.println(f"Evaluating ${instance}")
-
     val pl = new ParallelLanes {}
     val program = pl.generateProgramWithGrounding(nodes, lanes)
 
-    val provider = () => Evaluator.buildEngineFromArguments(args, program)
-
-    val e = Evaluator(provider, 1, 2)
+    val evaluator = Evaluator.fromArguments(args, instance, program)
 
     val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
-    val inputs: Seq[StreamEntry] = obstacles zip (Stream from 1) map (t => StreamEntry(TimePoint(t._2), t._1.toSet))
+    val inputs: Seq[StreamEntry] = obstacles zip (Stream from 1) map {
+      case (atoms, timePoint) => StreamEntry(TimePoint(timePoint), atoms)
+    }
 
-    val (append, evaluate) = e.streamInputsAsFastAsPossible(inputs)
-
-    TimingsConfigurationResult(instance, append, evaluate)
+    evaluator.streamInputsAsFastAsPossible(1, 2)(inputs)
   }
 
 

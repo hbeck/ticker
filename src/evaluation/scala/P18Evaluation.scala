@@ -9,7 +9,8 @@ import scala.util.Random
 /**
   * Created by FM on 21.08.16.
   */
-object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead of ._1, ._2 ...
+object P18Evaluation extends P18Program {
+  //TODO note hb: use case(...) instead of ._1, ._2 ...
 
   val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
   val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
@@ -58,42 +59,26 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
       ("P1,P2: 0.25", all_025) -> Seq(P_1, P_2)
     )
 
-    val evaluationCombination = evaluationOptions map { o =>
-      val program = LarsProgram(o._2 flatMap (_.toSeq)) //TODO
-      val signals = generateSignals(o._1._2, random, 0, timePoints)
+    val evaluationCombination = evaluationOptions map {
+      case (instance, programs) => {
+        val program = LarsProgram(programs flatMap (_.toSeq))
+        val signals = Evaluator.generateSignals(instance._2, random, 0, timePoints)
 
-      (o._1._1, program, signals) //TODO
+        (Evaluator.fromArguments(args, instance._1, program), signals)
+      }
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
-    AlgorithmResult(option, evaluationCombination map (c => executeTimings(args , c._1, c._2, c._3)) toList)
+    val results = evaluationCombination map {
+      case (evaluator, signals) => evaluator.streamInputsAsFastAsPossible(1, 2)(signals)
+    }
+
+    AlgorithmResult(option, results toList)
   }
 
-  def generateSignals(probabilities: HashMap[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
-    val signals = (t0.value to t1.value) map (t => {
-      val atoms = (probabilities filter (random.nextDouble() <= _._2) keys) toSet //TODO
-
-      StreamEntry(TimePoint(t), atoms)
-    })
-
-    signals
-  }
-
-  def executeTimings(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
-
-    Console.out.println(f"Evaluating ${instance}")
-
-    val provider = () => Evaluator.buildEngineFromArguments(args,  program)
-
-    val e = Evaluator(provider, 1, 2)
-
-    val (append, evaluate) = e.streamInputsAsFastAsPossible(signals)
-
-    TimingsConfigurationResult(instance, append, evaluate)
-  }
 
   def failures(args: Array[String]): Unit = {
     val dump = DumpData("Configuration", "Instances")
@@ -102,7 +87,7 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
     if (args.length == 0) {
       val allOptions = Seq(
         Seq("tms", "greedy"),
-//        Seq("tms", "doyle"),
+        //        Seq("tms", "doyle"),
         Seq("tms", "learn")
         //        Seq("clingo", "push")
       )
@@ -125,38 +110,27 @@ object P18Evaluation extends P18Program { //TODO note hb: use case(...) instead 
     val random = new Random(1)
 
     val evaluationOptions = HashMap(
-//      ("P4: 0.01", all_001) -> Seq(P_4),
+      //      ("P4: 0.01", all_001) -> Seq(P_4),
       ("P4: 0.25", all_025) -> Seq(P_4)
     )
 
-    val evaluationCombination = evaluationOptions map { o =>
-      val program = LarsProgram(o._2 flatMap (_.toSeq)) //TODO
-      val signals = generateSignals(o._1._2, random, 0, timePoints)
+    val evaluationCombination = evaluationOptions map { case (instance, programs) =>
+      val program = LarsProgram(programs flatMap (_.toSeq))
+      val signals = Evaluator.generateSignals(instance._2, random, 0, timePoints)
 
-      (o._1._1, program, signals) //TODO
+      (instance._1, program, signals)
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
-    AlgorithmResult(option, evaluationCombination map (c => executeFailures(args ++ Seq("p18"), c._1, c._2, c._3)) toList) //TODO
+    val results = evaluationCombination map {
+      case (instance, program, signals) => Evaluator.fromArguments(args, instance, program).successfulModelComputations(signals)
+    }
+
+    AlgorithmResult(option, results toList)
   }
-
-  def executeFailures(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
-
-    Console.out.println(f"Evaluating ${instance}")
-
-    val provider = () => Evaluator.buildEngineFromArguments(args,  program)
-
-    val e = Evaluator(provider, 1, 2)
-
-    val computations = e.successfulModelComputations(signals)
-
-    SuccessConfigurationResult(instance, computations)
-  }
-
-
 }
 
 trait P18Program {

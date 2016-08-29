@@ -63,41 +63,22 @@ object BitEvaluation extends BitProgram {
 
     val program = groundLarsProgram()
 
-    val evaluationCombination = evaluationOptions map { o =>
+    val evaluationCombination = evaluationOptions map { case (instance, prop) =>
 
-      val signals = generateSignals(o._2, random, 0, timePoints)
+      val signals = Evaluator.generateSignals(prop, random, 0, timePoints)
 
-      (o._1, program, signals)
+      (instance, signals)
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
-    AlgorithmResult(option, evaluationCombination map (c => executeTimings(args, c._1, c._2, c._3)) toList)
-  }
+    val results = evaluationCombination map {
+      case (instance, signals) => Evaluator.fromArguments(args, instance, program).streamInputsAsFastAsPossible()(signals)
+    }
 
-  def generateSignals(probabilities: Map[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
-    val signals = (t0.value to t1.value) map (t => {
-      val atoms = (probabilities filter (random.nextDouble() <= _._2) keys) toSet
-
-      StreamEntry(TimePoint(t), atoms)
-    })
-
-    signals
-  }
-
-  def executeTimings(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
-
-    Console.out.println(f"Evaluating ${instance}")
-
-    val provider = () => Evaluator.buildEngineFromArguments(args, program)
-
-    val e = Evaluator(provider, 1, 2)
-
-    val (append, evaluate) = e.streamInputsAsFastAsPossible(signals)
-
-    TimingsConfigurationResult(instance, append, evaluate)
+    AlgorithmResult(option, results toList)
   }
 
   def failures(args: Array[String]): Unit = {
@@ -138,29 +119,20 @@ object BitEvaluation extends BitProgram {
 
     val evaluationCombination = evaluationOptions map { case (name, prop) =>
 
-      val signals = generateSignals(prop, random, 0, timePoints)
+      val signals = Evaluator.generateSignals(prop, random, 0, timePoints)
 
-      (name, program, signals)
+      (name, signals)
     }
 
     val option = args.mkString(" ")
 
     Console.out.println("Algorithm: " + option)
 
-    AlgorithmResult(option, evaluationCombination map (c => executeFailures(args, c._1, c._2, c._3)) toList)
-  }
+    val results = evaluationCombination map {
+      case (instance, signals) => Evaluator.fromArguments(args, instance, program).successfulModelComputations(signals)
+    }
 
-  def executeFailures(args: Array[String], instance: String, program: LarsProgram, signals: Seq[StreamEntry]) = {
-
-    Console.out.println(f"Evaluating ${instance}")
-
-    val provider = () => Evaluator.buildEngineFromArguments(args, program)
-
-    val e = Evaluator(provider, 1, 2)
-
-    val computations = e.successfulModelComputations(signals)
-
-    SuccessConfigurationResult(instance, computations)
+    AlgorithmResult(option, results toList)
   }
 
 

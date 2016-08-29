@@ -1,102 +1,36 @@
 package evaluation
 
-import core.lars.LarsProgram
+import core.Atom
+import core.lars.{LarsProgram, TimePoint}
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
 import engine.{EvaluationEngine, StreamEntry}
 import jtms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 
+import scala.collection.immutable.HashMap
 import scala.collection.mutable.ArrayBuffer
 
 //import scala.reflect.runtime.universe
 //import scala.reflect.runtime._
 import scala.util.Random
 
-sealed trait OptionIdentifier {
-  val option: String
-  val description: String
-}
-
-sealed trait OptionValue extends OptionIdentifier {
-  val value: String
-}
-
-sealed trait EvaluationType extends OptionValue {
-  val value: String
-  val description = "Evaluation-Type"
-  val option = "et"
-}
-
-object Tms extends EvaluationType {
-  val value = "tms"
-}
-
-object Clingo extends EvaluationType {
-  val value = "clingo"
-}
-
-sealed trait EvaluationModifier extends OptionValue {
-  val value: String
-  val description = "Evaluation-Modifier"
-  val option = "em"
-}
-
-object Greedy extends EvaluationModifier {
-  val value = "greedy"
-}
-
-object Doyle extends EvaluationModifier {
-  val value = "Doyle"
-}
-
-object Learn extends EvaluationModifier {
-  val value = "Learn"
-}
-
-object Input extends OptionIdentifier {
-  val option = "in"
-  val description = "Input-File"
-}
-
-case class Input(value: String) extends OptionValue {
-  val option = "in"
-  val description = "Input-File"
-}
-
 object Evaluator {
 
-  val options: Set[OptionIdentifier] = Set(Tms, Clingo, Greedy, Doyle, Learn, Input)
-
-  def argsParser(args: Array[String]): Set[OptionValue] = {
-    val foundOptions = args.zip(args.tail).
-      map(arg => {
-        val matchedOption = options.
-          filter(o => o.option == arg._1).
-          collectFirst {
-            case o: OptionValue => o
-            case o: Input => Input(arg._2)
-          }
-        matchedOption
-      }).
-      filter(o => o.isDefined).
-      map(o => o.get)
-
-    foundOptions.toSet
-  }
 
   def buildEngineFromArguments(args: Array[String], program: LarsProgram): EvaluationEngine = {
 
-    val arguments = argsParser(args)
+    val arguments = ArgumentParsing.argsParser(args)
+
     if (args.length != 2) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
-//    val program = programLoader(args(2))
 
     val evaluationType = args(0)
     val evaluationModifier = args(1)
 
-    val engine = buildEngine(program, evaluationType, evaluationModifier)
+    val engine = BuildEngine.withProgram(program).fromArguments(evaluationType, evaluationModifier)
     if (engine.isDefined) {
+      Console.println(f"Engine: $evaluationType $evaluationModifier")
       return engine.get
     } else {
       // TODO: not nice
@@ -106,96 +40,61 @@ object Evaluator {
   }
 
 
-  def buildEngine(program: LarsProgram,
-                  evaluationType: String,
-                  evaluationModifier: String,
-                  random: Random = new Random(1)): Option[EvaluationEngine] = {
-    // TODO: not nice
-
-    if (evaluationType == "tms") {
-      if (evaluationModifier == "greedy") {
-        return Some(greedyTms(program, random))
-      } else if (evaluationModifier == "doyle") {
-        return Some(doyleTms(program, random))
-      } else if (evaluationModifier == "learn") {
-        return Some(learnTms(program, random))
-      }
-    } else if (evaluationType == "clingo") {
-      if (evaluationModifier == "push") {
-        return Some(clingoPush(program))
-      } else if (evaluationModifier == "pull") {
-        return Some(clingoPull(program))
-      }
-    }
-
-    None
-  }
-
-  def greedyTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def doyleTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = JtmsDoyle(random)
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def learnTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def clingoPush(program: LarsProgram) = {
-    BuildEngine.withProgram(program).useAsp().withClingo().use().usePush().start()
-  }
-
-  def clingoPull(program: LarsProgram) = {
-    BuildEngine.withProgram(program).useAsp().withClingo().use().usePull().start()
-  }
-
-
   def printUsageAndExit(args: Array[String], exitMessage: String) = {
     Console.err.println(exitMessage)
     Console.err.println()
 
     Console.out.println("You specified: " + args.mkString(" "))
 
-    val optionsUsage = options.map(o => f"-${o.option} <value>")
+    val optionsUsage = ArgumentParsing.options.map(o => f"-${o.option} <value>")
 
     Console.out.println("Usage: Evaluator " + optionsUsage.mkString(" "))
     Console.err.println()
 
-    val optionsDescription = options.
+    val optionsDescription = ArgumentParsing.options.
       groupBy(o => o.description).
       map(o => f"${o._1}: " + o._2.collect { case a: OptionValue => a.value })
 
     Console.out.println(optionsDescription.mkString("\n"))
     System.exit(-1)
   }
+
+  def fromArguments(args: Array[String], instance: String, program: LarsProgram) = {
+    Console.out.println(f"Evaluating ${instance}")
+
+    val provider = () => Evaluator.buildEngineFromArguments(args, program)
+
+    Evaluator(instance, provider)
+  }
+
+  def generateSignals(probabilities: Map[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
+    val signals = (t0.value to t1.value) map (t => {
+      val atoms = selectAtoms(random)(probabilities)
+
+      StreamEntry(TimePoint(t), atoms)
+    })
+
+    signals
+  }
+
+
+  def selectAtoms(random: Random)(probabilities: Map[Atom, Double]): Set[Atom] = {
+    val atoms = probabilities filter {
+      case (_, probability) => random.nextDouble() <= probability
+    }
+    atoms keySet
+  }
+
 }
 
-case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, repetitions: Int = 5) {
+case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
 
-  def streamInputsAsFastAsPossible(inputs: Seq[StreamEntry]): (StatisticResult, StatisticResult) = {
+  def streamInputsAsFastAsPossible(warmUps: Int = 2, repetitions: Int = 5)(inputs: Seq[StreamEntry]): TimingsConfigurationResult = {
     val appendExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
     val evaluateExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
 
     def test = {
-      val engine = new TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
+      val engine = TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
 
       inputs.foreach(i => {
         engine.append(i.time)(i.atoms.toSeq: _*)
@@ -205,30 +104,37 @@ case class Evaluator(engineProvider: () => EvaluationEngine, warmups: Int = 5, r
     }
 
     // warmup - we need to clear execution times afterwards
-    test
+    (1 to warmUps) foreach (i => {
+      test
+      Console.println("Warm-up " + i)
+    })
     appendExecutionTimes.clear()
     evaluateExecutionTimes.clear()
 
     profile.profileR(repetitions)(test)
 
-    (
+
+    TimingsConfigurationResult(
+      instance,
       StatisticResult.fromExecutionTimes(appendExecutionTimes),
       StatisticResult.fromExecutionTimes(evaluateExecutionTimes)
-      )
+    )
   }
 
-  def successfulModelComputations(inputs: Seq[StreamEntry]) = {
+  def successfulModelComputations(inputs: Seq[StreamEntry]): SuccessConfigurationResult = {
     val engine = engineProvider()
 
-    val modelDefined = inputs.zipWithIndex.map(i => { //TODO use destruction with case instead of ._1 ._2
-      val entry = i._1
-      engine.append(entry.time)(entry.atoms.toSeq: _*)
+    val modelDefined = inputs.zipWithIndex.map {
+      case (entry, i) => {
 
-      val model = engine.evaluate(entry.time)
+        engine.append(entry.time)(entry.atoms.toSeq: _*)
 
-      (i._2, model.get.isDefined)
-    })
+        val model = engine.evaluate(entry.time)
 
-    modelDefined
+        (i, model.get.isDefined)
+      }
+    }
+
+    SuccessConfigurationResult(instance, modelDefined)
   }
 }
