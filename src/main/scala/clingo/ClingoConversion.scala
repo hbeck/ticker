@@ -49,6 +49,7 @@ object ClingoConversion {
 
   def apply(argument: Argument): String = argument match {
     case StringValue(v) => v
+    case IntValue(v) => v.toString
     case TimeValue(t) => t.toString
 
     case Variable(v) => v

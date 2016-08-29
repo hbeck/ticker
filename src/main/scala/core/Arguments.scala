@@ -12,7 +12,7 @@ object Argument {
     if (nameOrValue.head.isUpper)
       Variable(nameOrValue)
     else
-      StringValue(nameOrValue)
+      Value(nameOrValue)
   }
 
   implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
