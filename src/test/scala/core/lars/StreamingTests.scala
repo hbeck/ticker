@@ -1,9 +1,9 @@
 package core.lars
 
 import common.Util.printTime
-import core.asp.{AspRule, AspFact, NormalRule}
-import core.lars.Util._
 import core._
+import core.asp.{AspFact, AspRule, NormalRule}
+import core.lars.Util._
 import jtms.JtmsLearn
 import org.scalatest.FunSuite
 
@@ -17,7 +17,7 @@ class StreamingTests extends FunSuite {
 
     val useGrounding = true
 
-    val highestExponent = 5 //2^X
+    val highestExponent = 6 //2^X
     val maxLevel = highestExponent - 1
 
     val groundLarsProgram = if (useGrounding) {
@@ -35,7 +35,7 @@ class StreamingTests extends FunSuite {
         rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
         rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
         rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,10,K), geq(K,2), int(K), not xx1")
+        rule("xx1 :- id(C), mod(C,20,K), geq(K,1), int(K), not xx1")
         //rule("bit(L,1) :- level(L), w_d_20_signal(L)") //new rule
       ))
 
@@ -128,20 +128,17 @@ class StreamingTests extends FunSuite {
     //
     //
 
-    val windowSize = 20
+
 
     var failures = if (tms.getModel == None) 1 else 0
 
     def projected(model: Model) = model filter (a => Set("bit","id","signal") contains (a.predicate.toString))
 
-    val insertProbability = 0.001
+
 
     var factsWithinWindowSize = Map[Int,Set[NormalRule]]()
 
     var idCount = Map[Int,Int]() //id 2 nr of models which had it
-
-    val lengthOfTimeline = 500
-    val reportEvery = 50
 
     def makePinnedAtom(level:Int, timepoint: Int) = {
       val p = Predicate("signal")
@@ -163,25 +160,37 @@ class StreamingTests extends FunSuite {
       AspRule(head,pa)
     }
 
+    /*
     tms add makeSignalFact(0,1)
     tms add makeSignalFact(1,1)
     tms add makeSignalFact(2,1)
     tms add makeSignalFact(3,1)
     tms add makeSignalFact(4,1)
+    */
     //=> 31; mod 10 == 1
+
+    val windowSize = 20
+    val insertProbability = 0.05
+    val lengthOfTimeline = 50000
+    val reportEvery = 500
+
+    var lastFailed = tms.getModel == None
 
     for (timepoint <- 1 to lengthOfTimeline) {
 
       //1 add streaming facts
       var addedNewFact = false
-      for (level <- 0 to maxLevel){
+      if (tms.getModel.isDefined && !addedNewFact) {
         if (tms.random.nextDouble() < insertProbability) {
-          val signal:NormalRule = makeSignalFact(level,timepoint)
-          if (insertProbability <= 0.05) println("+"+signal)
+          val level = tms.random.nextInt(maxLevel)
+          //challenge with next signal
+          val signal: NormalRule = makeSignalFact(level, timepoint)
+          //if (insertProbability <= 0.05)
+          // println("+"+signal)
           tms add signal
           addedNewFact = true
-          val set = factsWithinWindowSize.getOrElse(timepoint,Set()) + signal
-          factsWithinWindowSize = factsWithinWindowSize.updated(timepoint,set)
+          val set = factsWithinWindowSize.getOrElse(timepoint, Set()) + signal
+          factsWithinWindowSize = factsWithinWindowSize.updated(timepoint, set)
         }
       }
 
@@ -212,7 +221,17 @@ class StreamingTests extends FunSuite {
 //        tms.rules foreach { r => val s = r.toString; if (s.contains("signal")) println(s) }
 //      }
 
+      if (lastFailed && tms.getModel.isDefined) {
+        println(timepoint+" -> "+tms.getModel.get)
+      }
+
       if (!addedNewFact && tms.inconsistent()) tms.recompute()
+
+      if (tms.getModel.isEmpty) {
+        lastFailed = true
+      } else {
+        lastFailed = false
+      }
 
       //
 
@@ -235,7 +254,7 @@ class StreamingTests extends FunSuite {
         }
       }
 
-      if (timepoint < 50 || timepoint % reportEvery == 0) {
+      if (timepoint < 100 || timepoint % reportEvery == 0) {
         tms.getModel() match {
           case Some(m) => println("\t"+timepoint+" -> "+projected(m))
           case None => println("\t"+timepoint+" -> ---")
@@ -253,10 +272,10 @@ class StreamingTests extends FunSuite {
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
     println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
-    println(currentRulesTabu.avoidanceMap) //TODO signals are in state, shouldn't be!
+    tms.printAvoidanceMap() //TODO signals are in state, shouldn't be!
     //println(tms.status)
-
-
   }
+
+
 
 }

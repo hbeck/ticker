@@ -64,7 +64,7 @@ object BitEvaluation extends BitProgram {
       ("0.01", all_01)
     )
 
-    val program = groundLarsProgram() //TODO optionally load file
+    val program = groundLarsProgram() //TODO optionally load from file
 
     val preparedSignals = namedSignalProbabilities map { case (instance, prob) =>
       val signals = PrepareEvaluator.generateSignals(prob, random, 0, timePoints)

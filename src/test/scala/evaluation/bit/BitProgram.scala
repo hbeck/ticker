@@ -22,7 +22,7 @@ trait BitProgram {
   val highestExponent = 2 //2^X; prepared program has 2^7
   val maxLevel = highestExponent - 1
 
-  val levels = Seq(fact(f"max_level($maxLevel)")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
+  val levels = Seq(fact(f"max_level(${maxLevel})")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
   val ints = (0 to Math.pow(2, highestExponent).toInt) map (i => fact(f"int($i)"))
 
   val facts = levels ++ ints

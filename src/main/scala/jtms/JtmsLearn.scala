@@ -308,4 +308,20 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   }
 
+  def printAvoidanceMap(): Unit = {
+
+    val map = tabu.currentRulesTabu.avoidanceMap
+
+    if (map.isEmpty) return
+
+    val n = Math.min(5,map.size)
+    println(n+"/"+map.size+" entries of avoidance map:")
+
+    (map take n) foreach { case (state,atoms) =>
+      println("state support keys: "+state.support.keys)
+      println("avoid atoms: "+atoms)
+    }
+  }
+
+
 }
