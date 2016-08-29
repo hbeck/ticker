@@ -40,6 +40,5 @@ class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec
 
   override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleDirectTmsTest, new SingleLazyRemoveTmsTest)
 
-
 }
 

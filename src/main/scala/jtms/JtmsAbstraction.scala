@@ -158,7 +158,6 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
         __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, out))
       }
 
-
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
 
       cons = cons.updated(a, Set[Atom]())

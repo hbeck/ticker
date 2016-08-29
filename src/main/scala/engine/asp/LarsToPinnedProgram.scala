@@ -165,7 +165,6 @@ object LarsToPinnedProgram {
   def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
   def generateAtomsOfT(windowSize: Long, atom: Atom, referenceTime: Time): Set[AtomWithArgument] = {
-    // TODO: current implementation of (... to ...) only works with integer
     val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }

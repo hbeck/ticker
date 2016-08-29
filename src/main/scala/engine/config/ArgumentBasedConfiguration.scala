@@ -17,7 +17,6 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
   def buildEngine(evaluationType: String,
                   evaluationModifier: String,
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
-    // TODO: not nice
 
     if (evaluationType == "tms") {
       if (evaluationModifier == "greedy") {

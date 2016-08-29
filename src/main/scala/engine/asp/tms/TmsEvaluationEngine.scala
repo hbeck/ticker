@@ -21,14 +21,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
-  var extensionalAtomsStream: Map[TimePoint, GroundedAspStream] = Map()
+  var stream: Map[TimePoint, GroundedAspStream] = Map()
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     tuplePositions = atoms.toList ++ tuplePositions
-    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
+    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated (asFluentMap(a), a.asFluentReference()))
     cachedResults(time) = prepare(time, atoms.toSet)
-    trimByWindowSize(time)
+    discardOutdatedAuxiliaryAtoms(time)
   }
 
   def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
@@ -65,10 +65,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   }
 
   override def evaluate(time: TimePoint): Result = {
+
     val resultingModel = cachedResults.get(time) match {
       case Some(result) => result.get
       case None => {
-        //TODO think about this: We can't generate a result if the current time is in the past (of previous calculated time values)
         if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
           return UnknownResult
         } else {
@@ -77,9 +77,8 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
       }
     }
 
-    // TODO double-check for results => NoResult?
     resultingModel match {
-      case Some(m) => Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(resultingModel.get, time))))
+      case Some(m) => Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(m, time))))
       case None => NoResult
     }
   }
@@ -95,14 +94,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     case a: Atom => a(timePoint)
   }
 
-  // TODO: move into policy?
-  def trimByWindowSize(time: TimePoint) = { //TODO reveiw maximum window size 0 vs None
-    tuplePositions = tuplePositions.take((pinnedAspProgram.maximumWindowSize + 1).toInt)
+  def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
 
-    val atomsToRemove = extensionalAtomsStream.filterKeys(p => p.value < time.value - pinnedAspProgram.maximumWindowSize)
-    extensionalAtomsStream = extensionalAtomsStream -- atomsToRemove.keySet
+    tuplePositions = tuplePositions.take((pinnedAspProgram.maximumWindowSize).toInt)
 
-    atomsToRemove foreach (a => tmsPolicy.remove(a._1)(a._2.toSeq))
+    val atomsToRemove = stream filterKeys (t => t.value < time.value - pinnedAspProgram.maximumWindowSize)
+    stream = stream -- atomsToRemove.keySet
+
+    atomsToRemove foreach { case (timePoint,signals) => tmsPolicy.remove(timePoint)(signals.toSeq) }
   }
 
   def asFluentMap(atom: Atom) = {

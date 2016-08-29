@@ -27,7 +27,6 @@ object PrepareEvaluator {
       Console.println(f"Engine: $evaluationType $evaluationStrategy")
       return engine.get
     } else {
-      // TODO: not nice
       printUsageAndExit(args, "wrong combination of evaluation-type/modifier specified")
       return null
     }
@@ -60,14 +59,12 @@ object PrepareEvaluator {
   }
 
   def generateSignals(probabilities: Map[Atom, Double], random: Random, t0: TimePoint, t1: TimePoint) = {
-    val signals = (t0.value to t1.value) map {
+    (t0.value to t1.value) map {
       t => {
         val atoms = selectAtoms(random)(probabilities)
         StreamEntry(TimePoint(t), atoms)
       }
     }
-
-    signals
   }
 
 

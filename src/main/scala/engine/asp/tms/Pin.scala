@@ -31,27 +31,27 @@ import engine.asp._
   * e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).
   *
   */
-case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
+case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOffset = T) {
 
   def apply(atom: Atom): PinnedFact = {
     AspFact(atom(timePoint))
   }
 
-  def apply(atom: AtomWithArgument): AtomWithArgument = atom match {
-    case t: PinnedAtom => apply(t)
-    case _ => atom
+  def apply(aa: AtomWithArgument): AtomWithArgument = aa match {
+    case pa: PinnedAtom => apply(pa)
+    case _ => aa
   }
 
-  def apply(atom: PinnedAtom): PinnedAtom = {
-    val groundedBaseAtom = atom.atom match {
-      case t: PinnedAtom => apply(t)
+  def apply(pinnedAtom: PinnedAtom): PinnedAtom = {
+
+    val groundedBaseAtom = pinnedAtom.atom match {
+      case pa: PinnedAtom => apply(pa)
       case a: Atom => a
     }
 
-    // TODO: move into PinnedAtom.ground Function?
-    val timeVariable = variable.variable
+    val timeVariable = timeVariableWithOffset.variable
 
-    val groundedTimePoint = atom.time match {
+    val groundedTimePoint = pinnedAtom.time match {
       case v@TimeVariableWithOffset(`timeVariable`, _) => v.ground(timePoint)
       // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).)
       case v: TimeVariableWithOffset => v.ground(timePoint)
@@ -67,7 +67,7 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
       ground(g)
     }
     case a: GroundAtom => a
-    case _ => throw new RuntimeException("cannot ground " + atom) //TODO
+    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
   def ground(fact: NormalFact): GroundAspFact = AspFact(this.ground(fact.head))
@@ -81,7 +81,6 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
   }
 
   def ground(pinnedAtom: PinnedAtom): GroundAtom = {
-    // TODO: unifiy
     GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
   }
 
@@ -119,8 +118,6 @@ object GroundedNormalRule {
 }
 
 object GroundRule {
-
-  // TODO: get rid of this (Ground Rule should be a normal rule - types don't work currently)
   def asNormalRule(rule: GroundAspRule): NormalRule = {
     AspRule(rule.head.asInstanceOf[Atom], rule.pos map (_.asInstanceOf[Atom]), rule.neg map (_.asInstanceOf[Atom]))
   }
