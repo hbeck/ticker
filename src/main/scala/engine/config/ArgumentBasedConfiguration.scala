@@ -45,7 +45,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
   def doyleTms(program: LarsProgram, random: Random = new Random(1)) = {
@@ -53,7 +53,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
   def learnTms(program: LarsProgram, random: Random = new Random(1)) = {
@@ -63,15 +63,15 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
-    BuildEngine.withProgram(program).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
   def clingoPush(program: LarsProgram) = {
-    BuildEngine.withProgram(program).useAsp().withClingo().use().usePush().start()
+    BuildEngine.withProgram(program).configure().withClingo().use().usePush().start()
   }
 
   def clingoPull(program: LarsProgram) = {
-    BuildEngine.withProgram(program).useAsp().withClingo().use().usePull().start()
+    BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
   }
 
 

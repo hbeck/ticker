@@ -4,7 +4,7 @@ import core.Atom
 import core.asp.AspProgram
 import core.lars.LarsProgram
 import engine.asp.oneshot.EvaluationStrategy
-import engine.config.{AspEvaluationEngineConfiguration, BuildEngine, EngineEvaluationConfiguration}
+import engine.config.{AspEngineEvaluationConfiguration, BuildEngine, EngineEvaluationConfiguration}
 import fixtures._
 import org.scalatest._
 import org.scalatest.Matchers._

@@ -1,10 +1,9 @@
 package core.lars
 
 import core._
-import core.asp._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
-import engine.asp.{GroundRule, PlainLarsToAsp}
-import engine.asp.tms.{GroundRule, GroundedNormalRule, Pin, PinnedAspToIncrementalAsp}
+import engine.asp.LarsToPinnedProgram
+import engine.asp.tms.{GroundRule, Pin, PinnedAspToIncrementalAsp}
 
 import scala.io.Source
 
@@ -14,16 +13,16 @@ import scala.io.Source
 object Util {
 
   //"a(x,Y)" ==> Seq("a","x","Y")
-  def atom(s:String): ExtendedAtom = {
+  def xatom(s:String): ExtendedAtom = {
     val str = if (s.startsWith("not ")) s.substring(4) else s
     if (!str.contains("(")) return noArgsAtom(str)
     val commasOnly = str.substring(0,str.size-1).replace("(",",")
     val seq: Seq[String] = commasOnly.split(",").toSeq
-    atom(seq)
+    xatom(seq)
   }
 
   //Seq("a","x","Y") ==> NonGroundAtom(a,{x,Y})
-  def atom(ss:Seq[String]): ExtendedAtom = {
+  def xatom(ss:Seq[String]): ExtendedAtom = {
     assert(ss.size>0)
     if (ss.size == 1)
       noArgsAtom(ss(0))
@@ -71,16 +70,16 @@ object Util {
   def v(s:String) = Variable(s)
   def arg(s:String): Argument = if (s.charAt(0).isUpper) Variable(s) else Value(s)
 
-  def fact(s:String):LarsRule = LarsFact(atom(s).asInstanceOf[Atom])
+  def fact(s:String):LarsRule = LarsFact(xatom(s).asInstanceOf[Atom])
   def rule(all:String): LarsRule = {
     if (!all.contains(" :- ")) return fact(all)
     val hbStr = all.split(" :- ")
-    val head:HeadAtom = atom(hbStr(0)).asInstanceOf[Atom] //not *A*tom! using atom to parse predicate symbol
+    val head:HeadAtom = xatom(hbStr(0)).asInstanceOf[Atom] //not *A*tom! using atom to parse predicate symbol
     val bodyParts = hbStr(1).split(", ")
     val posBodyParts = bodyParts filterNot (_.trim.startsWith("not"))
     val negBodyParts = bodyParts filter (_.trim.startsWith("not"))
-    val pos:Set[ExtendedAtom] = posBodyParts map (atom(_)) toSet
-    val neg:Set[ExtendedAtom] = negBodyParts map (atom(_)) toSet
+    val pos:Set[ExtendedAtom] = posBodyParts map (xatom(_)) toSet
+    val neg:Set[ExtendedAtom] = negBodyParts map (xatom(_)) toSet
 
     LarsRule(head,pos,neg)
   }
@@ -90,7 +89,7 @@ object Util {
 
   //a(x,y) b(y,z) ==> use , only within atoms and use white space only to split atoms
   def parseSpaceSeparatedAtoms(s: String): Set[ExtendedAtom] = {
-    s.split(" ") map (atom(_)) toSet
+    s.split(" ") map (xatom(_)) toSet
   }
 
   //use only for asp fragment!
@@ -107,7 +106,7 @@ object Util {
   }
 
   def modelFromClingo(s:String): Model = {
-    s.split(" ") map (atom(_).asInstanceOf[Atom]) toSet
+    s.split(" ") map (xatom(_).asInstanceOf[Atom]) toSet
   }
 
   def asInt(v:Value):Int = v match {
@@ -164,7 +163,7 @@ object Util {
 
   def aspProgramAt(groundLarsProgram: LarsProgram, time: Int): NormalProgram = {
 
-    val aspProgramWithVariables = PlainLarsToAsp(groundLarsProgram)
+    val aspProgramWithVariables = LarsToPinnedProgram(groundLarsProgram)
 
     val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
 

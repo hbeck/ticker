@@ -16,16 +16,6 @@ sealed trait Atom extends HeadAtom {
 
   val predicate: Predicate
 
-  //override def atom(): Atom = this
-
-  /*
-  //convenience for testing TODO review
-  def apply(int: Int): Atom = PinnedAtom(this,TimePoint(int))
-
-  //TODO
-  def apply(s: String): Atom = Predicate(s)
-  */
-
 }
 
 case class Predicate(caption: String) {
@@ -46,10 +36,8 @@ case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
 }
 
-// TODO: should we use FactAtom? We need this as a wrapper around an Atom consisting only of a Predicate and no Arguments
 case class PredicateAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
-
 
   private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PredicateAtom.this)
 

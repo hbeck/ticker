@@ -3,11 +3,11 @@ package engine
 import core.asp.AspRule
 import core.lars._
 import core.{not => _, _}
-import engine.asp.{PlainLarsToAsp, now}
+import engine.asp.{LarsToPinnedProgram, now}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
 import engine.asp.now
-import engine.asp.PlainLarsToAsp
+import engine.asp.LarsToPinnedProgram
 import engine.asp.tms.PinnedAspToIncrementalAsp
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -38,7 +38,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "Window-Atoms" should "have no pinned head" in {
-    val rules = PlainLarsToAsp(a <= W(1, Diamond, b))
+    val rules = LarsToPinnedProgram(a <= W(1, Diamond, b))
 
     val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
     forAll(converted)(r => r.head shouldBe an[PredicateAtom])
@@ -47,11 +47,11 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   "The usage of the window-atom body" should "not be pinned" in {
     val windowAtom = W(1, Diamond, b)
     val p = LarsProgram.from(a <= windowAtom)
-    val mappedProgram = PlainLarsToAsp(p)
+    val mappedProgram = LarsToPinnedProgram(p)
 
     val converted = PinnedAspToIncrementalAsp(mappedProgram)
 
-    forAll(converted.rules)(r => r.body should not contain (PlainLarsToAsp.apply(windowAtom)))
+    forAll(converted.rules)(r => r.body should not contain (LarsToPinnedProgram.apply(windowAtom)))
   }
 
   "A rule where an atom is part of the head of another rule" should "be unpinned" in {
@@ -60,11 +60,11 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
       c <= a
     )
 
-    val mappedProgram = PlainLarsToAsp(p)
+    val mappedProgram = LarsToPinnedProgram(p)
 
     val converted = PinnedAspToIncrementalAsp(mappedProgram)
 
-    forAll(converted.rules)(r => r.body should not contain PlainLarsToAsp.apply(a))
+    forAll(converted.rules)(r => r.body should not contain LarsToPinnedProgram.apply(a))
 
   }
 

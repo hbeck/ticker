@@ -1,7 +1,7 @@
 package lars
 
 import core.lars.{Diamond, LarsProgram, LarsRule, W}
-import engine.asp.{PlainLarsToAsp, SanitizeLarsProgram}
+import engine.asp.{LarsToPinnedProgram, SanitizeLarsProgram}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

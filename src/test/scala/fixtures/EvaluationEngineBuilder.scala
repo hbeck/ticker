@@ -37,11 +37,11 @@ trait EvaluationEngineBuilder {
 }
 
 trait ClingoPullEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePull().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePull().start()
 }
 
 trait ClingoPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().start()
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
@@ -51,7 +51,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
     val tms = JtmsGreedy(new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).start()
   }
 }
 
@@ -63,6 +63,6 @@ trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
     val tms = JtmsGreedy(new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 }

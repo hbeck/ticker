@@ -14,7 +14,7 @@ trait EvaluateProgramWithAllImplementations  {
   this: FlatSpec =>
 
   def runInAllImplementations(program: LarsProgram)(testSpecifications: (=> EvaluationEngine) => Unit): Unit = {
-    val config = BuildEngine.withProgram(program).useAsp()
+    val config = BuildEngine.withProgram(program).configure()
 
     "Using Clingo-Pull" should behave like testSpecifications(config.withClingo().use().usePull().start())
     "Using Clingo-Push" should behave like testSpecifications(config.withClingo().use().usePush().start())

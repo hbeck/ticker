@@ -56,11 +56,11 @@ trait Jtms {
     ! r.atoms.exists(pinned(_)) //include testing head for facts
   }
 
-  def extensionalAtoms() = allAtoms filter extensional
+  def signals() = allAtoms filter isSignal
 
   //note: this is implementation specific due to use case
-  //(PinnedAtoms obtained after grounding, and only extensional atoms are pinned)
-  def extensional(a: Atom) = pinned(a)
+  //(PinnedAtoms obtained after grounding, and only signals (i.e., stream atoms) are pinned)
+  def isSignal(a: Atom) = pinned(a)
 
   def pinned(atom: Atom) = atom.isInstanceOf[PinnedAtom]
 

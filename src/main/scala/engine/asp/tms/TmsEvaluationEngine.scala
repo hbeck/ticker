@@ -10,7 +10,7 @@ import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolicy: TmsPolicy) extends EvaluationEngine {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
@@ -19,11 +19,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
 
   tmsPolicy.initialize(groundRules.map(x => GroundedNormalRule(x)))
 
-  // TODO: wrong position? Move to Policy?
+  //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
-  var extensionalAtomsStream: Map[TimePoint, GroundedStream] = Map()
+  var extensionalAtomsStream: Map[TimePoint, GroundedAspStream] = Map()
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
-
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     tuplePositions = atoms.toList ++ tuplePositions
@@ -32,12 +31,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     trimByWindowSize(time)
   }
 
-  def prepare(time: TimePoint, atoms: Set[Atom]): Result = {
+  def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
     val pin = Pin(time)
 
-    val groundedRules = pin.ground(nonGroundRules)
-    // TODO: make it nicer
-    val extensionalAtoms = pin.ground(pin.atoms(atoms))
+    val pinnedGroundedRules = pin.ground(nonGroundRules)
+    val pinnedSignals = pin.ground(signalAtoms map pin.apply)
 
     val orderedTuples = deriveOrderedTuples
     val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact(_)).toSeq
@@ -45,16 +43,20 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
     val add = tmsPolicy.add(time) _
 
     // separating the calls ensures maximum on support for rules
-    add(extensionalAtoms.toSeq)
+    // facts first
+    add(pinnedSignals.toSeq)
     add(orderedTuples)
-    add(groundedRules)
     add(fluentTuples)
+    // then rules
+    add(pinnedGroundedRules)
 
     val model = tmsPolicy.getModel(time)
 
     val remove = tmsPolicy.remove(time) _
 
-    remove(groundedRules)
+    // rules first
+    remove(pinnedGroundedRules)
+    // then facts
     // we never remove extensional atoms explicitly (the policy might do it)
     remove(orderedTuples)
     remove(fluentTuples)
@@ -94,7 +96,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: MappedProgram, tmsPolicy: TmsPo
   }
 
   // TODO: move into policy?
-  def trimByWindowSize(time: TimePoint) = {
+  def trimByWindowSize(time: TimePoint) = { //TODO reveiw maximum window size 0 vs None
     tuplePositions = tuplePositions.take((pinnedAspProgram.maximumWindowSize + 1).toInt)
 
     val atomsToRemove = extensionalAtomsStream.filterKeys(p => p.value < time.value - pinnedAspProgram.maximumWindowSize)

@@ -13,12 +13,12 @@ import org.scalatest.FunSuite
 class GrounderTests extends FunSuite {
 
   test("parsing") {
-    assert(atom("a")==PredicateAtom(p("a")))
-    assert(atom("a(x)")==GroundAtomWithArguments(Predicate("a"),Seq[Value](StringValue("x"))))
-    assert(atom("a(x,y)")==GroundAtomWithArguments(Predicate("a"),Seq[Value](StringValue("x"),StringValue("y"))))
-    assert(atom("a(X)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X")))
-    assert(atom("a(X,y)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X",StringValue("y"))))
-    assert(atom("a(y,X)")==NonGroundAtom(Predicate("a"),Seq[Argument](StringValue("y"),"X")))
+    assert(xatom("a")==PredicateAtom(p("a")))
+    assert(xatom("a(x)")==GroundAtomWithArguments(Predicate("a"),Seq[Value](StringValue("x"))))
+    assert(xatom("a(x,y)")==GroundAtomWithArguments(Predicate("a"),Seq[Value](StringValue("x"),StringValue("y"))))
+    assert(xatom("a(X)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X")))
+    assert(xatom("a(X,y)")==NonGroundAtom(Predicate("a"),Seq[Argument]("X",StringValue("y"))))
+    assert(xatom("a(y,X)")==NonGroundAtom(Predicate("a"),Seq[Argument](StringValue("y"),"X")))
   }
 
   //

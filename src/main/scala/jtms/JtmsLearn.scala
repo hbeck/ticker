@@ -264,17 +264,17 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   //TODO hb: review definition of extensional; fact atoms vs signals. facts are also extensional,
   //but the state shall only avoid signals. (those are the pinned ones!)
-  def stateAtoms = (inAtoms union outAtoms) diff extensionalAtoms
+  def stateAtoms = (inAtoms union outAtoms) diff signals
 
   //skip facts! - for asp they are irrelevant, for tms they change based on time - no stable basis
-  def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !extensional(a)
+  def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
 
   def selectNextAtom(): Unit = {
 
     state = stateSnapshot()
 
     //    val atomSet = (unknownAtoms filter (!extensional(_)))
-    val atomSet = unknownAtoms diff extensionalAtoms
+    val atomSet = unknownAtoms diff signals
     val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
 
     if (atoms.isEmpty) return

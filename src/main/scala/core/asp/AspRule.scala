@@ -56,21 +56,20 @@ case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: 
 //    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
 }
 
-//TODO order of args
-case class AspRuleFromBacktracking(pos: Set[Atom], neg: Set[Atom], head: Atom) extends NormalRule {
+case class AspRuleFromBacktracking(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends NormalRule {
   override def from(h: Atom, p: Set[Atom], n: Set[Atom]) = {
-    AspRuleFromBacktracking(p,n,h)
+    AspRuleFromBacktracking(h,p,n)
   }
   override def toString = {
     super.toString.replaceAll("<-", "<--")
   }
 }
 
-object AspRuleFromBacktracking {
-  def apply(pos: scala.collection.mutable.Set[Atom], neg: scala.collection.mutable.Set[Atom], head: Atom): AspRuleFromBacktracking = {
-    AspRuleFromBacktracking(pos.toSet, neg.toSet, head)
-  }
-}
+//object AspRuleFromBacktracking {
+//  def apply(head: Atom, pos: Set[Atom], neg: Set[Atom]): AspRuleFromBacktracking = {
+//    AspRuleFromBacktracking(head, pos.toSet, neg.toSet)
+//  }
+//}
 
 object AspFact {
   def apply[TAtom <: Atom](fact: TAtom): AspFact[TAtom] = UserDefinedAspFact(fact)

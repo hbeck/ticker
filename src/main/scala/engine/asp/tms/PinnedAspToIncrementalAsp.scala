@@ -3,7 +3,7 @@ package engine.asp.tms
 import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
 import core.{Atom, AtomWithArgument, PinnedAtom}
-import engine.asp.{MappedProgram, PinnedRule, now}
+import engine.asp.{PinnedProgramWithLars, PinnedRule, now}
 
 /**
   * Created by FM on 08.06.16.
@@ -36,8 +36,8 @@ object PinnedAspToIncrementalAsp {
     )
   }
 
-  def apply(p: MappedProgram): NormalProgram = {
-    val headAtoms = p.mappedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
+  def apply(p: PinnedProgramWithLars): NormalProgram = {
+    val headAtoms = p.larsRulesAsPinnedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
 
     val semiPinnedRules = p.rules map (r => apply(r, headAtoms))
 

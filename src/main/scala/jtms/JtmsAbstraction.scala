@@ -23,10 +23,11 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
   var __stateHash:  Long = IncrementalHashCode.emptyHash
 
-  var __extensionalAtoms: Set[Atom] = Set()
+  //atoms from streaming; specific logic beyond tms
+  var __signals: Set[Atom] = Set()
 
   var __suppHash: Map[Atom, Long] = Map()
-  
+
 
   override def inAtoms() = __atomsWithStatus(in)
 
@@ -36,7 +37,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   override def hasUnknown(): Boolean = unknownAtoms().nonEmpty
 
-  override def extensionalAtoms(): Set[Atom] = __extensionalAtoms
+  override def signals(): Set[Atom] = __signals
 
   def update(atoms: Set[Atom])
 
@@ -151,13 +152,14 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
       status = status.updated(a, out)
 
-      if(!extensionalAtoms().contains(a))
-        __stateHash = IncrementalHashCode.addHashCode(__stateHash,(a, out))
+      if (isSignal(a)) {
+        __signals = __signals + a
+      } else {
+        __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, out))
+      }
+
 
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
-
-      if (extensional(a))
-        __extensionalAtoms = __extensionalAtoms + a
 
       cons = cons.updated(a, Set[Atom]())
       clearSupport(a)
@@ -207,7 +209,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
 
     if (oldStatus != newStatus) {
-      if(!extensionalAtoms().contains(a)) {
+      if(!signals().contains(a)) {
         if (oldStatus == in || oldStatus == out)
           __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
         if(newStatus==in || newStatus == out)
@@ -273,7 +275,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     val oldStatus = status(a)
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    if(!extensionalAtoms().contains(a) && (oldStatus==in ||oldStatus==out))
+    if(!signals().contains(a) && (oldStatus==in ||oldStatus==out))
       __stateHash = IncrementalHashCode.removeHashCode(__stateHash,(a, oldStatus))
 
     status = status - a
@@ -282,8 +284,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     __suppHash = __suppHash - a
     suppRule = suppRule - a
 
-    if (extensional(a))
-      __extensionalAtoms = __extensionalAtoms - a
+    if (isSignal(a))
+      __signals = __signals - a
     //    status remove a
     //    cons remove a
     //    supp remove a
@@ -358,12 +360,12 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   }
   def setSupport(a: Atom, atoms: Set[Atom]): Unit = {
     supp = supp.updated(a, atoms)
-    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff extensionalAtoms))
+    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff signals))
   }
 
   def addSupport(a:Atom, newAtom:Atom): Unit ={
     supp = supp.updated(a, supp(a) + newAtom)
-    if(!extensionalAtoms().contains(newAtom))
+    if(!signals().contains(newAtom))
       __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a),newAtom))
   }
 

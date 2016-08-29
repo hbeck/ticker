@@ -13,7 +13,7 @@ import com.quantifind.charts.repl.HighchartsStyles
 case class DumpData(configCaption: String, instanceSizeCaption: String) {
 
   def printResults(filePath: String)(results: Seq[AlgorithmResult[TimingsConfigurationResult]]) {
-    printToFile(new File(filePath)) { p =>
+    printToFile(new File(filePath)) { printer =>
       val captions = Seq(
         configCaption,
         instanceSizeCaption,
@@ -27,16 +27,16 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
         "Evaluate-Median [ms]"
       )
 
-      p.println(captions.mkString(";"))
+      printer println (captions.mkString(";"))
 
-      val resultStrings = results.map(a => a.runs.flatMap(r => Seq(a.caption, r.instanceCaption) ++ configResultFormatted(r)))
+      val resultStrings = results map (a => a.runs flatMap (r => Seq(a.caption, r.instanceCaption) ++ configResultFormatted(r)))
 
-      resultStrings foreach (r => p.println(r.mkString(";")))
+      resultStrings foreach (r => printer println (r.mkString(";")))
     }
   }
 
-  def printSucessResults(filePath: String)(results: Seq[AlgorithmResult[SuccessConfigurationResult]]): Unit = {
-    printToFile(new File(filePath)) { p =>
+  def printSuccessResults(filePath: String)(results: Seq[AlgorithmResult[SuccessConfigurationResult]]): Unit = {
+    printToFile(new File(filePath)) { printer =>
       val captions = Seq(
         configCaption,
         instanceSizeCaption,
@@ -44,13 +44,13 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
         "Found Model"
       )
 
-      p.println(captions.mkString(";"))
+      printer.println(captions.mkString(";"))
 
       val resultStrings = results.flatMap(a => a.runs flatMap (r => r.successFailures map {
         case (time, success) => Seq(a.caption, r.instanceCaption, time.toString, success.toString)
       }))
 
-      resultStrings foreach (r => p.println(r.mkString(";")))
+      resultStrings foreach (r => printer.println(r.mkString(";")))
     }
   }
 

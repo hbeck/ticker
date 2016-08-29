@@ -17,10 +17,11 @@ package object asp {
   type PinnedModel = Set[PinnedAtom]
   type PinnedStream = Set[PinnedFact]
 
-  type LarsRuleMapping = (LarsRule, Set[PinnedRule]) //TODO documentation on what that is (/used for). name is generic but not clear
+  //keep original lars rule from which a pinned rule stems
+  type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])
 
-  type GroundRule = AspRule[GroundAtom] //TODO rename to GroundAspRule etc
-  type GroundFact = AspFact[GroundAtom]
-  type GroundedStream = Set[GroundFact]
-  type GroundProgram = AspProgram[GroundAtom, GroundRule]
+  type GroundAspRule = AspRule[GroundAtom]
+  type GroundAspFact = AspFact[GroundAtom]
+  type GroundedAspStream = Set[GroundAspFact]
+  type GroundAspProgram = AspProgram[GroundAtom, GroundAspRule]
 }

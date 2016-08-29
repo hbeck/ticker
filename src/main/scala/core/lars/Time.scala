@@ -3,7 +3,7 @@ package core.lars
 /**
   * Created by FM on 05.04.16.
   */
-sealed trait Time { //TODO hb: why do we need Time and TimePoint? (i'm trying to extract the time point from a pinned atom but i get a time)
+sealed trait Time {
   def -(duration: Duration): Time
 
   def +(duration: Duration): Time

@@ -1,6 +1,5 @@
 import core.lars._
 import core.{Atom, StringValue}
-import engine.StreamEntry
 import evaluation._
 
 import scala.collection.immutable.HashMap
@@ -62,9 +61,9 @@ object P18Evaluation extends P18Program {
     val evaluationCombination = evaluationOptions map {
       case (instance, programs) => {
         val program = LarsProgram(programs flatMap (_.toSeq))
-        val signals = Evaluator.generateSignals(instance._2, random, 0, timePoints)
+        val signals = PrepareEvaluator.generateSignals(instance._2, random, 0, timePoints)
 
-        (Evaluator.fromArguments(args, instance._1, program), signals)
+        (PrepareEvaluator.fromArguments(args, instance._1, program), signals)
       }
     }
 
@@ -73,7 +72,7 @@ object P18Evaluation extends P18Program {
     Console.out.println("Algorithm: " + option)
 
     val results = evaluationCombination map {
-      case (evaluator, signals) => evaluator.streamInputsAsFastAsPossible(1, 2)(signals)
+      case (evaluator, signals) => evaluator.streamAsFastAsPossible(1, 2)(signals)
     }
 
     AlgorithmResult(option, results toList)
@@ -82,7 +81,7 @@ object P18Evaluation extends P18Program {
 
   def failures(args: Array[String]): Unit = {
     val dump = DumpData("Configuration", "Instances")
-    val dumpToCsv = dump.printSucessResults("p18-failure-output.csv") _
+    val dumpToCsv = dump.printSuccessResults("p18-failure-output.csv") _
 
     if (args.length == 0) {
       val allOptions = Seq(
@@ -116,7 +115,7 @@ object P18Evaluation extends P18Program {
 
     val evaluationCombination = evaluationOptions map { case (instance, programs) =>
       val program = LarsProgram(programs flatMap (_.toSeq))
-      val signals = Evaluator.generateSignals(instance._2, random, 0, timePoints)
+      val signals = PrepareEvaluator.generateSignals(instance._2, random, 0, timePoints)
 
       (instance._1, program, signals)
     }
@@ -126,7 +125,7 @@ object P18Evaluation extends P18Program {
     Console.out.println("Algorithm: " + option)
 
     val results = evaluationCombination map {
-      case (instance, program, signals) => Evaluator.fromArguments(args, instance, program).successfulModelComputations(signals)
+      case (instance, program, signals) => PrepareEvaluator.fromArguments(args, instance, program).successfulModelComputations(signals)
     }
 
     AlgorithmResult(option, results toList)

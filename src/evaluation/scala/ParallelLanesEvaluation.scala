@@ -70,14 +70,14 @@ object ParallelLanesEvaluation {
     val pl = new ParallelLanes {}
     val program = pl.generateProgramWithGrounding(nodes, lanes)
 
-    val evaluator = Evaluator.fromArguments(args, instance, program)
+    val evaluator = PrepareEvaluator.fromArguments(args, instance, program)
 
     val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
     val inputs: Seq[StreamEntry] = obstacles zip (Stream from 1) map {
       case (atoms, timePoint) => StreamEntry(TimePoint(timePoint), atoms)
     }
 
-    evaluator.streamInputsAsFastAsPossible(1, 2)(inputs)
+    evaluator.streamAsFastAsPossible(1, 2)(inputs)
   }
 
 

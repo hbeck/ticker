@@ -7,7 +7,7 @@ import core._
 /**
   * Created by FM on 05.05.16.
   */
-object PlainLarsToAsp {
+object LarsToPinnedProgram {
 
   def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
     case AtAtom(t, a) => a(t)
@@ -28,9 +28,9 @@ object PlainLarsToAsp {
     Set(this.rule(rule)) ++ rulesForBody
   }
 
-  def apply(program: LarsProgram): MappedProgram = {
-    val rules: Seq[LarsRuleMapping] = program.rules map (r => (r, this.apply(r)))
-    MappedProgram(rules)
+  def apply(program: LarsProgram): PinnedProgramWithLars = {
+    val rules: Seq[LarsRuleAsPinnedRules] = program.rules map (r => (r, this.apply(r)))
+    PinnedProgramWithLars(rules)
   }
 
   def apply(windowAtom: WindowAtom): PinnedAtom = {
@@ -174,18 +174,19 @@ object PlainLarsToAsp {
 /*
  * we keep the original lars rule for potential later optimizations
  */
-case class MappedProgram(mappedRules: Seq[LarsRuleMapping]) extends PinnedProgram {
-  override val rules = mappedRules.flatMap(_._2)
+case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules]) extends PinnedProgram {
 
-  val windowAtoms = mappedRules.
-    map(_._1).
-    flatMap(r => r.body collect { case w: WindowAtom => w })
+  override val rules = larsRulesAsPinnedRules flatMap { case (_,pinned) => pinned }
 
-  val slidingWindows = windowAtoms collect { case s: SlidingWindow => s }
+  val windowAtoms = larsRulesAsPinnedRules map { case (lars,_) => lars } flatMap {
+    _.body collect { case w: WindowAtom => w }
+  }
 
-  // TODO: when there are no windows - is the maximumWindowSize 0 or None?
-  val maximumWindowSize: WindowSize = slidingWindows.isEmpty match {
-    case false => slidingWindows.maxBy(_.windowSize).windowSize
+  val slidingWindowsAtoms = windowAtoms collect { case s: SlidingWindow => s }
+  //TODO fluent window
+
+  val maximumWindowSize: WindowSize = slidingWindowsAtoms.isEmpty match {
     case true => 0
+    case false => slidingWindowsAtoms.maxBy(_.windowSize).windowSize
   }
 }

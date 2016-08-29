@@ -238,7 +238,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     val suppRules = maxAssumptions map (suppRule(_).get) //J_\bot
     val pos = suppRules flatMap (_.pos) //I_\bot
     val neg = (suppRules flatMap (_.neg)) - nStar //O_\bot
-    val rule = AspRuleFromBacktracking(pos, neg, nStar)
+    val rule = AspRuleFromBacktracking(nStar, pos, neg)
 
     //4
     updateSteps1to5(rule)
@@ -323,7 +323,7 @@ class JtmsBeierle() extends JtmsAbstraction {
     val suppRules = maxAssumptions map (suppRule(_).get)
     val pos = suppRules flatMap (_.pos)
     val neg = (suppRules flatMap (_.neg)) - n
-    val rule = AspRuleFromBacktracking(pos, neg, n)
+    val rule = AspRuleFromBacktracking(n, pos, neg)
 
     Some(rule)
   }

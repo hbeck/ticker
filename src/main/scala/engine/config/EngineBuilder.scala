@@ -8,7 +8,7 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.JtmsGreedy
+import jtms.{Jtms, JtmsGreedy}
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -18,42 +18,37 @@ import scala.util.Random
   */
 object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
+}
+
+case class EngineEvaluationConfiguration(larsProgram: LarsProgram) {
+
+  def withConfiguration(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(larsProgram).build(evaluationType, evaluationModifier)
+
+  def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(larsProgram))
 
 }
 
-case class EngineEvaluationConfiguration(program: LarsProgram) {
 
-  def fromArguments(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(program).build(evaluationType, evaluationModifier)
+case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars) {
 
-  //val sanitizer = SanitizeLarsProgram(program)
+  def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(pinnedProgram)))
 
-  //def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(sanitizer.sanitizedProgram))
-  def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(program))
-
-  def useIncremental() = {
-    //TODO
-  }
-}
-
-
-case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
-
-  def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
-
-  def withTms() = AspBasedTmsConfiguration(aspProgram)
+  def withTms() = TmsConfiguration(pinnedProgram)
 
 }
 
-case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new Random))) {
-  def withRandom(random: Random) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(JtmsGreedy(random)))
+case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new Random))) {
 
-  def useTms(jtms: JtmsGreedy) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
+  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(random)))
 
-  def usingPolicy(tmsPolicy: TmsPolicy) = AspBasedTmsConfiguration(program, tmsPolicy)
+  def useTms(jtms: Jtms) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
+
+  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
+
 }
 
-object AspBasedTmsConfiguration {
-  implicit def toEvaluationModeConfig(config: AspBasedTmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.program, config.policy))
+object TmsConfiguration {
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.pinnedProgram, config.policy))
 }
 
 case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
@@ -70,9 +65,11 @@ case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInte
 }
 
 case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
+
   def usePull() = StartableEngineConfiguration(AspPullEvaluationEngine(aspEvaluation))
 
   def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))
+
 }
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {

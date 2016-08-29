@@ -35,6 +35,6 @@ object OneShotEvaluationEngine {
 
   def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + Pin(time)(now)
 
-  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => Pin(x.time).atoms(x.atoms))
+  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => x.atoms map Pin(x.time).apply)
 
 }

@@ -2,7 +2,7 @@ package evaluation.alternatingSupport
 
 import core.lars.TimePoint
 import engine.Result
-import engine.asp.{GroundRule, PlainLarsToAsp}
+import engine.asp.{GroundAspRule, LarsToPinnedProgram}
 import engine.asp.tms.{GroundRule, GroundedNormalRule, PinnedAspToIncrementalAsp, TmsEvaluationEngine}
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.{BuildEngine, EngineEvaluationConfiguration}
@@ -19,7 +19,7 @@ import scala.util.Random
 class AlternatingSupport extends FlatSpec with AlternatingSupportSpec with TimeTestFixtures {
 
 
-  val transformedProgram = PlainLarsToAsp(program)
+  val transformedProgram = LarsToPinnedProgram(program)
 
   "Two streaming elements and the normal TMS-Evaluation" should "lead to an expensive update" in {
     val tms = JtmsGreedy(new Random(1))

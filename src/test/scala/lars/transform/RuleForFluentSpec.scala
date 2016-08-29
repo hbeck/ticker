@@ -2,7 +2,7 @@ package lars.transform
 
 import core._
 import core.lars._
-import engine.asp.PlainLarsToAsp
+import engine.asp.LarsToPinnedProgram
 import org.scalatest.Matchers._
 
 /**
@@ -14,56 +14,56 @@ class RuleForFluentSpec extends TransformLarsSpec {
   val w_fl_d_a = WindowAtom(FluentWindow, Diamond, a)
 
   "The rule for w^f d a" should "contain now(T)" in {
-    (PlainLarsToAsp.rulesForDiamond(w_fl_d_a) flatMap (_.body)) should contain(now(T))
+    (LarsToPinnedProgram.rulesForDiamond(w_fl_d_a) flatMap (_.body)) should contain(now(T))
   }
   it should "generate only one rule" in {
-    PlainLarsToAsp.rulesForDiamond(w_fl_d_a) should have size (1)
+    LarsToPinnedProgram.rulesForDiamond(w_fl_d_a) should have size (1)
   }
 
   it should "have head w_fl_d_a(T)" in {
-    PlainLarsToAsp.rulesForDiamond(w_fl_d_a).head.head.toString should include("w_fl_d_a")
+    LarsToPinnedProgram.rulesForDiamond(w_fl_d_a).head.head.toString should include("w_fl_d_a")
   }
   it should "contain a_FLUENT" in {
-    (PlainLarsToAsp.rulesForDiamond(w_fl_d_a) flatMap (_.body)) should contain(a_FLUENT)
+    (LarsToPinnedProgram.rulesForDiamond(w_fl_d_a) flatMap (_.body)) should contain(a_FLUENT)
   }
 
   it should "contain only 2 elements in the body" in {
-    PlainLarsToAsp.rulesForDiamond(w_fl_d_a).head.body should have size (2)
+    LarsToPinnedProgram.rulesForDiamond(w_fl_d_a).head.body should have size (2)
   }
 
   val w_fl_d_a_1 = WindowAtom(FluentWindow, Diamond, a(StringValue("1")))
   "The rule for w^f d a(1)" should "have head w_fl_d_a(1, T)" in {
-    val head = PlainLarsToAsp.rulesForDiamond(w_fl_d_a_1).head.head
+    val head = LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_1).head.head
     head.toString should include("w_fl_d_a")
     head.arguments should contain inOrderOnly(StringValue("1"), T.variable)
   }
 
   it should "contain in body a_FLUENT(1)" in {
-    (PlainLarsToAsp.rulesForDiamond(w_fl_d_a_1) flatMap (_.body)) should contain(a_FLUENT(StringValue("1")))
+    (LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_1) flatMap (_.body)) should contain(a_FLUENT(StringValue("1")))
   }
 
 
   val w_fl_d_a_M_on = WindowAtom(FluentWindow, Diamond, a(Variable("M"), StringValue("on")))
   "The rule for w^f d a(M, on)" should "have head w_fl_d_a(M, T)" in {
-    val head = PlainLarsToAsp.rulesForDiamond(w_fl_d_a_M_on).head.head
+    val head = LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on).head.head
     head.toString should include("w_fl_d_a")
     head.arguments should contain inOrderOnly(Variable("M"), T.variable)
   }
 
   it should "contain in body a_FLUENT(M, on)" in {
-    (PlainLarsToAsp.rulesForDiamond(w_fl_d_a_M_on) flatMap (_.body)) should contain(a_FLUENT(Variable("M"), StringValue("on")))
+    (LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on) flatMap (_.body)) should contain(a_FLUENT(Variable("M"), StringValue("on")))
   }
 
   val w_fl_d_a_M_on_bar = WindowAtom(FluentWindow, Diamond, a(Variable("M"), StringValue("on"), StringValue("bar")))
 
   "The rule for w^f d a(M, on, bar)" should "have head w_fl_d_a(M, T)" in {
-    val head = PlainLarsToAsp.rulesForDiamond(w_fl_d_a_M_on_bar).head.head
+    val head = LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on_bar).head.head
     head.toString should include("w_fl_d_a")
     head.arguments should contain inOrderOnly(Variable("M"), T.variable)
   }
 
   it should "contain in body a_FLUENT(M, on, bar)" in {
-    (PlainLarsToAsp.rulesForDiamond(w_fl_d_a_M_on_bar) flatMap (_.body)) should contain(a_FLUENT(Variable("M"), StringValue("on"), StringValue("bar")))
+    (LarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on_bar) flatMap (_.body)) should contain(a_FLUENT(Variable("M"), StringValue("on"), StringValue("bar")))
   }
 
 }

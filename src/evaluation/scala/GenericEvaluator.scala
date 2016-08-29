@@ -1,6 +1,5 @@
-import core.Atom
 import core.lars.LarsProgram
-import evaluation.Evaluator
+
 
 //import scala.reflect.runtime.universe
 //import scala.reflect.runtime._
