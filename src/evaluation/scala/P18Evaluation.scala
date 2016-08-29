@@ -82,7 +82,7 @@ object P18Evaluation extends P18Program {
 
   def failures(args: Array[String]): Unit = {
     val dump = DumpData("Configuration", "Instances")
-    val dumpToCsv = dump.printResults("p18-failure-output.csv") _
+    val dumpToCsv = dump.printSucessResults("p18-failure-output.csv") _
 
     if (args.length == 0) {
       val allOptions = Seq(
@@ -96,7 +96,7 @@ object P18Evaluation extends P18Program {
 
       dump.plotFailures(allResults)
 
-      //      dumpToCsv(allResults)
+      dumpToCsv(allResults)
 
     } else {
       val results = evaluateFailures(args)

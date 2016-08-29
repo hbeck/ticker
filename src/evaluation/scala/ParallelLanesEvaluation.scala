@@ -59,7 +59,6 @@ object ParallelLanesEvaluation {
     val results = evaluationOptions map {
       case (nodes, lanes) => execute(args, nodes, lanes)
     }
-
     AlgorithmResult(option, results toList)
   }
 

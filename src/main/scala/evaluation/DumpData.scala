@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.quantifind.charts.highcharts._
 import com.quantifind.charts.highcharts.Highchart._
+import com.quantifind.charts.repl.HighchartsStyles
 
 /**
   * Created by FM on 08.08.16.
@@ -29,6 +30,25 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
       p.println(captions.mkString(";"))
 
       val resultStrings = results.map(a => a.runs.flatMap(r => Seq(a.caption, r.instanceCaption) ++ configResultFormatted(r)))
+
+      resultStrings foreach (r => p.println(r.mkString(";")))
+    }
+  }
+
+  def printSucessResults(filePath: String)(results: Seq[AlgorithmResult[SuccessConfigurationResult]]): Unit = {
+    printToFile(new File(filePath)) { p =>
+      val captions = Seq(
+        configCaption,
+        instanceSizeCaption,
+        "Timepoint",
+        "Found Model"
+      )
+
+      p.println(captions.mkString(";"))
+
+      val resultStrings = results.flatMap(a => a.runs flatMap(r => r.successFailures map {
+        case (time, success) => Seq(a.caption, r.instanceCaption, time.toString, success.toString)
+      }))
 
       resultStrings foreach (r => p.println(r.mkString(";")))
     }
@@ -60,7 +80,9 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
       xAxis = Some(Array(xAxis)),
       yAxis = Some(Array(Axis(title = Some(AxisTitle("Median [ms]")))))
     )
-    com.quantifind.charts.Highcharts.plot(c)
+    new HighchartsStyles {
+      override def reloadJs = ""
+    } plot (c)
   }
 
   def dataSeries(result: AlgorithmResult[TimingsConfigurationResult]) = {
