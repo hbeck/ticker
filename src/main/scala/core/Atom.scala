@@ -20,6 +20,10 @@ sealed trait Atom extends HeadAtom {
 
 case class Predicate(caption: String) {
   override def toString = caption
+  def apply(arguments: Any*) = Atom(this,arguments map {
+    case a:Argument => a
+    case x:Any => Argument.convertToArgument(x.toString)
+  })
 }
 
 trait GroundAtom extends Atom {

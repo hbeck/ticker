@@ -18,7 +18,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __justifications: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
-  var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set()) //TODO we need to delete atoms too (grounding!)
+  var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
   var __stateHash:  Long = IncrementalHashCode.emptyHash
@@ -298,8 +298,8 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
     if (__cleanup % 1000 == 0 || force) {
       __cleanup = 0
 
-      __justifications = __justifications filter (r => r._2.nonEmpty)
-      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter (a => a._2.nonEmpty)
+      __justifications = __justifications filter { case (atom,rules) => rules.nonEmpty }
+      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom,rules) => rules.nonEmpty }
     }
   }
 

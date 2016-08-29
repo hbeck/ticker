@@ -18,21 +18,20 @@ case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
 
       inputs.foreach(i => {
         engine.append(i.time)(i.atoms.toSeq: _*)
-
         engine.evaluate(i.time)
       })
     }
 
-    // warmup - we need to clear execution times afterwards
+    // warm up - we need to clear execution times afterwards
     (1 to warmUps) foreach (i => {
       test
       Console.println("Warm-up " + i)
     })
+
     appendExecutionTimes.clear()
     evaluateExecutionTimes.clear()
 
     profile.profileR(repetitions)(test)
-
 
     TimingsConfigurationResult(
       instance,

@@ -23,7 +23,7 @@ trait Jtms {
 
   def add(rule: NormalRule)
   def remove(rule: NormalRule)
-  //def recompute() //TODO
+  //def recompute()
   def getModel(): Option[Set[Atom]]
   def set(model: Set[Atom]): Boolean
 

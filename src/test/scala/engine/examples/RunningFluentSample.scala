@@ -2,7 +2,7 @@ package engine.examples
 
 import core.{Atom, StringValue}
 import core.lars._
-import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsLazyRemovePolicyEngine}
+import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, JtmsGreedyLazyRemovePolicyEngine}
 import org.scalatest.Matchers._
 import org.scalatest.Inspectors._
 import org.scalatest.OptionValues._
@@ -10,7 +10,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.08.16.
   */
-class RunningFluentSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine {
+class RunningFluentSample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine {
   val on = StringValue("on")
   val off = StringValue("off")
 

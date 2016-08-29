@@ -74,7 +74,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
   def plot(results: Seq[AlgorithmResult[TimingsConfigurationResult]]): Unit = {
     val series = results map dataSeries
 
-    val xAxis = Axis(categories = Some(results.head.runs.map(_.instanceCaption).toArray))
+    val xAxis = Axis(categories = Some(results.head.runs.map(_.instanceCaption).toArray), axisType = Some(AxisType.category))
     val c = Highchart(series,
       chart = Chart(zoomType = Zoom.xy),
       xAxis = Some(Array(xAxis)),

@@ -11,7 +11,7 @@ object JtmsLearn {
   def apply(P: NormalProgram): JtmsLearn = {
     val net = new JtmsLearn()
     net.shuffle = false
-    P.rules foreach net.add //TODO note that in this initialization, we would not quire to save all rules in the ruleMap of tabu (in our intended use cases)
+    P.rules foreach net.add
     net
   }
 
@@ -103,7 +103,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     var counter: Map[PrecomputedHashCodeOfHashSet, MutableCounter] = Map.empty
 
-    val doCleanup = false //TODO
+    val doCleanup = true //TODO
 
     var cleanupCounter = 0
 
@@ -135,7 +135,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     var maxValue = 0
 
     def updateAfterRuleChange(): Unit = {
-      // TODO: perf: contains takes very long???
       if (ruleMap.contains(stateRules)) {
         currentRulesTabu = ruleMap(stateRules)
         if (doCleanup) {
@@ -144,13 +143,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
             val value = count.get.increment()
             maxValue = Math.max(maxValue, value)
           } else {
-            counter = counter updated(stateRules, new MutableCounter)
+            counter = counter.updated(stateRules, new MutableCounter)
           }
 
         }
       } else {
         currentRulesTabu = new CurrentRulesTabu()
-        // TODO: perf: updated.computeHash takes very long???
         ruleMap = ruleMap.updated(stateRules, currentRulesTabu)
       }
     }
@@ -251,23 +249,19 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     //    val filteredStatus = status filter { case (atom,status) => isStateAtom(atom) }
     val currentStateAtoms = stateAtoms
     //    val filteredStatus = status filterKeys currentStateAtoms.contains
-    // TODO: perf: isStateAtom as dict-lookup?
     //    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
     //    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
     val collectedSupp = __suppHash filterKeys currentStateAtoms.contains
 
     //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
-
     Some(PartialState(collectedSupp, __stateHash))
   }
 
-  //TODO hb: review definition of extensional; fact atoms vs signals. facts are also extensional,
-  //but the state shall only avoid signals. (those are the pinned ones!)
   def stateAtoms = (inAtoms union outAtoms) diff signals
 
-  //skip facts! - for asp they are irrelevant, for tms they change based on time - no stable basis
-  def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
+  //skip signals! - for asp they are irrelevant, for tms they change based on time - no stable basis
+  //def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
 
   def selectNextAtom(): Unit = {
 
@@ -279,9 +273,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (atoms.isEmpty) return
 
-    // TODO: perf: find iterates over to many atoms - dict?
+    // TODO performance: find iterates over to many atoms - dict?
     val tabuAtoms = tabu.atomsToAvoid()
-
 
     /*
     // <new160826>
@@ -312,36 +305,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         return
       }
     }
-    */
-
-    /*
-    val javaList = new java.util.ArrayList[Atom]()
-    for (a <- atoms) {
-      javaList.add(a)
-    }
-    if (shuffle) {
-      java.util.Collections.shuffle(javaList)
-    }
-
-    val iterator: util.Iterator[Atom] = javaList.iterator()
-
-    var elem: Atom = iterator.next()
-
-    val atomsToAvoid = avoidanceMap.getOrElse(state.get,scala.collection.immutable.Set())
-
-    while ((atomsToAvoid contains elem) && iterator.hasNext) {
-      elem = iterator.next()
-    }
-
-    if (atomsToAvoid contains elem) {
-      if (prevState.isDefined) {
-        updateAvoidanceMap(prevState.get, prevSelectedAtom.get)
-      }
-      selectedAtom = None
-    } else {
-      selectedAtom = Some(elem)
-    }
-
     */
 
   }

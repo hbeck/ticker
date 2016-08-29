@@ -57,7 +57,6 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
 trait ConfigurableEvaluationSuite extends Suite with EvaluationEngineBuilder {
 
-
   protected override def runNestedSuites(args: Args): Status = {
     val config = EngineConfig(this.defaultEvaluationType, (p: LarsProgram) => this.defaultEngine(p))
     val configEntry = ("engineConfig", config)
