@@ -175,13 +175,15 @@ object LarsToPinnedProgram {
  */
 case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules]) extends PinnedProgram {
 
-  override val rules = larsRulesAsPinnedRules flatMap { case (_,pinned) => pinned }
+  override val rules = larsRulesAsPinnedRules flatMap { case (_, pinned) => pinned }
 
-  val windowAtoms = larsRulesAsPinnedRules map { case (lars,_) => lars } flatMap {
+  val windowAtoms = larsRulesAsPinnedRules map { case (lars, _) => lars } flatMap {
     _.body collect { case w: WindowAtom => w }
   }
 
-  val slidingWindowsAtoms = windowAtoms collect { case s: SlidingWindow => s }
+  val slidingWindowsAtoms = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingWindow] => w.windowFunction.asInstanceOf[SlidingWindow]
+  }
   //TODO fluent window
 
   val maximumWindowSize: WindowSize = slidingWindowsAtoms.isEmpty match {
