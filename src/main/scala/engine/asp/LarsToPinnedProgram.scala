@@ -179,7 +179,7 @@ case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRul
 
   val windowAtoms = larsRulesAsPinnedRules map { case (lars, _) => lars } flatMap {
     _.body collect { case w: WindowAtom => w }
-  }
+  } toSet
 
   val slidingWindowsAtoms = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingWindow] => w.windowFunction.asInstanceOf[SlidingWindow]

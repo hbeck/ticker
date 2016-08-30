@@ -37,9 +37,20 @@ object PinnedAspToIncrementalAsp {
   }
 
   def apply(p: PinnedProgramWithLars): NormalProgram = {
-    val headAtoms = p.larsRulesAsPinnedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
 
-    val semiPinnedRules = p.rules map (r => apply(r, headAtoms))
+    val windowAtoms = p.windowAtoms map (_.atom) collect {
+      case aa: AtomWithArgument => (aa.predicate, aa.arguments)
+      case a: Atom => (a.predicate, Seq())
+    }
+
+    // get pinned window atoms (that is matching predicates and arguments, except the last argument which is the Time-Variable)
+    val pinnedWindowAtom = p.atoms filter (a => windowAtoms.contains((a.predicate, a.arguments.init)))
+    val atomsToUnpin = (p.atoms diff pinnedWindowAtom).toSet[ExtendedAtom]
+
+    val headAtoms = p.larsRulesAsPinnedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
+//    val atomsToUnpin = headAtoms
+
+    val semiPinnedRules = p.rules map (r => apply(r, atomsToUnpin))
 
     AspProgram(semiPinnedRules.toList)
   }
