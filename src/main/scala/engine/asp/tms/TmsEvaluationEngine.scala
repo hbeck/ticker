@@ -1,7 +1,7 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, AspRule}
+import core.asp.{AspFact, AspRule, NormalRule}
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
@@ -17,11 +17,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
-  tmsPolicy.initialize(groundRules.map(x => GroundedNormalRule(x)))
+  tmsPolicy.initialize(groundRules)
 
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
-  var stream: Map[TimePoint, GroundedAspStream] = Map()
+  var stream: Map[TimePoint, Set[NormalRule]] = Map()
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
@@ -38,7 +38,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
 
     val orderedTuples = deriveOrderedTuples
-    val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact(_)).toSeq
+    val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact[Atom](_)).toSeq
 
     val add = tmsPolicy.add(time) _
 
@@ -85,7 +85,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
   def deriveOrderedTuples = tuplePositions.zipWithIndex.
     map { v => v._1.asTupleReference(v._2) }.
-    map(x => GroundedNormalRule(AspRule(x)))
+    map(x => AspFact[Atom](x))
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p

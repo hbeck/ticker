@@ -170,7 +170,7 @@ object Util {
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
     val pin = Pin(time)
-    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground map GroundRule.asNormalRule
+    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground
 
     AspProgram((groundRules ++ pinnedRules).toList)
   }

@@ -14,6 +14,7 @@ class AllBitEncodingSampleVariants extends ConfigurableEvaluationSpec with TimeT
   val program = groundLarsProgram()
 
   "shooting from the hip" should "lead to less losses" in {
+    evaluationEngine.append(t0)(a)
     evaluationEngine.evaluate(t0).get.get should not contain (id(7))
   }
 

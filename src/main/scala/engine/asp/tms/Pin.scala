@@ -61,18 +61,19 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def ground(atom: Atom): GroundAtom = atom match {
+  def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-      ground(g)
+//      ground(g)
+      g
     }
     case a: GroundAtom => a
     case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
-  def ground(fact: NormalFact): GroundAspFact = AspFact(this.ground(fact.head))
+  def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))
 
-  def ground(rule: NormalRule): GroundAspRule = {
+  def ground(rule: NormalRule): NormalRule = {
     AspRule(
       this.ground(rule.head),
       rule.pos map this.ground,
@@ -80,19 +81,19 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
     )
   }
 
-  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
-    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
-  }
+//  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
+//    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
+//  }
 
-  def ground(dataStream: PinnedStream): GroundedAspStream = apply(dataStream)
+  def ground(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 
-  def ground(rules: Seq[NormalRule]): Seq[GroundAspRule] = rules map ground
+  def ground(rules: Seq[NormalRule]): Seq[NormalRule] = rules map ground
 
-  def apply(dataStream: PinnedStream): Set[GroundAspFact] = dataStream map apply
+  def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): GroundAspFact = AspFact(ground(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(ground(this.apply(pinnedFact.head)))
 
-  def apply(pinnedAspRule: PinnedRule): GroundAspRule = {
+  def apply(pinnedAspRule: PinnedRule): NormalRule = {
     AspRule(
       ground(this.apply(pinnedAspRule.head)),
       pinnedAspRule.pos map this.apply map this.ground,
