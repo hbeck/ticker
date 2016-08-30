@@ -38,7 +38,6 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   var __suppHash: Map[Atom, Long] = Map()
 
-
   override def inAtoms() = __atomsWithStatus(in)
 
   override def outAtoms(): Set[Atom] = __atomsWithStatus(out)

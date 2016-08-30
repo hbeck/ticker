@@ -10,13 +10,13 @@ import scala.util.Random
   */
 object BitEvaluation extends BitProgram {
 
+  val all_05 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.05)) toMap
   val all_001 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.01)) toMap
   val all_01 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.1)) toMap
 
-
   def main(args: Array[String]): Unit = {
-    timings(args)
-    //failures(args)
+    //timings(args)
+    failures(args)
   }
 
   def timings(args: Seq[String]): Unit = {
@@ -60,8 +60,9 @@ object BitEvaluation extends BitProgram {
     val random = new Random(1)
 
     val namedSignalProbabilities = Seq(
-      ("0.001", all_001),
-      ("0.01", all_01)
+      //("0.01", all_001)
+      ("0.05", all_05)
+      //("0.1", all_01)
     )
 
     val program = groundLarsProgram() //TODO optionally load from file
@@ -90,12 +91,12 @@ object BitEvaluation extends BitProgram {
     val dump = DumpData("Configuration", "Instances")
     val dumpToCsv = dump.printSuccessResults("p18-failure-output.csv") _
 
-    val timePoints = 1000
+    val timePoints = 500
     val evaluateFailures = evaluate(_.successfulModelComputations) _
 
     if (args.length == 0) {
       val callSetups = Seq(
-        Seq("tms", "greedy"),
+        //Seq("tms", "greedy"),
         //        Seq("tms", "doyle"),
         Seq("tms", "learn")
         //        Seq("clingo", "push")

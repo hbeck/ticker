@@ -165,10 +165,13 @@ class StreamingTests extends FunSuite {
     */
     //=> 31; mod 10 == 1
 
+    var failuresLastPart = 0
+
     val windowSize = 20
     val insertProbability = 0.05
     val lengthOfTimeline = 2000
-    val reportEvery = 250
+    val startLastPart = 1800
+    val reportEvery = 200
 
     var lastFailed = tms.getModel == None
 
@@ -176,7 +179,7 @@ class StreamingTests extends FunSuite {
 
       //1 add streaming facts
       var addedNewFact = false
-      if (tms.getModel.isDefined && !addedNewFact) {
+      //if (tms.getModel.isDefined && !addedNewFact) {
         if (tms.random.nextDouble() < insertProbability) {
           val level = tms.random.nextInt(maxLevel)
           //challenge with next signal
@@ -188,7 +191,7 @@ class StreamingTests extends FunSuite {
           val set = factsWithinWindowSize.getOrElse(timepoint, Set()) + signal
           factsWithinWindowSize = factsWithinWindowSize.updated(timepoint, set)
         }
-      }
+      //}
 
       //2 add new rules
       for (level <- 0 to maxLevel) {
@@ -245,6 +248,9 @@ class StreamingTests extends FunSuite {
         case None => {
           //println("fail")
           failures = failures + 1
+          if (timepoint >= startLastPart) {
+            failuresLastPart = failuresLastPart + 1
+          }
           //println(timepoint+" -> \n"+factsWithinWindowSize)
           //println(timepoint+" -> ["+failures+"]")
         }
@@ -264,12 +270,18 @@ class StreamingTests extends FunSuite {
     println("\nid count:")
     println(idCount)
 
-    println("failures: "+failures)
-    val tabu = tms.tabu
-    val currentRulesTabu = tabu.currentRulesTabu
-    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
-    tms.printAvoidanceMap() //TODO signals are in state, shouldn't be!
-    //println(tms.status)
+    println("failures: "+failures+" ("+(1.0*failures)/(1.0*lengthOfTimeline)+")")
+    println("failures after iteration "+startLastPart+": "+failuresLastPart+" ("+(1.0*failuresLastPart)/(1.0*(lengthOfTimeline-startLastPart))+")")
+
+    if (tms.isInstanceOf[JtmsLearn]) {
+      val jtms = tms.asInstanceOf[JtmsLearn]
+      val tabu = jtms.tabu
+      val currentRulesTabu = tabu.currentRulesTabu
+      println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
+      jtms.printAvoidanceMap()
+      //println(jtms.status)
+    }
+
   }
 
 

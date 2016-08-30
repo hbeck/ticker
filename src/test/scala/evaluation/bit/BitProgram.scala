@@ -15,7 +15,7 @@ trait BitProgram {
     rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
     rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
     rule("id(C) :- max_level(M), sum_at(M,C)"),
-    rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1"),
+    rule("xx1 :- id(C), mod(C,20,K), geq(K,1), int(K), not xx1"),
     rule("bit(L,1) :- level(L), w_d_20_signal(L)") //non-asp rule //TODO parsing order of args w_20_d
   )
 
