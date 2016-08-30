@@ -109,7 +109,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
     val c = Highchart(series,
       chart = Chart(zoomType = Zoom.xy),
       xAxis = Some(Array(xAxis)),
-      yAxis = Some(Array(Axis(title = Some(AxisTitle("Failure [ms]")))))
+      yAxis = Some(Array(Axis(title = Some(AxisTitle("Failures")))))
     )
     plot(c)
   }
@@ -120,17 +120,19 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
     } plot (chart)
   }
 
+  def failureComputed(wasModelComputed: Boolean) = true.compareTo(wasModelComputed)
+
   def dataSeriesFailures(result: AlgorithmResult[SuccessConfigurationResult]) = {
 
     val series = result.runs.map(
       r => {
         val aggregatedFailures = r.successFailures.scanLeft((0, 0)) {
-          case (agg, value) => (value._1, agg._2 + value._2.compareTo(false))
+          case (agg, value) => (value._1, agg._2 + failureComputed(value._2))
         } map {
           sf => Data(sf._1, sf._2)
         }
         (r.instanceCaption, aggregatedFailures)
       })
-    series map (s => Series(s._2, name = Some(result.caption + s._1), chart = SeriesType.area))
+    series map (s => Series(s._2, name = Some(result.caption + s._1), chart = SeriesType.line))
   }
 }
