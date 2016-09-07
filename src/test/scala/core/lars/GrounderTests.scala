@@ -1160,7 +1160,7 @@ class GrounderTests extends FunSuite {
       val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
 
       //println(inputProgram)
-      val grounder = printTime("grouning time") {
+      val grounder = printTime("grounding time") {
         Grounder(inputProgram)
       }
 
@@ -1267,7 +1267,8 @@ class GrounderTests extends FunSuite {
 
   test("bit 2") {
 
-    val useGrounding = false
+    val useGrounding = true
+    println("use grounding: "+useGrounding)
 
     val asp = if (useGrounding) {
 
@@ -1284,7 +1285,7 @@ class GrounderTests extends FunSuite {
         rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
         rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
         rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,10,K), geq(K,8), int(K), not xx1")
+        rule("xx1 :- id(C), mod(C,10,K), geq(K,2), int(K), not xx1")
       ))
 
       val highestExponent = 5 //2^X; prepared program has 2^7
@@ -1369,10 +1370,12 @@ class GrounderTests extends FunSuite {
     val start2 = System.currentTimeMillis()
     var end2 = -1L
 
+    /*
     tms.add(asAspRule(rule("bit(0,0)")))
     tms.add(asAspRule(rule("bit(1,0)")))
     tms.add(asAspRule(rule("bit(2,0)")))
     tms.add(asAspRule(rule("bit(3,1)")))
+    */
 
     for (attempt <- 1 to 10000) {
       tms.getModel match {
@@ -1410,39 +1413,5 @@ class GrounderTests extends FunSuite {
     //println(tms.status)
 
   }
-
-  //
-  //
-  //
-
-  //    val output = "x :- leq(1,1), assign(m1,t3,1), lt(1,5), sum(1,4,5), duration(t3,4), timepoint(5), neq(t3,t1), assign(m1,t1,1), not x"
-  //
-  //    def parseFirstOf(pred: String): String = {
-  //      val idx0 = output.indexOf(pred)
-  //      val idx1 = output.indexOf("(",idx0) + 1
-  //      val idx2 = output.indexOf(",",idx1)
-  //      output.substring(idx1,idx2)
-  //    }
-  //
-  //    def parseSecondOf(pred: String): String = {
-  //      val idx0 = output.indexOf(pred)
-  //      val idx1 = output.indexOf("(",idx0)+1
-  //      val idx2 = output.indexOf(",",idx1)+1
-  //      var idx3 = output.indexOf(")",idx2)
-  //      if (idx3 == -1) idx3 = output.indexOf(",",idx2)
-  //      output.substring(idx2,idx3)
-  //    }
-  //
-  //    def i(s: String):Int =  Integer.parseInt(s)
-  //
-  //    val m = parseFirstOf("assign")
-  //    val t1 = parseFirstOf("neq")
-  //    val t2 = parseSecondOf("neq")
-  //    val d = i(parseSecondOf("duration"))
-  //    val p1 = i(parseFirstOf("leq"))
-  //    val p2 = i(parseSecondOf("leq"))
-  //    val z = i(parseFirstOf("timepoint"))
-
-
 
 }

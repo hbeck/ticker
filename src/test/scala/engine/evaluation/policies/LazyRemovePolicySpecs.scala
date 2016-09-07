@@ -36,7 +36,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     override def getModel(): Option[Set[Atom]] = None
   }
 
-  val sr = GroundedNormalRule(a)
+  val sr = a
 
   case class LazyPolicy(laziness: Duration = 0) {
     val spy = new JTmsSpy
@@ -75,7 +75,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     assume(spy.removeCalls.isEmpty)
     spy.reset
 
-    policy.add(t1)(Seq(GroundedNormalRule(b)))
+    policy.add(t1)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls should have length (1)
@@ -86,7 +86,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     policy.remove(t0)(Seq(sr))
     spy.reset
 
-    policy.add(t1)(Seq(GroundedNormalRule(b)))
+    policy.add(t1)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls shouldBe empty
@@ -96,7 +96,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     policy.remove(t0)(Seq(sr))
     spy.reset
 
-    policy.add(t2)(Seq(GroundedNormalRule(b)))
+    policy.add(t2)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls should have length (1)

@@ -10,6 +10,7 @@ import scala.util.Random
   */
 object BitEvaluation extends BitProgram {
 
+  val none = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.0)) toMap
   val all_05 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.05)) toMap
   val all_001 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.01)) toMap
   val all_01 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.1)) toMap
@@ -60,6 +61,7 @@ object BitEvaluation extends BitProgram {
     val random = new Random(1)
 
     val namedSignalProbabilities = Seq(
+      //("0.0", none)
       //("0.01", all_001)
       ("0.05", all_05)
       //("0.1", all_01)

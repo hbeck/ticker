@@ -1,5 +1,6 @@
 package engine.asp.tms.policies
 
+import core.asp._
 import core.lars.TimePoint
 import engine.Result
 import engine.asp.GroundAspRule
@@ -11,11 +12,11 @@ import jtms.{Jtms, JtmsGreedy}
   */
 case class ImmediatelyAddRemovePolicy(tms: Jtms = JtmsGreedy()) extends TmsPolicy {
 
-  override def initialize(groundRules: Seq[GroundAspRule]) = groundRules foreach (x => tms.add(GroundRule.asNormalRule(x)))
+  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => tms.add(x))
 
-  override def add(timePoint: TimePoint)(rules: Seq[GroundAspRule]): Unit = rules foreach (x => tms.add(GroundRule.asNormalRule(x)))
+  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.add(x))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[GroundAspRule]): Unit = rules foreach (x => tms.remove(GroundRule.asNormalRule(x)))
+  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.remove(x))
 
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 }

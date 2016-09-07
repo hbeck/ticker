@@ -26,7 +26,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   shuffle = false
 
   /*
-  orig:
+  stable:
+  */
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
@@ -50,10 +51,28 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     //reset for next update iteration
     resetSavedState
   }
-  */
 
-  //mod
-  override def updateGreedy(atoms: Set[Atom]) {
+  /*
+  override def update(atoms: Set[Atom]) {
+
+    if (recordChoiceSeq) choiceSeq = Seq[Atom]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
+
+    try {
+      updateLearnNew(atoms)
+
+      checkJtmsSemantics()
+      checkSelfSupport()
+      checkConsistency()
+    } catch {
+      case e:IncrementalUpdateFailureException => {
+        invalidateModel()
+      }
+    }
+
+  }
+
+  def updateLearnNew(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
     selectNextChoiceAtomNew() //?
@@ -65,7 +84,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus
-      selectNextChoiceAtomNew()
+      selectNextChoiceAtomNew() //avoid only when no next atom exists, not nec. choice atom. do we ensure that?
       selectedAtom match {
         case Some(atom) => {
           chooseStatusGreedy(atom)
@@ -77,7 +96,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
             case Some(atom) => {
               chooseStatusGreedy(atom)
             }
-            case None => if (hasUnknown) throw new IncrementalUpdateFailureException()
+            case None => if (hasUnknown)
+              throw new IncrementalUpdateFailureException()
           }
         }
       }
@@ -86,6 +106,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     //resetSavedLightweightState()
     resetSavedState()
   }
+  */
 
   case class PartialState(support: Map[Atom, Long], stateHash: Long) {
     //  case class PartialState(status: Map[Atom, Status], support: Map[Atom, Set[Atom]]) {
@@ -125,9 +146,6 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   var selectedAtom: Option[Atom] = None
   var prevSelectedAtom: Option[Atom] = None
 
-  // state braucht nicht zwingend alle objekte als referenz. muss nur eindeutig sein
-  // -> dafür vllt. bitset oder sowas?
-
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
   //var lightweightState: Option[PartialState] = None
@@ -150,16 +168,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
   }
 
-  class AllRulesTabu() {
+  class AllRulesTabu() extends FrequencyCount[PrecomputedHashCodeOfHashSet] {
 
-    var counter: Map[PrecomputedHashCodeOfHashSet, MutableCounter] = Map.empty
-
-    val doCleanup = true //TODO
-
-    var cleanupCounter = 0
-
-    val thresholdPercent = 0.4
-    val triggerCount = 10000
+    var triggerCount = 10000
 
     var ruleMap: Map[PrecomputedHashCodeOfHashSet, CurrentRulesTabu] = Map.empty.withDefaultValue(new CurrentRulesTabu())
     //var ruleMapLightweight: Map[PrecomputedHashCodeOfHashSet, CurrentRulesLightweightTabu] = Map.empty.withDefaultValue(new CurrentRulesLightweightTabu())
@@ -180,27 +191,14 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         stateRules = stateRules - rule
         updateAfterRuleChange()
 
-        if (doCleanup)
-          __cleanup()
+        ruleMap = cleanupState(ruleMap)
       }
     }
-
-    var maxValue = 0
 
     def updateAfterRuleChange(): Unit = {
       if (ruleMap.contains(stateRules)) {
         currentRulesTabu = ruleMap(stateRules)
-        //currentRulesLightweightTabu = ruleMapLightweight(stateRules)
-        if (doCleanup) {
-          val count = counter.get(stateRules)
-          if (count.isDefined) {
-            val value = count.get.increment()
-            maxValue = Math.max(maxValue, value)
-          } else {
-            counter = counter.updated(stateRules, new MutableCounter)
-          }
-
-        }
+        recordUsage(stateRules)
       } else {
         currentRulesTabu = new CurrentRulesTabu()
         ruleMap = ruleMap.updated(stateRules, currentRulesTabu)
@@ -208,6 +206,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         //ruleMapLightweight = ruleMapLightweight.updated(stateRules, currentRulesLightweightTabu)
       }
     }
+
 
     def avoid(state: PartialState, atomToAvoid: Atom): Unit = {
       currentRulesTabu.save(state, atomToAvoid)
@@ -238,42 +237,24 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       sb.toString
     }
 
-
-    def __cleanup(): Unit = {
-      cleanupCounter = cleanupCounter + 1
-      if (cleanupCounter % triggerCount == 0) {
-        // throw away the bottom x %. Value chosen so all test cases run through
-        val threshold = maxValue * thresholdPercent
-        val stateToKeep = counter.filter { case (state, c) => c.value > threshold } keySet
-
-        Console.out.println("Cleanup with threshold " + threshold)
-
-        counter = counter filterKeys stateToKeep
-        ruleMap = ruleMap filterKeys stateToKeep
-        //ruleMapLightweight = ruleMapLightweight filterKeys stateToKeep
-      }
-    }
   }
 
-  class MutableCounter {
-    var value: Int = 1
 
-    def increment() = {
-      value = value + 1
-      value
-    }
+  class CurrentRulesTabu() extends FrequencyCount[PartialState] {
+    var triggerCount: Int = 100
 
-  }
-
-  class CurrentRulesTabu() {
-    var avoidanceMap = new HashMap[PartialState, Set[Atom]]
+    var avoidanceMap: Map[PartialState, Set[Atom]] = Map()
 
     def save(state: PartialState, atomToAvoid: Atom): Unit = {
       val set: Set[Atom] = avoidanceMap.getOrElse(state, Set()) + atomToAvoid
       avoidanceMap = avoidanceMap.updated(state, set)
     }
 
-    def atomsToAvoid() = avoidanceMap.getOrElse(state.get, Set[Atom]())
+    def atomsToAvoid() = {
+      avoidanceMap = cleanupState(avoidanceMap)
+      recordUsage(state.get)
+      avoidanceMap.getOrElse(state.get, Set[Atom]())
+    }
   }
 
 //  class CurrentRulesLightweightTabu() {
@@ -441,9 +422,64 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     val n = Math.min(5,map.size)
     println(n+"/"+map.size+" entries of avoidance map:")
 
-    (map take n) foreach { case (state,atoms) =>
-      println("state hash: "+state)
-      println("avoid atoms: "+atoms)
+    (map take n) foreach { case (state, atoms) =>
+      println("state hash: " + state)
+      println("avoid atoms: " + atoms)
+    }
+  }
+
+}
+
+trait FrequencyCount[THash] {
+  val typeName = this.getClass.toGenericString
+
+  var counter: Map[THash, MutableCounter] = Map.empty
+
+  var doCleanup = true
+
+  var cleanupCounter = 0
+
+  var thresholdPercent = 0.4
+  var triggerCount: Int
+
+  var maxValue = 0
+
+  def cleanupState[TValue](stateToCleanup: Map[THash, TValue]): Map[THash, TValue] = {
+    if (doCleanup) {
+      cleanupCounter = cleanupCounter + 1
+      if (cleanupCounter % triggerCount == 0) {
+        // throw away the bottom x %. Value chosen so all test cases run through :)
+        val threshold = maxValue * thresholdPercent
+        val stateToKeep = counter.filter { case (_, c) => c.value > threshold } keySet
+
+        //Console.out.println(f"Cleanup $typeName with threshold $threshold, keeping ${stateToKeep.size} items")
+
+        counter = counter filterKeys stateToKeep
+        return stateToCleanup filterKeys stateToKeep
+      }
+    }
+    stateToCleanup
+  }
+
+  def recordUsage(value: THash): Unit = {
+    if (doCleanup) {
+      val count = counter.get(value)
+      if (count.isDefined) {
+        val value = count.get.increment()
+        maxValue = Math.max(maxValue, value)
+      } else {
+        counter = counter.updated(value, new MutableCounter)
+      }
+
+    }
+  }
+
+  class MutableCounter {
+    var value: Int = 1
+
+    def increment() = {
+      value = value + 1
+      value
     }
   }
 

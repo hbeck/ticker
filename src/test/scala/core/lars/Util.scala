@@ -3,7 +3,7 @@ package core.lars
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import engine.asp.LarsToPinnedProgram
-import engine.asp.tms.{GroundRule, Pin, PinnedAspToIncrementalAsp}
+import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 
 import scala.io.Source
 
@@ -50,9 +50,9 @@ object Util {
 
   def noArgsAtom(s:String):GroundAtom = {
     val pred = Predicate(s)
-    if (s.startsWith("xx"))
-      ContradictionAtom(pred)
-    else
+    //if (s.startsWith("xx"))
+    //  ContradictionAtom(pred)
+    //else
       PredicateAtom(pred)
 
   }
@@ -82,6 +82,13 @@ object Util {
     val neg:Set[ExtendedAtom] = negBodyParts map (xatom(_)) toSet
 
     LarsRule(head,pos,neg)
+  }
+
+  def groundSignal(s:String):LarsRule = {
+    val aa: AtomWithArgument = xatom(s).asInstanceOf[AtomWithArgument]
+    val timeArg = Integer.parseInt(aa.arguments.last.toString)
+    val otherArgs = aa.arguments.take(aa.arguments.size-1)
+    LarsFact(PinnedAtom(AtomWithArgument(aa.predicate,otherArgs),timeArg))
   }
 
   def program(rules:LarsRule*):LarsProgram = LarsProgram(rules)
@@ -170,7 +177,7 @@ object Util {
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
     val pin = Pin(time)
-    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground map GroundRule.asNormalRule
+    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground
 
     AspProgram((groundRules ++ pinnedRules).toList)
   }

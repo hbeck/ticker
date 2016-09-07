@@ -17,7 +17,7 @@ case class TimedEvaluationEngine(evaluationEngine: EvaluationEngine,
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     val start = Deadline.now
 
-    evaluationEngine.append(time)(atoms:_*)
+    evaluationEngine.append(time)(atoms: _*)
 
     val end = Deadline.now
 

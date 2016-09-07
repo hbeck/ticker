@@ -36,6 +36,7 @@ object Falsum extends GroundAtom {
   override val predicate = Predicate("⊥")
 }
 
+//TODO allow with arguments!
 case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
 }

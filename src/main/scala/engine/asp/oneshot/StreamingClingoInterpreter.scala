@@ -35,21 +35,22 @@ object StreamingClingoInterpreter {
 
   def convertToPinnedAtom(atom: AtomWithArgument, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
     case StringValue(v) => convertValue(atom, v)
+    case IntValue(v) => convertValue(atom, v)
     case _ => throw new IllegalArgumentException("Can only handle values as last argument")
   }
 
   def convertValue(atom: AtomWithArgument, value: String): PinnedAtom = numberFormat.findFirstIn(value) match {
-    case Some(number) => {
-      val l = number.toLong
-
-      val atomWithoutTime = atom.arguments.init match {
-        case Nil => PredicateAtom(atom.predicate)
-        case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
-      }
-
-      PinnedAtom(atomWithoutTime, l)
-    }
+    case Some(number) => convertValue(atom, number.toLong)
     case None => throw new IllegalArgumentException(f"Cannot convert '$value' into a TimePoint for a PinnedAtom")
+  }
+
+  def convertValue(atom: AtomWithArgument, value: Long): PinnedAtom = {
+    val atomWithoutTime = atom.arguments.init match {
+      case Nil => PredicateAtom(atom.predicate)
+      case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
+    }
+
+    PinnedAtom(atomWithoutTime, value)
   }
 
 }

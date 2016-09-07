@@ -1,5 +1,6 @@
 package engine.asp.tms.policies
 
+import core.asp._
 import core.lars.{Duration, TimePoint}
 import engine.Result
 import engine.asp.GroundAspRule
@@ -13,29 +14,29 @@ import scala.collection.mutable
   */
 case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) extends TmsPolicy {
 
-  val markedForDelete: mutable.Map[TimePoint, Set[GroundAspRule]] = mutable.Map()
-  val reverseDeleteMap: mutable.Map[GroundAspRule, TimePoint] = mutable.Map()
+  val markedForDelete: mutable.Map[TimePoint, Set[NormalRule]] = mutable.Map()
+  val reverseDeleteMap: mutable.Map[NormalRule, TimePoint] = mutable.Map()
 
-  override def initialize(groundRules: Seq[GroundAspRule]) = groundRules foreach (x => tms.add(GroundRule.asNormalRule(x)))
+  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => tms.add(x))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[GroundAspRule]): Unit = {
+  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = {
     rules foreach markAsDeleted(timePoint)
   }
 
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 
-  override def add(timePoint: TimePoint)(rules: Seq[GroundAspRule]): Unit = {
+  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = {
     val markedAsDeleteEntries = reverseDeleteMap filter { case (rule,_) => rules contains rule }
     // We don't need to add these rules - instead don't remove them
     markedAsDeleteEntries foreach { case (rule,timePoint) => unmarkAsDeleted(rule,timePoint) }
 
     val newRules = rules filterNot markedAsDeleteEntries.contains
-    newRules foreach (x => tms.add(GroundRule.asNormalRule(x)))
+    newRules foreach (x => tms.add(x))
 
     removeExpiredRules(timePoint)
   }
 
-  def markAsDeleted(timePoint: TimePoint)(rule: GroundAspRule) = {
+  def markAsDeleted(timePoint: TimePoint)(rule: NormalRule) = {
     reverseDeleteMap(rule) = timePoint
 
     val r = markedForDelete.getOrElse(timePoint, Set()) + rule
@@ -43,7 +44,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
     markedForDelete.update(timePoint, r)
   }
 
-  def unmarkAsDeleted(rule: GroundAspRule, timePoint: TimePoint) = {
+  def unmarkAsDeleted(rule: NormalRule, timePoint: TimePoint) = {
     reverseDeleteMap.remove(rule)
 
     val notDeleted = markedForDelete.getOrElse(timePoint, Set()) - rule
@@ -60,7 +61,7 @@ case class LazyRemovePolicy(tms: Jtms = JtmsGreedy(), laziness: Duration = 0) ex
     expiredTimePoints.foreach(t => {
       val rules = markedForDelete.remove(t).get
       rules foreach (r => {
-        tms.remove(GroundRule.asNormalRule(r))
+        tms.remove(r)
         reverseDeleteMap remove (r)
       })
     })

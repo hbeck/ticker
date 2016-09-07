@@ -17,7 +17,7 @@ class StreamingTests extends FunSuite {
 
     val useGrounding = true
 
-    val highestExponent = 5 //2^X
+    val highestExponent = 4 //2^X
     val maxLevel = highestExponent - 1
 
     val groundLarsProgram = if (useGrounding) {
@@ -35,7 +35,7 @@ class StreamingTests extends FunSuite {
         rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
         rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
         rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,20,K), geq(K,1), int(K), not xx1")
+        rule("xx1(C) :- id(C), mod(C,16,K), geq(K,8), int(K), not xx1(C)")//,
         //rule("bit(L,1) :- level(L), w_d_20_signal(L)") //new rule
       ))
 
@@ -109,7 +109,10 @@ class StreamingTests extends FunSuite {
     //    (asp.atoms filter (_.isInstanceOf[ContradictionAtom]) toSet) foreach println
 
     val tms = new JtmsLearn()
-    tms.shuffle = false
+    tms.shuffle = true
+//    tms.doJtmsSemanticsCheck=true
+//    tms.doConsistencyCheck=true
+//    tms.doSelfSupportCheck=true
     printTime("time to add all ground rules") {
       asp.rules foreach tms.add
     }
@@ -168,10 +171,10 @@ class StreamingTests extends FunSuite {
     var failuresLastPart = 0
 
     val windowSize = 20
-    val insertProbability = 0.05
+    val insertProbability = 0.1
     val lengthOfTimeline = 2000
     val startLastPart = 1800
-    val reportEvery = 200
+    val reportEvery = 500
 
     var lastFailed = tms.getModel == None
 
@@ -179,9 +182,10 @@ class StreamingTests extends FunSuite {
 
       //1 add streaming facts
       var addedNewFact = false
+      for (level <- 0 to maxLevel) {
       //if (tms.getModel.isDefined && !addedNewFact) {
         if (tms.random.nextDouble() < insertProbability) {
-          val level = tms.random.nextInt(maxLevel)
+          //val level = tms.random.nextInt(maxLevel)
           //challenge with next signal
           val signal: NormalRule = makeSignalFact(level, timepoint)
           //if (insertProbability <= 0.05)
@@ -192,6 +196,7 @@ class StreamingTests extends FunSuite {
           factsWithinWindowSize = factsWithinWindowSize.updated(timepoint, set)
         }
       //}
+      }
 
       //2 add new rules
       for (level <- 0 to maxLevel) {

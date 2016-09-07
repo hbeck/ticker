@@ -18,6 +18,7 @@ case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
 
       inputs.foreach(i => {
         engine.append(i.time)(i.atoms.toSeq: _*)
+
         engine.evaluate(i.time)
       })
     }
