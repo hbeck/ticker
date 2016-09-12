@@ -7,6 +7,8 @@ import core.lars.Util._
 import jtms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
+import scala.collection.immutable.HashMap
+
 /**
   * Created by hb on 8/23/16.
   */
@@ -1414,85 +1416,142 @@ class GrounderTests extends FunSuite {
 
   }
 
+
+
   test("bit 3") {
     //object eval extends BitProgram
     //val program = printTime("grounding time"){ eval.groundLarsProgram() }
     //println("#rules: "+program.rules.size)
 
-    val nonGroundRules = Seq[LarsRule](
-      rule("bit(L,1) :- level(L), not bit(L,0)"),
-      rule("bit(L,0) :- level(L), not bit(L,1)"),
-      rule("sum_at(0,B) :- bit(0,B)"),
-      rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
-      rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
-      rule("id(C) :- max_level(M), sum_at(M,C)"),
-      rule("xx1 :- id(C), mod(C,20,K), geq(K,1), int(K), not xx1"),
-      rule("bit(L,1) :- level(L), from_window(L)") //!
-    )
-
-    val highestExponent = 3 //2^X; prepared program has 2^7
-    val maxLevel = highestExponent - 1
-
-    val levels = Seq(fact(f"max_level(${maxLevel})")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
-    val ints = (0 to Math.pow(2, highestExponent).toInt) map (i => fact(f"int($i)"))
-
-    val facts = levels ++ ints
-
-    val inputProgram = LarsProgram(nonGroundRules ++ facts)
-
-    val grounding = printTime("grounding"){ Grounder(inputProgram) }
-    println("#rules: "+grounding.groundRules.size)
-    //println(grounding.groundProgram)
+    val timePoints = 1000
+    val windowSizes = Seq(1,50,100)
+    //val windowSizes = Seq(100)
+    val insertProbabilities = Seq[Double](0.001,0.01,0.1)
+    //val insertProbabilities = Seq(0.0)
 
     //
 
-    val timePoints = 500
-    val windowSize = 5
+    val useGroundProgramFromFile = true
 
+    val highestExponent = 6 //2^X; prepared program has 2^7
+    val maxLevel = highestExponent - 1
 
-    val asp = asAspProgram(grounding.groundProgram)
+    val asp = if (useGroundProgramFromFile) {
+      val filename = "/ground-programs/bits6_mod10_geq5.rules"
+      val groundLarsProgram = readProgramFromFile(filename)
+      asAspProgram(groundLarsProgram)
+    } else {
 
-    for (tms <- Seq(new JtmsGreedy(), new JtmsLearn())) {
+      val nonGroundRules = Seq[LarsRule](
+        rule("bit(L,1) :- level(L), not bit(L,0)"),
+        rule("bit(L,0) :- level(L), not bit(L,1)"),
+        rule("sum_at(0,B) :- bit(0,B)"),
+        rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
+        rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
+        rule("id(C) :- max_level(M), sum_at(M,C)"),
+        rule("xx1 :- id(C), mod(C,10,K), geq(K,5), int(K), not xx1"),
+        rule("bit(L,1) :- level(L), from_window(L)") //!
+      )
 
-      println("\n"+tms.getClass)
+      val levels = Seq(fact(f"max_level(${maxLevel})")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
+      val ints = (0 to Math.pow(2, highestExponent).toInt) map (i => fact(f"int($i)"))
 
-      asp.rules foreach tms.add
+      val facts = levels ++ ints
 
-      tms.getModel match {
-        case Some(m) => println("initial model: "+(m filter (_.predicate.caption == "id")))
-        case None => println("no initial model")
+      val inputProgram = LarsProgram(nonGroundRules ++ facts)
+
+      val grounding = printTime("grounding") {
+        Grounder(inputProgram)
       }
+      println("#rules: " + grounding.groundRules.size)
+      println(grounding.groundProgram)
 
-      var failures = 0
-      var models = 0
+      asAspProgram(grounding.groundProgram)
 
-      //initialize
-      for (t <- 1 to windowSize) {
-        for (level <- 0 to maxLevel) {
-          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-          tms.add(aspRule)
+    }
+
+    //
+
+    for (windowSize <- windowSizes) {
+      for (insertProbability <- insertProbabilities) {
+        for (tms <- Seq(new JtmsGreedy(),
+          new JtmsLearn())) {
+
+          println(f"\n${tms.getClass}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")
+
+          printTime("add ground rules") {
+            asp.rules foreach tms.add
+          }
+
+          tms.getModel match {
+            case Some(m) => println("initial model: " + (m filter (_.predicate.caption == "id")))
+            case None => println("no initial model")
+          }
+
+          var failures = 0
+          var models = 0
+
+          printTime("runtime") {
+
+            var printed = false
+
+            //initialize
+            for (t <- 1 to windowSize) {
+              for (level <- 0 to maxLevel) {
+                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+                tms.add(aspRule)
+                if (!printed && tms.getModel.isDefined) {
+                  println(f"add. t=$t, level: $level")
+                  printed = true
+                }
+              }
+            }
+
+            //actual loop
+            var factMap = HashMap[Int,Set[NormalRule]]()
+            for (t <- (windowSize + 1) to (windowSize + timePoints)) {
+              for (level <- 0 to maxLevel) {
+                if (tms.random.nextDouble() < insertProbability) {
+                  val fact = asAspRule(rule(f"#signal($level,$t)"))
+                  tms.add(fact)
+                  val set = factMap.getOrElse(t,Set())
+                  factMap = factMap.updated(t,set + fact)
+                }
+              }
+              for (level <- 0 to maxLevel) {
+                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+                tms.add(aspRule)
+                if (!printed && tms.getModel.isDefined) {
+                  println(f"add. t=$t, level: $level")
+                  printed = true
+                }
+              }
+              for (level <- 0 to maxLevel) {
+                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
+                tms.remove(aspRule)
+                if (!printed && tms.getModel.isDefined) {
+                  println(f"remove. t=$t, level: $level")
+                  printed = true
+                }
+              }
+              factMap.get(t-windowSize) match {
+                case Some(facts) => {
+                  facts foreach tms.remove
+                  factMap = factMap - (t-windowSize)
+                }
+                case None =>
+              }
+
+              tms.getModel() match {
+                case Some(m) => models = models + 1 //println(m filter (_.predicate.caption == "id"))
+                case None => failures = failures + 1
+              }
+            }
+          }
+
+          println(f"models: ${models}/${timePoints} = ${(1.0*models) / timePoints}")
         }
       }
-
-      //actual loop
-      for (t <- (windowSize+1) to timePoints) {
-
-        //TODO add facts probabilistically
-        for (level <- 0 to maxLevel) {
-          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-          tms.add(aspRule)
-        }
-        for (level <- 0 to maxLevel) {
-          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
-          tms.remove(aspRule)
-        }
-        tms.getModel() match {
-          case Some(m) => models = models + 1//println(m filter (_.predicate.caption == "id"))
-          case None => failures = failures + 1
-        }
-      }
-
-      println(f"models: ${models}/${timePoints-windowSize} = ${(1.0*models) / (timePoints-windowSize)}")
 
     }
 

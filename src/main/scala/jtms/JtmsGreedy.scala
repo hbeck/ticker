@@ -58,6 +58,17 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = { //TODO improve
 
+    val atomSet = (unknownAtoms diff signals) filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+
+    if (atomSet.isEmpty) return None
+    if (atomSet.size == 1) return Some(atomSet.head)
+
+    val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
+
+    Some(atoms.head)
+
+    /* stable:
+
     val atoms = unknownAtoms
 
     if (atoms.isEmpty) return None
@@ -71,10 +82,14 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     }
 
     val list = List[Atom]() ++ atoms
+
     val idx = if (shuffle) { random.nextInt(list.size) } else 0
     val elem = list(idx)
 
     return Some(elem)
+    */
+
+    //prev
 
     /*
     if (avoid == None) return Some(elem)

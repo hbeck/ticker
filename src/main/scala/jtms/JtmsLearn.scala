@@ -23,11 +23,12 @@ object JtmsLearn {
   */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  shuffle = false
+  shuffle = true
 
   /*
   stable:
   */
+  /*
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
@@ -48,6 +49,35 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
         }
         case None => if (hasUnknown) throw new IncrementalUpdateFailureException()
       }
+    }
+    //reset for next update iteration
+    resetSavedState
+  }
+  */
+
+  override def updateGreedy(atoms: Set[Atom]) {
+    atoms foreach setUnknown
+    //test avoidance map before determining further consequences:
+    var firstLoop = true
+    while (hasUnknown) {
+      unknownAtoms foreach findStatus
+      selectNextAtom()
+      selectedAtom match {
+        case Some(atom) => {
+          chooseStatusGreedy(atom)
+          saveState()
+        }
+        case None => {
+          if (hasUnknown) {
+            if (firstLoop) {
+              super.invalidateModel()
+            } else {
+              throw new IncrementalUpdateFailureException()
+            }
+          }
+        }
+      }
+      firstLoop = false
     }
     //reset for next update iteration
     resetSavedState
@@ -329,6 +359,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   //skip signals! - for asp they are irrelevant, for tms they change based on time - no stable basis
   //def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
 
+  /*
   def selectNextChoiceAtomNew(): Unit = {
     //lightweightState = stateSnapshotNew()
     selectedAtom = None
@@ -358,7 +389,9 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       tabu.avoid(prevState.get, prevSelectedAtom.get)
     }
   }
+  */
 
+  /*
   def selectNextInferrableAtomNew(): Option[Atom] = {
 
     val atomSet = unknownAtoms diff unknownChoiceAtoms() diff signals
@@ -368,12 +401,13 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     atoms.headOption
   }
+  */
 
   def selectNextAtom(): Unit = {
 
     state = stateSnapshot()
 
-    val atomSet = unknownAtoms diff signals
+    val atomSet = (unknownAtoms diff signals) filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
     val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
 
     if (atoms.isEmpty) return
