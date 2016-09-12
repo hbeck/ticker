@@ -1446,7 +1446,7 @@ class GrounderTests extends FunSuite {
 
     //
 
-    val timePoints = 250
+    val timePoints = 500
     val windowSize = 5
 
 
@@ -1465,7 +1465,19 @@ class GrounderTests extends FunSuite {
 
       var failures = 0
       var models = 0
-      for (t <- 1 to timePoints) {
+
+      //initialize
+      for (t <- 1 to windowSize) {
+        for (level <- 0 to maxLevel) {
+          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+          tms.add(aspRule)
+        }
+      }
+
+      //actual loop
+      for (t <- (windowSize+1) to timePoints) {
+
+        //TODO add facts probabilistically
         for (level <- 0 to maxLevel) {
           val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
           tms.add(aspRule)
@@ -1480,7 +1492,7 @@ class GrounderTests extends FunSuite {
         }
       }
 
-      println(f"models: ${models}/${timePoints} = ${(1.0*models) / timePoints}")
+      println(f"models: ${models}/${timePoints-windowSize} = ${(1.0*models) / (timePoints-windowSize)}")
 
     }
 
