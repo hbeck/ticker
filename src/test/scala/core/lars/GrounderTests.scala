@@ -1424,10 +1424,11 @@ class GrounderTests extends FunSuite {
     //println("#rules: "+program.rules.size)
 
     val timePoints = 1000
-    val windowSizes = Seq(1,50,100)
-    //val windowSizes = Seq(100)
-    val insertProbabilities = Seq[Double](0.001,0.01,0.1)
-    //val insertProbabilities = Seq(0.0)
+    //val windowSizes = Seq(1,50,100)
+    val windowSizes = Seq(100)
+    //val insertProbabilities = Seq[Double](0.001,0.01,0.1)
+    val insertProbabilities = Seq(0.1)
+    val iterationsEach = 5
 
     //
 
@@ -1474,82 +1475,88 @@ class GrounderTests extends FunSuite {
 
     for (windowSize <- windowSizes) {
       for (insertProbability <- insertProbabilities) {
-        for (tms <- Seq(new JtmsGreedy(),
-          new JtmsLearn())) {
+        for (tmsName <- Seq("greedy","learn")) {
+          for (iteration <- 1 to iterationsEach) {
 
-          println(f"\n${tms.getClass}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")
+            val tms = tmsName match {
+              case "greedy" => new JtmsGreedy()
+              case "learn" => new JtmsLearn()
+            }
 
-          printTime("add ground rules") {
-            asp.rules foreach tms.add
-          }
+            println(f"\n${tmsName}#${iteration}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")
 
-          tms.getModel match {
-            case Some(m) => println("initial model: " + (m filter (_.predicate.caption == "id")))
-            case None => println("no initial model")
-          }
+            printTime("add ground rules") {
+              asp.rules foreach tms.add
+            }
 
-          var failures = 0
-          var models = 0
+            tms.getModel match {
+              case Some(m) => println("initial model: " + (m filter (_.predicate.caption == "id")))
+              case None => println("no initial model")
+            }
 
-          printTime("runtime") {
+            var failures = 0
+            var models = 0
 
-            var printed = false
+            printTime("runtime") {
 
-            //initialize
-            for (t <- 1 to windowSize) {
-              for (level <- 0 to maxLevel) {
-                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-                tms.add(aspRule)
-                if (!printed && tms.getModel.isDefined) {
-                  println(f"add. t=$t, level: $level")
-                  printed = true
+              var printed = false
+
+              //initialize
+              for (t <- 1 to windowSize) {
+                for (level <- 0 to maxLevel) {
+                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+                  tms.add(aspRule)
+                  if (!printed && tms.getModel.isDefined) {
+                    println(f"add. t=$t, level: $level")
+                    printed = true
+                  }
+                }
+              }
+
+              //actual loop
+              var factMap = HashMap[Int,Set[NormalRule]]()
+              for (t <- (windowSize + 1) to (windowSize + timePoints)) {
+                for (level <- 0 to maxLevel) {
+                  if (tms.random.nextDouble() < insertProbability) {
+                    val fact = asAspRule(rule(f"#signal($level,$t)"))
+                    tms.add(fact)
+                    val set = factMap.getOrElse(t,Set())
+                    factMap = factMap.updated(t,set + fact)
+                  }
+                }
+                for (level <- 0 to maxLevel) {
+                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+                  tms.add(aspRule)
+                  if (!printed && tms.getModel.isDefined) {
+                    println(f"add. t=$t, level: $level")
+                    printed = true
+                  }
+                }
+                for (level <- 0 to maxLevel) {
+                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
+                  tms.remove(aspRule)
+                  if (!printed && tms.getModel.isDefined) {
+                    println(f"remove. t=$t, level: $level")
+                    printed = true
+                  }
+                }
+                factMap.get(t-windowSize) match {
+                  case Some(facts) => {
+                    facts foreach tms.remove
+                    factMap = factMap - (t-windowSize)
+                  }
+                  case None =>
+                }
+
+                tms.getModel() match {
+                  case Some(m) => models = models + 1 //println(m filter (_.predicate.caption == "id"))
+                  case None => failures = failures + 1
                 }
               }
             }
 
-            //actual loop
-            var factMap = HashMap[Int,Set[NormalRule]]()
-            for (t <- (windowSize + 1) to (windowSize + timePoints)) {
-              for (level <- 0 to maxLevel) {
-                if (tms.random.nextDouble() < insertProbability) {
-                  val fact = asAspRule(rule(f"#signal($level,$t)"))
-                  tms.add(fact)
-                  val set = factMap.getOrElse(t,Set())
-                  factMap = factMap.updated(t,set + fact)
-                }
-              }
-              for (level <- 0 to maxLevel) {
-                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-                tms.add(aspRule)
-                if (!printed && tms.getModel.isDefined) {
-                  println(f"add. t=$t, level: $level")
-                  printed = true
-                }
-              }
-              for (level <- 0 to maxLevel) {
-                val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
-                tms.remove(aspRule)
-                if (!printed && tms.getModel.isDefined) {
-                  println(f"remove. t=$t, level: $level")
-                  printed = true
-                }
-              }
-              factMap.get(t-windowSize) match {
-                case Some(facts) => {
-                  facts foreach tms.remove
-                  factMap = factMap - (t-windowSize)
-                }
-                case None =>
-              }
-
-              tms.getModel() match {
-                case Some(m) => models = models + 1 //println(m filter (_.predicate.caption == "id"))
-                case None => failures = failures + 1
-              }
-            }
+            println(f"models: ${models}/${timePoints} = ${(1.0*models) / timePoints}")
           }
-
-          println(f"models: ${models}/${timePoints} = ${(1.0*models) / timePoints}")
         }
       }
 
