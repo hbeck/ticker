@@ -1,9 +1,9 @@
 package jtms
 
 import core._
-import core.asp.{NormalRule, NormalProgram}
+import core.asp.{NormalProgram, NormalRule}
 
-import scala.collection.immutable.{HashSet, HashMap}
+import scala.collection.immutable.HashSet
 import scala.util.Random
 
 object JtmsLearn {
@@ -31,11 +31,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
-    selectNextAtom()
+    selectNextAtom() //TODO this place in particular the need to distinguish determined atoms and choice atoms
     if (selectedAtom.isEmpty) {
-      atomsNeedingSupp() foreach setUnknown
+      //atomsNeedingSupp() foreach setUnknown
+      super.invalidateModel()
     } else {
-      saveState
+      saveState()
     }
     while (hasUnknown) {
       unknownAtoms foreach findStatus //TODO could limit to transitive consequences of previously set head atom
@@ -43,7 +44,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       selectedAtom match {
         case Some(atom) => {
           chooseStatusGreedy(atom)
-          saveState
+          saveState()
         }
         case None => if (hasUnknown) throw new IncrementalUpdateFailureException()
       }
@@ -377,7 +378,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (atoms.isEmpty) return
 
-    // TODO performance: find iterates over to many atoms - dict?
+    // TODO performance: find iterates over too many atoms - dict?
     val tabuAtoms = tabu.atomsToAvoid()
 
     /*
@@ -470,7 +471,6 @@ trait FrequencyCount[THash] {
       } else {
         counter = counter.updated(value, new MutableCounter)
       }
-
     }
   }
 

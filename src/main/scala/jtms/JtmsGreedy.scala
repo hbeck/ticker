@@ -74,11 +74,15 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     val idx = if (shuffle) { random.nextInt(list.size) } else 0
     val elem = list(idx)
 
+    return Some(elem)
+
+    /*
     if (avoid == None) return Some(elem)
 
     val elemToAvoid = avoid.get
     if (elem != elemToAvoid) return Some(elem)
     return list find (_ != elemToAvoid)
+    */
   }
 
   def chooseStatusGreedy(a: Atom): Unit = {

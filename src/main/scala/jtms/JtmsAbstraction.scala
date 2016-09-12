@@ -54,7 +54,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
   override def add(rule: NormalRule): Unit = {
     register(rule)
     if (inconsistent()) {
-      update(unknownAtoms() + rule.head)
+      update(unknownAtoms() + rule.head) //i.e., recompute()
     } else {
       if (status(rule.head) == in) {
         if (valid(rule)) {

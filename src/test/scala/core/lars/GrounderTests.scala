@@ -1288,7 +1288,7 @@ class GrounderTests extends FunSuite {
         rule("xx1 :- id(C), mod(C,10,K), geq(K,2), int(K), not xx1")
       ))
 
-      val highestExponent = 5 //2^X; prepared program has 2^7
+      val highestExponent = 2 //2^X; prepared program has 2^7
       val maxLevel = highestExponent - 1
 
       val levels:Seq[Int] = for (l <- 0 to maxLevel) yield l
@@ -1408,9 +1408,81 @@ class GrounderTests extends FunSuite {
 
     val tabu = tms.tabu
     val currentRulesTabu = tabu.currentRulesTabu
-    println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
+    println("size of current avoidance map: "+currentRulesTabu.avoidanceMap.size)
     //println(currentRulesTabu.avoidanceMap)
     //println(tms.status)
+
+  }
+
+  test("bit 3") {
+    //object eval extends BitProgram
+    //val program = printTime("grounding time"){ eval.groundLarsProgram() }
+    //println("#rules: "+program.rules.size)
+
+    val nonGroundRules = Seq[LarsRule](
+      rule("bit(L,1) :- level(L), not bit(L,0)"),
+      rule("bit(L,0) :- level(L), not bit(L,1)"),
+      rule("sum_at(0,B) :- bit(0,B)"),
+      rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
+      rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
+      rule("id(C) :- max_level(M), sum_at(M,C)"),
+      rule("xx1 :- id(C), mod(C,20,K), geq(K,1), int(K), not xx1"),
+      rule("bit(L,1) :- level(L), from_window(L)") //!
+    )
+
+    val highestExponent = 3 //2^X; prepared program has 2^7
+    val maxLevel = highestExponent - 1
+
+    val levels = Seq(fact(f"max_level(${maxLevel})")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
+    val ints = (0 to Math.pow(2, highestExponent).toInt) map (i => fact(f"int($i)"))
+
+    val facts = levels ++ ints
+
+    val inputProgram = LarsProgram(nonGroundRules ++ facts)
+
+    val grounding = printTime("grounding"){ Grounder(inputProgram) }
+    println("#rules: "+grounding.groundRules.size)
+    //println(grounding.groundProgram)
+
+    //
+
+    val timePoints = 250
+    val windowSize = 5
+
+
+    val asp = asAspProgram(grounding.groundProgram)
+
+    for (tms <- Seq(new JtmsGreedy(), new JtmsLearn())) {
+
+      println("\n"+tms.getClass)
+
+      asp.rules foreach tms.add
+
+      tms.getModel match {
+        case Some(m) => println("initial model: "+(m filter (_.predicate.caption == "id")))
+        case None => println("no initial model")
+      }
+
+      var failures = 0
+      var models = 0
+      for (t <- 1 to timePoints) {
+        for (level <- 0 to maxLevel) {
+          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
+          tms.add(aspRule)
+        }
+        for (level <- 0 to maxLevel) {
+          val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
+          tms.remove(aspRule)
+        }
+        tms.getModel() match {
+          case Some(m) => models = models + 1//println(m filter (_.predicate.caption == "id"))
+          case None => failures = failures + 1
+        }
+      }
+
+      println(f"models: ${models}/${timePoints} = ${(1.0*models) / timePoints}")
+
+    }
 
   }
 

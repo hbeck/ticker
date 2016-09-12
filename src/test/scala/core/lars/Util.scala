@@ -39,6 +39,12 @@ object Util {
         val p = Predicate(parts(3))
         val args = ss.tail map arg
         WindowAtom(SlidingTimeWindow(size),temporalModality,Atom(p,args)) //doesn't matter which one
+      } else if (s.startsWith("#")){
+        val p = Predicate(s)
+        val args = ss.tail take ss.tail.size-1 map arg
+        val atom = Atom(p,args)
+        val time = Integer.parseInt(ss.tail.last.toString)
+        PinnedAtom(atom,time)
       } else {
         val p = Predicate(s)
         val args = ss.tail map arg
@@ -53,8 +59,8 @@ object Util {
     //if (s.startsWith("xx"))
     //  ContradictionAtom(pred)
     //else
-      PredicateAtom(pred)
 
+    PredicateAtom(pred)
   }
 
   //

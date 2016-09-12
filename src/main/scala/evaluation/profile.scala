@@ -40,16 +40,18 @@ package object profile {
 
     val end = Deadline.now
 
-    val elapsed = ((end - start) / repeat)
+    val elapsed = (end - start) / repeat
+
+    def seconds(millis: Long) = (1.0*millis)/1000.0
 
     if (repeat > 1) {
-      println(s"Elapsed time: $elapsed averaged over $repeat repetitions; Total elapsed time")
+      println(s"Elapsed time: ${seconds(elapsed.toMillis)} averaged over $repeat repetitions")
 
       val totalElapsed = (end - start)
 
-      println(s"Total elapsed time: $totalElapsed")
+      println(s"Total elapsed time: ${seconds(totalElapsed.toMillis)}")
     }
-    else println(s"Elapsed time: $elapsed")
+    else println(s"Elapsed time: ${seconds(elapsed.toMillis)}")
 
     result
   }
