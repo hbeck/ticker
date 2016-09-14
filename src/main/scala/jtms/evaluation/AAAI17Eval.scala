@@ -18,6 +18,48 @@ import scala.util.Random
 object AAAI17Eval {
 
   def main(args: Array[String]): Unit = {
+     //generateProgram("out")
+     evaluate(args)
+  }
+
+  def generateProgram(filename: String): Unit = {
+    val nrOfAtoms = 5000
+    val nrOfRules = 10000
+    val maxNrOfBodyAtomsPerRule = 4
+    val maxNrOfPosBodyAtomsPerRule = 3
+    //val negationProbability = 0.0
+    val choicePairs = 150
+
+    val p = randomProgram4(nrOfAtoms,nrOfRules,maxNrOfPosBodyAtomsPerRule,choicePairs)
+    //val p = randomProgram2(nrOfAtoms,nrOfRules,maxNrOfBodyAtomsPerRule)
+    writeProgramToFile(p,filename+".rules")
+
+    var ranThrough = false
+    var attempt = 0
+    while (attempt < 100 && !ranThrough) {
+      attempt += 1
+      try {
+        val tms = JtmsDoyle()
+        tms.doConsistencyCheck=true
+        tms.doJtmsSemanticsCheck=true
+        tms.doSelfSupportCheck=true
+
+        runIteration(p,tms)
+
+        println(f"#${attempt} retractions: ${tms.retractionsAffected}")
+        if (!tms.failed) {
+          ranThrough=true
+        } else {
+          println(f"#${attempt} failed")
+        }
+      } catch {
+        case e:StackOverflowError => println(f"#${attempt}: stack overflow")
+      }
+    }
+    println(f"found instance: $ranThrough")
+  }
+
+  def evaluate(args: Array[String]): Unit = {
     var impl = "greedy"
     var warmUps = 2
     var iterations = 10
@@ -46,21 +88,11 @@ object AAAI17Eval {
 
     for (instanceName <- instanceNames) {
       //val filename = f"/ground-programs/${instanceName}.rules"
+      print(f"\ninstance: "+instanceName+" ")
       val filename = dir + "/" + instanceName + ".rules"
       val program = readProgramFromFile(filename)
       runImplementation(impl,warmUps,iterations,program)
     }
-
-  }
-
-  def generateProgram(filename: String): Unit = {
-    val nrOfAtoms = 90
-    val nrOfRules = 100
-    val maxNrOfBodyAtomsPerRule = 4
-
-    val p = randomProgram2(nrOfAtoms,nrOfRules,maxNrOfBodyAtomsPerRule)
-    //"/home/hb/code/steen/src/test/resources/ground-programs/out.rules"
-    writeProgramToFile(p,filename)
 
   }
 
@@ -70,8 +102,6 @@ object AAAI17Eval {
     var totalRetractions = 0L
     var totalModels = 0L
     var totalFailures = 0L
-
-    print("\nimpl:" + impl)
 
     for (i <- (1 + (warmUps * -1)) to iterations) {
 
@@ -107,7 +137,7 @@ object AAAI17Eval {
     println(f"ratio failures: $ratioFailures")
 
     if (impl == "doyle") {
-      val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations) / (1000.0)
+      val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations)
       println(f"avg retractions: $avgRetractions")
     }
   }
@@ -134,6 +164,17 @@ object AAAI17Eval {
         if (tms.getModel.isDefined) models += 1
         else failures += 1
       }
+
+    }
+
+    if (tms.isInstanceOf[JtmsDoyle]) {
+      val jtms = tms.asInstanceOf[JtmsDoyle]
+      jtms.doConsistencyCheck=true
+      jtms.doJtmsSemanticsCheck=true
+      jtms.doSelfSupportCheck=true
+      jtms.checkConsistency()
+      jtms.checkJtmsSemantics()
+      jtms.checkSelfSupport()
     }
 
     Map() + (_time->time) + (_models->models) + (_failures ->failures)
@@ -158,6 +199,70 @@ object AAAI17Eval {
       case Some(m) => println(m); println("#atoms: "+m.size)
       case None => println("none")
     }
+  }
+
+  def randomProgram4(nrOfAtoms: Int, nrOfRules: Int, maxNrOfPosBodyAtomsPerRule: Int, choicePairs: Int): NormalProgram = {
+    val rand = new Random()
+    var rules = Set[NormalRule]()
+    def mkNewAtoms = rand.shuffle((1 to nrOfAtoms) map (i => Atom("a"+i)) toList)
+    var availableAtoms = mkNewAtoms
+
+    while (rules.size < nrOfRules - (2*choicePairs)) {
+
+      val nrPos = rand.nextInt(maxNrOfPosBodyAtomsPerRule) + 1  //maxNr=4 => (0..3) + 1 => 1..4
+
+      if (availableAtoms.size < (nrPos + 1)) availableAtoms = mkNewAtoms
+
+      val head = availableAtoms.head
+      val pos = availableAtoms.tail.take(nrPos).toSet
+      availableAtoms = availableAtoms.tail.drop(nrPos)
+
+      rules = rules + UserDefinedAspRule[Atom](head,pos,Set())
+
+    }
+
+    for (k <- 1 to choicePairs) {
+      if (availableAtoms.size < 2) availableAtoms = mkNewAtoms
+      val one = availableAtoms.head
+      availableAtoms = availableAtoms.tail
+      val two = availableAtoms.head
+      availableAtoms = availableAtoms.tail
+
+      rules = rules + UserDefinedAspRule(one,Set(),Set(two)) + UserDefinedAspRule(two,Set(),Set(one))
+    }
+
+    AspProgram(rules.toList)
+  }
+
+
+  def randomProgram3(nrOfAtoms: Int, nrOfRules: Int, maxNrOfPosBodyAtomsPerRule: Int, negationProbability: Double): NormalProgram = {
+    val rand = new Random()
+    var rules = Set[NormalRule]()
+    def mkNewAtoms = rand.shuffle((1 to nrOfAtoms) map (i => Atom("a"+i)) toList)
+    var availableAtoms = mkNewAtoms
+    while (rules.size < nrOfRules) {
+
+      val useNegation = rand.nextDouble()<negationProbability
+
+      val base = if (useNegation) 0 else 1
+
+      val nrPos = rand.nextInt(maxNrOfPosBodyAtomsPerRule) + base
+      val nrNeg = if (useNegation) 1 else 0
+
+      if (availableAtoms.size < (nrPos + nrNeg + 1)) {
+        availableAtoms = mkNewAtoms
+      }
+
+      val head = availableAtoms.head
+      val pos = availableAtoms.tail.take(nrPos).toSet
+      availableAtoms = availableAtoms.tail.drop(nrPos)
+      val neg = availableAtoms.take(nrNeg).toSet
+      availableAtoms = availableAtoms.drop(nrNeg)
+
+      rules = rules + UserDefinedAspRule[Atom](head,pos,neg)
+
+    }
+    AspProgram(rules.toList)
   }
 
   //use all atoms first before starting using the same again

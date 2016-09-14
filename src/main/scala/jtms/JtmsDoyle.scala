@@ -26,11 +26,11 @@ object JtmsDoyle {
   */
 case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
-  var doSelfSupportCheck = true
-  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
+  var doSelfSupportCheck = false
+  var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
 
   //for inspection:
-  var doJtmsSemanticsCheck = true //for debugging
+  var doJtmsSemanticsCheck = false //for debugging
 
   var failed = false
 
@@ -75,8 +75,8 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
       unknownCons(a) foreach chooseStatus
     } else {
       retractionsAffected = retractionsAffected + 1
-      //val aff = shuffle(affected(a) + a) //TODO no test coverage
-      val aff = affected(a) + a
+      val aff = shuffle(affected(a) + a) //TODO no test coverage
+      //val aff = affected(a) + a
       aff foreach setUnknown
       aff foreach chooseStatus
     }
