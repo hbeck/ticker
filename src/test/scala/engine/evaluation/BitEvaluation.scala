@@ -1,6 +1,7 @@
 package engine.evaluation
 
-import core.lars.Util._
+import jtms.evaluation.Util
+import Util._
 import engine.StreamEntry
 import evaluation._
 import evaluation.bit.BitProgram

@@ -32,6 +32,8 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   //for inspection:
   var doJtmsSemanticsCheck = true //for debugging
 
+  var failed = false
+
   override def update(atoms: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
@@ -143,17 +145,26 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
     if (inAtoms exists unfoundedSelfSupport) {
-      throw new RuntimeException("model: "+getModel()+"\nself support exists")
+      //throw new RuntimeException("model: "+getModel()+"\nself support exists")
+      Console.err.println("model: "+getModel()+"\nself support exists")
+      failed = true
+      invalidateModel()
     }
   }
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
     if ((inAtoms diff factAtoms) exists (a => !(justifications(a) exists valid))) {
-      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+      //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+      Console.err.println("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+      failed = true
+      invalidateModel()
     }
     if ((outAtoms diff factAtoms) exists (a => (justifications(a) exists valid))) {
-      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+      //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+      Console.err.println("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+      failed = true
+      invalidateModel()
     }
   }
 

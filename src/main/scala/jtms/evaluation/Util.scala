@@ -1,7 +1,8 @@
-package core.lars
+package jtms.evaluation
 
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
+import core.lars._
 import engine.asp.LarsToPinnedProgram
 import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 

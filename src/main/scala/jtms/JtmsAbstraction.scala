@@ -218,7 +218,7 @@ abstract class JtmsAbstraction(random: Random = new Random()) extends Jtms with 
 
   def __updateStatus(a: Atom, newStatus: Status): Unit = {
 
-    val oldStatus = status(a)
+    var oldStatus = status(a)
 
     if (oldStatus != newStatus) {
       if (!signals().contains(a)) {

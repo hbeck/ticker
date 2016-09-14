@@ -23,7 +23,7 @@ object JtmsLearn {
   */
 class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
-  shuffle = true
+  shuffle = false
 
   /*
   stable:
@@ -328,6 +328,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       tabu.avoid(state.get, selectedAtom.get)
       //updateAvoidanceMap(this.state.get,selectedAtom.get)
     }
+    resetSavedState
 
     super.invalidateModel()
   }

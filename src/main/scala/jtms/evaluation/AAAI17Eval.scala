@@ -1,0 +1,235 @@
+package jtms.evaluation
+
+import java.io.{File, PrintWriter}
+
+import Util.{asAspRule,rule}
+import common.Util.stopTime
+import core._
+import core.asp._
+import jtms._
+
+import scala.io.Source
+import scala.util.Random
+
+
+/**
+  * Created by hb on 9/14/16.
+  */
+object AAAI17Eval {
+
+  def main(args: Array[String]): Unit = {
+    var impl = "greedy"
+    var warmUps = 2
+    var iterations = 10
+    var instanceNames = Seq("a9000")
+    var dir="~"
+    if (args.nonEmpty) {
+      try {
+        impl = args(0)
+        warmUps = Integer.parseInt(args(1))
+        iterations = Integer.parseInt(args(2))
+        dir = args(3)
+        instanceNames = args.drop(4).toSeq
+      } catch {
+        case e: Exception => {
+          println("args: impl warmUps iterations dir instanceName1 instanceName2 ...")
+          println("eg: greedy 2 10 ~/programs a9000 (=default)")
+          System.exit(1)
+        }
+      }
+    }
+    println(f"impl: $impl, warmUps: $warmUps, iterations: $iterations, dir: $dir, instanceNames: $instanceNames")
+    run(impl,warmUps,iterations,dir,instanceNames)
+  }
+
+  def run(impl:String, warmUps:Int, iterations: Int, dir: String, instanceNames: Seq[String]) {
+
+    for (instanceName <- instanceNames) {
+      //val filename = f"/ground-programs/${instanceName}.rules"
+      val filename = dir + "/" + instanceName + ".rules"
+      val program = readProgramFromFile(filename)
+      runImplementation(impl,warmUps,iterations,program)
+    }
+
+  }
+
+  def generateProgram(filename: String): Unit = {
+    val nrOfAtoms = 90
+    val nrOfRules = 100
+    val maxNrOfBodyAtomsPerRule = 4
+
+    val p = randomProgram2(nrOfAtoms,nrOfRules,maxNrOfBodyAtomsPerRule)
+    //"/home/hb/code/steen/src/test/resources/ground-programs/out.rules"
+    writeProgramToFile(p,filename)
+
+  }
+
+  def runImplementation(impl: String, warmUps: Int, iterations: Int, program: NormalProgram):Unit = {
+
+    var totalTime = 0L
+    var totalRetractions = 0L
+    var totalModels = 0L
+    var totalFailures = 0L
+
+    print("\nimpl:" + impl)
+
+    for (i <- (1 + (warmUps * -1)) to iterations) {
+
+      print(" " + i)
+
+      val tms = impl match {
+        case "doyle" => new JtmsDoyle()
+        case "greedy" => new JtmsGreedy()
+        case "learn" => new JtmsLearn()
+      }
+
+      val result: Map[String,Long] = runIteration(program,tms)
+
+      if (i >= 1) {
+        totalTime += result(_time)
+        totalModels += result(_models)
+        totalFailures += result(_failures)
+      }
+
+      if (impl == "doyle") {
+        totalRetractions = totalRetractions + tms.asInstanceOf[JtmsDoyle].retractionsAffected
+      }
+
+    }
+
+    val avgTime = (1.0 * totalTime) / (1.0 * iterations) / (1000.0)
+    val updates = totalModels + totalFailures
+    val ratioModels = (1.0 * totalModels) / (1.0 * updates)
+    val ratioFailures = (1.0 * totalFailures) / (1.0 * updates)
+
+    println(f"\navg time: $avgTime sec")
+    println(f"ratio models: $ratioModels")
+    println(f"ratio failures: $ratioFailures")
+
+    if (impl == "doyle") {
+      val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations) / (1000.0)
+      println(f"avg retractions: $avgRetractions")
+    }
+  }
+
+  val _time = "time"
+  val _models = "models"
+  val _failures = "failures"
+
+  def runIteration(program: NormalProgram, tms: Jtms): Map[String,Long] = {
+
+    var models = 0L
+    var failures = 0L
+
+    val time = stopTime {
+
+      program.rules foreach { r =>
+        tms.add(r)
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
+
+      program.rules foreach { r =>
+        tms.remove(r)
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
+    }
+
+    Map() + (_time->time) + (_models->models) + (_failures ->failures)
+  }
+
+  def readProgramFromFile(filename: String): NormalProgram = {
+    //val source = Source.fromURL(getClass.getResource(filename))
+    val source = Source.fromFile(new File(filename))
+    val rules = source.getLines().toSeq map (l => asAspRule(rule(l)))
+    AspProgram(rules.toList)
+  }
+
+  def writeProgramToFile(program: NormalProgram, filename: String) = {
+    val pw = new PrintWriter(new File(filename))
+    program.rules foreach (r => pw.write(r.toString+"\n"))
+    pw.close
+  }
+
+  def printModel(tms: Jtms): Unit = {
+    println("model for "+tms.getClass.getSimpleName)
+    tms.getModel match {
+      case Some(m) => println(m); println("#atoms: "+m.size)
+      case None => println("none")
+    }
+  }
+
+  //use all atoms first before starting using the same again
+  def randomProgram2(nrOfAtoms: Int, nrOfRules: Int, maxNrOfBodyAtomsPerRule: Int): NormalProgram = {
+    val rand = new Random()
+    var rules = Set[NormalRule]()
+    def mkNewAtoms = rand.shuffle((1 to nrOfAtoms) map (i => Atom("a"+i)) toList)
+    var availableAtoms = mkNewAtoms
+    while (rules.size < nrOfRules) {
+
+      val nrBody = rand.nextInt(maxNrOfBodyAtomsPerRule) + 1  //maxNr=4 => (0..3) + 1 => 1..4
+
+      if (availableAtoms.size < (nrBody + 1)) {
+        availableAtoms = mkNewAtoms
+      }
+
+      val nrPos = rand.nextInt(nrBody + 1) //nrBody = 1..4 ==> (0..0)..(0..3) + 1 ==> (0..1)..(0..4)
+      val nrNeg = nrBody - nrPos
+
+      val head = availableAtoms.head
+      val pos = availableAtoms.tail.take(nrPos).toSet
+      availableAtoms = availableAtoms.tail.drop(nrPos)
+      val neg = availableAtoms.take(nrNeg).toSet
+      availableAtoms = availableAtoms.drop(nrNeg)
+
+      rules = rules + UserDefinedAspRule[Atom](head,pos,neg)
+
+    }
+    AspProgram(rules.toList)
+  }
+
+  def randomProgram(nrOfAtoms: Int, nrOfRules: Int, maxNrOfBodyAtomsPerRule: Int): NormalProgram = {
+    val rand = new Random()
+    var rules = Set[NormalRule]()
+    while (rules.size < nrOfRules) {
+      rules = rules + randomRule(rand,nrOfAtoms,maxNrOfBodyAtomsPerRule)
+    }
+    AspProgram(rules.toList)
+  }
+
+  def randomRule(rand: Random, nrOfAtoms: Int, maxNrOfBodyAtomsPerRule: Int): NormalRule = {
+    var numbers = Seq[Int]()
+
+    val nrBody = rand.nextInt(maxNrOfBodyAtomsPerRule) + 1  //maxNr=4 => (0..3) + 1 => 1..4
+    val nrPos = rand.nextInt(nrBody + 1) //nrBody = 1..4 ==> (0..0)..(0..3) + 1 ==> (0..1)..(0..4)
+
+    while (numbers.size < nrBody + 1) {
+      val k = rand.nextInt(nrOfAtoms)
+      if (!numbers.contains(k)) {
+        numbers = numbers :+ k
+      }
+    }
+    val head:Atom = Atom("a"+numbers(0))
+    val posInts: Set[Int] = numbers.tail.take(nrPos).toSet
+    val negInts: Set[Int] = numbers.drop(nrPos + 1).toSet
+    val pos:Set[Atom] = posInts map (i => Atom("a"+i))
+    val neg:Set[Atom] = negInts map (i => Atom("a"+i))
+    UserDefinedAspRule[Atom](head,pos,neg)
+  }
+
+
+  /*
+  test("infinite odd loop doyle") {
+
+    val tms = new JtmsDoyle()
+    val r1 = asAspRule(rule("a :- not b"))
+    val r2 = asAspRule(rule("b :- a"))
+    tms add r1
+    tms add r2
+
+    println(tms.getModel)
+  }
+  */
+
+}

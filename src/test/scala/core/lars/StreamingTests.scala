@@ -3,7 +3,8 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
-import core.lars.Util._
+import jtms.evaluation.Util
+import Util._
 import jtms.JtmsLearn
 import org.scalatest.FunSuite
 

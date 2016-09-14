@@ -39,6 +39,9 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
       case e:IncrementalUpdateFailureException => {
         invalidateModel()
       }
+      case e:NoSuchElementException => {
+        println(e)
+      }
     }
 
   }
@@ -101,8 +104,8 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   }
 
   def chooseStatusGreedy(a: Atom): Unit = {
+
     if (status(a) != unknown)
-      return
 
     if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
