@@ -30,10 +30,10 @@ trait Jtms {
   //
 
   //book keeping:
-  var recordStatusSeq = true
+  var recordStatusSeq = false
   var statusSeq = Seq[(Atom,Status,String)]()
 
-  var recordChoiceSeq = true
+  var recordChoiceSeq = false
   var choiceSeq = Seq[Atom]()
 
   def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)

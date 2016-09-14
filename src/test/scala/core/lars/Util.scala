@@ -78,8 +78,9 @@ object Util {
 
   def fact(s:String):LarsRule = LarsFact(xatom(s).asInstanceOf[Atom])
   def rule(all:String): LarsRule = {
-    if (!all.contains(" :- ")) return fact(all)
-    val hbStr = all.split(" :- ")
+    val s = all.replaceAll("\\.","")
+    if (!s.contains(" :- ")) return fact(s)
+    val hbStr = s.split(" :- ")
     val head:HeadAtom = xatom(hbStr(0)).asInstanceOf[Atom] //not *A*tom! using atom to parse predicate symbol
     val bodyParts = hbStr(1).split(", ")
     val posBodyParts = bodyParts filterNot (_.trim.startsWith("not"))

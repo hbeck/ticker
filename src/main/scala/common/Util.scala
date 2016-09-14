@@ -13,4 +13,11 @@ object Util {
     result
   }
 
+  def stopTime[T](any: => T): Long = {
+    val start = System.currentTimeMillis()
+    val result: T = any
+    val end = System.currentTimeMillis()
+    end-start
+  }
+
 }

@@ -8,16 +8,26 @@ sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
   override def toString = {
     val sb = new StringBuilder
-    sb.append(head).append(" <- ")
+    sb.append(head)
+    if (pos.nonEmpty || neg.nonEmpty) {
+      sb.append(" :- ")
+    }
     if (!pos.isEmpty) {
-      sb.append(pos)
+      sb.append(pos.head)
+      if (pos.size > 1) {
+        pos.tail foreach (b => sb.append(", ").append(b))
+      }
     }
     if (!neg.isEmpty) {
       if (!pos.isEmpty) {
         sb.append(", ")
       }
-      sb.append("not ").append(neg)
+      sb.append("not ").append(neg.head)
+      if (neg.size > 1) {
+        neg.tail foreach (b => sb.append(", not ").append(b))
+      }
     }
+    sb.append(".")
     sb.toString
   }
 }

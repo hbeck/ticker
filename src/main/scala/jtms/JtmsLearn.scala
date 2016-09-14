@@ -407,8 +407,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     state = stateSnapshot()
 
-    val atomSet = (unknownAtoms diff signals) filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
-    val atoms = if (shuffle && atomSet.size > 1) (random.shuffle(atomSet.toSeq)) else atomSet
+    val atomSet = (unknownAtoms diff signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atoms = if (shuffle && atomSet.size > 1)
+        (random.shuffle(atomSet.toSeq))
+      else
+        atomSet
+        //atomSet.toSeq.sortWith((r1,r2) => posValid(r1))
 
     if (atoms.isEmpty) return
 

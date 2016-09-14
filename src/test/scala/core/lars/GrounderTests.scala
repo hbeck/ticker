@@ -4,7 +4,7 @@ import common.Util.printTime
 import core._
 import core.asp._
 import core.lars.Util._
-import jtms.{JtmsGreedy, JtmsLearn}
+import jtms._
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap
@@ -1423,12 +1423,13 @@ class GrounderTests extends FunSuite {
     //val program = printTime("grounding time"){ eval.groundLarsProgram() }
     //println("#rules: "+program.rules.size)
 
-    val timePoints = 1000
+    val timePoints = 250
+    val tmsNames = Seq("greedy","learn")
     //val windowSizes = Seq(1,50,100)
-    val windowSizes = Seq(100)
-    //val insertProbabilities = Seq[Double](0.001,0.01,0.1)
-    val insertProbabilities = Seq(0.1)
-    val iterationsEach = 5
+    val windowSizes = Seq(10,100)
+    val insertProbabilities = Seq[Double](0.001,0.01,0.1)
+    //val insertProbabilities = Seq(0.0)
+    val iterationsEach = 2
 
     //
 
@@ -1438,7 +1439,8 @@ class GrounderTests extends FunSuite {
     val maxLevel = highestExponent - 1
 
     val asp = if (useGroundProgramFromFile) {
-      val filename = "/ground-programs/bits6_mod10_geq5.rules"
+      //val filename = "/ground-programs/bits6_mod64_geq1.rules"
+      val filename = "/ground-programs/bits7_mod128_geq1.rules"
       val groundLarsProgram = readProgramFromFile(filename)
       asAspProgram(groundLarsProgram)
     } else {
@@ -1450,8 +1452,9 @@ class GrounderTests extends FunSuite {
         rule("sum_at(L,C) :- sum_at(L0,C0), sum(L0,1,L), bit(L,1), pow(2,L,X), sum(C0,X,C), int(X), int(C)"),
         rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
         rule("id(C) :- max_level(M), sum_at(M,C)"),
-        rule("xx1 :- id(C), mod(C,10,K), geq(K,5), int(K), not xx1"),
-        rule("bit(L,1) :- level(L), from_window(L)") //!
+        rule("xx1 :- id(C), mod(C,16,K), geq(K,4), int(K), not xx1"),
+        rule("bit(L,0) :- level(L), from_window0(L)"), //!
+        rule("bit(L,1) :- level(L), from_window1(L)") //!
       )
 
       val levels = Seq(fact(f"max_level(${maxLevel})")) ++ ((0 to maxLevel) map (i => fact(f"level($i)")))
@@ -1475,7 +1478,7 @@ class GrounderTests extends FunSuite {
 
     for (windowSize <- windowSizes) {
       for (insertProbability <- insertProbabilities) {
-        for (tmsName <- Seq("greedy","learn")) {
+        for (tmsName <- tmsNames) {
           for (iteration <- 1 to iterationsEach) {
 
             val tms = tmsName match {
@@ -1504,8 +1507,10 @@ class GrounderTests extends FunSuite {
               //initialize
               for (t <- 1 to windowSize) {
                 for (level <- 0 to maxLevel) {
-                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-                  tms.add(aspRule)
+                  val aspRule0 = asAspRule(rule(f"from_window($level) :- #signal0($level,$t)"))
+                  val aspRule1 = asAspRule(rule(f"from_window($level) :- #signal1($level,$t)"))
+                  tms.add(aspRule0)
+                  tms.add(aspRule1)
                   if (!printed && tms.getModel.isDefined) {
                     println(f"add. t=$t, level: $level")
                     printed = true
@@ -1518,23 +1523,31 @@ class GrounderTests extends FunSuite {
               for (t <- (windowSize + 1) to (windowSize + timePoints)) {
                 for (level <- 0 to maxLevel) {
                   if (tms.random.nextDouble() < insertProbability) {
-                    val fact = asAspRule(rule(f"#signal($level,$t)"))
+                    val fact = if (tms.random.nextDouble() < 0.5) {
+                      asAspRule(rule(f"#signal0($level,$t)"))
+                    } else {
+                      asAspRule(rule(f"#signal1($level,$t)"))
+                    }
                     tms.add(fact)
                     val set = factMap.getOrElse(t,Set())
                     factMap = factMap.updated(t,set + fact)
                   }
                 }
                 for (level <- 0 to maxLevel) {
-                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,$t)"))
-                  tms.add(aspRule)
+                  val aspRule0 = asAspRule(rule(f"from_window0($level) :- #signal0($level,$t)"))
+                  val aspRule1 = asAspRule(rule(f"from_window1($level) :- #signal1($level,$t)"))
+                  tms.add(aspRule0)
+                  tms.add(aspRule1)
                   if (!printed && tms.getModel.isDefined) {
                     println(f"add. t=$t, level: $level")
                     printed = true
                   }
                 }
                 for (level <- 0 to maxLevel) {
-                  val aspRule = asAspRule(rule(f"from_window($level) :- #signal($level,${t - windowSize})"))
-                  tms.remove(aspRule)
+                  val aspRule0 = asAspRule(rule(f"from_window0($level) :- #signal0($level,${t - windowSize})"))
+                  val aspRule1 = asAspRule(rule(f"from_window1($level) :- #signal1($level,${t - windowSize})"))
+                  tms.remove(aspRule0)
+                  tms.remove(aspRule1)
                   if (!printed && tms.getModel.isDefined) {
                     println(f"remove. t=$t, level: $level")
                     printed = true
@@ -1563,5 +1576,6 @@ class GrounderTests extends FunSuite {
     }
 
   }
+
 
 }

@@ -1,7 +1,5 @@
 package jtms
 
-import java.util
-
 import core._
 import core.asp.{NormalProgram, NormalRule}
 
@@ -28,6 +26,12 @@ object JtmsDoyle {
   */
 case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
+  var doSelfSupportCheck = true
+  var doConsistencyCheck = true //detect wrong computation of odd loop, report inconsistency
+
+  //for inspection:
+  var doJtmsSemanticsCheck = true //for debugging
+
   override def update(atoms: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
@@ -36,9 +40,9 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
     try {
       updateDoyle(atoms)
 
-//      checkJtmsSemantics()
-//      checkSelfSupport()
-//      checkConsistency()
+      checkJtmsSemantics()
+      checkSelfSupport()
+      checkConsistency()
     } catch {
       case e:IncrementalUpdateFailureException => {
         invalidateModel()
@@ -52,7 +56,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
     atoms foreach findStatus // Evaluating the nodes' justifications
 
     if (doForceChoiceOrder) { // Relaxing circularities (might lead to contradictions)
-    val atomList = sortByForcedOrder(atoms)
+      val atomList = sortByForcedOrder(atoms)
       atomList foreach chooseStatus
     } else {
       atoms foreach chooseStatus
@@ -68,11 +72,15 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
       unknownCons(a) foreach chooseStatus
     } else {
-      val aff = shuffleSeq(Seq[Atom]() ++ affected(a).toSet :+ a) //TODO no test coverage
+      retractionsAffected = retractionsAffected + 1
+      //val aff = shuffle(affected(a) + a) //TODO no test coverage
+      val aff = affected(a) + a
       aff foreach setUnknown
       aff foreach chooseStatus
     }
   }
+
+  var retractionsAffected = 0
 
   def choice(a: Atom): Boolean = {
     justifications(a) find posValid match {
@@ -123,15 +131,37 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
     atomList sortWith sort
   }
 
-  def shuffleSeq(atoms: Seq[Atom]): Seq[Atom] = {
-    val list = new util.ArrayList[Atom]()
-    atoms foreach list.add
-    java.util.Collections.shuffle(list)
-    var seq = Seq[Atom]()
-    for (i <- 0 to list.size()-1) {
-      seq = seq :+ list.get(i)
+  def shuffle(atoms: Set[Atom]): Seq[Atom] = random.shuffle(atoms.toSeq)
+
+  def checkJtmsSemantics(): Unit = {
+    if (!doJtmsSemanticsCheck) return
+    if (atomsNeedingSupp exists (supp(_).isEmpty)) {
+      throw new RuntimeException("model: "+getModel()+"\nno support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
     }
-    seq
+  }
+
+  def checkSelfSupport(): Unit = {
+    if (!doSelfSupportCheck) return
+    if (inAtoms exists unfoundedSelfSupport) {
+      throw new RuntimeException("model: "+getModel()+"\nself support exists")
+    }
+  }
+
+  def checkConsistency(): Unit = {
+    if (!doConsistencyCheck) return
+    if ((inAtoms diff factAtoms) exists (a => !(justifications(a) exists valid))) {
+      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+    }
+    if ((outAtoms diff factAtoms) exists (a => (justifications(a) exists valid))) {
+      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+    }
+  }
+
+  def selfSupport(a:Atom): Boolean = supp(a) contains a
+
+  def unfoundedSelfSupport(a: Atom): Boolean = {
+    if (!selfSupport(a)) return false
+    justifications(a) filter valid exists (r => !(r.pos contains a))
   }
 
 
