@@ -10,7 +10,7 @@ import scala.util.Random
 object JtmsBeierle {
 
   def apply(P: NormalProgram): JtmsBeierle = {
-    val tmn = new JtmsBeierle(new JtmsAbstraction())
+    val tmn = new JtmsBeierle(new JtmsAbstraction(), new Random())
     P.rules foreach tmn.add
     tmn
   }
@@ -26,7 +26,7 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-class JtmsBeierle(jtms: JtmsAbstraction) extends JtmsUpdateAlgorithmAbstraction(jtms, new Random()){
+class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateAlgorithmAbstraction(jtms, random){
 
   var shuffle = true //debugging
 
@@ -66,7 +66,7 @@ class JtmsBeierle(jtms: JtmsAbstraction) extends JtmsUpdateAlgorithmAbstraction(
 
   def step2(rule: NormalRule): Boolean = {
     if (ACons(rule.head).isEmpty) {
-      jtms.setIn(rule)
+      setIn(rule)
       return true
     }
     false
@@ -107,7 +107,7 @@ class JtmsBeierle(jtms: JtmsAbstraction) extends JtmsUpdateAlgorithmAbstraction(
 
     jtms.justifications(atom) find foundedValid match {
       case Some(rule) => {
-        jtms.setIn(rule)
+        setIn(rule)
         for (u <- jtms.unknownCons(atom)){
           step4a(u)
         }
@@ -174,7 +174,7 @@ class JtmsBeierle(jtms: JtmsAbstraction) extends JtmsUpdateAlgorithmAbstraction(
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
-          jtms.setIn(rule)
+          setIn(rule)
           for (n <- rule.neg) {
             if (jtms.status(n) == unknown) {
               //status(n) = out //vs setOutOriginal [!]; support never set!

@@ -25,18 +25,20 @@ trait AtomValidation {
 
   class AtomValidator(tmn: JtmsDoyle, atom: Atom) {
 
+    val net = tmn.jtms
+
     info(atom.toString)
 
     def state(status: Status) = {
       it should "have the state " + status in {
-        assert(tmn.status(atom) == status)
+        assert(tmn.jtms.status(atom) == status)
       }
     }
 
     def Rules(rules: NormalRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
-        assert(tmn.justifications(atom).toSet == ruleSet.toSet)
+        assert(tmn.jtms.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 
@@ -49,49 +51,49 @@ trait AtomValidation {
         text = "have no supporting rules";
 
       it should text in {
-        assert(tmn.suppRule(atom) == j)
+        assert(net.suppRule(atom) == j)
       }
     }
 
     def Supp(atoms: Atom*) = {
       it should "have Supp " + atoms.toSet in {
-        assert(tmn.supp(atom) == atoms.toSet)
+        assert(net.supp(atom) == atoms.toSet)
       }
     }
 
     def Ancestors(atoms: Atom*) = {
       it should "have Ancestors  " + atoms.toSet in {
-        assert(tmn.ancestors(atom) == atoms.toSet)
+        assert(net.ancestors(atom) == atoms.toSet)
       }
     }
 
     def Antecedents(atoms: Atom*) = {
       it should "have Antecedents " + atoms.toSet in {
-        assert(tmn.antecedents(atom) == atoms.toSet)
+        assert(net.antecedents(atom) == atoms.toSet)
       }
     }
 
     def Foundations(atoms: Atom*) = {
       it should "have Foundations* " + atoms.toSet in {
-        assert(tmn.foundations(atom) == atoms.toSet)
+        assert(net.foundations(atom) == atoms.toSet)
       }
     }
 
     def Cons(atoms: Atom*) = {
       it should "have Cons " + atoms.toSet in {
-        assert(tmn.cons(atom) == atoms.toSet)
+        assert(net.cons(atom) == atoms.toSet)
       }
     }
 
     def ACons(atoms: Atom*) = {
       it should "have affected " + atoms.toSet in {
-        assert(tmn.affected(atom) == atoms.toSet)
+        assert(net.affected(atom) == atoms.toSet)
       }
     }
 
     def Repercussions(atoms: Atom*) = {
       it should "have repercussions* " + atoms.toSet in {
-        assert(tmn.repercussions(atom) == atoms.toSet)
+        assert(net.repercussions(atom) == atoms.toSet)
       }
     }
   }

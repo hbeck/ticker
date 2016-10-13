@@ -48,9 +48,6 @@ import scala.util.Random
 
   override def signals(): Set[Atom] = __signals
 
-  def inconsistent(): Boolean = unknownAtoms().nonEmpty
-
-
   //return true iff rule is new
   def register(rule: NormalRule): Boolean = {
     if (rules contains rule) return false //list representation!
@@ -78,7 +75,7 @@ import scala.util.Random
   def register(a: Atom) {
     if (!status.isDefinedAt(a)) {
       //use this immediately as test whether the atom exists; all atoms need to have a status
-      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
+// TODO: do we need this?      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
 
       __allAtoms = __allAtoms + a
 
@@ -104,36 +101,6 @@ import scala.util.Random
       //      supp(a) = Set[Atom]()
       //      suppRule(a) = None
     }
-  }
-
-
-  def setIn(rule: NormalRule) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
-    __updateStatus(rule.head, in)
-    setSupport(rule.head, rule.body)
-    suppRule = suppRule.updated(rule.head, Some(rule))
-    //    status(rule.head) = in
-    //    supp(rule.head) = Set() ++ rule.body
-    //    suppRule(rule.head) = Some(rule)
-  }
-
-  def setOut(a: Atom) = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
-    __updateStatus(a, out)
-    setOutSupport(a)
-    suppRule = suppRule.updated(a, None)
-    //    status(a) = out
-    //    setOutSupport(a)
-    //    suppRule(a) = None
-  }
-
-  def setUnknown(a: Atom) = {
-    __updateStatus(a, unknown)
-    clearSupport(a)
-    suppRule = suppRule.updated(a, None)
-    //    status(a) = unknown
-    //    supp(a) = Set()
-    //    suppRule(a) = None
   }
 
   def __updateStatus(a: Atom, newStatus: Status): Unit = {

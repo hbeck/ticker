@@ -35,34 +35,37 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
 
   def validation(a: Atom): Boolean = {
     jtms.justifications(a) find jtms.valid match {
-      case Some(rule) => jtms.setIn(rule); true
+      case Some(rule) => setIn(rule); true
       case None => false
     }
   }
 
   def invalidation(a: Atom): Boolean = {
     if (jtms.justifications(a) forall jtms.invalid) {
-      jtms.setOut(a)
+      setOut(a)
       return true
     }
     false
   }
 
   def invalidateModel(): Unit = {
-    jtms.atomsNeedingSupp foreach jtms.setUnknown
+    jtms.atomsNeedingSupp foreach setUnknown
   }
 
+  def register(rule: NormalRule) = jtms.register(rule)
+
+  def unregister(rule: NormalRule) = jtms.unregister(rule)
 
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
-    jtms.register(rule)
+    register(rule)
     if (jtms.inconsistent()) {
       update(jtms.unknownAtoms() + rule.head) //i.e., recompute()
     } else {
       if (jtms.status(rule.head) == in) {
         if (jtms.valid(rule)) {
           //difference to original; optimization for sliding time-based window (support always by latest)
-          jtms.setIn(rule)
+          setIn(rule)
         }
         return
       }
@@ -77,7 +80,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
   }
 
   override def remove(rule: NormalRule): Unit = {
-    jtms.unregister(rule)
+    unregister(rule)
     if (jtms.inconsistent()) {
       val h = if (jtms.allAtoms contains rule.head) Set(rule.head) else Set()
       update(jtms.unknownAtoms() ++ h)
@@ -147,5 +150,34 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
     }
     //supp(a) = Set() ++ maybeAtoms map (_.get)
     jtms.setSupport(a, maybeAtoms map (_.get))
+  }
+
+  def setIn(rule: NormalRule) = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
+    jtms.__updateStatus(rule.head, in)
+    jtms.setSupport(rule.head, rule.body)
+    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+    //    status(rule.head) = in
+    //    supp(rule.head) = Set() ++ rule.body
+    //    suppRule(rule.head) = Some(rule)
+  }
+
+  def setOut(a: Atom) = {
+    if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
+    jtms.__updateStatus(a, out)
+    setOutSupport(a)
+    jtms.suppRule = jtms.suppRule.updated(a, None)
+    //    status(a) = out
+    //    setOutSupport(a)
+    //    suppRule(a) = None
+  }
+
+  def setUnknown(a: Atom) = {
+    jtms.__updateStatus(a, unknown)
+    jtms.clearSupport(a)
+    jtms.suppRule = jtms.suppRule.updated(a, None)
+    //    status(a) = unknown
+    //    supp(a) = Set()
+    //    suppRule(a) = None
   }
 }

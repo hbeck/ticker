@@ -7,6 +7,7 @@ import core.asp._
   * Created by FM on 13.10.16.
   */
 trait JtmsUpdateAlgorithm extends ChoiceControl {
+  val jtms: JtmsAbstraction
   def add(rule: NormalRule)
   def remove(rule: NormalRule)
   //def recompute()

@@ -8,26 +8,27 @@ import scala.util.Random
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy()
+    val net = new JtmsGreedy(new JtmsAbstraction())
     P.rules foreach net.add
     net
   }
 
 }
 
-case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
+case class JtmsGreedy(jtms: JtmsAbstraction = new JtmsAbstraction(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
 
   //for inspection:
-  var doJtmsSemanticsCheck = false //for debugging
+  var doJtmsSemanticsCheck = false
+  //for debugging
   var shuffle = true
 
   override def update(atoms: Set[Atom]) {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
-    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     try {
       updateGreedy(atoms)
@@ -36,10 +37,10 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
       checkSelfSupport()
       checkConsistency()
     } catch {
-      case e:IncrementalUpdateFailureException => {
+      case e: IncrementalUpdateFailureException => {
         invalidateModel()
       }
-      case e:NoSuchElementException => {
+      case e: NoSuchElementException => {
         println(e)
       }
     }
@@ -49,8 +50,8 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
-    while (hasUnknown) {
-      unknownAtoms foreach findStatus
+    while (jtms.hasUnknown) {
+      jtms.unknownAtoms foreach findStatus
       val atom = getOptUnknownOtherThan(lastAtom) //ensure that the same atom is not tried consecutively
       if (atom.isDefined) {
         chooseStatusGreedy(atom.get)
@@ -59,9 +60,10 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
     }
   }
 
-  def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = { //TODO improve
+  def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = {
+    //TODO improve
 
-    val atomSet = (unknownAtoms diff signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atomSet = (jtms.unknownAtoms diff jtms.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
 
     if (atomSet.isEmpty) return None
     if (atomSet.size == 1) return Some(atomSet.head)
@@ -105,23 +107,23 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   def chooseStatusGreedy(a: Atom): Unit = {
 
-    if (status(a) != unknown)
+    if (jtms.status(a) != unknown)
 
-    if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
+      if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
-    justifications(a) find posValid match {
+    jtms.justifications(a) find jtms.posValid match {
       case Some(rule) => chooseIn(rule)
       case None => chooseOut(a)
     }
 
-    unknownCons(a) foreach findStatus
+    jtms.unknownCons(a) foreach findStatus
   }
 
   def chooseIn(rulePosValid: NormalRule): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in,"choose")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in, "choose")
     setIn(rulePosValid)
     rulePosValid.neg foreach { a =>
-      status(a) match {
+      jtms.status(a) match {
         case `unknown` => chooseOut(a) //fix status of ancestors
         case `in` => throw new IncrementalUpdateFailureException() //odd loop (within rule) detection
         case `out` => //nothing to be done
@@ -136,13 +138,13 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
   }
 
   def chooseOut(atom: Atom): Unit = {
-    if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"choose")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (atom, out, "choose")
 
     //status(a) = out
     //status = status.updated(atom,out)
-    __updateStatus(atom,out)
+    jtms.__updateStatus(atom, out)
 
-    val maybeAtoms: Set[Option[Atom]] = openJustifications(atom) map { r => (r.pos find (status(_)==unknown)) }
+    val maybeAtoms: Set[Option[Atom]] = jtms.openJustifications(atom) map { r => (r.pos find (jtms.status(_) == unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach chooseOut //fix status of ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
@@ -156,33 +158,33 @@ case class JtmsGreedy(random: Random = new Random()) extends JtmsAbstraction {
 
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
-    if (atomsNeedingSupp exists (supp(_).isEmpty)) {
-      throw new RuntimeException("model: "+getModel()+"\nno support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
+    if (jtms.atomsNeedingSupp exists (jtms.supp(_).isEmpty)) {
+      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (jtms.atomsNeedingSupp filter (jtms.supp(_).isEmpty)))
     }
   }
 
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
-    if (inAtoms exists unfoundedSelfSupport) {
-      throw new RuntimeException("model: "+getModel()+"\nself support exists")
+    if (jtms.inAtoms exists unfoundedSelfSupport) {
+      throw new RuntimeException("model: " + getModel() + "\nself support exists")
     }
   }
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if ((inAtoms diff factAtoms) exists (a => !(justifications(a) exists valid))) {
-      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+    if ((jtms.inAtoms diff jtms.factAtoms) exists (a => !(jtms.justifications(a) exists jtms.valid))) {
+      throw new RuntimeException("model: " + getModel() + "\ninconsistent state: in-atom has no valid justification")
     }
-    if ((outAtoms diff factAtoms) exists (a => (justifications(a) exists valid))) {
-      throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+    if ((jtms.outAtoms diff jtms.factAtoms) exists (a => (jtms.justifications(a) exists jtms.valid))) {
+      throw new RuntimeException("model: " + getModel() + "\ninconsistent state: out-atom has valid justification")
     }
   }
 
-  def selfSupport(a:Atom): Boolean = supp(a) contains a
+  def selfSupport(a: Atom): Boolean = jtms.supp(a) contains a
 
   def unfoundedSelfSupport(a: Atom): Boolean = {
     if (!selfSupport(a)) return false
-    justifications(a) filter valid exists (r => !(r.pos contains a))
+    jtms.justifications(a) filter jtms.valid exists (r => !(r.pos contains a))
   }
 
 }

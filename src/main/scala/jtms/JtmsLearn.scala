@@ -21,7 +21,7 @@ object JtmsLearn {
   * Refinement of JtmsGreedy that learns to avoid bad choices.
   *
   */
-class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
+class JtmsLearn(override val jtms: JtmsAbstraction = new JtmsAbstraction(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
 
   shuffle = false
 
@@ -59,8 +59,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
     var firstLoop = true
-    while (hasUnknown) {
-      unknownAtoms foreach findStatus
+    while (jtms.hasUnknown) {
+      jtms.unknownAtoms foreach findStatus
       selectNextAtom()
       selectedAtom match {
         case Some(atom) => {
@@ -68,7 +68,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
           saveState()
         }
         case None => {
-          if (hasUnknown) {
+          if (jtms.hasUnknown) {
             if (firstLoop) {
               super.invalidateModel()
             } else {
@@ -159,26 +159,27 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     prevSelectedAtom = selectedAtom
   }
 
-//  def saveLightweightState(): Unit = {
-//    prevLightweightState = lightweightState
-//    prevSelectedAtom = selectedAtom
-//  }
+  //  def saveLightweightState(): Unit = {
+  //    prevLightweightState = lightweightState
+  //    prevSelectedAtom = selectedAtom
+  //  }
 
   def resetSavedState(): Unit = {
     prevState = None
     prevSelectedAtom = None
   }
 
-//  def resetSavedLightweightState(): Unit = {
-//    prevLightweightState = None
-//    prevSelectedAtom = None
-//  }
+  //  def resetSavedLightweightState(): Unit = {
+  //    prevLightweightState = None
+  //    prevSelectedAtom = None
+  //  }
 
   var selectedAtom: Option[Atom] = None
   var prevSelectedAtom: Option[Atom] = None
 
   var state: Option[PartialState] = None
   var prevState: Option[PartialState] = None
+
   //var lightweightState: Option[PartialState] = None
   //var prevLightweightState: Option[PartialState] = None
 
@@ -243,17 +244,17 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
       currentRulesTabu.save(state, atomToAvoid)
     }
 
-//    def avoidLightweight(state: Long, atomToAvoid: Atom): Unit = {
-//      currentRulesLightweightTabu.save(state,atomToAvoid)
-//    }
+    //    def avoidLightweight(state: Long, atomToAvoid: Atom): Unit = {
+    //      currentRulesLightweightTabu.save(state,atomToAvoid)
+    //    }
 
     def atomsToAvoid(): Set[Atom] = {
       currentRulesTabu.atomsToAvoid()
     }
 
-//    def atomsToAvoidLightWeight(): Set[Atom] = {
-//      currentRulesLightweightTabu.atomsToAvoid()
-//    }
+    //    def atomsToAvoidLightWeight(): Set[Atom] = {
+    //      currentRulesLightweightTabu.atomsToAvoid()
+    //    }
 
     override def toString(): String = {
       val sb = new StringBuilder()
@@ -288,16 +289,16 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     }
   }
 
-//  class CurrentRulesLightweightTabu() {
-//    var avoidanceMap = new HashMap[PartialState, Set[Atom]]
-//
-//    def save(state: PartialState, atomToAvoid: Atom): Unit = {
-//      val set: Set[Atom] = avoidanceMap.getOrElse(state, Set()) + atomToAvoid
-//      avoidanceMap = avoidanceMap.updated(state, set)
-//    }
-//
-//    def atomsToAvoid() = avoidanceMap.getOrElse(lightweightState.get, Set[Atom]())
-//  }
+  //  class CurrentRulesLightweightTabu() {
+  //    var avoidanceMap = new HashMap[PartialState, Set[Atom]]
+  //
+  //    def save(state: PartialState, atomToAvoid: Atom): Unit = {
+  //      val set: Set[Atom] = avoidanceMap.getOrElse(state, Set()) + atomToAvoid
+  //      avoidanceMap = avoidanceMap.updated(state, set)
+  //    }
+  //
+  //    def atomsToAvoid() = avoidanceMap.getOrElse(lightweightState.get, Set[Atom]())
+  //  }
 
   val tabu = new AllRulesTabu()
 
@@ -305,7 +306,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     val newRule = super.register(rule)
     if (!newRule) {
       return false
-    } else if (dataIndependentRule(rule)) {
+    } else if (jtms.dataIndependentRule(rule)) {
       tabu.add(rule)
     }
     true
@@ -315,7 +316,7 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     val ruleExisted = super.unregister(rule)
     if (!ruleExisted) {
       return false
-    } else if (dataIndependentRule(rule)) {
+    } else if (jtms.dataIndependentRule(rule)) {
       tabu.remove(rule)
     }
     true
@@ -339,23 +340,23 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
     //    val filteredStatus = status filterKeys currentStateAtoms.contains
     //    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
     //    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
-    val collectedSupp = __suppHash filterKeys currentStateAtoms.contains
+    val collectedSupp = jtms.__suppHash filterKeys currentStateAtoms.contains
 
     //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
-    Some(PartialState(collectedSupp, __stateHash))
+    Some(PartialState(collectedSupp, jtms.__stateHash))
   }
 
-  def stateAtoms = (inAtoms union outAtoms) diff signals
+  def stateAtoms = (jtms.inAtoms union jtms.outAtoms) diff jtms.signals
 
   def stateSnapshotNew(): Option[PartialState] = {
     val currentStateAtoms = stateAtomsNew
-    val collectedSupp = __suppHash filterKeys currentStateAtoms.contains
+    val collectedSupp = jtms.__suppHash filterKeys currentStateAtoms.contains
     //Some(PartialState(collectedSupp, __lightweightStateHash))
-    Some(PartialState(collectedSupp, __stateHash))
+    Some(PartialState(collectedSupp, jtms.__stateHash))
   }
 
-  def stateAtomsNew = __choiceAtoms diff unknownAtoms()
+  def stateAtomsNew = jtms.__choiceAtoms diff jtms.unknownAtoms()
 
   //skip signals! - for asp they are irrelevant, for tms they change based on time - no stable basis
   //def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
@@ -408,12 +409,12 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     state = stateSnapshot()
 
-    val atomSet = (unknownAtoms diff signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atomSet = (jtms.unknownAtoms diff jtms.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
     val atoms = if (shuffle && atomSet.size > 1)
-        (random.shuffle(atomSet.toSeq))
-      else
-        atomSet
-        //atomSet.toSeq.sortWith((r1,r2) => posValid(r1))
+      (random.shuffle(atomSet.toSeq))
+    else
+      atomSet
+    //atomSet.toSeq.sortWith((r1,r2) => posValid(r1))
 
     if (atoms.isEmpty) return
 
@@ -459,8 +460,8 @@ class JtmsLearn(override val random: Random = new Random()) extends JtmsGreedy {
 
     if (map.isEmpty) return
 
-    val n = Math.min(5,map.size)
-    println(n+"/"+map.size+" entries of avoidance map:")
+    val n = Math.min(5, map.size)
+    println(n + "/" + map.size + " entries of avoidance map:")
 
     (map take n) foreach { case (state, atoms) =>
       println("state hash: " + state)

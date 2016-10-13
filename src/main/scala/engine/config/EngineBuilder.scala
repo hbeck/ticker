@@ -4,11 +4,10 @@ import clingo.ClingoConversion
 import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp._
-
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.{Jtms, JtmsGreedy}
+import jtms.{Jtms, JtmsAbstraction, JtmsGreedy, JtmsUpdateAlgorithm}
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -37,11 +36,11 @@ case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars
 
 }
 
-case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new Random))) {
+case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new JtmsAbstraction(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(random)))
+  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new JtmsAbstraction(), random)))
 
-  def useTms(jtms: Jtms) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
 
   def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
 

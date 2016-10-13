@@ -59,6 +59,7 @@ trait Jtms {
   def outAtoms() = allAtoms filter (status(_) == out)
   def unknownAtoms() = allAtoms filter (status(_) == unknown)
   def hasUnknown() = allAtoms exists (status(_) == unknown)
+  def inconsistent(): Boolean = unknownAtoms().nonEmpty
 
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
   def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)

@@ -8,7 +8,7 @@ import scala.util.Random
 object JtmsDoyle {
 
   def apply(P: NormalProgram): JtmsDoyle = {
-    val tmn = new JtmsDoyle()
+    val tmn = new JtmsDoyle(new JtmsAbstraction())
     P.rules foreach tmn.add
     tmn
   }
@@ -24,7 +24,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
+case class JtmsDoyle(jtms: JtmsAbstraction = new JtmsAbstraction(),  random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
@@ -37,7 +37,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   override def update(atoms: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
-    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     try {
       updateDoyle(atoms)
@@ -46,7 +46,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
       checkSelfSupport()
       checkConsistency()
     } catch {
-      case e:IncrementalUpdateFailureException => {
+      case e: IncrementalUpdateFailureException => {
         invalidateModel()
       }
     }
@@ -57,7 +57,8 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach findStatus // Evaluating the nodes' justifications
 
-    if (doForceChoiceOrder) { // Relaxing circularities (might lead to contradictions)
+    if (doForceChoiceOrder) {
+      // Relaxing circularities (might lead to contradictions)
       val atomList = sortByForcedOrder(atoms)
       atomList foreach chooseStatus
     } else {
@@ -67,15 +68,15 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   }
 
   def chooseStatus(a: Atom): Unit = {
-    if (status(a) != unknown)
+    if (jtms.status(a) != unknown)
       return
 
     if (choice(a)) {
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
-      unknownCons(a) foreach chooseStatus
+      jtms.unknownCons(a) foreach chooseStatus
     } else {
       retractionsAffected = retractionsAffected + 1
-      val aff = shuffle(affected(a) + a) //TODO no test coverage
+      val aff = shuffle(jtms.affected(a) + a) //TODO no test coverage
       //val aff = affected(a) + a
       aff foreach setUnknown
       aff foreach chooseStatus
@@ -85,10 +86,10 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   var retractionsAffected = 0
 
   def choice(a: Atom): Boolean = {
-    justifications(a) find posValid match {
+    jtms.justifications(a) find jtms.posValid match {
       case Some(rule) => {
-          if (affected(a).isEmpty) setIn(rule)
-          else return false
+        if (jtms.affected(a).isEmpty) setIn(rule)
+        else return false
       }
       case None => setOut(a) //allowing 'unknown' instead of 'out' in spoiler!
     }
@@ -103,17 +104,17 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
    */
   override def findSpoiler(rule: NormalRule): Option[Atom] = {
     if (random.nextDouble() < 0.5) {
-      rule.pos find (status(_) == out) match {
-        case None => rule.neg find (status(_) == in) match {
-          case None => rule.pos find (status(_) == unknown)
+      rule.pos find (jtms.status(_) == out) match {
+        case None => rule.neg find (jtms.status(_) == in) match {
+          case None => rule.pos find (jtms.status(_) == unknown)
           case opt => opt
         }
         case opt => opt
       }
     } else {
-      rule.neg find (status(_) == in) match {
-        case None => rule.pos find (status(_) == out) match {
-          case None => rule.pos find (status(_) == unknown)
+      rule.neg find (jtms.status(_) == in) match {
+        case None => rule.pos find (jtms.status(_) == out) match {
+          case None => rule.pos find (jtms.status(_) == unknown)
           case opt => opt
         }
         case opt => opt
@@ -124,7 +125,7 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
   def sortByForcedOrder(atoms: Predef.Set[Atom]): Seq[Atom] = {
     val atomList = Seq[Atom]() ++ atoms
 
-    def sort(a:Atom,b:Atom): Boolean = {
+    def sort(a: Atom, b: Atom): Boolean = {
       if (!choiceSeq.contains(b)) return true
       if (!choiceSeq.contains(a)) return false
       choiceSeq.indexOf(a) <= choiceSeq.indexOf(b)
@@ -137,16 +138,16 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
-    if (atomsNeedingSupp exists (supp(_).isEmpty)) {
-      throw new RuntimeException("model: "+getModel()+"\nno support for atoms "+(atomsNeedingSupp filter (supp(_).isEmpty)))
+    if (jtms.atomsNeedingSupp exists (jtms.supp(_).isEmpty)) {
+      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (jtms.atomsNeedingSupp filter (jtms.supp(_).isEmpty)))
     }
   }
 
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
-    if (inAtoms exists unfoundedSelfSupport) {
+    if (jtms.inAtoms exists unfoundedSelfSupport) {
       //throw new RuntimeException("model: "+getModel()+"\nself support exists")
-      Console.err.println("model: "+getModel()+"\nself support exists")
+      Console.err.println("model: " + getModel() + "\nself support exists")
       failed = true
       invalidateModel()
     }
@@ -154,26 +155,24 @@ case class JtmsDoyle(random: Random = new Random()) extends JtmsAbstraction {
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if ((inAtoms diff factAtoms) exists (a => !(justifications(a) exists valid))) {
+    if ((jtms.inAtoms diff jtms.factAtoms) exists (a => !(jtms.justifications(a) exists jtms.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
-      Console.err.println("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
+      Console.err.println("model: " + getModel() + "\ninconsistent state: in-atom has no valid justification")
       failed = true
       invalidateModel()
     }
-    if ((outAtoms diff factAtoms) exists (a => (justifications(a) exists valid))) {
+    if ((jtms.outAtoms diff jtms.factAtoms) exists (a => (jtms.justifications(a) exists jtms.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
-      Console.err.println("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
+      Console.err.println("model: " + getModel() + "\ninconsistent state: out-atom has valid justification")
       failed = true
       invalidateModel()
     }
   }
 
-  def selfSupport(a:Atom): Boolean = supp(a) contains a
+  def selfSupport(a: Atom): Boolean = jtms.supp(a) contains a
 
   def unfoundedSelfSupport(a: Atom): Boolean = {
     if (!selfSupport(a)) return false
-    justifications(a) filter valid exists (r => !(r.pos contains a))
+    jtms.justifications(a) filter jtms.valid exists (r => !(r.pos contains a))
   }
-
-
 }

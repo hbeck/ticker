@@ -10,10 +10,10 @@ import scala.util.Random
   */
 object JtmsBeierleFixed {
 
-  def apply() = new JtmsBeierleFixed()
+  def apply() = new JtmsBeierleFixed(new JtmsAbstraction())
 
   def apply(P: NormalProgram): JtmsBeierleFixed = {
-    val tmn = new JtmsBeierleFixed()
+    val tmn = new JtmsBeierleFixed(new JtmsAbstraction())
     P.rules foreach tmn.add
     tmn
   }
@@ -28,16 +28,16 @@ object JtmsBeierleFixed {
   * but fixes some bugs.
   *
   */
-class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
+class JtmsBeierleFixed(jtms: JtmsAbstraction, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
 
   override def update(L: Predef.Set[Atom]) {
     //try {
-      updateImpl(L)
-//    } catch {
-//      case e:IncrementalUpdateFailureException => { //odd loop detection
-//        invalidateModel()
-//      }
-//    }
+    updateImpl(L)
+    //    } catch {
+    //      case e:IncrementalUpdateFailureException => { //odd loop detection
+    //        invalidateModel()
+    //      }
+    //    }
   }
 
   override def step2(rule: NormalRule) = false
@@ -48,12 +48,12 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
 
   //fix (choose) status
   override def step5a(atom: Atom): Unit = {
-    if (status(atom) != unknown)
+    if (jtms.status(atom) != unknown)
       return
 
     print(atom)
 
-    justifications(atom) find unfoundedValid match {
+    jtms.justifications(atom) find unfoundedValid match {
       case Some(rule) => {
         if (!ACons(atom).isEmpty) {
           /*
@@ -82,14 +82,16 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
           //if (rule.neg exists (status(_) == in)) { //odd loop detection
           //  throw new IncrementalUpdateFailureException()
           //}
-          for (u <- unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
+          for (u <- jtms.unknownCons(atom)) {
+            //* here other variant is chosen. deliberately? [1]
             step5a(u)
           }
         }
       }
-      case None => { //all justifications(atom) are unfounded invalid
+      case None => {
+        //all justifications(atom) are unfounded invalid
         setOut(atom) //diff to beierle: findSpoiler allows unknown atoms!
-        for (u <- unknownCons(atom)) {
+        for (u <- jtms.unknownCons(atom)) {
           step5a(u)
         }
       }
@@ -102,13 +104,13 @@ class JtmsBeierleFixed(random: Random = new Random()) extends JtmsBeierle {
     if (regular.isDefined) return regular
 
     if (random.nextDouble() < 0.5) {
-      rule.pos find (status(_) == unknown) match {
-        case None => rule.neg find (status(_) == unknown)
+      rule.pos find (jtms.status(_) == unknown) match {
+        case None => rule.neg find (jtms.status(_) == unknown)
         case opt => opt
       }
     } else {
-      rule.neg find (status(_) == unknown) match {
-        case None => rule.pos find (status(_) == unknown)
+      rule.neg find (jtms.status(_) == unknown) match {
+        case None => rule.pos find (jtms.status(_) == unknown)
         case opt => opt
       }
     }

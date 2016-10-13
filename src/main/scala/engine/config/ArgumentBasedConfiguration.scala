@@ -3,7 +3,7 @@ package engine.config
 import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
-import jtms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.{JtmsAbstraction, JtmsDoyle, JtmsGreedy, JtmsLearn}
 
 import scala.util.Random
 
@@ -16,15 +16,16 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
 
   def buildEngine(evaluationType: String,
                   evaluationModifier: String,
+                  jtms: JtmsAbstraction = new JtmsAbstraction(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     if (evaluationType == "tms") {
       if (evaluationModifier == "greedy") {
-        return Some(greedyTms(program, random))
+        return Some(greedyTms(program, jtms, random))
       } else if (evaluationModifier == "doyle") {
-        return Some(doyleTms(program, random))
+        return Some(doyleTms(program, jtms, random))
       } else if (evaluationModifier == "learn") {
-        return Some(learnTms(program, random))
+        return Some(learnTms(program,jtms, random))
       }
     } else if (evaluationType == "clingo") {
       if (evaluationModifier == "push") {
@@ -37,8 +38,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     None
   }
 
-  def greedyTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(random)
+  def greedyTms(program: LarsProgram, jtms: JtmsAbstraction = new JtmsAbstraction(), random: Random = new Random(1)) = {
+    val tms = JtmsGreedy(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -47,16 +48,16 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def doyleTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = JtmsDoyle(random)
+  def doyleTms(program: LarsProgram, jtms: JtmsAbstraction = new JtmsAbstraction(), random: Random = new Random(1)) = {
+    val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
     BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def learnTms(program: LarsProgram, random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(random)
+  def learnTms(program: LarsProgram, jtms: JtmsAbstraction = new JtmsAbstraction(), random: Random = new Random(1)) = {
+    val tms = new JtmsLearn(jtms,random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
