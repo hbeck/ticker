@@ -35,4 +35,4 @@ class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixture
 
 }
 
-class AllStreamingObstacles extends RunWithAllImplementations(new StreamingObstacles)
+//class AllStreamingObstacles extends RunWithAllImplementations(new StreamingObstacles)

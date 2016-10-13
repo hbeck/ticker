@@ -34,7 +34,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
     val pin = Pin(time)
 
-    val pinnedGroundedRules = pin.ground(nonGroundRules)
+    val pinnedGroundedRules = pin.ground(nonGroundRules).toSet.toSeq
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
 
     val orderedTuples = deriveOrderedTuples

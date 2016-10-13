@@ -21,21 +21,6 @@ trait Jtms {
   //however, should give a benefit in remove, where many cases can be skipped
   var suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
 
-  def add(rule: NormalRule)
-  def remove(rule: NormalRule)
-  //def recompute()
-  def getModel(): Option[Set[Atom]]
-  def set(model: Set[Atom]): Boolean
-
-  //
-
-  //book keeping:
-  var recordStatusSeq = false
-  var statusSeq = Seq[(Atom,Status,String)]()
-
-  var recordChoiceSeq = false
-  var choiceSeq = Seq[Atom]()
-
   def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
 
   def facts() = rules filter (_.isFact)
