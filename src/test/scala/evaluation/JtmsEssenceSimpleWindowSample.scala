@@ -25,7 +25,7 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with Time
   "An empty data-stream" should "lead to model b,d" in {
     evaluationEngine.evaluate(t0).get.value should contain allOf(b, d)
   }
-  "A data-stream with {1 -> a}" should "lead to (a, c, d)" in pendingWithTms("cycle between a <-> c"){
+  "A data-stream with {1 -> a}" should "lead to (a, c, d)" in {
     evaluationEngine.append(t1)(a)
 
     evaluationEngine.evaluate(t1).get.value should contain allOf(a, c, d)

@@ -47,7 +47,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     add(signalsNow)
     add(pinnedSignals.toSeq)
     add(orderedTuples)
-    add(fluentTuples)
+//    add(fluentTuples)
     // then rules
     add(pinnedGroundedRules)
 

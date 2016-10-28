@@ -23,7 +23,8 @@ class StreamingObstacles extends ConfigurableEvaluationSpec with TimeTestFixture
     obstacles zip (Stream from 1) foreach (t => engine.append(t._2)(t._1.toSeq: _*))
   }
 
-  "All different combinations of obstacles" should "be appended at a given timepoint" in {
+  "All different combinations of obstacles" should "be appended at a given timepoint"  ignore{
+
     val timedEngine = TimedEvaluationEngine(evaluationEngine)
 
     executeSample(timedEngine)

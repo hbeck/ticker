@@ -139,7 +139,10 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
   }
 
   def setInSupport(a: Atom) = jtms.justifications(a) find jtms.valid match {
-    case Some(rule) => jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
+    case Some(rule) => {
+      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
+      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+    }
     case _ => throw new IncrementalUpdateFailureException()
   }
 
