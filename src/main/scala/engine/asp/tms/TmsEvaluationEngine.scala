@@ -36,7 +36,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
     val pinnedGroundedRules = pin.ground(nonGroundRules).toSet.toSeq
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
-
+    val signalsNow =  signalAtoms map (AspFact(_)) toSeq
     val orderedTuples = deriveOrderedTuples
     val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact[Atom](_)).toSeq
 
@@ -44,6 +44,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
     // separating the calls ensures maximum on support for rules
     // facts first
+    add(signalsNow)
     add(pinnedSignals.toSeq)
     add(orderedTuples)
     add(fluentTuples)
@@ -60,6 +61,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     // we never remove extensional atoms explicitly (the policy might do it)
     remove(orderedTuples)
     remove(fluentTuples)
+    remove(signalsNow)
 
     model
   }

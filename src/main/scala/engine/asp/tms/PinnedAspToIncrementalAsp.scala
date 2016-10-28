@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp.{AspProgram, _}
 import core.lars.ExtendedAtom
-import core.{Atom, AtomWithArgument, PinnedAtom}
+import core.{Atom, AtomWithArgument, PinnedAtom, Variable}
 import engine.asp.{PinnedProgramWithLars, PinnedRule, now}
 
 /**
@@ -45,7 +45,13 @@ object PinnedAspToIncrementalAsp {
 
     // get pinned window atoms (that is matching predicates and arguments, except the last argument which is the Time-Variable)
     val pinnedWindowAtom = p.atoms filter (a => windowAtoms.contains((a.predicate, a.arguments.init)))
-    val atomsToUnpin = (p.atoms diff pinnedWindowAtom).toSet[ExtendedAtom]
+    val atomAtT: Set[AtomWithArgument] = pinnedWindowAtom collect {
+      case pinned:PinnedAtom if pinned.time == core.lars.T =>pinned
+    }
+
+    val atomsToKeepPinned = pinnedWindowAtom diff atomAtT
+
+    val atomsToUnpin = (p.atoms diff atomsToKeepPinned).toSet[ExtendedAtom]
 
     val headAtoms = p.larsRulesAsPinnedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
 //    val atomsToUnpin = headAtoms
