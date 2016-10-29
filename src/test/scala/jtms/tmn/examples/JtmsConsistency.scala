@@ -4,6 +4,7 @@ import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom, Predicate}
 import jtms._
 import jtms.algorithms.JtmsDoyle
+import jtms.storage.OptimizedJtmsStorage
 import org.scalatest.FunSuite
 
 /**
@@ -265,7 +266,7 @@ class JtmsConsistency extends FunSuite {
 
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
-    val net1 = new OptimizedJtms()
+    val net1 = new OptimizedJtmsStorage()
     val update = JtmsDoyle(net1)
 
     update.add(AspRule(a,b)) //a :- b
@@ -317,7 +318,7 @@ class JtmsConsistency extends FunSuite {
 
     //TODO
     //other insertion order
-    val net2 = new OptimizedJtms()
+    val net2 = new OptimizedJtmsStorage()
     val update2 = JtmsDoyle(net2)
 
     update2.add(AspRule(a,b)) //a :- b

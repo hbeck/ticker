@@ -3,18 +3,19 @@ package jtms.algorithms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 import jtms._
+import jtms.storage.{OptimizedJtmsStorage, SimpleJtmsStorage}
 
 import scala.util.Random
 
 object JtmsDoyle {
 
   def apply(P: NormalProgram): JtmsDoyle = {
-    val tmn = new JtmsDoyle(new OptimizedJtms())
+    val tmn = new JtmsDoyle(new OptimizedJtmsStorage())
     P.rules foreach tmn.add
     tmn
   }
 
-  def apply(): JtmsDoyle = JtmsDoyle(new SimpleJtms())
+  def apply(): JtmsDoyle = JtmsDoyle(new SimpleJtmsStorage())
 
 }
 
@@ -27,7 +28,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-case class JtmsDoyle(jtms: Jtms, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsDoyle(jtms: JtmsStorage, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

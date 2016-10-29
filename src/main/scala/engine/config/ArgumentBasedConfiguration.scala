@@ -3,8 +3,9 @@ package engine.config
 import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
-import jtms.{Jtms, OptimizedJtms}
+import jtms.JtmsStorage
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.storage.OptimizedJtmsStorage
 
 import scala.util.Random
 
@@ -17,7 +18,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
 
   def buildEngine(evaluationType: String,
                   evaluationModifier: String,
-                  jtms: Jtms = new OptimizedJtms(),
+                  jtms: JtmsStorage = new OptimizedJtmsStorage(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     if (evaluationType == "tms") {
@@ -26,7 +27,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
       } else if (evaluationModifier == "doyle") {
         return Some(doyleTms(program, jtms, random))
       } else if (evaluationModifier == "learn") {
-        return Some(learnTms(program, new OptimizedJtms(), random))
+        return Some(learnTms(program, new OptimizedJtmsStorage(), random))
       }
     } else if (evaluationType == "clingo") {
       if (evaluationModifier == "push") {
@@ -39,7 +40,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     None
   }
 
-  def greedyTms(program: LarsProgram, jtms: Jtms = new OptimizedJtms(), random: Random = new Random(1)) = {
+  def greedyTms(program: LarsProgram, jtms: JtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
     val tms = JtmsGreedy(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
@@ -49,7 +50,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def doyleTms(program: LarsProgram, jtms: Jtms = new OptimizedJtms(), random: Random = new Random(1)) = {
+  def doyleTms(program: LarsProgram, jtms: JtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
     val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
@@ -57,7 +58,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def learnTms(program: LarsProgram, jtms: OptimizedJtms = new OptimizedJtms(), random: Random = new Random(1)) = {
+  def learnTms(program: LarsProgram, jtms: OptimizedJtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
     val tms = new JtmsLearn(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false

@@ -5,7 +5,7 @@ import core.lars.TimePoint
 import engine.Result
 import engine.asp.GroundAspRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsUpdateAlgorithm, OptimizedJtms}
+import jtms.{JtmsStorage, JtmsUpdateAlgorithm}
 
 /**
   * Created by FM on 12.06.16.

@@ -1,7 +1,7 @@
 package jtms.asp
 
 import core.Atom
-import jtms.{ChoiceControl, Jtms, JtmsUpdateAlgorithm}
+import jtms.{ChoiceControl, JtmsStorage, JtmsUpdateAlgorithm}
 
 /**
   * Created by hb on 5/31/16.

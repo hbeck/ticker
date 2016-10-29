@@ -3,22 +3,23 @@ package jtms.algorithms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 import jtms._
+import jtms.storage.{OptimizedJtmsStorage, SimpleJtmsStorage}
 
 import scala.util.Random
 
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy(new OptimizedJtms())
+    val net = new JtmsGreedy(new OptimizedJtmsStorage())
     P.rules foreach net.add
     net
   }
 
-  def apply():JtmsGreedy=JtmsGreedy(new SimpleJtms)
+  def apply():JtmsGreedy=JtmsGreedy(new SimpleJtmsStorage)
 
 }
 
-case class JtmsGreedy(jtms: Jtms, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsGreedy(jtms: JtmsStorage, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

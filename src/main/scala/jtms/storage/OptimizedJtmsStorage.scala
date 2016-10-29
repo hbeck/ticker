@@ -1,14 +1,13 @@
-package jtms
+package jtms.storage
 
 import core.Atom
 import core.asp.NormalRule
-
-import scala.util.Random
+import jtms._
 
 /**
   * Created by hb on 6/10/16.
   */
-class OptimizedJtms extends Jtms {
+class OptimizedJtmsStorage extends JtmsStorage {
 
   //def isChoiceAtom(atom: Atom) = atom.predicate.toString == "bit" //TODO
 

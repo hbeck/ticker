@@ -8,6 +8,7 @@ import core._
 import core.asp._
 import jtms._
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.storage.OptimizedJtmsStorage
 
 import scala.io.Source
 import scala.util.Random
@@ -40,7 +41,7 @@ object AAAI17Eval {
     while (attempt < 100 && !ranThrough) {
       attempt += 1
       try {
-        val tms = JtmsDoyle(new OptimizedJtms())
+        val tms = JtmsDoyle(new OptimizedJtmsStorage())
         tms.doConsistencyCheck=true
         tms.doJtmsSemanticsCheck=true
         tms.doSelfSupportCheck=true
@@ -109,8 +110,8 @@ object AAAI17Eval {
       print(" " + i)
 
       val tms = impl match {
-        case "doyle" => new JtmsDoyle(new OptimizedJtms())
-        case "greedy" => new JtmsGreedy(new OptimizedJtms())
+        case "doyle" => new JtmsDoyle(new OptimizedJtmsStorage())
+        case "greedy" => new JtmsGreedy(new OptimizedJtmsStorage())
         case "learn" => new JtmsLearn()
       }
 

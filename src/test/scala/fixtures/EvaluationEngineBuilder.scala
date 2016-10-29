@@ -4,8 +4,8 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
-import jtms.OptimizedJtms
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
+import jtms.storage.OptimizedJtmsStorage
 
 import scala.util.Random
 
@@ -50,7 +50,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = JtmsGreedy(new OptimizedJtms(), new Random(1))
+    val tms = JtmsGreedy(new OptimizedJtmsStorage(), new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).start()
@@ -60,7 +60,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = JtmsGreedy(new OptimizedJtms(),new Random(1))
+    val tms = JtmsGreedy(new OptimizedJtmsStorage(),new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
@@ -70,7 +70,7 @@ trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsLearn(new OptimizedJtms(),new Random(1))
+    val tms = new JtmsLearn(new OptimizedJtmsStorage(),new Random(1))
     tms.shuffle = false
     tms.doConsistencyCheck = false
 

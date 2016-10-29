@@ -1,12 +1,13 @@
-package jtms
+package jtms.storage
 
 import core.Atom
 import core.asp.NormalRule
+import jtms.{JtmsStorage, Status, out}
 
 /**
   * Created by FM on 29.10.16.
   */
-class SimpleJtms extends Jtms {
+class SimpleJtmsStorage extends JtmsStorage {
   override def clearSupport(a: Atom): Unit = {
     supp = supp.updated(a, Set())
     suppRule = suppRule.updated(a, None)

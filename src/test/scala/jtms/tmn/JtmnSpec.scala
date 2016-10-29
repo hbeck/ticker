@@ -4,6 +4,7 @@ import core.asp.{AspFact, NormalRule}
 import core.{Atom, GroundAtom, Predicate}
 import jtms._
 import jtms.algorithms.JtmsDoyle
+import jtms.storage.SimpleJtmsStorage
 import org.scalatest.FlatSpec
 
 /**
@@ -14,5 +15,5 @@ class JtmnSpec extends FlatSpec {
 
   def Assumption(node: Atom): NormalRule = AspFact(node)
 
-  def EmptyTmn = new JtmsDoyle(new SimpleJtms())
+  def EmptyTmn = new JtmsDoyle(new SimpleJtmsStorage())
 }

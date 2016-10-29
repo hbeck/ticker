@@ -2,7 +2,8 @@ package jtms.algorithms
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
-import jtms.{IncrementalHashCode, IncrementalUpdateFailureException, OptimizedJtms}
+import jtms.storage.{IncrementalHashCode, OptimizedJtmsStorage}
+import jtms.{IncrementalUpdateFailureException}
 
 import scala.collection.immutable.HashSet
 import scala.util.Random
@@ -22,7 +23,7 @@ object JtmsLearn {
   * Refinement of JtmsGreedy that learns to avoid bad choices.
   *
   */
-class JtmsLearn(override val jtms: OptimizedJtms = new OptimizedJtms(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
+class JtmsLearn(override val jtms: OptimizedJtmsStorage = new OptimizedJtmsStorage(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
 
   shuffle = false
 

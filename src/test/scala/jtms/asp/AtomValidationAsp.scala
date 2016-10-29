@@ -3,7 +3,7 @@ package jtms.asp
 import core.Atom
 import core.asp.NormalRule
 import jtms.algorithms.JtmsGreedy
-import jtms.{Jtms, Status}
+import jtms.{JtmsStorage, Status}
 import org.scalatest.FlatSpec
 
 /**
@@ -23,7 +23,7 @@ trait AtomValidationAsp {
     return atomCheckTestCallback
   }
 
-  class AtomValidatorAsp(net: Jtms, atom: Atom) {
+  class AtomValidatorAsp(net: JtmsStorage, atom: Atom) {
 
     info(atom.toString)
 

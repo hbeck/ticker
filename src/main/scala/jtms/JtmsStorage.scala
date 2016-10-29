@@ -9,7 +9,7 @@ import scala.collection.immutable.HashMap
 /**
   * Created by hb on 6/10/16.
   */
-trait Jtms {
+trait JtmsStorage {
 
   var rules: Set[NormalRule] = Set()
 

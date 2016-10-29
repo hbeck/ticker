@@ -3,12 +3,13 @@ package jtms
 import core.Atom
 import core.asp._
 import jtms.algorithms.JtmsGreedy
+import jtms.storage.SimpleJtmsStorage
 
 /**
   * Created by FM on 13.10.16.
   */
 object JtmsUpdateAlgorithm {
-  def apply() = JtmsGreedy(new SimpleJtms)
+  def apply() = JtmsGreedy(new SimpleJtmsStorage)
 }
 
 
