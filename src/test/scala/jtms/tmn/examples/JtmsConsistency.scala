@@ -1,8 +1,9 @@
 package jtms.tmn.examples
 
 import core.asp.{AspFact, AspRule}
-import core.{Predicate, Atom, ContradictionAtom}
+import core.{Atom, ContradictionAtom, Predicate}
 import jtms._
+import jtms.algorithms.JtmsDoyle
 import org.scalatest.FunSuite
 
 /**

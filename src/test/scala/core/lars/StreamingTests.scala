@@ -5,7 +5,7 @@ import core._
 import core.asp.{AspFact, AspRule, NormalRule}
 import jtms.evaluation.Util
 import Util._
-import jtms.JtmsLearn
+import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 
 

@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp._
-import jtms.JtmsDoyle
+import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
 import scala.collection.immutable.Stream.#::

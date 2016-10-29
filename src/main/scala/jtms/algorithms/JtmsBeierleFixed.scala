@@ -1,7 +1,8 @@
-package jtms
+package jtms.algorithms
 
 import core.Atom
 import core.asp.{NormalProgram, NormalRule}
+import jtms.{Jtms, OptimizedJtms, unknown}
 
 import scala.util.Random
 

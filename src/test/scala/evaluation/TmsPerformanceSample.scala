@@ -4,7 +4,8 @@ import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
 import fixtures.{ConfigurableEvaluationSpec, EvaluationEngineBuilder, TimeTestFixtures, TmsDirectPolicyEngine}
-import jtms.{OptimizedJtms, JtmsGreedy}
+import jtms.OptimizedJtms
+import jtms.algorithms.JtmsGreedy
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 import org.scalatest.Inspectors._

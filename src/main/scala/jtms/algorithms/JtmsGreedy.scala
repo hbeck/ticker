@@ -1,7 +1,8 @@
-package jtms
+package jtms.algorithms
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
+import jtms._
 
 import scala.util.Random
 

@@ -3,9 +3,10 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
+import jtms.algorithms.JtmsLearn
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{OptimizedJtms, JtmsLearn, in}
+import jtms.{OptimizedJtms, in}
 import org.scalatest.FlatSpec
 
 /**

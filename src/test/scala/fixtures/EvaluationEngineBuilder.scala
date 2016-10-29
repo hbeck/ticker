@@ -4,7 +4,8 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
-import jtms.{OptimizedJtms, JtmsGreedy, JtmsLearn}
+import jtms.OptimizedJtms
+import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 
 import scala.util.Random
 

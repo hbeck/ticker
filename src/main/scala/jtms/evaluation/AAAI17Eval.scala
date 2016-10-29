@@ -2,11 +2,12 @@ package jtms.evaluation
 
 import java.io.{File, PrintWriter}
 
-import Util.{asAspRule,rule}
+import Util.{asAspRule, rule}
 import common.Util.stopTime
 import core._
 import core.asp._
 import jtms._
+import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 
 import scala.io.Source
 import scala.util.Random

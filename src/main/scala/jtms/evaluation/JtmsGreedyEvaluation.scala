@@ -2,7 +2,7 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.JtmsGreedy
+import jtms.algorithms.JtmsGreedy
 
 /**
   * Created by hb on 25.03.16.

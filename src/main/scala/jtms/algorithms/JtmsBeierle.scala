@@ -1,9 +1,10 @@
-package jtms
+package jtms.algorithms
 
 import java.util
 
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
+import jtms._
 
 import scala.util.Random
 

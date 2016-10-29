@@ -2,7 +2,8 @@ package jtms.tmn
 
 import core._
 import core.asp.{AspFact, AspProgram}
-import jtms.{JtmsDoyle, in}
+import jtms.algorithms.JtmsDoyle
+import jtms.in
 import org.scalatest.FlatSpec
 
 import scala.language.implicitConversions

@@ -4,6 +4,7 @@ import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
 import core.{Atom, PinnedAtom}
 import fixtures.AtomTestFixture
 import jtms._
+import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap

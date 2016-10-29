@@ -2,6 +2,7 @@ package jtms
 
 import core.Atom
 import core.asp._
+import jtms.algorithms.JtmsGreedy
 
 /**
   * Created by FM on 13.10.16.

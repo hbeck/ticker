@@ -5,6 +5,7 @@ import core.asp._
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms._
+import jtms.algorithms._
 import org.scalatest.FunSuite
 
 /**

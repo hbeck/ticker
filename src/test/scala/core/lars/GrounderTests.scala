@@ -6,6 +6,7 @@ import core.asp._
 import jtms.evaluation.Util
 import Util._
 import jtms._
+import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap

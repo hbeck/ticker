@@ -1,8 +1,9 @@
 package jtms.tmn
 
 import core.asp.{AspFact, NormalRule}
-import core.{GroundAtom, Atom, Predicate}
+import core.{Atom, GroundAtom, Predicate}
 import jtms._
+import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
 /**

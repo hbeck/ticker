@@ -1,7 +1,8 @@
-package jtms
+package jtms.algorithms
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
+import jtms.{IncrementalHashCode, IncrementalUpdateFailureException, OptimizedJtms}
 
 import scala.collection.immutable.HashSet
 import scala.util.Random

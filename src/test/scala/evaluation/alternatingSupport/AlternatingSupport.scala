@@ -7,7 +7,8 @@ import engine.asp.tms.{GroundRule, GroundedNormalRule, PinnedAspToIncrementalAsp
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.{BuildEngine, EngineEvaluationConfiguration}
 import fixtures.{ConfigurableEvaluationSpec, JtmsGreedyLazyRemovePolicyEngine, TimeTestFixtures}
-import jtms.{OptimizedJtms, JtmsGreedy}
+import jtms.OptimizedJtms
+import jtms.algorithms.JtmsGreedy
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 

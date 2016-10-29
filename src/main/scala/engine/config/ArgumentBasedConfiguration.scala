@@ -3,7 +3,8 @@ package engine.config
 import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
-import jtms.{OptimizedJtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.{Jtms, OptimizedJtms}
+import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 
 import scala.util.Random
 
@@ -16,7 +17,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
 
   def buildEngine(evaluationType: String,
                   evaluationModifier: String,
-                  jtms: OptimizedJtms = new OptimizedJtms(),
+                  jtms: Jtms = new OptimizedJtms(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     if (evaluationType == "tms") {
@@ -25,7 +26,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
       } else if (evaluationModifier == "doyle") {
         return Some(doyleTms(program, jtms, random))
       } else if (evaluationModifier == "learn") {
-        return Some(learnTms(program,jtms, random))
+        return Some(learnTms(program, new OptimizedJtms(), random))
       }
     } else if (evaluationType == "clingo") {
       if (evaluationModifier == "push") {
@@ -38,7 +39,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     None
   }
 
-  def greedyTms(program: LarsProgram, jtms: OptimizedJtms = new OptimizedJtms(), random: Random = new Random(1)) = {
+  def greedyTms(program: LarsProgram, jtms: Jtms = new OptimizedJtms(), random: Random = new Random(1)) = {
     val tms = JtmsGreedy(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
@@ -48,7 +49,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
     BuildEngine.withProgram(program).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def doyleTms(program: LarsProgram, jtms: OptimizedJtms = new OptimizedJtms(), random: Random = new Random(1)) = {
+  def doyleTms(program: LarsProgram, jtms: Jtms = new OptimizedJtms(), random: Random = new Random(1)) = {
     val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
@@ -57,7 +58,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
   }
 
   def learnTms(program: LarsProgram, jtms: OptimizedJtms = new OptimizedJtms(), random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(jtms,random)
+    val tms = new JtmsLearn(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -73,6 +74,4 @@ case class ArgumentBasedConfiguration(program: LarsProgram) {
   def clingoPull(program: LarsProgram) = {
     BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
   }
-
-
 }
