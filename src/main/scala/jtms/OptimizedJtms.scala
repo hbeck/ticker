@@ -8,7 +8,7 @@ import scala.util.Random
 /**
   * Created by hb on 6/10/16.
   */
-class JtmsAbstraction(random: Random = new Random()) extends Jtms {
+class OptimizedJtms extends Jtms {
 
   //def isChoiceAtom(atom: Atom) = atom.predicate.toString == "bit" //TODO
 
@@ -38,15 +38,15 @@ class JtmsAbstraction(random: Random = new Random()) extends Jtms {
 
   var __suppHash: Map[Atom, Long] = Map()
 
-  override def inAtoms() = __atomsWithStatus(in)
+  override def inAtoms = __atomsWithStatus(in)
 
-  override def outAtoms(): Set[Atom] = __atomsWithStatus(out)
+  override def outAtoms: Set[Atom] = __atomsWithStatus(out)
 
-  override def unknownAtoms(): Set[Atom] = __atomsWithStatus(unknown)
+  override def unknownAtoms: Set[Atom] = __atomsWithStatus(unknown)
 
-  override def hasUnknown(): Boolean = unknownAtoms().nonEmpty
+  override def hasUnknown: Boolean = unknownAtoms.nonEmpty
 
-  override def signals(): Set[Atom] = __signals
+  override def signals: Set[Atom] = __signals
 
   //return true iff rule is new
   def register(rule: NormalRule): Boolean = {
@@ -108,7 +108,7 @@ class JtmsAbstraction(random: Random = new Random()) extends Jtms {
     var oldStatus = status(a)
 
     if (oldStatus != newStatus) {
-      if (!signals().contains(a)) {
+      if (!signals.contains(a)) {
         if (oldStatus == in || oldStatus == out) {
           __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
           //          if (isChoiceAtom(a)) {
@@ -177,7 +177,7 @@ class JtmsAbstraction(random: Random = new Random()) extends Jtms {
 
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    if (!signals().contains(a) && (oldStatus == in || oldStatus == out)) {
+    if (!signals.contains(a) && (oldStatus == in || oldStatus == out)) {
       __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
     }
 
@@ -232,7 +232,7 @@ class JtmsAbstraction(random: Random = new Random()) extends Jtms {
 
   def addSupport(a: Atom, newAtom: Atom): Unit = {
     supp = supp.updated(a, supp(a) + newAtom)
-    if (!signals().contains(newAtom))
+    if (!signals.contains(newAtom))
       __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a), newAtom))
   }
 

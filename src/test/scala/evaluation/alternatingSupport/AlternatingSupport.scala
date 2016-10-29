@@ -7,7 +7,7 @@ import engine.asp.tms.{GroundRule, GroundedNormalRule, PinnedAspToIncrementalAsp
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.{BuildEngine, EngineEvaluationConfiguration}
 import fixtures.{ConfigurableEvaluationSpec, JtmsGreedyLazyRemovePolicyEngine, TimeTestFixtures}
-import jtms.{JtmsAbstraction, JtmsGreedy}
+import jtms.{OptimizedJtms, JtmsGreedy}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -22,7 +22,7 @@ class AlternatingSupport extends FlatSpec with AlternatingSupportSpec with TimeT
   val transformedProgram = LarsToPinnedProgram(program)
 
   "Two streaming elements and the normal TMS-Evaluation" should "lead to an expensive update" in {
-    val jtms = new JtmsAbstraction()
+    val jtms = new OptimizedJtms()
     val updateAlgo = JtmsGreedy(jtms, new Random(1))
     val engine = TmsEvaluationEngine(transformedProgram, LazyRemovePolicy(updateAlgo, 9))
 

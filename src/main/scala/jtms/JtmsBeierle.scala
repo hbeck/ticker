@@ -10,7 +10,7 @@ import scala.util.Random
 object JtmsBeierle {
 
   def apply(P: NormalProgram): JtmsBeierle = {
-    val tmn = new JtmsBeierle(new JtmsAbstraction(), new Random())
+    val tmn = new JtmsBeierle(new OptimizedJtms(), new Random())
     P.rules foreach tmn.add
     tmn
   }

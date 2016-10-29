@@ -5,7 +5,7 @@ import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.tmn.examples.TweetyBehavior
-import jtms.{JtmsAbstraction, JtmsLearn, in}
+import jtms.{OptimizedJtms, JtmsLearn, in}
 import org.scalatest.FlatSpec
 
 /**
@@ -17,7 +17,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.add(AspFact(a))
@@ -38,7 +38,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
   }
 
   it should "have clean caches after deletion" in {
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.add(AspFact(a))
@@ -74,7 +74,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r0 = AspRule(b, a)
     val r1 = AspRule(a, none, none)
 
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.add(r0)
@@ -102,7 +102,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r1 = AspRule(b, a)
     val r2 = AspFact(a)
 
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.add(r1)
@@ -130,7 +130,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r1 = AspFact(a)
     val r2 = AspRule.pos(b).head(c)
 
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.add(r0)
@@ -158,7 +158,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r2 = AspRule.pos(b).head(c)
     val r3 = AspRule.pos(a).head(c)
 
-    val net = new JtmsAbstraction()
+    val net = new OptimizedJtms()
     val update = new JtmsLearn(net)
 
     update.doForceChoiceOrder = true

@@ -7,7 +7,7 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.{Jtms, JtmsAbstraction, JtmsGreedy, JtmsUpdateAlgorithm}
+import jtms.{Jtms, OptimizedJtms, JtmsGreedy, JtmsUpdateAlgorithm}
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -36,9 +36,9 @@ case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars
 
 }
 
-case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new JtmsAbstraction(), new Random))) {
+case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedJtms(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new JtmsAbstraction(), random)))
+  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedJtms(), random)))
 
   def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
 

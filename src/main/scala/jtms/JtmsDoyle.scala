@@ -8,7 +8,7 @@ import scala.util.Random
 object JtmsDoyle {
 
   def apply(P: NormalProgram): JtmsDoyle = {
-    val tmn = new JtmsDoyle(new JtmsAbstraction())
+    val tmn = new JtmsDoyle(new OptimizedJtms())
     P.rules foreach tmn.add
     tmn
   }
@@ -24,7 +24,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-case class JtmsDoyle(jtms: Jtms = new JtmsAbstraction(),  random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsDoyle(jtms: Jtms = new OptimizedJtms(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

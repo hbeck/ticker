@@ -8,14 +8,14 @@ import scala.util.Random
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy(new JtmsAbstraction())
+    val net = new JtmsGreedy(new OptimizedJtms())
     P.rules foreach net.add
     net
   }
 
 }
 
-case class JtmsGreedy(jtms: Jtms = new JtmsAbstraction(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsGreedy(jtms: Jtms = new OptimizedJtms(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

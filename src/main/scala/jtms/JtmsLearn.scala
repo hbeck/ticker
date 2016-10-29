@@ -21,7 +21,7 @@ object JtmsLearn {
   * Refinement of JtmsGreedy that learns to avoid bad choices.
   *
   */
-class JtmsLearn(override val jtms: JtmsAbstraction = new JtmsAbstraction(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
+class JtmsLearn(override val jtms: OptimizedJtms = new OptimizedJtms(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
 
   shuffle = false
 
@@ -356,7 +356,7 @@ class JtmsLearn(override val jtms: JtmsAbstraction = new JtmsAbstraction(), over
     Some(PartialState(collectedSupp, jtms.__stateHash))
   }
 
-  def stateAtomsNew = jtms.__choiceAtoms diff jtms.unknownAtoms()
+  def stateAtomsNew = jtms.__choiceAtoms diff jtms.unknownAtoms
 
   //skip signals! - for asp they are irrelevant, for tms they change based on time - no stable basis
   //def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
