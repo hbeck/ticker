@@ -95,7 +95,7 @@ class OptimizedJtms extends Jtms {
 
       cons = cons.updated(a, Set[Atom]())
       clearSupport(a)
-      suppRule = suppRule.updated(a, None)
+
       //      status(a) = out
       //      cons(a) = Set[Atom]()
       //      supp(a) = Set[Atom]()
@@ -154,13 +154,6 @@ class OptimizedJtms extends Jtms {
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
 
     true
-  }
-
-  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
-    if (!(justifications(rule.head) exists (_.body contains a))) {
-      //cons(a) -= rule.head
-      cons = cons.updated(a, cons(a) - rule.head)
-    }
   }
 
   def unregister(a: Atom): Unit = {

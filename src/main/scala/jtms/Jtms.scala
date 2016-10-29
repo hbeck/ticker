@@ -92,6 +92,12 @@ trait Jtms {
 
   def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
 
+  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
+    if (!(justifications(rule.head) exists (_.body contains a))) {
+      cons = cons.updated(a, cons(a) - rule.head)
+    }
+  }
+
   def clearSupport(a: Atom): Unit
 
   def setInSupport(a: Atom, rule: NormalRule): Unit
@@ -103,6 +109,10 @@ trait Jtms {
   def updateStatus(a: Atom, status: Status): Unit
 
   def register(rule: NormalRule): Boolean
+
+  def register(a: Atom): Unit
+
+  def unregister(a: Atom): Unit
 
   def unregister(rule: NormalRule): Boolean
 

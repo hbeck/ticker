@@ -502,6 +502,8 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
         AspRule(c, none, Set(a))) //c :- not a
       )
 
+      tms.recordChoiceSeq=true
+
       def m = tms.getModel.get
 
       assert(m == Set(b, c, d))

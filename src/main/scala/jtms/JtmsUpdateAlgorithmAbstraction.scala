@@ -53,7 +53,19 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extend
     jtms.atomsNeedingSupp foreach setUnknown
   }
 
-  def register(rule: NormalRule) = jtms.register(rule)
+  def register(rule: NormalRule): Boolean = {
+    val atoms = jtms.outAtoms
+    if (jtms.register(rule)) {
+      if (recordStatusSeq) {
+        val newOutAtoms = jtms.outAtoms diff atoms
+        newOutAtoms foreach { a =>
+          statusSeq = statusSeq :+ (a, out, "register")
+        }
+      }
+      return true
+    }
+    false
+  }
 
   def unregister(rule: NormalRule) = jtms.unregister(rule)
 
@@ -143,8 +155,8 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extend
     case Some(rule) => {
       jtms.setInSupport(a, rule)
       assert(a == rule.head)
-//      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
-//      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+      //      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
+      //      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
     }
     case _ => throw new IncrementalUpdateFailureException()
   }
@@ -155,15 +167,15 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extend
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom " + a)
     }
     //supp(a) = Set() ++ maybeAtoms map (_.get)
-//    jtms.setSupport(a, maybeAtoms map (_.get))
+    //    jtms.setSupport(a, maybeAtoms map (_.get))
     jtms.setOutSupport(a, maybeAtoms map (_.get))
   }
 
   def setIn(rule: NormalRule) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
     jtms.updateStatus(rule.head, in)
-    jtms.setInSupport(rule.head,rule)
-//    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+    jtms.setInSupport(rule.head, rule)
+    //    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
     //    status(rule.head) = in
     //    supp(rule.head) = Set() ++ rule.body
     //    suppRule(rule.head) = Some(rule)
@@ -173,7 +185,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extend
     if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
     jtms.updateStatus(a, out)
     setOutSupport(a)
-//    jtms.suppRule = jtms.suppRule.updated(a, None)
+    //    jtms.suppRule = jtms.suppRule.updated(a, None)
     //    status(a) = out
     //    setOutSupport(a)
     //    suppRule(a) = None
@@ -182,7 +194,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extend
   def setUnknown(a: Atom) = {
     jtms.updateStatus(a, unknown)
     jtms.clearSupport(a)
-//    jtms.suppRule = jtms.suppRule.updated(a, None)
+    //    jtms.suppRule = jtms.suppRule.updated(a, None)
     //    status(a) = unknown
     //    supp(a) = Set()
     //    suppRule(a) = None
