@@ -6,7 +6,7 @@ import core.lars.Duration
 import engine.asp.tms.GroundedNormalRule
 import engine.asp.tms.policies.LazyRemovePolicy
 import fixtures.TimeTestFixtures
-import jtms.{JtmsGreedy}
+import jtms.{JtmsGreedy, SimpleJtms}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -15,7 +15,7 @@ import org.scalatest.Matchers._
   */
 class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
 
-  class JTmsSpy extends JtmsGreedy {
+  class JTmsSpy extends JtmsGreedy(new SimpleJtms) {
 
     // TODO
 //    override def allAtoms() = addCalls flatMap(_.atoms) to

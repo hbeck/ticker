@@ -1483,8 +1483,8 @@ class GrounderTests extends FunSuite {
           for (iteration <- 1 to iterationsEach) {
 
             val tms = tmsName match {
-              case "greedy" => new JtmsGreedy()
-              case "learn" => new JtmsLearn()
+              case "greedy" => new JtmsGreedy(new OptimizedJtms())
+              case "learn" => new JtmsLearn(new OptimizedJtms())
             }
 
             println(f"\n${tmsName}#${iteration}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")

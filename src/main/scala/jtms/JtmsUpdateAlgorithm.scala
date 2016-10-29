@@ -6,6 +6,11 @@ import core.asp._
 /**
   * Created by FM on 13.10.16.
   */
+object JtmsUpdateAlgorithm {
+  def apply() = JtmsGreedy(new SimpleJtms)
+}
+
+
 trait JtmsUpdateAlgorithm extends ChoiceControl {
 
   def add(rule: NormalRule)

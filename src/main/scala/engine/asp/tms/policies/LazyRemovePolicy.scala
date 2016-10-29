@@ -5,14 +5,14 @@ import core.lars.{Duration, TimePoint}
 import engine.Result
 import engine.asp.GroundAspRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsGreedy, JtmsUpdateAlgorithm}
+import jtms.{Jtms, JtmsGreedy, JtmsUpdateAlgorithm, OptimizedJtms}
 
 import scala.collection.mutable
 
 /**
   * Created by FM on 12.06.16.
   */
-case class LazyRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsGreedy(), laziness: Duration = 0) extends TmsPolicy {
+case class LazyRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm(), laziness: Duration = 0) extends TmsPolicy {
 
   val markedForDelete: mutable.Map[TimePoint, Set[NormalRule]] = mutable.Map()
   val reverseDeleteMap: mutable.Map[NormalRule, TimePoint] = mutable.Map()

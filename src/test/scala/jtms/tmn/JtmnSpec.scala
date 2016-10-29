@@ -13,5 +13,5 @@ class JtmnSpec extends FlatSpec {
 
   def Assumption(node: Atom): NormalRule = AspFact(node)
 
-  def EmptyTmn = new JtmsDoyle()
+  def EmptyTmn = new JtmsDoyle(new SimpleJtms())
 }

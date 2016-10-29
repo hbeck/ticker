@@ -13,9 +13,11 @@ object JtmsGreedy {
     net
   }
 
+  def apply():JtmsGreedy=JtmsGreedy(new SimpleJtms)
+
 }
 
-case class JtmsGreedy(jtms: Jtms = new OptimizedJtms(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsGreedy(jtms: Jtms, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

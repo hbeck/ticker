@@ -39,7 +39,7 @@ object AAAI17Eval {
     while (attempt < 100 && !ranThrough) {
       attempt += 1
       try {
-        val tms = JtmsDoyle()
+        val tms = JtmsDoyle(new OptimizedJtms())
         tms.doConsistencyCheck=true
         tms.doJtmsSemanticsCheck=true
         tms.doSelfSupportCheck=true
@@ -108,8 +108,8 @@ object AAAI17Eval {
       print(" " + i)
 
       val tms = impl match {
-        case "doyle" => new JtmsDoyle()
-        case "greedy" => new JtmsGreedy()
+        case "doyle" => new JtmsDoyle(new OptimizedJtms())
+        case "greedy" => new JtmsGreedy(new OptimizedJtms())
         case "learn" => new JtmsLearn()
       }
 

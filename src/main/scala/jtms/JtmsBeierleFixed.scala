@@ -28,7 +28,7 @@ object JtmsBeierleFixed {
   * but fixes some bugs.
   *
   */
-class JtmsBeierleFixed(jtms: OptimizedJtms, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
+class JtmsBeierleFixed(jtms: Jtms, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
 
   override def update(L: Predef.Set[Atom]) {
     //try {
