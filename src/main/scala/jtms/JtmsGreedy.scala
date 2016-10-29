@@ -15,7 +15,7 @@ object JtmsGreedy {
 
 }
 
-case class JtmsGreedy(jtms: JtmsAbstraction = new JtmsAbstraction(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+case class JtmsGreedy(jtms: Jtms = new JtmsAbstraction(), random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
@@ -142,7 +142,7 @@ case class JtmsGreedy(jtms: JtmsAbstraction = new JtmsAbstraction(), random: Ran
 
     //status(a) = out
     //status = status.updated(atom,out)
-    jtms.__updateStatus(atom, out)
+    jtms.updateStatus(atom, out)
 
     val maybeAtoms: Set[Option[Atom]] = jtms.openJustifications(atom) map { r => (r.pos find (jtms.status(_) == unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)

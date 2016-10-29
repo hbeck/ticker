@@ -26,12 +26,12 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateAlgorithmAbstraction(jtms, random){
+class JtmsBeierle(val jtms: Jtms, random: Random) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var shuffle = true //debugging
 
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    val atoms = jtms.inAtoms()
+    val atoms = jtms.inAtoms
     if (atoms exists jtms.contradictionAtom) return None
     Some(atoms.toSet)
   }
@@ -39,7 +39,7 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
   override def add(rule: NormalRule): Unit = {
     updateSteps1to5(rule)
     //6
-    for (n <- jtms.allAtoms()) {
+    for (n <- jtms.allAtoms) {
       if (jtms.contradictionAtom(n) && jtms.status(n) == in) {
         DDBBeierleOriginal(n) //there is no need to continue iteration after first unsolvable contradiction [!]
       }
@@ -74,13 +74,13 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
 
   //extracted at this position for remove case
   override def update(L: Predef.Set[Atom]) {
-     updateImpl(L)
+    updateImpl(L)
   }
 
   def updateImpl(L: Predef.Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
-    if (recordStatusSeq) statusSeq = Seq[(Atom,Status,String)]()
+    if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     //3 (second part)
     for (atom <- L) {
@@ -97,7 +97,7 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
   def step3(atom: Atom): Unit = {
     //status(atom) = unknown //vs setUnknown [!]
     //status = status.updated(atom,unknown)
-    jtms.__updateStatus(atom, unknown)
+    jtms.updateStatus(atom, unknown)
   }
 
   //determine status
@@ -108,14 +108,14 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
     jtms.justifications(atom) find foundedValid match {
       case Some(rule) => {
         setIn(rule)
-        for (u <- jtms.unknownCons(atom)){
+        for (u <- jtms.unknownCons(atom)) {
           step4a(u)
         }
       }
       case None => {
         if (jtms.justifications(atom) forall foundedInvalid) {
           setOut(atom)
-          for (u <- jtms.unknownCons(atom)){
+          for (u <- jtms.unknownCons(atom)) {
             step4a(u)
           }
         }
@@ -145,13 +145,13 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
     atoms foreach list.add
     java.util.Collections.shuffle(list)
     var seq = Seq[Atom]()
-    for (i <- 0 to list.size()-1) {
+    for (i <- 0 to list.size() - 1) {
       seq = seq :+ list.get(i)
     }
     seq
   }
 
-  def byForcedChoiceSeq(a:Atom, b:Atom): Boolean = {
+  def byForcedChoiceSeq(a: Atom, b: Atom): Boolean = {
     val aIdx = forcedChoiceSeq.indexOf(a)
     val bIdx = forcedChoiceSeq.indexOf(b)
     if (aIdx == -1) return false
@@ -170,7 +170,7 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
           for (n <- ACons(atom) + atom) {
             //status(n) = unknown //vs setUnknown [!]
             //status = status.updated(n,unknown)
-            jtms.__updateStatus(n, unknown)
+            jtms.updateStatus(n, unknown)
             step5a(n) //vs first setting all unknown, and only then call 5a if still necessary [!] (see * below)
           }
         } else {
@@ -179,22 +179,24 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
             if (jtms.status(n) == unknown) {
               //status(n) = out //vs setOutOriginal [!]; support never set!
               //status = status.updated(n,out)
-              jtms.__updateStatus(n, out)
+              jtms.updateStatus(n, out)
             }
           }
-          for (u <- jtms.unknownCons(atom)) { //* here other variant is chosen. deliberately? [1]
+          for (u <- jtms.unknownCons(atom)) {
+            //* here other variant is chosen. deliberately? [1]
             step5a(u)
           }
         }
       }
-      case None => { //all justifications(atom) are unfounded invalid
+      case None => {
+        //all justifications(atom) are unfounded invalid
         //status(atom) = out
         //status = status.updated(atom,out)
-        jtms.__updateStatus(atom, out)
+        jtms.updateStatus(atom, out)
         for (rule <- jtms.justifications(atom)) {
           val n: Option[Atom] = rule.pos find (jtms.status(_) == unknown) //in general, rule.pos might be empty! [!]
           if (n.isEmpty) {
-            throw new RuntimeException("did not find rule.pos atom with status unknown in rule "+rule+" for atom "+atom)
+            throw new RuntimeException("did not find rule.pos atom with status unknown in rule " + rule + " for atom " + atom)
           }
         }
         setOut(atom)
@@ -208,14 +210,14 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
   //note: there is no such sub-procedure in the book!
   override def setOut(atom: Atom): Unit = {
 
-    if (recordStatusSeq) statusSeq = statusSeq :+ (atom,out,"set")
+    if (recordStatusSeq) statusSeq = statusSeq :+ (atom, out, "set")
 
     //status = status.updated(atom,out)
-    jtms.__updateStatus(atom, out)
+    jtms.updateStatus(atom, out)
     setOutSupport(atom)
 
-//    status(atom) = out
-//    setOutSupport(atom)
+    //    status(atom) = out
+    //    setOutSupport(atom)
 
     //SuppRule(a) = None //is not set in beierle [!]
 
@@ -227,7 +229,7 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
     //1
     val asms = jtms.foundations(n) filter isAssumption
     val maxAssumptions = asms filter { a =>
-      ! ((asms - a) exists (b => jtms.foundations(b) contains a))
+      !((asms - a) exists (b => jtms.foundations(b) contains a))
     }
     if (maxAssumptions.isEmpty)
       return //contradiction cannot be solved
@@ -252,10 +254,10 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
 
   }
 
-   def register(a: Atom): Unit = {
-     jtms.register(a)
+  def register(a: Atom): Unit = {
+    jtms.register(a)
     if (!jtms.suppRule.isDefinedAt(a)) {
-      jtms.suppRule = jtms.suppRule.updated(a,None)
+      jtms.suppRule = jtms.suppRule.updated(a, None)
       //suppRule(a) = None
     }
   }
@@ -267,31 +269,31 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
 
   def foundedValid(rule: NormalRule) = jtms.valid(rule)
 
-  def foundedInvalid(rule: NormalRule) =jtms. invalid(rule)
+  def foundedInvalid(rule: NormalRule) = jtms.invalid(rule)
 
   def unfoundedValid(rule: NormalRule) = jtms.posValid(rule)
 
 
-   def unregister(a: Atom): Unit = {
+  def unregister(a: Atom): Unit = {
     jtms.unregister(a)
     //suppRule remove a
     jtms.suppRule = jtms.suppRule - a
   }
 
-   override def setInSupport(a: Atom) = jtms.justifications(a) find foundedValid match {
+  override def setInSupport(a: Atom) = jtms.justifications(a) find foundedValid match {
     case Some(rule) => {
-      jtms.setSupport(a,rule.body)
-      jtms.suppRule = jtms.suppRule.updated(a,Some(rule))
-//      supp(a) = Set() ++ rule.body
-//      suppRule(a) = Some(rule)
+      jtms.setInSupport(a, rule)
+      //      jtms.suppRule = jtms.suppRule.updated(a,Some(rule))
+      //      supp(a) = Set() ++ rule.body
+      //      suppRule(a) = Some(rule)
     }
     case _ => throw new IncrementalUpdateFailureException()
   }
 
-   override def setOutSupport(a: Atom) {
+  override def setOutSupport(a: Atom) {
     super.setOutSupport(a)
     //suppRule(a) = None //not set in beierle, but relevant only for backtracking
-    jtms.suppRule = jtms.suppRule.updated(a,None)
+    jtms.suppRule = jtms.suppRule.updated(a, None)
   }
 
   // -- from refactored implementation, not in use --
@@ -303,7 +305,7 @@ class JtmsBeierle(val jtms: JtmsAbstraction, random: Random) extends JtmsUpdateA
 
     val asms = jtms.foundations(c) filter isAssumption
     val maxAssumptions = asms filter { a =>
-      ! ((asms - a) exists (b => jtms.foundations(b) contains a))
+      !((asms - a) exists (b => jtms.foundations(b) contains a))
     }
 
     if (maxAssumptions.isEmpty)

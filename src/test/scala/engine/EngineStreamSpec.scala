@@ -17,7 +17,7 @@ import org.scalatest.tools.StandardOutReporter
 /**
   * Created by FM on 21.04.16.
   */
-class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
 
   val program = LarsProgram.from(
     a <= b,

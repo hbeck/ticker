@@ -8,7 +8,7 @@ import scala.util.Random
 /**
   * Created by hb on 6/10/16.
   */
- class JtmsAbstraction(random: Random = new Random()) extends Jtms {
+class JtmsAbstraction(random: Random = new Random()) extends Jtms {
 
   //def isChoiceAtom(atom: Atom) = atom.predicate.toString == "bit" //TODO
 
@@ -75,7 +75,7 @@ import scala.util.Random
   def register(a: Atom) {
     if (!status.isDefinedAt(a)) {
       //use this immediately as test whether the atom exists; all atoms need to have a status
-// TODO: do we need this?      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
+      // TODO: do we need this?      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
 
       __allAtoms = __allAtoms + a
 
@@ -103,7 +103,7 @@ import scala.util.Random
     }
   }
 
-  def __updateStatus(a: Atom, newStatus: Status): Unit = {
+  def updateStatus(a: Atom, newStatus: Status): Unit = {
 
     var oldStatus = status(a)
 
@@ -111,15 +111,15 @@ import scala.util.Random
       if (!signals().contains(a)) {
         if (oldStatus == in || oldStatus == out) {
           __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
-//          if (isChoiceAtom(a)) {
-//            __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash, (a, oldStatus))
-//          }
+          //          if (isChoiceAtom(a)) {
+          //            __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash, (a, oldStatus))
+          //          }
         }
         if (newStatus == in || newStatus == out) {
           __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
-//          if (isChoiceAtom(a)) {
-//            __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, newStatus))
-//          }
+          //          if (isChoiceAtom(a)) {
+          //            __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, newStatus))
+          //          }
         }
       }
       status = status.updated(a, newStatus)
@@ -168,17 +168,17 @@ import scala.util.Random
 
     val oldStatus = status(a)
 
-//    if (isChoiceAtom(a)) {
-//      __choiceAtoms = __choiceAtoms - a
-//      if (oldStatus == in || oldStatus == out) {
-//        __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash,(a, oldStatus))
-//      }
-//    }
+    //    if (isChoiceAtom(a)) {
+    //      __choiceAtoms = __choiceAtoms - a
+    //      if (oldStatus == in || oldStatus == out) {
+    //        __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash,(a, oldStatus))
+    //      }
+    //    }
 
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    if (!signals().contains(a) && (oldStatus==in ||oldStatus==out)) {
-      __stateHash = IncrementalHashCode.removeHashCode(__stateHash,(a, oldStatus))
+    if (!signals().contains(a) && (oldStatus == in || oldStatus == out)) {
+      __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
     }
 
     status = status - a
@@ -202,8 +202,8 @@ import scala.util.Random
     if (__cleanup % 1000 == 0 || force) {
       __cleanup = 0
 
-      __justifications = __justifications filter { case (atom,rules) => rules.nonEmpty }
-      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom,rules) => rules.nonEmpty }
+      __justifications = __justifications filter { case (atom, rules) => rules.nonEmpty }
+      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom, rules) => rules.nonEmpty }
     }
   }
 
@@ -212,20 +212,28 @@ import scala.util.Random
   //
 
 
-
-  def clearSupport(a:Atom): Unit ={
+  def clearSupport(a: Atom): Unit = {
     supp = supp.updated(a, Set())
     __suppHash = __suppHash.updated(a, IncrementalHashCode.emptyHash)
-  }
-  def setSupport(a: Atom, atoms: Set[Atom]): Unit = {
-    supp = supp.updated(a, atoms)
-    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff signals))
+    suppRule = suppRule.updated(a, None)
   }
 
-  def addSupport(a:Atom, newAtom:Atom): Unit ={
+  def setOutSupport(a: Atom, atoms: Set[Atom]): Unit = {
+    supp = supp.updated(a, atoms)
+    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff signals))
+    suppRule = suppRule.updated(a, None)
+  }
+
+  def setInSupport(a: Atom, rule: NormalRule): Unit = {
+    suppRule = suppRule.updated(rule.head, Some(rule))
+    supp = supp.updated(a, rule.body)
+    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(rule.body diff signals))
+  }
+
+  def addSupport(a: Atom, newAtom: Atom): Unit = {
     supp = supp.updated(a, supp(a) + newAtom)
-    if(!signals().contains(newAtom))
-      __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a),newAtom))
+    if (!signals().contains(newAtom))
+      __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a), newAtom))
   }
 
 }
@@ -238,13 +246,13 @@ object IncrementalHashCode {
 
   def addHashCode(hash: Long, item: Any): Long = {
 
-    val newHash = (hash ) + item.hashCode()
+    val newHash = (hash) + item.hashCode()
 
     newHash
   }
 
   def removeHashCode(hash: Long, element: Any): Long = {
-//    val newHash = (hash - element.hashCode()) / 16777619
+    //    val newHash = (hash - element.hashCode()) / 16777619
     val newHash = hash - element.hashCode()
     newHash
   }

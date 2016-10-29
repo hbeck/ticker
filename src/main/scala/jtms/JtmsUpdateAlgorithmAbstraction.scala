@@ -8,8 +8,9 @@ import scala.util.Random
 /**
   * Created by FM on 13.10.16.
   */
-abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Random) extends JtmsUpdateAlgorithm {
+abstract class JtmsUpdateAlgorithmAbstraction(jtms: Jtms, random: Random) extends JtmsUpdateAlgorithm {
 
+  def rules = jtms.rules
 
   def findSpoiler(rule: NormalRule): Option[Atom] = {
     if (random.nextDouble() < 0.5) {
@@ -59,8 +60,8 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
     register(rule)
-    if (jtms.inconsistent()) {
-      update(jtms.unknownAtoms() + rule.head) //i.e., recompute()
+    if (jtms.inconsistent) {
+      update(jtms.unknownAtoms + rule.head) //i.e., recompute()
     } else {
       if (jtms.status(rule.head) == in) {
         if (jtms.valid(rule)) {
@@ -81,9 +82,9 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
 
   override def remove(rule: NormalRule): Unit = {
     unregister(rule)
-    if (jtms.inconsistent()) {
+    if (jtms.inconsistent) {
       val h = if (jtms.allAtoms contains rule.head) Set(rule.head) else Set()
-      update(jtms.unknownAtoms() ++ h)
+      update(jtms.unknownAtoms ++ h)
     } else {
       if (!(jtms.allAtoms contains rule.head)) return
       if (jtms.status(rule.head) == out) return
@@ -95,13 +96,13 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
   }
 
   def recompute(): Unit = {
-    update(jtms.unknownAtoms())
+    update(jtms.unknownAtoms)
   }
 
   override def getModel(): Option[scala.collection.immutable.Set[Atom]] = {
-    val atoms = jtms.inAtoms()
+    val atoms = jtms.inAtoms
     if (atoms exists jtms.contradictionAtom) return None //not dealt with; left for old test-cases
-    if (jtms.hasUnknown()) return None
+    if (jtms.hasUnknown) return None
     Some(atoms)
   }
 
@@ -111,15 +112,15 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
     //model foreach (status(_) = in)
     model foreach { atom =>
       //status = status.updated(atom,in)
-      jtms.__updateStatus(atom, in)
+      jtms.updateStatus(atom, in)
     }
     //(allAtoms diff model) foreach (status(_) = out)
     (jtms.allAtoms diff model) foreach { atom =>
       //status = status.updated(atom,out)
-      jtms.__updateStatus(atom, out)
+      jtms.updateStatus(atom, out)
     }
     try {
-      jtms.atomsNeedingSupp() foreach setSupport
+      jtms.atomsNeedingSupp foreach setSupport
     } catch {
       case e: IncrementalUpdateFailureException => {
         invalidateModel()
@@ -140,8 +141,10 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
 
   def setInSupport(a: Atom) = jtms.justifications(a) find jtms.valid match {
     case Some(rule) => {
-      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
-      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+      jtms.setInSupport(a, rule)
+      assert(a == rule.head)
+//      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
+//      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
     }
     case _ => throw new IncrementalUpdateFailureException()
   }
@@ -152,14 +155,15 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom " + a)
     }
     //supp(a) = Set() ++ maybeAtoms map (_.get)
-    jtms.setSupport(a, maybeAtoms map (_.get))
+//    jtms.setSupport(a, maybeAtoms map (_.get))
+    jtms.setOutSupport(a, maybeAtoms map (_.get))
   }
 
   def setIn(rule: NormalRule) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
-    jtms.__updateStatus(rule.head, in)
-    jtms.setSupport(rule.head, rule.body)
-    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
+    jtms.updateStatus(rule.head, in)
+    jtms.setInSupport(rule.head,rule)
+//    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
     //    status(rule.head) = in
     //    supp(rule.head) = Set() ++ rule.body
     //    suppRule(rule.head) = Some(rule)
@@ -167,18 +171,18 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsAbstraction, random: Ran
 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
-    jtms.__updateStatus(a, out)
+    jtms.updateStatus(a, out)
     setOutSupport(a)
-    jtms.suppRule = jtms.suppRule.updated(a, None)
+//    jtms.suppRule = jtms.suppRule.updated(a, None)
     //    status(a) = out
     //    setOutSupport(a)
     //    suppRule(a) = None
   }
 
   def setUnknown(a: Atom) = {
-    jtms.__updateStatus(a, unknown)
+    jtms.updateStatus(a, unknown)
     jtms.clearSupport(a)
-    jtms.suppRule = jtms.suppRule.updated(a, None)
+//    jtms.suppRule = jtms.suppRule.updated(a, None)
     //    status(a) = unknown
     //    supp(a) = Set()
     //    suppRule(a) = None

@@ -15,7 +15,7 @@ object LimitationHandling {
   def assertModelWithKnownLimitation[T <: JtmsUpdateAlgorithm with ChoiceControl](tms: T, modelCondition: => Boolean, knownLimitation: => Boolean): Unit = {
     if (tms.getModel == None) {
       if (!knownLimitation) { //known limitation
-        println("rules: "+tms.jtms.rules)
+        println("rules: "+tms.rules)
         println("statusSeq: "+tms.statusSeq)
         println("choiceSeq: "+tms.choiceSeq)
         assert(false)

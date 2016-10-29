@@ -567,8 +567,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         val fact: NormalFact = AspFact(d(t))
         tms.add(fact)
         lastD = fact.head
-        assert(!tms.jtms.dataIndependentRules().contains(fact))
-        assert(tms.jtms.facts().toSet.contains(fact))
+        assert(!tms.jtms.dataIndependentRules.contains(fact))
+        assert(tms.jtms.facts.toSet.contains(fact))
       } else if (t % (10 / 2) == 0) {
         val fact: NormalFact = AspFact(e(t))
         tms.add(fact)

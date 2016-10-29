@@ -19,29 +19,29 @@ trait Jtms {
 
   //needed originally only in backtracking procedure, which is skipped
   //however, should give a benefit in remove, where many cases can be skipped
-  var suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom,Option[NormalRule]]
+  var suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
 
   def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
 
-  def facts() = rules filter (_.isFact)
+  def facts: Set[NormalRule] = rules filter (_.isFact)
 
-  def factAtoms() = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
+  def factAtoms: Set[Atom] = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
 
-  def allAtoms(): Set[Atom] = (rules flatMap (_.atoms))
+  def allAtoms: Set[Atom] = rules flatMap (_.atoms)
 
-  def ruleHeads() = rules map (_.head)
+  def ruleHeads = rules map (_.head)
 
-  def atomsNeedingSupp() = ruleHeads diff factAtoms //these are intensional atoms
+  def atomsNeedingSupp = ruleHeads diff factAtoms //these are intensional atoms
 
-  def underivableAtoms() = allAtoms diff ruleHeads
+  def underivableAtoms = allAtoms diff ruleHeads
 
-  def dataIndependentRules(): Set[NormalRule] = rules filter dataIndependentRule
+  def dataIndependentRules: Set[NormalRule] = rules filter dataIndependentRule
 
   def dataIndependentRule(r: NormalRule): Boolean = {
-    ! r.atoms.exists(pinned(_)) //include testing head for facts
+    !r.atoms.exists(pinned(_)) //include testing head for facts
   }
 
-  def signals() = allAtoms filter isSignal
+  def signals = allAtoms filter isSignal
 
   //note: this is implementation specific due to use case
   //(PinnedAtoms obtained after grounding, and only signals (i.e., stream atoms) are pinned)
@@ -55,11 +55,15 @@ trait Jtms {
 
   def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
 
-  def inAtoms() = allAtoms filter (status(_) == in)
-  def outAtoms() = allAtoms filter (status(_) == out)
-  def unknownAtoms() = allAtoms filter (status(_) == unknown)
-  def hasUnknown() = allAtoms exists (status(_) == unknown)
-  def inconsistent(): Boolean = unknownAtoms().nonEmpty
+  def inAtoms = allAtoms filter (status(_) == in)
+
+  def outAtoms = allAtoms filter (status(_) == out)
+
+  def unknownAtoms = allAtoms filter (status(_) == unknown)
+
+  def hasUnknown = allAtoms exists (status(_) == unknown)
+
+  def inconsistent: Boolean = unknownAtoms.nonEmpty
 
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
   def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
@@ -87,6 +91,20 @@ trait Jtms {
   def openJustifications(a: Atom) = justifications(a) filter (!invalid(_))
 
   def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
+
+  def clearSupport(a: Atom): Unit
+
+  def setInSupport(a: Atom, rule: NormalRule): Unit
+
+  def setOutSupport(a: Atom, atoms: Set[Atom]): Unit
+
+  def addSupport(a: Atom, newAtom: Atom): Unit
+
+  def updateStatus(a: Atom, status: Status): Unit
+
+  def register(rule: NormalRule): Boolean
+
+  def unregister(rule: NormalRule): Boolean
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
     trans(f)(f(t))
