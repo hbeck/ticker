@@ -6,7 +6,7 @@ import core.lars._
 import engine.asp.LarsToPinnedProgram
 import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 
-import scala.io.Source
+import scala.io.{BufferedSource, Source}
 
 /**
   * Created by hb on 8/28/16.
@@ -38,7 +38,7 @@ object Util {
         }
         val size = Integer.parseInt(parts(2))
         val p = Predicate(parts(3))
-        val args = ss.tail map arg
+        val args = ss.tail filterNot (_==p.caption) map arg
         WindowAtom(SlidingTimeWindow(size),temporalModality,Atom(p,args)) //doesn't matter which one
       } else if (s.startsWith("#")){
         val p = Predicate(s)
@@ -171,7 +171,11 @@ object Util {
   }
 
   def readProgramFromFile(filename: String): LarsProgram = {
-    val source = Source.fromURL(getClass.getResource(filename))
+    readProgram(Source.fromURL(getClass.getResource(filename)))
+  }
+
+  def readProgram(source: BufferedSource): LarsProgram = {
+
     val rules = source.getLines().toSeq map rule
     LarsProgram(rules)
   }
