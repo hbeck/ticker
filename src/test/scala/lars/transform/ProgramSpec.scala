@@ -13,12 +13,12 @@ class ProgramSpec extends TransformLarsSpec {
   "A program with one Fact a." should "be tranformed into one rule" in {
     val p = LarsProgram.from(LarsFact(a))
 
-    LarsToPinnedProgram(p).rules should have size 1
+    DefaultLarsToPinnedProgram(p).rules should have size 1
   }
   it should "contain a(T)." in {
     val p = LarsProgram.from(LarsFact(a))
 
-    LarsToPinnedProgram(p).rules should contain(AspRule(a(T), Set(now(T))))
+    DefaultLarsToPinnedProgram(p).rules should contain(AspRule(a(T), Set(now(T))))
   }
 
   "A program with two different Facts a. b." should "be transformed into 2 rules a(T). b(T)." in {
@@ -27,6 +27,6 @@ class ProgramSpec extends TransformLarsSpec {
       LarsFact(b)
     )
 
-    LarsToPinnedProgram(p).rules should have size 2
+    DefaultLarsToPinnedProgram(p).rules should have size 2
   }
 }

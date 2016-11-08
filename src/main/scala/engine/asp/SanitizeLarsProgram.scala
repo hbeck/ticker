@@ -1,7 +1,7 @@
 package engine.asp
 
 import core.Atom
-import core.lars.{Diamond, ExtendedAtom, LarsProgram, LarsRule, W}
+import core.lars._
 
 /**
   * Created by FM on 12.08.16.
@@ -24,7 +24,7 @@ case class SanitizeLarsProgram(program: LarsProgram) {
   }
 
   def sanitize(atom: ExtendedAtom): ExtendedAtom = atom match {
-    case a: Atom if extensionalAtoms.contains(a) => W(0, Diamond, a)
+    case a: Atom if extensionalAtoms.contains(a) => W(TimeWindowSize(0), Diamond, a)
     case _ => atom
   }
 

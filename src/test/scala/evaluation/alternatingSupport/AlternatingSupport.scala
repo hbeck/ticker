@@ -20,7 +20,7 @@ import scala.util.Random
 class AlternatingSupport extends FlatSpec with AlternatingSupportSpec with TimeTestFixtures {
 
 
-  val transformedProgram = LarsToPinnedProgram(program)
+  val transformedProgram = LarsToPinnedProgram()(program)
 
   "Two streaming elements and the normal TMS-Evaluation" should "lead to an expensive update" in {
     val jtms = new OptimizedJtmsStorage()

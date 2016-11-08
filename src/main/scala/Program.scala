@@ -11,8 +11,10 @@ import java.io.File
 import Program.EvaluationModifier.EvaluationModifier
 import Program.EvaluationTypes.EvaluationTypes
 import core.Atom
+
 import engine.EvaluationEngine
 
+import scala.concurrent.duration._
 import scala.io.Source
 
 /**
@@ -20,12 +22,12 @@ import scala.io.Source
   */
 object Program {
   def main(args: Array[String]): Unit = {
-//    val myargs = Seq(
-//      "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-//      "--evaluationType", "Tms"
-//    ).toArray
+    val myargs = Seq(
+      "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
+      "--evaluationType", "Tms"
+    ).toArray
 
-    parseParameters(args) match {
+    parseParameters(myargs) match {
       case Some(config) => {
         val program = Util.readProgram(Source.fromFile(config.programFile))
 
@@ -34,7 +36,7 @@ object Program {
           withConfiguration(config.evaluationType.toString.toLowerCase(), config.evaluationModifier.toString.toLowerCase())
 
         engine match {
-          case Some(e) => run(e)
+          case Some(e) => run(e, config.inputSpeed, config.outputSpeed)
           case None => throw new RuntimeException("Could not build engine!")
         }
       }
@@ -42,17 +44,25 @@ object Program {
     }
   }
 
-  def run(engine: EvaluationEngine): Unit = {
+  def run(engine: EvaluationEngine, engineSpeed: Duration, outputSpeed: Duration): Unit = {
     val executor = Executors.newSingleThreadExecutor()
 
     var time = 0
 
+//    val outputSpeedInEngineSpeed = outputSpeed.toUnit(engineSpeed.unit).toLong
+
     val timer = new java.util.Timer()
+    timer.scheduleAtFixedRate(new TimerTask {
+
+      override def run(): Unit = time = time + 1
+
+    }, engineSpeed.toMillis, engineSpeed.toMillis)
+
     timer.scheduleAtFixedRate(new TimerTask {
 
       override def run(): Unit = executor.execute(new Runnable {
         override def run(): Unit = {
-          time = time + 1
+
           val model = engine.evaluate(time)
 
           model.get match {
@@ -62,7 +72,7 @@ object Program {
 
         }
       })
-    }, 1000, 1000)
+    }, outputSpeed.toMillis, outputSpeed.toMillis)
 
     Iterator.continually(scala.io.StdIn.readLine).
       map(line => line.
@@ -101,6 +111,10 @@ object Program {
         action((x, c) => c.copy(evaluationModifier = x)).
         text("An evaluation type is required")
 
+      opt[Duration]("inputSpeed").optional().valueName("<input speed>").
+        action((x, c) => c.copy(inputSpeed = x))
+      opt[Duration]("outputSpeed").optional().valueName("<output speed>").
+        action((x, c) => c.copy(outputSpeed = x))
 
       help("help").text("prints this usage text")
 
@@ -128,5 +142,7 @@ object Program {
 
 case class Config(evaluationType: EvaluationTypes = EvaluationTypes.Tms,
                   evaluationModifier: EvaluationModifier = EvaluationModifier.Greedy,
-                  programFile: File
+                  programFile: File,
+                  inputSpeed: Duration = 100 milliseconds,
+                  outputSpeed: Duration = 1 second
                  )

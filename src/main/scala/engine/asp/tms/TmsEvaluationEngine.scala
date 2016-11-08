@@ -26,7 +26,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     tuplePositions = atoms.toList ++ tuplePositions
-    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated (asFluentMap(a), a.asFluentReference()))
+    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
     cachedResults(time) = prepare(time, atoms.toSet)
     discardOutdatedAuxiliaryAtoms(time)
   }
@@ -36,7 +36,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
     val pinnedGroundedRules = pin.ground(nonGroundRules).toSet.toSeq
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
-    val signalsNow =  signalAtoms map (AspFact(_)) toSeq
+    val signalsNow = signalAtoms map (AspFact(_)) toSeq
     val orderedTuples = deriveOrderedTuples
     val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact[Atom](_)).toSeq
 
@@ -47,7 +47,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     add(signalsNow)
     add(pinnedSignals.toSeq)
     add(orderedTuples)
-//    add(fluentTuples)
+//        add(fluentTuples)
     // then rules
     add(pinnedGroundedRules)
 
@@ -97,13 +97,13 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
+    val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
+    tuplePositions = tuplePositions.take(pinnedAspProgram.maximumTupleWindowSize.toInt)
 
-    tuplePositions = tuplePositions.take((pinnedAspProgram.maximumWindowSize).toInt)
-
-    val atomsToRemove = stream filterKeys (t => t.value < time.value - pinnedAspProgram.maximumWindowSize)
+    val atomsToRemove = stream filterKeys (t => t.value < time.value - maxWindowTicks)
     stream = stream -- atomsToRemove.keySet
 
-    atomsToRemove foreach { case (timePoint,signals) => tmsPolicy.remove(timePoint)(signals.toSeq) }
+    atomsToRemove foreach { case (timePoint, signals) => tmsPolicy.remove(timePoint)(signals.toSeq) }
   }
 
   def asFluentMap(atom: Atom) = {

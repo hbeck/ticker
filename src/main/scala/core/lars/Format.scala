@@ -1,6 +1,9 @@
 package core.lars
 
+
 import core.Atom
+
+import scala.concurrent.duration._
 
 /**
   * Created by FM on 01.05.16.
@@ -8,9 +11,9 @@ import core.Atom
 object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
-    case SlidingTimeWindow(windowSize) => f"⊞^$windowSize"
-    case SlidingTupleWindow(windowSize)=> f"⊞_#^$windowSize"
-    case FluentWindow=>f"⊞^f"
+    case SlidingTimeWindow(windowSize) => f"⊞^${windowSize.ticks(1 second)}"
+    case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
+    case FluentWindow => f"⊞^f"
   }
 
   def apply(temporalOperator: TemporalModality) = temporalOperator match {

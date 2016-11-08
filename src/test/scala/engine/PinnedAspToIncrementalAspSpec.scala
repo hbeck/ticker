@@ -1,23 +1,25 @@
 package engine
 
+
 import core.asp.AspRule
 import core.lars._
 import core.{not => _, _}
 import engine.asp.{LarsToPinnedProgram, now}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
-import engine.asp.now
-import engine.asp.LarsToPinnedProgram
 import engine.asp.tms.PinnedAspToIncrementalAsp
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
+import scala.concurrent.duration._
+
 /**
   * Created by FM on 08.06.16.
   */
 class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
+  def LarsToPinnedProgram: LarsToPinnedProgram = engine.asp.LarsToPinnedProgram(1 second)
 
   "A rule containing a normal Atom" should "not be modified" in {
     val rule: AspRule[AtomWithArgument] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))

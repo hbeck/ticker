@@ -1,13 +1,18 @@
 package engine.asp
 
+import java.util.concurrent.TimeUnit
+
 import core.asp.AspRule
 import core.lars._
 import core._
 
+import scala.concurrent.duration._
+
 /**
   * Created by FM on 05.05.16.
   */
-object LarsToPinnedProgram {
+
+case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
     case AtAtom(t, a) => a(t)
@@ -30,7 +35,7 @@ object LarsToPinnedProgram {
 
   def apply(program: LarsProgram): PinnedProgramWithLars = {
     val rules: Seq[LarsRuleAsPinnedRules] = program.rules map (r => (r, this.apply(r)))
-    PinnedProgramWithLars(rules)
+    PinnedProgramWithLars(rules, engineTick)
   }
 
   def apply(windowAtom: WindowAtom): PinnedAtom = {
@@ -49,7 +54,7 @@ object LarsToPinnedProgram {
 
   def nameFor(window: WindowAtom) = {
     val windowFunction = window.windowFunction match {
-      case SlidingTimeWindow(size) => f"w_te_$size"
+      case SlidingTimeWindow(size) => f"w_te_${size.ticks(engineTick)}"
       case SlidingTupleWindow(size) => f"w_tu_$size"
       case FluentWindow => f"w_fl"
     }
@@ -164,8 +169,8 @@ object LarsToPinnedProgram {
 
   def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowSize: Long, atom: Atom, referenceTime: Time): Set[AtomWithArgument] = {
-    val generateAtoms = (1 to windowSize.toInt) map (referenceTime - _) map (atom(_))
+  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time): Set[AtomWithArgument] = {
+    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (referenceTime - _) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }
 }
@@ -173,7 +178,7 @@ object LarsToPinnedProgram {
 /*
  * we keep the original lars rule for potential later optimizations
  */
-case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules]) extends PinnedProgram {
+case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules], tickSize: EngineTick) extends PinnedProgram {
 
   override val rules = larsRulesAsPinnedRules flatMap { case (_, pinned) => pinned }
 
@@ -181,13 +186,20 @@ case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRul
     _.body collect { case w: WindowAtom => w }
   } toSet
 
-  val slidingWindowsAtoms = windowAtoms collect {
-    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingWindow] => w.windowFunction.asInstanceOf[SlidingWindow]
+  val slidingTimeWindowsAtoms = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
+  }
+  val slidingTupleWindowsAtoms = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
   }
   //TODO fluent window
 
-  val maximumWindowSize: WindowSize = slidingWindowsAtoms.isEmpty match {
+  val maximumWindowSize: TimeWindowSize = slidingTimeWindowsAtoms.isEmpty match {
+    case true => TimeWindowSize(0)
+    case false => slidingTimeWindowsAtoms.maxBy(_.windowSize).windowSize
+  }
+  val maximumTupleWindowSize: TupleCount = slidingTupleWindowsAtoms.isEmpty match {
     case true => 0
-    case false => slidingWindowsAtoms.maxBy(_.windowSize).windowSize
+    case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
   }
 }

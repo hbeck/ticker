@@ -1,7 +1,9 @@
 package engine.config
 
+import java.util.concurrent.TimeUnit
+
 import clingo.ClingoConversion
-import core.lars.LarsProgram
+import core.lars.{EngineTick, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
@@ -11,7 +13,7 @@ import jtms.algorithms.JtmsGreedy
 import jtms.storage.OptimizedJtmsStorage
 import jtms.{JtmsStorage, JtmsUpdateAlgorithm}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.Random
 
 /**
@@ -25,7 +27,7 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram) {
 
   def withConfiguration(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(larsProgram).build(evaluationType, evaluationModifier)
 
-  def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(larsProgram))
+  def configure(tickSize: EngineTick = 1 second) = AspEngineEvaluationConfiguration(LarsToPinnedProgram(tickSize)(larsProgram))
 
 }
 

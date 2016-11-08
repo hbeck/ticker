@@ -1,5 +1,7 @@
 package jtms.evaluation
 
+import java.util.concurrent.TimeUnit
+
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import core.lars._
@@ -39,7 +41,7 @@ object Util {
         val size = Integer.parseInt(parts(2))
         val p = Predicate(parts(3))
         val args = ss.tail filterNot (_==p.caption) map arg
-        WindowAtom(SlidingTimeWindow(size),temporalModality,Atom(p,args)) //doesn't matter which one
+        WindowAtom(SlidingTimeWindow(TimeWindowSize(size, TimeUnit.SECONDS)),temporalModality,Atom(p,args)) //doesn't matter which one
       } else if (s.startsWith("#")){
         val p = Predicate(s)
         val args = ss.tail take ss.tail.size-1 map arg
@@ -180,9 +182,9 @@ object Util {
     LarsProgram(rules)
   }
 
-  def aspProgramAt(groundLarsProgram: LarsProgram, time: Int): NormalProgram = {
+  def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTick): NormalProgram = {
 
-    val aspProgramWithVariables = LarsToPinnedProgram(groundLarsProgram)
+    val aspProgramWithVariables = LarsToPinnedProgram(tickSize)(groundLarsProgram)
 
     val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
 
