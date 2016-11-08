@@ -23,12 +23,13 @@ object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(larsProgram: LarsProgram) {
+case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTick = 1 second) {
 
-  def withConfiguration(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(larsProgram).build(evaluationType, evaluationModifier)
+  def withConfiguration(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
 
-  def configure(tickSize: EngineTick = 1 second) = AspEngineEvaluationConfiguration(LarsToPinnedProgram(tickSize)(larsProgram))
+  def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
 
+  def withTickSize(tickSize: EngineTick) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
 

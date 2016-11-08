@@ -8,6 +8,7 @@ import core.lars._
 import engine.asp.LarsToPinnedProgram
 import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 
+import scala.concurrent.duration.Duration
 import scala.io.{BufferedSource, Source}
 
 /**
@@ -38,10 +39,16 @@ object Util {
           case "b" => Box
           case x => throw new RuntimeException("window "+s+" atom cannot be parsed. unknown temporal modality "+x)
         }
-        val size = Integer.parseInt(parts(2))
+        val windowSize = parts(2).forall(_.isDigit) match{
+          case true => Duration(Integer.parseInt(parts(2)),TimeUnit.SECONDS)
+          case false => {
+            val sizeParts = parts(2).partition(_.isDigit)
+            Duration(Integer.parseInt(sizeParts._1).toLong ,sizeParts._2)
+          }
+        }
         val p = Predicate(parts(3))
         val args = ss.tail filterNot (_==p.caption) map arg
-        WindowAtom(SlidingTimeWindow(TimeWindowSize(size, TimeUnit.SECONDS)),temporalModality,Atom(p,args)) //doesn't matter which one
+        WindowAtom(SlidingTimeWindow(TimeWindowSize(windowSize.length,windowSize.unit)),temporalModality,Atom(p,args)) //doesn't matter which one
       } else if (s.startsWith("#")){
         val p = Predicate(s)
         val args = ss.tail take ss.tail.size-1 map arg

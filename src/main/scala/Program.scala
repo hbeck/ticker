@@ -10,9 +10,8 @@ import java.io.File
 
 import Program.EvaluationModifier.EvaluationModifier
 import Program.EvaluationTypes.EvaluationTypes
-import core.Atom
-
-import engine.EvaluationEngine
+import core.{Atom, Model}
+import engine.{EvaluationEngine, NoResult, Result}
 
 import scala.concurrent.duration._
 import scala.io.Source
@@ -33,6 +32,7 @@ object Program {
 
         val engine = BuildEngine.
           withProgram(program).
+          withTickSize(config.inputSpeed).
           withConfiguration(config.evaluationType.toString.toLowerCase(), config.evaluationModifier.toString.toLowerCase())
 
         engine match {
@@ -47,27 +47,33 @@ object Program {
   def run(engine: EvaluationEngine, engineSpeed: Duration, outputSpeed: Duration): Unit = {
     val executor = Executors.newSingleThreadExecutor()
 
-    var time = 0
+    var ticks = 0
 
-//    val outputSpeedInEngineSpeed = outputSpeed.toUnit(engineSpeed.unit).toLong
+    def convertTicksToOutput(tick: Long) = tick * engineSpeed.toMillis / outputSpeed.toMillis
+    def convertTicksToInput(tick:Long) = tick * engineSpeed.toMillis
 
     val timer = new java.util.Timer()
     timer.scheduleAtFixedRate(new TimerTask {
 
-      override def run(): Unit = time = time + 1
+      override def run(): Unit = ticks = ticks + 1
 
     }, engineSpeed.toMillis, engineSpeed.toMillis)
+
+    var lastModel: Result = NoResult
 
     timer.scheduleAtFixedRate(new TimerTask {
 
       override def run(): Unit = executor.execute(new Runnable {
         override def run(): Unit = {
 
-          val model = engine.evaluate(time)
-
-          model.get match {
-            case Some(m) => println(f"Model at T $time: $m")
-            case None => println(f"No model at T $time")
+          val model = engine.evaluate(ticks)
+          if (model.get != lastModel.get) {
+            val timeInOutput = Duration(convertTicksToOutput(ticks), outputSpeed.unit)
+            model.get match {
+              case Some(m) => println(f"Model at T $timeInOutput: $m")
+              case None => println(f"No model at T $timeInOutput")
+            }
+            lastModel = model
           }
 
         }
@@ -83,11 +89,12 @@ object Program {
       takeWhile(_.nonEmpty).
       foreach(atoms => {
 
-        println(f"Received input ${atoms.mkString(", ")} at T $time")
+        val inputTicks = Duration(convertTicksToInput(ticks), engineSpeed.unit)
+        println(f"Received input ${atoms.mkString(", ")} at T $inputTicks")
 
         executor.execute(new Runnable {
           override def run(): Unit = {
-            engine.append(time)(atoms: _*)
+            engine.append(ticks)(atoms: _*)
           }
         })
       })
@@ -97,7 +104,6 @@ object Program {
   def parseParameters(args: Array[String]) = {
     val parser = new scopt.OptionParser[Config]("scopt") {
       head("scopt", "3.x")
-
 
       opt[File]('p', "program").required().valueName("<file>").
         action((x, c) => c.copy(programFile = x)).
