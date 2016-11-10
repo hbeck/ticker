@@ -9,6 +9,8 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
+import engine.config.EvaluationModifier.EvaluationModifier
+import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.algorithms.JtmsGreedy
 import jtms.storage.OptimizedJtmsStorage
 import jtms.{JtmsStorage, JtmsUpdateAlgorithm}
@@ -25,7 +27,7 @@ object BuildEngine {
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTick = 1 second) {
 
-  def withConfiguration(evaluationType: String, evaluationModifier: String) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
+  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
 
   def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
 

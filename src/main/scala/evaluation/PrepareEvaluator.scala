@@ -2,27 +2,26 @@ package evaluation
 
 import core.Atom
 import core.lars.{LarsProgram, TimePoint}
-import engine.config.BuildEngine
+import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
 import engine.{EvaluationEngine, StreamEntry}
 
-//import scala.reflect.runtime.universe
-//import scala.reflect.runtime._
 import scala.util.Random
 
 object PrepareEvaluator {
 
   def buildEngineFromArguments(args: Seq[String], program: LarsProgram): EvaluationEngine = {
 
-    //val arguments = ArgumentParsing.argsParser(args)
-
     if (args.length != 2) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
 
-    val evaluationType = args(0) //tms or clingo
-    val evaluationStrategy = args(1) //greedy, learn or doyle; resp. pull or push
+    val evaluationType = EvaluationTypes withName args(0) //tms or clingo
+    val evaluationStrategy = EvaluationModifier withName args(1) //greedy, learn or doyle; resp. pull or push
 
-    val engine = BuildEngine withProgram(program) withConfiguration (evaluationType, evaluationStrategy)
+    val engine = BuildEngine.
+      withProgram(program).
+      withConfiguration(evaluationType, evaluationStrategy)
+
     if (engine.isDefined) {
       Console.println(f"Engine: $evaluationType $evaluationStrategy")
       return engine.get
@@ -39,16 +38,6 @@ object PrepareEvaluator {
 
     Console.out.println("You specified: " + args.mkString(" "))
 
-    val optionsUsage = ArgumentParsing.options.map(o => f"-${o.option} <value>")
-
-    Console.out.println("Usage: Evaluator " + optionsUsage.mkString(" "))
-    Console.err.println()
-
-    val optionsDescription = ArgumentParsing.options.
-      groupBy(o => o.description).
-      map(o => f"${o._1}: " + o._2.collect { case a: OptionValue => a.value })
-
-    Console.out.println(optionsDescription.mkString("\n"))
     throw new RuntimeException("wrong arguments")
   }
 

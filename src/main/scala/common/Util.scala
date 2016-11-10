@@ -9,7 +9,7 @@ object Util {
     val start = System.currentTimeMillis()
     val result: T = any
     val end = System.currentTimeMillis()
-    println(nameOfProcedure+": "+(1.0*(end-start))/1000.0+" sec")
+    println(nameOfProcedure + ": " + (1.0 * (end - start)) / 1000.0 + " sec")
     result
   }
 
@@ -17,7 +17,14 @@ object Util {
     val start = System.currentTimeMillis()
     val result: T = any
     val end = System.currentTimeMillis()
-    end-start
+    end - start
+  }
+
+  def unapply(s: String): Option[Int] = try {
+    Some(s.toInt)
+  } catch {
+    case _: java.lang.NumberFormatException => None
   }
 
 }
+

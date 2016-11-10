@@ -3,6 +3,8 @@ package engine.config
 import core.lars.{EngineTick, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
+import engine.config.EvaluationModifier.EvaluationModifier
+import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsStorage
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.storage.OptimizedJtmsStorage
@@ -12,29 +14,40 @@ import scala.util.Random
 /**
   * Created by FM on 29.08.16.
   */
+object EvaluationTypes extends Enumeration {
+  type EvaluationTypes = Value
+  val Tms, Clingo = Value
+}
+
+object EvaluationModifier extends Enumeration {
+  type EvaluationModifier = Value
+  val Greedy, Doyle, Learn, Push, Pull = Value
+}
+
+
 case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick) {
 
-  def build(evaluationType: String, evaluationModifier: String) = buildEngine(evaluationType, evaluationModifier)
+  def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 
-  def buildEngine(evaluationType: String,
-                  evaluationModifier: String,
+  def buildEngine(evaluationType: EvaluationTypes,
+                  evaluationModifier: EvaluationModifier,
                   jtms: JtmsStorage = new OptimizedJtmsStorage(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     val config = BuildEngine.withProgram(program).withTickSize(tickSize)
 
-    if (evaluationType == "tms") {
-      if (evaluationModifier == "greedy") {
+    if (evaluationType == EvaluationTypes.Tms) {
+      if (evaluationModifier == EvaluationModifier.Greedy) {
         return Some(greedyTms(config, jtms, random))
-      } else if (evaluationModifier == "doyle") {
+      } else if (evaluationModifier == EvaluationModifier.Doyle) {
         return Some(doyleTms(config, jtms, random))
-      } else if (evaluationModifier == "learn") {
+      } else if (evaluationModifier == EvaluationModifier.Learn) {
         return Some(learnTms(config, new OptimizedJtmsStorage(), random))
       }
-    } else if (evaluationType == "clingo") {
-      if (evaluationModifier == "push") {
+    } else if (evaluationType == EvaluationTypes.Clingo) {
+      if (evaluationModifier == EvaluationModifier.Push) {
         return Some(clingoPush(config))
-      } else if (evaluationModifier == "pull") {
+      } else if (evaluationModifier == EvaluationModifier.Pull) {
         return Some(clingoPull(config))
       }
     }
