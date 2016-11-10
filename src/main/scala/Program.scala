@@ -1,5 +1,5 @@
 import java.util.TimerTask
-import java.util.concurrent.Executors
+import java.util.concurrent.{Executors, TimeUnit}
 
 import Program.{EvaluationModifier, EvaluationTypes}
 import engine.config.BuildEngine
@@ -10,6 +10,7 @@ import java.io.File
 
 import Program.EvaluationModifier.EvaluationModifier
 import Program.EvaluationTypes.EvaluationTypes
+import core.lars.TimePoint
 import core.{Atom, Model}
 import engine.{EvaluationEngine, NoResult, Result}
 
@@ -36,68 +37,16 @@ object Program {
           withConfiguration(config.evaluationType.toString.toLowerCase(), config.evaluationModifier.toString.toLowerCase())
 
         engine match {
-          case Some(e) => run(e, config.inputSpeed, config.outputSpeed)
+          case Some(e) => {
+            val runner = EngineRunner(e, config.inputSpeed, config.outputSpeed)
+            runner.start()
+            runner.receiveInputFromStdIn()
+          }
           case None => throw new RuntimeException("Could not build engine!")
         }
       }
       case None => throw new RuntimeException("Could not parse arguments")
     }
-  }
-
-  def run(engine: EvaluationEngine, engineSpeed: Duration, outputSpeed: Duration): Unit = {
-    val executor = Executors.newSingleThreadExecutor()
-
-    var ticks = 0
-
-    def convertTicksToOutput(tick: Long) = tick * engineSpeed.toMillis / outputSpeed.toMillis
-    def convertTicksToInput(tick:Long) = tick * engineSpeed.toMillis
-
-    val timer = new java.util.Timer()
-    timer.scheduleAtFixedRate(new TimerTask {
-
-      override def run(): Unit = ticks = ticks + 1
-
-    }, engineSpeed.toMillis, engineSpeed.toMillis)
-
-    var lastModel: Result = NoResult
-
-    timer.scheduleAtFixedRate(new TimerTask {
-
-      override def run(): Unit = executor.execute(new Runnable {
-        override def run(): Unit = {
-
-          val model = engine.evaluate(ticks)
-          if (model.get != lastModel.get) {
-            val timeInOutput = Duration(convertTicksToOutput(ticks), outputSpeed.unit)
-            model.get match {
-              case Some(m) => println(f"Model at T $timeInOutput: $m")
-              case None => println(f"No model at T $timeInOutput")
-            }
-            lastModel = model
-          }
-
-        }
-      })
-    }, outputSpeed.toMillis, outputSpeed.toMillis)
-
-    Iterator.continually(scala.io.StdIn.readLine).
-      map(line => line.
-        split(',').
-        map(_.trim).
-        map(Atom(_)).array
-      ).
-      takeWhile(_.nonEmpty).
-      foreach(atoms => {
-
-        val inputTicks = Duration(convertTicksToInput(ticks), engineSpeed.unit)
-        println(f"Received input ${atoms.mkString(", ")} at T $inputTicks")
-
-        executor.execute(new Runnable {
-          override def run(): Unit = {
-            engine.append(ticks)(atoms: _*)
-          }
-        })
-      })
   }
 
 
@@ -152,3 +101,71 @@ case class Config(evaluationType: EvaluationTypes = EvaluationTypes.Tms,
                   inputSpeed: Duration = 100 milliseconds,
                   outputSpeed: Duration = 1 second
                  )
+
+case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputSpeed: Duration) {
+  val executor = Executors.newSingleThreadExecutor()
+
+  var ticks: TimePoint = TimePoint(0)
+
+  val timer = new java.util.Timer()
+
+  var lastModel: Result = NoResult
+
+  def convertTicksToOutput(tick: TimePoint) = Duration(tick.value * engineSpeed.toMillis / outputSpeed.toMillis, outputSpeed.unit)
+
+  def convertTicksToInput(tick: TimePoint) = Duration(Duration(tick.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
+
+  def updateTicks(): Unit = ticks = ticks + 1
+
+  def evaluateModel(): Unit = {
+
+    val model = engine.evaluate(ticks)
+    if (model.get != lastModel.get) {
+      val timeInOutput = convertTicksToOutput(ticks)
+      model.get match {
+        case Some(m) => println(f"Model at T $timeInOutput: $m")
+        case None => println(f"No model at T $timeInOutput")
+      }
+      lastModel = model
+    }
+  }
+
+  def append(atoms: Seq[Atom]): Unit = {
+    // TODO: discuss which time to use (capture ticks here or in .run)
+    executor.execute(new Runnable {
+      override def run(): Unit = {
+        engine.append(ticks)(atoms: _*)
+      }
+    })
+  }
+
+  def start(): Unit = {
+    timer.scheduleAtFixedRate(new TimerTask {
+      override def run(): Unit = updateTicks
+    }, engineSpeed.toMillis, engineSpeed.toMillis)
+
+    val modelUpdate = new Runnable {
+      override def run(): Unit = evaluateModel
+    }
+    timer.scheduleAtFixedRate(new TimerTask {
+      override def run(): Unit = executor.execute(modelUpdate)
+    }, outputSpeed.toMillis, outputSpeed.toMillis)
+  }
+
+  def receiveInputFromStdIn(): Unit = {
+    Iterator.continually(scala.io.StdIn.readLine).
+      map(line => line.
+        split(',').
+        map(_.trim).
+        map(Atom(_)).array
+      ).
+      takeWhile(_.nonEmpty).
+      foreach(atoms => {
+
+        val inputTicks = convertTicksToInput(ticks)
+        println(f"Received input ${atoms.mkString(", ")} at T $inputTicks")
+
+        append(atoms)
+      })
+  }
+}
