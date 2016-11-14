@@ -1,11 +1,11 @@
 
 import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
 import jtms.evaluation.Util
-
 import java.io.File
 
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
+import runner.EngineRunner
 
 import scala.concurrent.duration._
 import scala.io.Source
@@ -34,8 +34,9 @@ object Program {
         engine match {
           case Some(e) => {
             val runner = EngineRunner(e, config.inputSpeed, config.outputSpeed)
-            runner.start()
             runner.receiveInputFromStdIn(config.outputSpeed.unit)
+            runner.receiveInputOverHttp
+            runner.start()
           }
           case None => throw new RuntimeException("Could not build engine!")
         }

@@ -1,13 +1,18 @@
+package runner
+
+import java.net.InetSocketAddress
 import java.util.TimerTask
 import java.util.concurrent.{Executors, TimeUnit}
 
+import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import core.Atom
 import core.lars.TimePoint
 import engine.{EvaluationEngine, NoResult, Result}
 import unfiltered.util.Of.Int
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /**
   * Created by FM on 10.11.16.
@@ -17,6 +22,8 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
   implicit val executor = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
 
   val timer = new java.util.Timer()
+
+  var inputSources: Seq[Thread] = List()
 
   @volatile var ticks: TimePoint = TimePoint(0)
 
@@ -69,15 +76,35 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
         evaluateModel()
       }
     }, outputSpeed.toMillis, outputSpeed.toMillis)
+
+    inputSources.foreach(_.start())
+
+    Thread.currentThread().join()
   }
 
   def receiveInputFromStdIn(inputUnit: TimeUnit): Unit = {
     val parser = Input(inputUnit)
 
-    Iterator.continually(scala.io.StdIn.readLine).
-      map(parser.parseInput).
-      takeWhile(_._2.nonEmpty).
-      foreach(input => append(input._1, input._2))
+    val keyboardInput = new Thread(new Runnable() {
+      override def run(): Unit = Iterator.continually(scala.io.StdIn.readLine).
+        map(parser.parseInput).
+        takeWhile(_._2.nonEmpty).
+        foreach(input => append(input._1, input._2))
+    }, "Read Input form keyboard")
+
+    keyboardInput.setDaemon(false)
+
+    inputSources = inputSources :+ keyboardInput
+  }
+
+  def receiveInputOverHttp(): Unit = {
+    new SimpleHttpServer()
+      .withContext("/") {
+        case "/hello" => Future {
+          (200, "OK")
+        }
+      }
+      .start()
   }
 
   case class Input(inputUnit: TimeUnit) {
@@ -102,4 +129,40 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
       map(Atom(_))
   }
 
+}
+
+case class SimpleHttpServer(port: Int = 8080) {
+  type HttpFunction = String => Future[(Int, String)]
+
+  val httpServer = HttpServer.create(new InetSocketAddress(port), 0)
+
+  def withContext(root: String)(httpFunction: HttpFunction) = {
+    def send(httpExchange: HttpExchange, responseCode: Int, content: String) = {
+      val response = content.getBytes
+      httpExchange.sendResponseHeaders(responseCode, response.length)
+      httpExchange.getResponseBody.write(response)
+      httpExchange.close()
+    }
+
+    httpServer.createContext("/", new HttpHandler {
+      override def handle(exchange: HttpExchange): Unit = {
+        println(Thread.currentThread())
+
+        val path = exchange.getRequestURI.getPath
+
+        val futureResponse = httpFunction(path)
+        implicit val executionContext = scala.concurrent.ExecutionContext.global
+        futureResponse onComplete {
+          case Success((responseCode, content)) => send(exchange, responseCode, content)
+          case Failure(e) => send(exchange, 500, "Servererror " + e.getMessage)
+        }
+      }
+    })
+
+    this
+  }
+
+  def start() = httpServer.start()
+
+  def stop() = httpServer.stop(0)
 }
