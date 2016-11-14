@@ -18,11 +18,12 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-//        val myargs = Seq(
-//          "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-//          "--evaluationType", "Tms",
-//          "--inputType","Http,StdIn"
-//        ).toArray
+    //        val myargs = Seq(
+    //          "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
+    //          "--evaluationType", "Clingo",
+    //          "--evaluationModifier", "Push",
+    //          "--inputType","Http,StdIn"
+    //        ).toArray
 
     parseParameters(args) match {
       case Some(config) => {
@@ -61,11 +62,11 @@ object Program {
 
       opt[EvaluationTypes]('e', "evaluationType").required().valueName("<evaluation type>").
         action((x, c) => c.copy(evaluationType = x)).
-        text("An evaluation type is required")
+        text("An evaluation type is required, possible values: " + EvaluationTypes.values)
 
       opt[EvaluationModifier]('m', "evaluationModifier").optional().valueName("<evaluation modifier>").
         action((x, c) => c.copy(evaluationModifier = x)).
-        text("An evaluation type is required")
+        text("An evaluation type is required, possible values: " + EvaluationModifier.values)
 
       opt[Duration]("inputSpeed").optional().valueName("<input speed>").
         validate(d =>
@@ -92,6 +93,15 @@ object Program {
       this.checkConfig(c =>
         if (c.inputSpeed >= c.outputSpeed)
           Left("inputSpeed must be lower than output")
+        else
+          Right()
+      )
+
+      this.checkConfig(c =>
+        if (c.evaluationType == EvaluationTypes.Clingo && c.evaluationModifier != EvaluationModifier.Pull && c.evaluationModifier != EvaluationModifier.Push)
+          Left("Invalid EvaluationModifier for evaluation Type")
+        else if (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push)
+          Left("Invalid EvaluationModifier for evaluation Type")
         else
           Right()
       )
