@@ -100,7 +100,7 @@ object Program {
       this.checkConfig(c =>
         if (c.evaluationType == EvaluationTypes.Clingo && c.evaluationModifier != EvaluationModifier.Pull && c.evaluationModifier != EvaluationModifier.Push)
           Left("Invalid EvaluationModifier for evaluation Type")
-        else if (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push)
+        else if (c.evaluationType != EvaluationTypes.Clingo && (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push))
           Left("Invalid EvaluationModifier for evaluation Type")
         else
           Right()
