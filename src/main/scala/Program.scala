@@ -5,7 +5,7 @@ import java.io.File
 
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
-import runner.EngineRunner
+import runner.{EngineRunner, OutputToStdOut, ReadFromHttp, ReadFromStdIn}
 
 import scala.concurrent.duration._
 import scala.io.Source
@@ -34,8 +34,9 @@ object Program {
         engine match {
           case Some(e) => {
             val runner = EngineRunner(e, config.inputSpeed, config.outputSpeed)
-            runner.receiveInputFromStdIn(config.outputSpeed.unit)
-            runner.receiveInputOverHttp
+            runner.connect(ReadFromHttp(config.outputSpeed.unit))
+            runner.connect(ReadFromStdIn(config.outputSpeed.unit))
+            runner.connect(OutputToStdOut())
             runner.start()
           }
           case None => throw new RuntimeException("Could not build engine!")
