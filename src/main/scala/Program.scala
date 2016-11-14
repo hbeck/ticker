@@ -3,8 +3,9 @@ import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
 import jtms.evaluation.Util
 import java.io.File
 
+import Program.InputTypes.InputTypes
 import engine.config.EvaluationModifier.EvaluationModifier
-import engine.config.EvaluationTypes.EvaluationTypes
+import engine.config.EvaluationTypes._
 import runner.{EngineRunner, OutputToStdOut, ReadFromHttp, ReadFromStdIn}
 
 import scala.concurrent.duration._
@@ -17,12 +18,13 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-    val myargs = Seq(
-      "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-      "--evaluationType", "Tms"
-    ).toArray
+//        val myargs = Seq(
+//          "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
+//          "--evaluationType", "Tms",
+//          "--inputType","Http,StdIn"
+//        ).toArray
 
-    parseParameters(myargs) match {
+    parseParameters(args) match {
       case Some(config) => {
         val program = Util.readProgram(Source.fromFile(config.programFile))
 
@@ -34,8 +36,10 @@ object Program {
         engine match {
           case Some(e) => {
             val runner = EngineRunner(e, config.inputSpeed, config.outputSpeed)
-            runner.connect(ReadFromHttp(config.outputSpeed.unit))
-            runner.connect(ReadFromStdIn(config.outputSpeed.unit))
+            config.inputs foreach {
+              case InputTypes.Http => runner.connect(ReadFromHttp(config.outputSpeed.unit))
+              case InputTypes.StdIn => runner.connect(ReadFromStdIn(config.outputSpeed.unit))
+            }
             runner.connect(OutputToStdOut())
             runner.start()
           }
@@ -81,6 +85,10 @@ object Program {
         ).
         action((x, c) => c.copy(outputSpeed = x))
 
+      opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
+        action((x, c) => c.copy(inputs = x))
+        .text("Possible Input Types: " + InputTypes.values)
+
       this.checkConfig(c =>
         if (c.inputSpeed >= c.outputSpeed)
           Left("inputSpeed must be lower than output")
@@ -100,15 +108,23 @@ object Program {
     scopt.Read.reads(EvaluationTypes withName)
 
 
-  implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] =
-    scopt.Read.reads(EvaluationModifier withName)
+  implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
+  implicit val inputTypesRead: scopt.Read[InputTypes.Value] =
+    scopt.Read.reads(InputTypes withName)
+
+
+  object InputTypes extends Enumeration {
+    type InputTypes = Value
+    val StdIn, Http = Value
+  }
 
   case class Config(evaluationType: EvaluationTypes = EvaluationTypes.Tms,
                     evaluationModifier: EvaluationModifier = EvaluationModifier.Greedy,
                     programFile: File,
                     inputSpeed: Duration = 100 milliseconds,
-                    outputSpeed: Duration = 1 second
+                    outputSpeed: Duration = 1 second,
+                    inputs: Seq[InputTypes] = Seq(InputTypes.StdIn)
                    )
 
 }

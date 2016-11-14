@@ -29,9 +29,9 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   var connectors: Seq[Startable] = List()
 
-  @volatile private var ticks: TimePoint = TimePoint(0)
-
   var resultCallbacks: Seq[ResultCallback] = List()
+
+  @volatile private var ticks: TimePoint = TimePoint(0)
 
   def convertToTicks(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
 
@@ -65,7 +65,6 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
     }
   }
 
-
   def start(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
       override def run(): Unit = updateTicks
@@ -77,8 +76,9 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
       }
     }, outputSpeed.toMillis, outputSpeed.toMillis)
 
-    connectors.foreach(_ ())
+    connectors.foreach(startable => startable())
 
+    // forces the caller thread to wait
     Thread.currentThread().join()
   }
 
