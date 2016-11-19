@@ -2,6 +2,7 @@ package jtms
 
 import core._
 import core.asp.NormalRule
+import jtms.networks.OptimizedNetwork
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap
@@ -9,7 +10,12 @@ import scala.collection.immutable.HashMap
 /**
   * Created by hb on 6/10/16.
   */
-trait JtmsStorage {
+
+object TruthMaintenanceNetwork {
+  def apply() = new OptimizedNetwork()
+}
+
+trait TruthMaintenanceNetwork {
 
   var rules: Set[NormalRule] = Set()
 

@@ -18,12 +18,12 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-    //        val myargs = Seq(
-    //          "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-    //          "--evaluationType", "Clingo",
-    //          "--evaluationModifier", "Push",
-    //          "--inputType","Http,StdIn"
-    //        ).toArray
+    val myargs = Seq(
+      "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
+      "--evaluationType", "Clingo",
+      "--evaluationModifier", "Push",
+      "--inputType", "Http,StdIn"
+    ).toArray
 
     parseParameters(args) match {
       case Some(config) => {

@@ -5,9 +5,9 @@ import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
-import jtms.JtmsStorage
+import jtms.{TruthMaintenanceNetwork}
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.storage.OptimizedJtmsStorage
+import jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
@@ -31,7 +31,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
 
   def buildEngine(evaluationType: EvaluationTypes,
                   evaluationModifier: EvaluationModifier,
-                  jtms: JtmsStorage = new OptimizedJtmsStorage(),
+                  jtms: TruthMaintenanceNetwork = new OptimizedNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     val config = BuildEngine.withProgram(program).withTickSize(tickSize)
@@ -42,7 +42,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
       } else if (evaluationModifier == EvaluationModifier.Doyle) {
         return Some(doyleTms(config, jtms, random))
       } else if (evaluationModifier == EvaluationModifier.Learn) {
-        return Some(learnTms(config, new OptimizedJtmsStorage(), random))
+        return Some(learnTms(config, new OptimizedNetwork(), random))
       }
     } else if (evaluationType == EvaluationTypes.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
@@ -55,7 +55,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
     None
   }
 
-  def greedyTms(config: EngineEvaluationConfiguration, jtms: JtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
+  def greedyTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
     val tms = JtmsGreedy(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
@@ -65,7 +65,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def doyleTms(config: EngineEvaluationConfiguration, jtms: JtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
+  def doyleTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
     val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
@@ -73,7 +73,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def learnTms(config: EngineEvaluationConfiguration, jtms: OptimizedJtmsStorage = new OptimizedJtmsStorage(), random: Random = new Random(1)) = {
+  def learnTms(config: EngineEvaluationConfiguration, jtms: OptimizedNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
     val tms = new JtmsLearn(jtms, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false

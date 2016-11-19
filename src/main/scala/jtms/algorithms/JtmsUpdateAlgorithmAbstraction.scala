@@ -9,7 +9,7 @@ import scala.util.Random
 /**
   * Created by FM on 13.10.16.
   */
-abstract class JtmsUpdateAlgorithmAbstraction(jtms: JtmsStorage, random: Random) extends JtmsUpdateAlgorithm {
+abstract class JtmsUpdateAlgorithmAbstraction(jtms: TruthMaintenanceNetwork, random: Random) extends JtmsUpdateAlgorithm {
 
   def rules = jtms.rules
 

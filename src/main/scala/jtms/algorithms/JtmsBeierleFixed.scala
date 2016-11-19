@@ -2,8 +2,8 @@ package jtms.algorithms
 
 import core.Atom
 import core.asp.{NormalProgram, NormalRule}
-import jtms.storage.OptimizedJtmsStorage
-import jtms.{JtmsStorage, unknown}
+
+import jtms.{TruthMaintenanceNetwork, unknown}
 
 import scala.util.Random
 
@@ -12,10 +12,10 @@ import scala.util.Random
   */
 object JtmsBeierleFixed {
 
-  def apply() = new JtmsBeierleFixed(new OptimizedJtmsStorage())
+  def apply() = new JtmsBeierleFixed(TruthMaintenanceNetwork())
 
   def apply(P: NormalProgram): JtmsBeierleFixed = {
-    val tmn = new JtmsBeierleFixed(new OptimizedJtmsStorage())
+    val tmn = new JtmsBeierleFixed(TruthMaintenanceNetwork())
     P.rules foreach tmn.add
     tmn
   }
@@ -30,7 +30,7 @@ object JtmsBeierleFixed {
   * but fixes some bugs.
   *
   */
-class JtmsBeierleFixed(jtms: JtmsStorage, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
+class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
 
   override def update(L: Predef.Set[Atom]) {
     //try {

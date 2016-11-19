@@ -5,14 +5,14 @@ import java.util
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 import jtms._
-import jtms.storage.OptimizedJtmsStorage
+import jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
 object JtmsBeierle {
 
   def apply(P: NormalProgram): JtmsBeierle = {
-    val tmn = new JtmsBeierle(new OptimizedJtmsStorage(), new Random())
+    val tmn = new JtmsBeierle(TruthMaintenanceNetwork(), new Random())
     P.rules foreach tmn.add
     tmn
   }
@@ -28,7 +28,7 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-class JtmsBeierle(val jtms: JtmsStorage, random: Random) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+class JtmsBeierle(val jtms: TruthMaintenanceNetwork, random: Random) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
 
   var shuffle = true //debugging
 

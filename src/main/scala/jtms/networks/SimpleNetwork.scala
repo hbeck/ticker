@@ -1,13 +1,13 @@
-package jtms.storage
+package jtms.networks
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{JtmsStorage, Status, out}
+import jtms.{TruthMaintenanceNetwork, Status, out}
 
 /**
   * Created by FM on 29.10.16.
   */
-class SimpleJtmsStorage extends JtmsStorage {
+class SimpleNetwork extends TruthMaintenanceNetwork {
   override def clearSupport(a: Atom): Unit = {
     supp = supp.updated(a, Set())
     suppRule = suppRule.updated(a, None)

@@ -7,7 +7,7 @@ import jtms.evaluation.Util
 import Util._
 import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
-import jtms.storage.OptimizedJtmsStorage
+import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap
@@ -1485,8 +1485,8 @@ class GrounderTests extends FunSuite {
           for (iteration <- 1 to iterationsEach) {
 
             val tms = tmsName match {
-              case "greedy" => new JtmsGreedy(new OptimizedJtmsStorage())
-              case "learn" => new JtmsLearn(new OptimizedJtmsStorage())
+              case "greedy" => new JtmsGreedy(new OptimizedNetwork())
+              case "learn" => new JtmsLearn(new OptimizedNetwork())
             }
 
             println(f"\n${tmsName}#${iteration}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")

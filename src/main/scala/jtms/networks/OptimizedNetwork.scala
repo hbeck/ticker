@@ -1,4 +1,4 @@
-package jtms.storage
+package jtms.networks
 
 import core.Atom
 import core.asp.NormalRule
@@ -7,13 +7,7 @@ import jtms._
 /**
   * Created by hb on 6/10/16.
   */
-class OptimizedJtmsStorage extends JtmsStorage {
-
-  //def isChoiceAtom(atom: Atom) = atom.predicate.toString == "bit" //TODO
-
-  //def unknownChoiceAtoms() = unknownAtoms() filter isChoiceAtom
-
-  //
+class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   override def allAtoms() = __allAtoms
 
@@ -53,10 +47,6 @@ class OptimizedJtmsStorage extends JtmsStorage {
 
     rules = rules + rule
 
-    /*
-    __ruleHeads = __ruleHeads + rule.head
-    if (rule.body.isEmpty) __factAtoms = __factAtoms + rule.head
-    */
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
@@ -64,7 +54,6 @@ class OptimizedJtmsStorage extends JtmsStorage {
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
     rule.atoms foreach register
-    //rule.body foreach (cons(_) += rule.head)
     rule.body foreach { atom =>
       cons = cons updated(atom, cons(atom) + rule.head)
     }
@@ -80,10 +69,6 @@ class OptimizedJtmsStorage extends JtmsStorage {
 
       status = status.updated(a, out)
 
-      //if (isChoiceAtom(a)) {
-      //  __choiceAtoms = __choiceAtoms + a
-      //  __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, out))
-      //} else
       if (isSignal(a)) {
         __signals = __signals + a
       } else {
@@ -94,38 +79,26 @@ class OptimizedJtmsStorage extends JtmsStorage {
 
       cons = cons.updated(a, Set[Atom]())
       clearSupport(a)
-
-      //      status(a) = out
-      //      cons(a) = Set[Atom]()
-      //      supp(a) = Set[Atom]()
-      //      suppRule(a) = None
     }
   }
 
   def updateStatus(a: Atom, newStatus: Status): Unit = {
 
-    var oldStatus = status(a)
+    val oldStatus = status(a)
 
     if (oldStatus != newStatus) {
       if (!signals.contains(a)) {
         if (oldStatus == in || oldStatus == out) {
           __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
-          //          if (isChoiceAtom(a)) {
-          //            __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash, (a, oldStatus))
-          //          }
         }
         if (newStatus == in || newStatus == out) {
           __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
-          //          if (isChoiceAtom(a)) {
-          //            __lightweightStateHash = IncrementalHashCode.addHashCode(__lightweightStateHash, (a, newStatus))
-          //          }
         }
       }
       status = status.updated(a, newStatus)
       __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
       __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
     }
-
   }
 
 
@@ -160,13 +133,6 @@ class OptimizedJtmsStorage extends JtmsStorage {
 
     val oldStatus = status(a)
 
-    //    if (isChoiceAtom(a)) {
-    //      __choiceAtoms = __choiceAtoms - a
-    //      if (oldStatus == in || oldStatus == out) {
-    //        __lightweightStateHash = IncrementalHashCode.removeHashCode(__lightweightStateHash,(a, oldStatus))
-    //      }
-    //    }
-
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
     if (!signals.contains(a) && (oldStatus == in || oldStatus == out)) {
@@ -181,10 +147,6 @@ class OptimizedJtmsStorage extends JtmsStorage {
 
     if (isSignal(a))
       __signals = __signals - a
-    //    status remove a
-    //    cons remove a
-    //    supp remove a
-    //    suppRule remove a
   }
 
   var __cleanup = 0;
