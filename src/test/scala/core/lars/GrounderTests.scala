@@ -4,7 +4,7 @@ import common.Util.printTime
 import core._
 import core.asp._
 import jtms.evaluation.Util
-import Util._
+import runner.Load._
 import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork

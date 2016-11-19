@@ -6,7 +6,7 @@ import java.io.File
 import Program.InputTypes.InputTypes
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes._
-import runner.{EngineRunner, OutputToStdOut, ReadFromHttp, ReadFromStdIn}
+import runner._
 
 import scala.concurrent.duration._
 import scala.io.Source
@@ -27,7 +27,7 @@ object Program {
 
     parseParameters(args) match {
       case Some(config) => {
-        val program = Util.readProgram(Source.fromFile(config.programFile))
+        val program = Load.readProgram(Source.fromFile(config.programFile))
 
         val engine = BuildEngine.
           withProgram(program).

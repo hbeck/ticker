@@ -4,7 +4,7 @@ import common.Util.printTime
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
 import jtms.evaluation.Util
-import Util._
+import runner.Load._
 import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 

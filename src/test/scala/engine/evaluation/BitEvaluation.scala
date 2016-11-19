@@ -1,7 +1,7 @@
 package engine.evaluation
 
 import jtms.evaluation.Util
-import Util._
+import runner.Load._
 import engine.StreamEntry
 import evaluation._
 import evaluation.bit.BitProgram
@@ -30,7 +30,7 @@ object BitEvaluation extends BitProgram {
     val evaluateFast = evaluate(_.streamAsFastAsPossible()) _
 
     // evaluate everything one time as pre-pre-warm up
-    evaluateFast(Seq("tms", "learn"),timePoints)
+    evaluateFast(Seq("tms", "learn"), timePoints)
 
     val dump = DumpData("Configuration", "Programs")
     val dumpToCsv = dump.printResults("bit-output.csv") _
@@ -43,23 +43,23 @@ object BitEvaluation extends BitProgram {
         //        Seq("clingo", "push")
       )
 
-      val allResults = callSetups map (evaluateFast(_,timePoints))
+      val allResults = callSetups map (evaluateFast(_, timePoints))
       dump plot allResults
       dumpToCsv(allResults)
 
     } else {
-      val results = evaluateFast(args,timePoints)
+      val results = evaluateFast(args, timePoints)
       dump plot Seq(results)
       dumpToCsv(Seq(results))
     }
   }
 
   type Evaluation[C <: ConfigurationResult] = (Evaluator => (Seq[StreamEntry] => C))
-  type EvaluationParameters = (Seq[String],Long) //args x timePoints
+  type EvaluationParameters = (Seq[String], Long) //args x timePoints
 
-  def evaluate[C <: ConfigurationResult](evaluation: Evaluation[C])(params:EvaluationParameters) = {
+  def evaluate[C <: ConfigurationResult](evaluation: Evaluation[C])(params: EvaluationParameters) = {
 
-    val (args,timePoints) = params
+    val (args, timePoints) = params
 
     val random = new Random(1)
 
@@ -81,7 +81,8 @@ object BitEvaluation extends BitProgram {
 
     Console.out.println("Algorithm: " + option)
 
-    val results = preparedSignals map { //TODO time points with no atoms! - call with empty at the moment
+    val results = preparedSignals map {
+      //TODO time points with no atoms! - call with empty at the moment
       case (instance, signals) => {
         val engine = PrepareEvaluator.fromArguments(args, instance, program)
         evaluation(engine)(signals)
@@ -106,12 +107,12 @@ object BitEvaluation extends BitProgram {
         //        Seq("clingo", "push")
       )
 
-      val allResults = callSetups map (evaluateFailures(_,timePoints))
+      val allResults = callSetups map (evaluateFailures(_, timePoints))
       dump plotFailures allResults
       dumpToCsv(allResults)
 
     } else {
-      val results = evaluateFailures(args,timePoints)
+      val results = evaluateFailures(args, timePoints)
       dump plotFailures Seq(results)
       dumpToCsv(Seq(results))
     }

@@ -1,7 +1,7 @@
 package evaluation.bit
 
 import jtms.evaluation.Util
-import Util._
+import runner.Load._
 import core.lars._
 
 /**
