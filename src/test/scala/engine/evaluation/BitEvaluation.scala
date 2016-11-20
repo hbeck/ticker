@@ -5,6 +5,7 @@ import runner.Load._
 import engine.StreamEntry
 import evaluation._
 import evaluation.bit.BitProgram
+import runner.Load
 
 import scala.util.Random
 
@@ -12,6 +13,8 @@ import scala.util.Random
   * Created by FM on 21.08.16.
   */
 object BitEvaluation extends BitProgram {
+
+  import loader._
 
   val none = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.0)) toMap
   val all_001 = (0 to maxLevel) map (i => ((xatom(f"signal($i)").atom), 0.01)) toMap

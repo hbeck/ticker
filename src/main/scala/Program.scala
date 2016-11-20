@@ -27,7 +27,7 @@ object Program {
 
     parseParameters(args) match {
       case Some(config) => {
-        val program = Load.readProgram(Source.fromFile(config.programFile))
+        val program = Load(config.inputSpeed.unit).readProgram(Source.fromFile(config.programFile))
 
         val engine = BuildEngine.
           withProgram(program).

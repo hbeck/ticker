@@ -9,13 +9,17 @@ import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
-
+import runner.Load
+import Util._
 import scala.collection.immutable.HashMap
 
 /**
   * Created by hb on 8/23/16.
   */
 class GrounderTests extends FunSuite {
+
+  val load = Load()
+  import load._
 
   test("parsing") {
     assert(xatom("a")==PredicateAtom(p("a")))
@@ -549,21 +553,21 @@ class GrounderTests extends FunSuite {
     val c2 = fact("c(y2)")
     val d12 = fact("d(x,y2)")
 
-    val r1 = rule("i(X,Y) :- a(X), i(X,Y), w_d_7_sig1(Y)")
-    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y), not w_d_7_sig2(X,Y)")
-    val r3 = rule("j(X,Y) :- b(X,Z), c(Y), not w_d_7_sig3(X,Z,Y)")
+    val r1 = rule("i(X,Y) :- a(X), i(X,Y), w_7_d_sig1(Y)")
+    val r2 = rule("i(X,Y) :- j(X,Y), not d(X,Y), not w_7_d_sig2(X,Y)")
+    val r3 = rule("j(X,Y) :- b(X,Z), c(Y), not w_7_d_sig3(X,Z,Y)")
 
     val p = program(a1,b11,b12,c1,c2,d12,r1,r2,r3)
 
     val manualGrounding: Set[LarsRule] = Set(
-      rule("i(x,y1) :- a(x), i(x,y1), w_d_7_sig1(y1)"),
-      rule("i(x,y2) :- a(x), i(x,y2), w_d_7_sig1(y2)"),
-      rule("i(x,y1) :- j(x,y1), not d(x,y1), not w_d_7_sig2(x,y1)"),
-      rule("i(x,y2) :- j(x,y2), not d(x,y2), not w_d_7_sig2(x,y2)"),
-      rule("j(x,y1) :- b(x,y1), c(y1), not w_d_7_sig3(x,y1,y1)"),
-      rule("j(x,y2) :- b(x,y1), c(y2), not w_d_7_sig3(x,y1,y2)"),
-      rule("j(x,y1) :- b(x,y2), c(y1), not w_d_7_sig3(x,y2,y1)"),
-      rule("j(x,y2) :- b(x,y2), c(y2), not w_d_7_sig3(x,y2,y2)")
+      rule("i(x,y1) :- a(x), i(x,y1), w_7_d_sig1(y1)"),
+      rule("i(x,y2) :- a(x), i(x,y2), w_7_d_sig1(y2)"),
+      rule("i(x,y1) :- j(x,y1), not d(x,y1), not w_7_d_sig2(x,y1)"),
+      rule("i(x,y2) :- j(x,y2), not d(x,y2), not w_7_d_sig2(x,y2)"),
+      rule("j(x,y1) :- b(x,y1), c(y1), not w_7_d_sig3(x,y1,y1)"),
+      rule("j(x,y2) :- b(x,y1), c(y2), not w_7_d_sig3(x,y1,y2)"),
+      rule("j(x,y1) :- b(x,y2), c(y1), not w_7_d_sig3(x,y2,y1)"),
+      rule("j(x,y2) :- b(x,y2), c(y2), not w_7_d_sig3(x,y2,y2)")
     )
 
     val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
@@ -653,22 +657,22 @@ class GrounderTests extends FunSuite {
     val a = fact("a(x,y)")
     val b = fact("b(y)")
 
-    val r1 = rule("i(X,Y) :- a(X,Y), b(Y), w_d_7_sig2(X,Y)")
-    val r2 = rule("i(z,z) :- i(X,Y), w_d_7_sig1(X), not d(X,Y)")
-    val r3 = rule("j(X,Y) :- i(X,Y), w_d_7_sig1(X), w_d_7_sig3(X,X,Y)")
+    val r1 = rule("i(X,Y) :- a(X,Y), b(Y), w_7_d_sig2(X,Y)")
+    val r2 = rule("i(z,z) :- i(X,Y), w_7_d_sig1(X), not d(X,Y)")
+    val r3 = rule("j(X,Y) :- i(X,Y), w_7_d_sig1(X), w_7_d_sig3(X,X,Y)")
 
     val p = program(a,b,r1,r2,r3)
 
     val manualGrounding: Set[LarsRule] = Set(
-      rule("i(x,y) :- a(x,y), b(y), w_d_7_sig2(x,y)"),
-      rule("i(z,z) :- i(x,y), w_d_7_sig1(x), not d(x,y)"),
-      rule("i(z,z) :- i(z,z), w_d_7_sig1(z), not d(z,z)"),
-      rule("i(z,z) :- i(z,y), w_d_7_sig1(z), not d(z,y)"),
-      rule("i(z,z) :- i(x,z), w_d_7_sig1(x), not d(x,z)"),
-      rule("j(z,y) :- i(z,y), w_d_7_sig1(z), w_d_7_sig3(z,z,y)"),
-      rule("j(x,z) :- i(x,z), w_d_7_sig1(x), w_d_7_sig3(x,x,z)"),
-      rule("j(x,y) :- i(x,y), w_d_7_sig1(x), w_d_7_sig3(x,x,y)"),
-      rule("j(z,z) :- i(z,z), w_d_7_sig1(z), w_d_7_sig3(z,z,z)")
+      rule("i(x,y) :- a(x,y), b(y), w_7_d_sig2(x,y)"),
+      rule("i(z,z) :- i(x,y), w_7_d_sig1(x), not d(x,y)"),
+      rule("i(z,z) :- i(z,z), w_7_d_sig1(z), not d(z,z)"),
+      rule("i(z,z) :- i(z,y), w_7_d_sig1(z), not d(z,y)"),
+      rule("i(z,z) :- i(x,z), w_7_d_sig1(x), not d(x,z)"),
+      rule("j(z,y) :- i(z,y), w_7_d_sig1(z), w_7_d_sig3(z,z,y)"),
+      rule("j(x,z) :- i(x,z), w_7_d_sig1(x), w_7_d_sig3(x,x,z)"),
+      rule("j(x,y) :- i(x,y), w_7_d_sig1(x), w_7_d_sig3(x,x,y)"),
+      rule("j(z,z) :- i(z,z), w_7_d_sig1(z), w_7_d_sig3(z,z,z)")
     )
 
     val rules = Seq[LarsRule](a,b) ++ manualGrounding

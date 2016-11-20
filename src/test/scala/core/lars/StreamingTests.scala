@@ -7,12 +7,17 @@ import jtms.evaluation.Util
 import runner.Load._
 import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
+import runner.Load
+import Util._
 
 
 /**
   * Created by hb on 8/28/16.
   */
 class StreamingTests extends FunSuite {
+
+  val loader = Load()
+  import loader._
 
   test("streaming bits 1 manual mapping") {
 

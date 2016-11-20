@@ -3,11 +3,15 @@ package evaluation.bit
 import jtms.evaluation.Util
 import runner.Load._
 import core.lars._
+import runner.Load
 
 /**
   * Created by hb on 8/29/16.
   */
 trait BitProgram {
+
+  val loader = Load()
+  import loader._
 
   val nonGroundRules = Seq[LarsRule](
     rule("bit(L,1) :- level(L), not bit(L,0)"),
@@ -17,7 +21,7 @@ trait BitProgram {
     rule("sum_at(L,C) :- sum_at(L0,C), sum(L0,1,L), bit(L,0), int(C)"),
     rule("id(C) :- max_level(M), sum_at(M,C)"),
     rule("xx1 :- id(C), mod(C,20,K), geq(K,20), int(K), not xx1"),
-    rule("bit(L,1) :- level(L), w_d_20_signal(L)") //non-asp rule //TODO parsing order of args w_20_d
+    rule("bit(L,1) :- level(L), w_20_d_signal(L)") //non-asp rule
   )
 
   val highestExponent = 5 //2^X; prepared program has 2^7

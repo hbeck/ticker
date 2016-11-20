@@ -1,6 +1,7 @@
 package jtms.evaluation
 
 import java.io.{File, PrintWriter}
+import java.util.concurrent.TimeUnit
 
 import common.Util.stopTime
 import core._
@@ -8,7 +9,7 @@ import core.asp._
 import jtms._
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
-import runner.Load.{asAspRule, rule}
+import runner.Load
 
 import scala.io.Source
 import scala.util.Random
@@ -18,6 +19,8 @@ import scala.util.Random
   * Created by hb on 9/14/16.
   */
 object AAAI17Eval {
+
+  val loader = Load(TimeUnit.SECONDS)
 
   def main(args: Array[String]): Unit = {
     //generateProgram("out")
@@ -185,7 +188,7 @@ object AAAI17Eval {
   def readProgramFromFile(filename: String): NormalProgram = {
     //val source = Source.fromURL(getClass.getResource(filename))
     val source = Source.fromFile(new File(filename))
-    val rules = source.getLines().toSeq map (l => asAspRule(rule(l)))
+    val rules = source.getLines().toSeq map (l => Util.asAspRule(loader.rule(l)))
     AspProgram(rules.toList)
   }
 

@@ -20,11 +20,11 @@ object Util {
     val i = grounder.inspect
 
     println("facts: atoms:")
-    println("  ground atoms:     "+i.groundFactAtoms)
-    println("  non-ground preds: "+i.nonGroundFactAtomPredicates)
+    println("  ground atoms:     " + i.groundFactAtoms)
+    println("  non-ground preds: " + i.nonGroundFactAtomPredicates)
     println("intensional:")
-    println("  ground atoms:     "+i.groundIntensionalAtoms)
-    println("  non-ground preds: "+i.nonGroundIntensionalPredicates)
+    println("  ground atoms:     " + i.groundIntensionalAtoms)
+    println("  non-ground preds: " + i.nonGroundIntensionalPredicates)
     println()
     println("non-ground fact atoms/var in rule:\n")
     printNestedMap(i.nonGroundFactAtomsPerVariableInRule)
@@ -40,21 +40,39 @@ object Util {
 
   }
 
-  def printNestedMap[T1,T2,T3](map: Map[T1,Map[T2,Set[T3]]]): Unit = {
-    for ((k,v) <- map) {
-      println(k+":")
-      for ((k2,set) <- v) {
-        print("  "+k2+" -> {")
-        if (set.nonEmpty){
+  def printNestedMap[T1, T2, T3](map: Map[T1, Map[T2, Set[T3]]]): Unit = {
+    for ((k, v) <- map) {
+      println(k + ":")
+      for ((k2, set) <- v) {
+        print("  " + k2 + " -> {")
+        if (set.nonEmpty) {
           print(set.head)
           if (set.size > 1) {
-            set.tail foreach (elem => print(", "+elem))
+            set.tail foreach (elem => print(", " + elem))
           }
         }
         println("}")
       }
     }
   }
+
+  //use only for asp fragment!
+  def asAspProgram(larsProgram: LarsProgram): NormalProgram = {
+    val aspRules: Seq[NormalRule] = larsProgram.rules map (asAspRule(_))
+    AspProgram(aspRules.toList)
+  }
+
+  def asAspRule(larsRule: LarsRule): NormalRule = {
+    val head = larsRule.head.atom //we are not using @ here
+    val pos = larsRule.pos map (_.asInstanceOf[Atom])
+    val neg = larsRule.neg map (_.asInstanceOf[Atom])
+    UserDefinedAspRule(head, pos, neg)
+  }
+
+  def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
+
+  def ground(p: LarsProgram) = Grounder(p).groundProgram
+
 
   def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTick): NormalProgram = {
 

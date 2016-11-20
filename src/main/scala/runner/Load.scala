@@ -9,11 +9,39 @@ import jtms.evaluation.Util._
 
 import scala.concurrent.duration.Duration
 import scala.io.{BufferedSource, Source}
+import Load._
+import unfiltered.util.Of.Int
 
 /**
   * Created by FM on 19.11.16.
   */
+
 object Load {
+  def apply(): Load = Load(TimeUnit.SECONDS)
+
+  def p(s: String) = Predicate(s)
+
+  def strVal(s: String): Value = StringValue(s)
+
+  def strVals(ss: String*): Set[Value] = ss map (StringValue(_)) toSet
+
+  def strVals(ss: List[String]): Set[Value] = ss map (StringValue(_)) toSet
+
+  def intVals(list: String*): Set[Value] = list map (IntValue(_)) toSet
+
+  def v(s: String) = Variable(s)
+
+  def arg(s: String): Argument = if (s.charAt(0).isUpper) Variable(s) else Value(s)
+
+  def asInt(v: Value): Int = v match {
+    case StringValue(s) => Integer.parseInt(s)
+    case IntValue(i) => i
+    case _ => throw new RuntimeException("argument %s cannot be casted to int".format(v))
+  }
+
+}
+
+case class Load(timeUnit: TimeUnit) {
 
   //"a(x,Y)" ==> Seq("a","x","Y")
   def xatom(s: String): ExtendedAtom = {
@@ -32,23 +60,7 @@ object Load {
     else {
       val s = ss(0)
       if (s.startsWith("w_")) {
-        //convention for name of window atom: w_d_7_a(foo,X) says Time Window with size 7 Diamond a
-        val parts = s.split("_")
-        val temporalModality = parts(1) match {
-          case "d" => Diamond
-          case "b" => Box
-          case x => throw new RuntimeException("window " + s + " atom cannot be parsed. unknown temporal modality " + x)
-        }
-        val windowSize = parts(2).forall(_.isDigit) match {
-          case true => Duration(Integer.parseInt(parts(2)), TimeUnit.SECONDS)
-          case false => {
-            val sizeParts = parts(2).partition(_.isDigit)
-            Duration(Integer.parseInt(sizeParts._1).toLong, sizeParts._2)
-          }
-        }
-        val p = Predicate(parts(3))
-        val args = ss.tail filterNot (_ == p.caption) map arg
-        WindowAtom(SlidingTimeWindow(TimeWindowSize(windowSize.length, windowSize.unit)), temporalModality, Atom(p, args)) //doesn't matter which one
+        windowAtom(s, ss)
       } else if (s.startsWith("#")) {
         val p = Predicate(s)
         val args = ss.tail take ss.tail.size - 1 map arg
@@ -63,6 +75,29 @@ object Load {
     }
   }
 
+  def windowAtom(atomName: String, arguments: Seq[String]) = {
+    val parts = atomName.split("_")
+
+    val windowParameter = parts(1).partition(_.isDigit)
+    val window = windowParameter match {
+      case (Int(timeInDefaultUnit), "") => SlidingTimeWindow(TimeWindowSize(timeInDefaultUnit, TimeUnit.SECONDS))
+      case (Int(tupleCount), "t") => SlidingTupleWindow(tupleCount)
+      case (Int(time), unit) => {
+        val duration = Duration(time, unit)
+        SlidingTimeWindow(TimeWindowSize(duration.length, duration.unit))
+      }
+      case _ => throw new RuntimeException("Could not parse " + windowParameter + " into a valid window")
+    }
+
+    val temporalModality = parts(2) match {
+      case "d" => Diamond
+      case "b" => Box
+      case x => throw new RuntimeException("window " + atomName + " atom cannot be parsed. unknown temporal modality " + x)
+    }
+    val p = Predicate(parts(3))
+    //    val args = arguments.tail filterNot (_ == p.caption) map arg
+    WindowAtom(window, temporalModality, Atom(p, arguments map arg)) //doesn't matter which one
+  }
 
   def noArgsAtom(s: String): GroundAtom = {
     val pred = Predicate(s)
@@ -76,20 +111,6 @@ object Load {
   //
   //
   //
-
-  def p(s: String) = Predicate(s)
-
-  def strVal(s: String): Value = StringValue(s)
-
-  def strVals(ss: String*): Set[Value] = ss map (StringValue(_)) toSet
-
-  def strVals(ss: List[String]): Set[Value] = ss map (StringValue(_)) toSet
-
-  def intVals(list: String*): Set[Value] = list map (IntValue(_)) toSet
-
-  def v(s: String) = Variable(s)
-
-  def arg(s: String): Argument = if (s.charAt(0).isUpper) Variable(s) else Value(s)
 
   def fact(s: String): LarsRule = LarsFact(xatom(s).asInstanceOf[Atom])
 
@@ -114,36 +135,13 @@ object Load {
     LarsFact(PinnedAtom(AtomWithArgument(aa.predicate, otherArgs), timeArg))
   }
 
-  def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
-
-  def ground(p: LarsProgram) = Grounder(p).groundProgram
-
   //a(x,y) b(y,z) ==> use , only within atoms and use white space only to split atoms
   def parseSpaceSeparatedAtoms(s: String): Set[ExtendedAtom] = {
     s.split(" ") map (xatom(_)) toSet
   }
 
-  //use only for asp fragment!
-  def asAspProgram(larsProgram: LarsProgram): NormalProgram = {
-    val aspRules: Seq[NormalRule] = larsProgram.rules map (asAspRule(_))
-    AspProgram(aspRules.toList)
-  }
-
-  def asAspRule(larsRule: LarsRule): NormalRule = {
-    val head = larsRule.head.atom //we are not using @ here
-    val pos = larsRule.pos map (_.asInstanceOf[Atom])
-    val neg = larsRule.neg map (_.asInstanceOf[Atom])
-    UserDefinedAspRule(head, pos, neg)
-  }
-
   def modelFromClingo(s: String): Model = {
     s.split(" ") map (xatom(_).asInstanceOf[Atom]) toSet
-  }
-
-  def asInt(v: Value): Int = v match {
-    case StringValue(s) => Integer.parseInt(s)
-    case IntValue(i) => i
-    case _ => throw new RuntimeException("argument %s cannot be casted to int".format(v))
   }
 
   def readProgramFromFile(filename: String): LarsProgram = {
