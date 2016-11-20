@@ -10,25 +10,29 @@ Provides an engine for executing stream reasoning tasks in a LARS-influenced Syn
 ## Writing a program
 Current version of the program parser supports the following notation:
 
-* atoms start with a letter
+* atoms start with a (lower case) letter
 * 1 Rule per line: `a :- b`
 * Multiple clauses separated by `,`: `a :- b, c, d`
-* Negation via `not`: `a :- b, not c`
-* Arguments via `a(1, 2)`: `a :- b(1), c(a, 2)`
-** If the argument is convertable into a number it is treated as such, otherwise it is a string
-* Window operators via fix defined format: `w_d_10_a(a)`
-** `w_`: prefix for window atom
-** 'd_': Operator (d-Diamond, b-Box)
-** '10_': Window-Size in default engine-units
-*** WindowSize in different Units: '10s' for 10 seconds, '10m' for 10 minutes, '10ms' for 10 milli-seconds
-** 'a': needed to make window name unique
-*** '(a)': parameter of the predicate
+* Negation via `not`: `a :- b, not c, not d`
+* Arguments via `a(1, 2)`: `a :- b(1), not c(a, 2)`
+* * If the argument is convertable into a number it is treated as such, otherwise it is a string
+* Window operators via fix defined format: `w_10_d_a(b)`
+* * `w_`: prefix for window atom
+* * `10_`: Window-Size in default engine-units
+* * * WindowSize in different types
+* * * No postfix: `10` -> Sliding Time Window with 10 units in the default engine time unit
+* * * Sliding-Time-Window Postfixes:  `10d` for 10 days, `10h` for 10 hours, `10min` for 10 minutes, `10s` for 10 seconds, `10ms` for 10 milli-seconds
+* * * Tuple-Based-Window Postfix: `10t` for last 10 input tuples
+* * `d_`: Operator (d-Diamond, b-Box)
+* * `a`: name of the predicate
+* * `(b)`: optional argument of the window atom
+
 
 ### Sample Program
 
 ```
-a :- w_d_10s_x(x)
-b :- w_b_5s_y(y)
+a :- w_d_10s_x
+b :- w_b_5s_y(1)
 c :- a, not b
 ```
 
