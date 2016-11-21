@@ -4,6 +4,7 @@ import jtms.evaluation.Util
 import java.io.File
 
 import Program.InputTypes.InputTypes
+import core.lars.{Format, LarsProgram}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes._
 import runner._
@@ -25,9 +26,11 @@ object Program {
       "--inputType", "Http,StdIn"
     ).toArray
 
-    parseParameters(args) match {
+    parseParameters(myargs) match {
       case Some(config) => {
         val program = Load(config.inputSpeed.unit).readProgram(Source.fromFile(config.programFile))
+
+        printProgram(program)
 
         val engine = BuildEngine.
           withProgram(program).
@@ -51,6 +54,16 @@ object Program {
     }
   }
 
+  def printProgram(program: LarsProgram): Unit = {
+    println(f"Lars Program of ${program.rules.size} with ${program.atoms.size} different atoms.")
+
+    if (program.rules.length <= 10) {
+      Format(program) foreach println
+    } else {
+      println("First 10 rules:")
+      Format(program.rules.take(10)) foreach println
+    }
+  }
 
   def parseParameters(args: Array[String]) = {
     val parser = new scopt.OptionParser[Config]("scopt") {

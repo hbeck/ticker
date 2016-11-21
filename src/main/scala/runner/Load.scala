@@ -60,7 +60,7 @@ case class Load(timeUnit: TimeUnit) {
     else {
       val s = ss(0)
       if (s.startsWith("w_")) {
-        windowAtom(s, ss)
+        windowAtom(s, ss.tail)
       } else if (s.startsWith("#")) {
         val p = Predicate(s)
         val args = ss.tail take ss.tail.size - 1 map arg
@@ -99,13 +99,15 @@ case class Load(timeUnit: TimeUnit) {
     WindowAtom(window, temporalModality, Atom(p, arguments map arg)) //doesn't matter which one
   }
 
-  def noArgsAtom(s: String): GroundAtom = {
+  def noArgsAtom(s: String): ExtendedAtom = {
     val pred = Predicate(s)
     //if (s.startsWith("xx"))
     //  ContradictionAtom(pred)
     //else
-
-    PredicateAtom(pred)
+    if (s.startsWith("w_"))
+      windowAtom(s, Seq())
+    else
+      PredicateAtom(pred)
   }
 
   //
@@ -149,8 +151,12 @@ case class Load(timeUnit: TimeUnit) {
   }
 
   def readProgram(source: BufferedSource): LarsProgram = {
+    readProgram(source.getLines().toArray)
+  }
 
-    val rules = source.getLines().toSeq map rule
-    LarsProgram(rules)
+  def readProgram(lines: Seq[String]): LarsProgram = {
+    val validLines = lines map (_.trim) filter (_.nonEmpty)
+    val rules = validLines map rule
+    LarsProgram(rules.toList)
   }
 }

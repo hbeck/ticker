@@ -2,8 +2,8 @@ package runner
 
 import java.util.concurrent.TimeUnit
 
-import core.{Atom, Predicate, lars}
-import core.lars.{SlidingTimeWindow, SlidingTupleWindow, TimeWindowSize}
+import core._
+import core.lars._
 import org.scalatest.FlatSpec
 import org.scalatest.matchers
 import org.scalatest.Matchers._
@@ -36,9 +36,40 @@ class LoadingTests extends FlatSpec {
     result.windowFunction should be(SlidingTupleWindow(7))
   }
 
+  "w_5t_b_y(1)" should "be parsed into predicate y  with argument 1" in {
+    val result = loader.xatom("w_5t_b_y(1)")
+
+    val atom = result.atom.asInstanceOf[AtomWithArgument]
+
+    atom.predicate.caption should be("y")
+    atom.arguments should (have size (1) and contain(IntValue(1)))
+  }
+
+  it should "also be parsed by xatom" in {
+    val result = loader.xatom("w_7t_d_a")
+
+    result.atom.predicate should be(Predicate("a"))
+    val window = result.asInstanceOf[WindowAtom]
+    window.windowFunction should be(SlidingTupleWindow(7))
+    window.temporalModality should be(lars.Diamond)
+  }
+
   "w_d_7_a" should "lead to a parsing error" in {
     intercept[RuntimeException] {
       loader.windowAtom("w_d_7_a", Seq())
     }
+  }
+
+  "A program" should "be loadable" in {
+    val stringProgram =
+      """a :- w_10s_d_x
+         b :- w_5t_b_y(1)
+         c :- a, not b
+      """.stripMargin
+    val program = loader.readProgram(stringProgram.lines.toArray)
+
+    program.rules should have length (3)
+    program.atoms.map(_.atom.predicate.caption) should contain allOf("a", "b", "c", "x", "y")
+    program.atoms.map(_.atom) should contain(Atom(Predicate("y"), Seq(IntValue(1))))
   }
 }

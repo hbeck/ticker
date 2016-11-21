@@ -22,7 +22,7 @@ Current version of the program parser supports the following notation:
 * * * WindowSize in different types
 * * * No postfix: `10` -> Sliding Time Window with 10 units in the default engine time unit
 * * * Sliding-Time-Window Postfixes:  `10d` for 10 days, `10h` for 10 hours, `10min` for 10 minutes, `10s` for 10 seconds, `10ms` for 10 milli-seconds
-* * * Tuple-Based-Window Postfix: `10t` for last 10 input tuples
+* * * Tuple-Based-Window Postfix: `10t` for last 10 input tuple
 * * `d_`: Operator (d-Diamond, b-Box)
 * * `a`: name of the predicate
 * * `(b)`: optional argument of the window atom
@@ -31,8 +31,8 @@ Current version of the program parser supports the following notation:
 ### Sample Program
 
 ```
-a :- w_d_10s_x
-b :- w_b_5s_y(1)
+a :- w_10s_d_x
+b :- w_5t_b_y(1)
 c :- a, not b
 ```
 
