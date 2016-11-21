@@ -31,7 +31,7 @@ class RuleForBoxSpec extends TransformLarsSpec {
     (DefaultLarsToPinnedProgram.rulesForBox(w_tu_2_b_a) flatMap (_.body)) should contain(a_TUPLE(1))
   }
   it should "contain only 3 elements in the body" in {
-    DefaultLarsToPinnedProgram.rulesForBox(w_tu_2_b_a).head.body should have size(4)
+    DefaultLarsToPinnedProgram.rulesForBox(w_tu_2_b_a).head.body should have size(3)
   }
 
   "The rule for w^3 b a" should "contain a_TUPLE(0) a_TUPLE(1), a_TUPLE(2)" in {

@@ -78,14 +78,14 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
     val generatedAtoms: Set[AtomWithArgument] = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T)
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T) ++ Set(windowAtom.atom(T))
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
         (0 to (size.toInt - 1)) map (rAtom(_)) toSet
       }
     }
 
-    val posBody = generatedAtoms ++ Set(now(T), windowAtom.atom(T))
+    val posBody = generatedAtoms ++ Set(now(T))
 
     Set(AspRule(head(windowAtom), posBody, Set()))
   }
