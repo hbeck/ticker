@@ -21,12 +21,12 @@ object Program {
 
     val myargs = Seq(
       "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-      "--evaluationType", "Clingo",
-      "--evaluationModifier", "Push",
+      "--evaluationType", "Tms",
+      "--evaluationModifier", "Greedy",
       "--inputType", "Http,StdIn"
     ).toArray
 
-    parseParameters(myargs) match {
+    parseParameters(args) match {
       case Some(config) => {
         val program = Load(config.inputSpeed.unit).readProgram(Source.fromFile(config.programFile))
 
