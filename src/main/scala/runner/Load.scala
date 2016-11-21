@@ -39,37 +39,63 @@ object Load {
     case _ => throw new RuntimeException("argument %s cannot be casted to int".format(v))
   }
 
+  def tokens(s: String): Seq[String] = {
+    val str = if (s.startsWith("not ")) s.substring(4) else s
+    if (!str.contains("("))
+      return Seq(str)
+
+    val commasOnly = str.substring(0, str.size - 1).replace("(", ",")
+
+    commasOnly split (",") map (_.trim) toSeq
+  }
+
+  def signal(s: String): GroundAtom = {
+    val token = tokens(s)
+
+    assert(token.nonEmpty)
+
+    val predicate = Predicate(token.head)
+    val arguments = token.tail map arg
+
+    assert(arguments forall (_.isInstanceOf[Value]))
+    GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]): _*)
+  }
+
+
 }
 
 case class Load(timeUnit: TimeUnit) {
 
   //"a(x,Y)" ==> Seq("a","x","Y")
   def xatom(s: String): ExtendedAtom = {
-    val str = if (s.startsWith("not ")) s.substring(4) else s
-    if (!str.contains("(")) return noArgsAtom(str)
-    val commasOnly = str.substring(0, str.size - 1).replace("(", ",")
-    val seq: Seq[String] = commasOnly.split(",").toSeq
-    xatom(seq)
+    val token = tokens(s)
+    if (token.tail.isEmpty)
+      noArgsAtom(token.head)
+    else
+      xatom(token)
   }
 
   //Seq("a","x","Y") ==> NonGroundAtom(a,{x,Y})
   def xatom(ss: Seq[String]): ExtendedAtom = {
     assert(ss.size > 0)
-    if (ss.size == 1)
-      noArgsAtom(ss(0))
+
+    val atomName = ss.head
+    val atomArguments = ss.tail
+
+    if (atomArguments.isEmpty)
+      noArgsAtom(atomName)
     else {
-      val s = ss(0)
-      if (s.startsWith("w_")) {
-        windowAtom(s, ss.tail)
-      } else if (s.startsWith("#")) {
-        val p = Predicate(s)
-        val args = ss.tail take ss.tail.size - 1 map arg
+      if (atomName.startsWith("w_")) {
+        windowAtom(atomName, atomArguments)
+      } else if (atomName.startsWith("#")) {
+        val p = Predicate(atomName)
+        val args = atomArguments take atomArguments.size - 1 map arg
         val atom = Atom(p, args)
-        val time = Integer.parseInt(ss.tail.last.toString)
+        val time = Integer.parseInt(atomArguments.last.toString)
         PinnedAtom(atom, time)
       } else {
-        val p = Predicate(s)
-        val args = ss.tail map arg
+        val p = Predicate(atomName)
+        val args = atomArguments map arg
         Atom(p, args)
       }
     }
@@ -136,6 +162,7 @@ case class Load(timeUnit: TimeUnit) {
     val otherArgs = aa.arguments.take(aa.arguments.size - 1)
     LarsFact(PinnedAtom(AtomWithArgument(aa.predicate, otherArgs), timeArg))
   }
+
 
   //a(x,y) b(y,z) ==> use , only within atoms and use white space only to split atoms
   def parseSpaceSeparatedAtoms(s: String): Set[ExtendedAtom] = {

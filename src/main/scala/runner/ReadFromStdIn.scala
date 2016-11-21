@@ -44,7 +44,7 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
   def parseAtoms(atoms: String) = atoms.
     split(',').
     map(_.trim).
-    map(Atom(_))
+    map(Load.signal(_))
 
 
 }
