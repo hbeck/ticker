@@ -1,5 +1,6 @@
 package engine.evaluation
 
+import clingo.{ClingoProgramWithLars, PlainClingoProgram}
 import core.NonGroundAtom
 import engine.asp._
 import engine.asp.oneshot.StreamingClingoInterpreter
@@ -13,7 +14,7 @@ import org.scalatest.Matchers._
 class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
-    val convert = StreamingClingoInterpreter(Set())
+    val convert = StreamingClingoInterpreter(ClingoProgramWithLars(Set(), Seq()))
     convert(t0, Set()) should be(empty)
   }
 
@@ -22,7 +23,7 @@ class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "An atom 'a(0)'" should "be converted to a(t0)" in {
-    StreamingClingoInterpreter.asPinnedAtom(Set(NonGroundAtom(a, Seq(t0.toString))), t1) should contain(a(t0))
+    StreamingClingoInterpreter.asPinnedAtom(Set(NonGroundAtom(a.predicate, Seq(t0.toString))), t1) should contain(a(t0))
   }
 
   "A model containing a(1), now(0) and a(2)" should "be converted into a(t1), now(t0), a(t2) at t0" in {

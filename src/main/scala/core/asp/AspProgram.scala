@@ -1,6 +1,6 @@
 package core.asp
 
-import core.{Atom, PinnedAtom}
+import core.{Atom, AtomWithArgument}
 import engine.asp.PinnedRule
 
 
@@ -9,7 +9,7 @@ import engine.asp.PinnedRule
   */
 trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
   val rules: Seq[TAspRule]
-  lazy val atoms = this.rules.flatMap(_.atoms)
+  lazy val atoms = this.rules.flatMap(_.atoms).toSet
 }
 
 //trait AspProgramTT[TAtom <: Atom] {
@@ -24,22 +24,21 @@ trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
 //  lazy val atoms = this.rules.flatMap(_.atoms).toSet
 //}
 
-case class ModifiableAspProgram(rules: List[NormalRule]) extends NormalProgram {
+case class AppendableAspProgram(rules: List[NormalRule]) extends NormalProgram {
 
-  def +(rule: NormalRule) = AspProgram(rules :+ rule)
+  def +(rule: NormalRule) = AppendableAspProgram(rules :+ rule)
 
-  def ++(rules: List[NormalRule]) = AspProgram(this.rules ++ rules)
+  def ++(rules: List[NormalRule]) = AppendableAspProgram(this.rules ++ rules)
 }
 
 case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]](rules: Seq[TAspRule]) extends AspProgram[TAtom, TAspRule]
 
 object AspProgram {
-  def apply(rules: NormalRule*): ModifiableAspProgram = ModifiableAspProgram(rules.toList)
+  def apply(rules: NormalRule*): AppendableAspProgram = AppendableAspProgram(rules.toList)
 
-  def apply(rules: List[NormalRule]): ModifiableAspProgram = ModifiableAspProgram(rules)
+  def apply(rules: List[NormalRule]): AppendableAspProgram = AppendableAspProgram(rules)
 
-  // TODO: this should be generic?
-  //  def apply[TAspRule <: AspRuleT[_]](rules: TAspRule*) = FixedAspProgram(rules.toList)
-  def pinned(rules: PinnedRule*): FixedAspProgram[PinnedAtom, PinnedRule]= FixedAspProgram[PinnedAtom, PinnedRule](rules.toList)
-  def pinned(rules: List[PinnedRule]): FixedAspProgram[PinnedAtom, PinnedRule] = FixedAspProgram[PinnedAtom, PinnedRule](rules)
+  def pinned(rules: PinnedRule*): FixedAspProgram[AtomWithArgument, PinnedRule]= FixedAspProgram[AtomWithArgument, PinnedRule](rules.toList)
+
+  def pinned(rules: List[PinnedRule]): FixedAspProgram[AtomWithArgument, PinnedRule] = FixedAspProgram[AtomWithArgument, PinnedRule](rules)
 }

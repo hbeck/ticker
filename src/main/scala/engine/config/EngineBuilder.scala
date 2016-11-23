@@ -1,16 +1,21 @@
 package engine.config
 
-import clingo.ClingoConversion
-import core.lars.LarsProgram
+import java.util.concurrent.TimeUnit
+
+import clingo.{ClingoConversion, ClingoProgramWithLars}
+import core.lars.{EngineTick, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
-
 import engine.asp.oneshot._
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
-import jtms.JtmsGreedy
+import engine.config.EvaluationModifier.EvaluationModifier
+import engine.config.EvaluationTypes.EvaluationTypes
+import jtms.algorithms.JtmsGreedy
+import jtms.networks.OptimizedNetwork
+import jtms.{JtmsUpdateAlgorithm, TruthMaintenanceNetwork$}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.Random
 
 /**
@@ -20,52 +25,57 @@ object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(program: LarsProgram) {
-  def useAsp() = AspEvaluationEngineConfiguration(PlainLarsToAsp(program))
+case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTick = 1 second) {
 
-  def useIncremental() = {
-    //TODO
-  }
+  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
+
+  def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
+
+  def withTickSize(tickSize: EngineTick) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
 
-case class AspEvaluationEngineConfiguration(aspProgram: MappedProgram) {
+case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars) {
 
-  def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(aspProgram)))
+  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(pinnedProgram))
 
-  def withTms() = AspBasedTmsConfiguration(aspProgram)
+  def withTms() = TmsConfiguration(pinnedProgram)
 
 }
 
-case class AspBasedTmsConfiguration(program: MappedProgram, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new Random))) {
-  def withRandom(random: Random) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(JtmsGreedy(random)))
+case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
-  def useTms(jtms: JtmsGreedy) = AspBasedTmsConfiguration(program, ImmediatelyAddRemovePolicy(jtms))
+  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
 
-  def usingPolicy(tmsPolicy: TmsPolicy) = AspBasedTmsConfiguration(program, tmsPolicy)
+  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
+
+  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
+
 }
 
-object AspBasedTmsConfiguration {
-  implicit def toEvaluationModeConfig(config: AspBasedTmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.program, config.policy))
+object TmsConfiguration {
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.pinnedProgram, config.policy))
 }
 
-case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
+case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
   def use(evaluationMode: EvaluationMode = Direct) = {
-    val aspEvaluation = buildEvaluationMode(AspEvaluationEngine(streamingAspInterpreter), evaluationMode)
+    val aspEvaluation = buildEvaluationMode(OneShotEvaluationEngine(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }
 
-  private def buildEvaluationMode(aspEvaluation: AspEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
+  private def buildEvaluationMode(aspEvaluation: OneShotEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
     case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(aspEvaluation, waitingAtMost)
     case _ => aspEvaluation
   }
 }
 
-case class EvaluationStrategyConfiguration(aspEvaluation: AspEvaluation) {
+case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
+
   def usePull() = StartableEngineConfiguration(AspPullEvaluationEngine(aspEvaluation))
 
   def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))
+
 }
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {

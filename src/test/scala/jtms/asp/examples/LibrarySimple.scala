@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import jtms.JtmsGreedy
+import jtms.algorithms.JtmsGreedy
 import org.scalatest.FunSuite
 
 /**
@@ -20,7 +20,7 @@ class LibrarySimple extends FunSuite {
   val A_not = Atom("nicht_ausleihbar")
   val H = Atom("im_Handapperart_einer_Veranstaltung")
 
-  val Falsum = new ContradictionAtom("f")
+  val Falsum = new ContradictionAtom(Predicate("f"))
 
   val j1 = AspFact(V)
   val j2 = AspRule.pos(V).neg(F, G).head(P)

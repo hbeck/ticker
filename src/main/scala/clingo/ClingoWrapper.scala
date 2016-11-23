@@ -33,7 +33,7 @@ object ClingoWrapper {
 
 class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String) {
 
-  def run(expressions: ClingoProgram): String = run(expressions.mkString(System.lineSeparator))
+  def run(expressions: ClingoProgram): String = run(expressions.rules.mkString(System.lineSeparator))
 
   def run(program: String): String = {
 

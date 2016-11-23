@@ -1,6 +1,6 @@
 package lars.time
 
-import core.Value
+import core.{IntValue, Value}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

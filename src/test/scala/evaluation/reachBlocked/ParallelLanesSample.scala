@@ -1,23 +1,16 @@
 package evaluation.reachBlocked
 
-import core.lars.{LarsFact, LarsProgram, LarsRule}
-import core.{Atom, Ground, Value}
-import engine.asp.tms.policies.LazyRemovePolicy
-import engine.config.BuildEngine
 import evaluation.RunWithAllImplementations
-import evaluation.tags.NoTmsDirectPolicy
-import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine, TmsLazyRemovePolicyEngine}
+import fixtures.{ConfigurableEvaluationSpec, JtmsGreedyLazyRemovePolicyEngine, TimeTestFixtures}
 import org.scalatest.Matchers._
-
-import scala.util.Random
 
 /**
   * Created by FM on 20.06.16.
   */
 //@NoTmsDirectPolicy
-class ParallelLanesSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsLazyRemovePolicyEngine with ParallelLanes {
+class ParallelLanesSample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine with ParallelLanes {
 
-  val program = generateProgram(1, 2)
+  val program = generateProgramWithGrounding(3, 3)
 
   "Unblocked paths" should "lead to reach(a,b) at t0" in {
     evaluationEngine.evaluate(t0).get.get should contain(reach_a_b)

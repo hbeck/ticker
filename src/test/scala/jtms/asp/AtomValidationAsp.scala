@@ -2,7 +2,8 @@ package jtms.asp
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{JtmsGreedy, Status}
+import jtms.algorithms.JtmsGreedy
+import jtms.{Status, TruthMaintenanceNetwork}
 import org.scalatest.FlatSpec
 
 /**
@@ -13,7 +14,7 @@ trait AtomValidationAsp {
   this: FlatSpec =>
 
   def atomValidation(net: JtmsGreedy, n: Atom): ((AtomValidatorAsp) => Any) => Any = {
-    val nc = new AtomValidatorAsp(net, n)
+    val nc = new AtomValidatorAsp(net.jtms, n)
 
     def atomCheckTestCallback(check: (AtomValidatorAsp) => Any) = {
       check(nc)
@@ -22,7 +23,7 @@ trait AtomValidationAsp {
     return atomCheckTestCallback
   }
 
-  class AtomValidatorAsp(net: JtmsGreedy, atom: Atom) {
+  class AtomValidatorAsp(net: TruthMaintenanceNetwork, atom: Atom) {
 
     info(atom.toString)
 
@@ -47,10 +48,9 @@ trait AtomValidationAsp {
       else
         text = "have no supporting rules";
 
-      //suppRule removed, not needed
-//      it should text in {
-//        assert(net.suppRule(atom) == rule)
-//      }
+      it should text in {
+        assert(net.suppRule(atom) == rule)
+      }
     }
 
     def supp(atoms: Atom*) = {

@@ -2,7 +2,7 @@ package engine.evaluation
 
 import core.NonGroundAtom
 import engine.asp.{PinnedModelToLarsModel, now}
-import engine.asp.oneshot.AspEvaluationEngine
+import engine.asp.oneshot.OneShotEvaluationEngine$
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

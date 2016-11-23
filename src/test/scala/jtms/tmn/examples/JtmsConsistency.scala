@@ -1,8 +1,10 @@
 package jtms.tmn.examples
 
 import core.asp.{AspFact, AspRule}
-import core.{Atom, ContradictionAtom}
-import jtms.JtmsDoyle
+import core.{Atom, ContradictionAtom, Predicate}
+import jtms._
+import jtms.algorithms.JtmsDoyle
+import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 
 /**
@@ -22,7 +24,7 @@ class JtmsConsistency extends FunSuite {
   val r2 = Atom("r2")
   val x = Atom("x")
 
-  val n = ContradictionAtom("n")
+  val n = ContradictionAtom(Predicate("n"))
 
   val none = Set[Atom]()
 
@@ -264,15 +266,17 @@ class JtmsConsistency extends FunSuite {
 
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
-    val net1 = JtmsDoyle()
-    net1.add(AspRule(a,b)) //a :- b
-    assert(net1.getModel.get == Set())
+    val net1 = new OptimizedNetwork()
+    val update = JtmsDoyle(net1)
 
-    net1.add(AspRule(b,none,Set(c))) //b :- not c
-    assert(net1.getModel.get == Set(a,b))
+    update.add(AspRule(a,b)) //a :- b
+    assert(update.getModel.get == Set())
 
-    net1.add(AspRule(c,none,Set(a))) //c :- not a
-    assert(net1.getModel.get == Set(a,b))
+    update.add(AspRule(b,none,Set(c))) //b :- not c
+    assert(update.getModel.get == Set(a,b))
+
+    update.add(AspRule(c,none,Set(a))) //c :- not a
+    assert(update.getModel.get == Set(a,b))
 
     assert(net1.supp(a)==Set(b))
     assert(net1.supp(b)==Set(c))
@@ -308,22 +312,24 @@ class JtmsConsistency extends FunSuite {
 //    assert(net1.foundations(x) == Set(a,b,c))
 //    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
 
-    net1.add(AspRule(n,Set(a,b))) //:- a,b
+    update.add(AspRule(n,Set(a,b))) //:- a,b
     //force other
-    assert(net1.getModel.get == Set(c))
+    assert(update.getModel.get == Set(c))
 
     //TODO
     //other insertion order
-    val net2 = JtmsDoyle()
-    net2.add(AspRule(a,b)) //a :- b
-    net2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}
-    assert(net2.getModel.get == Set(a,b)) //{a,b}
+    val net2 = new OptimizedNetwork()
+    val update2 = JtmsDoyle(net2)
 
-    net2.add(AspRule(n,Set(a,b))) //:- a,b
-    assert(net2.getModel == None)
+    update2.add(AspRule(a,b)) //a :- b
+    update2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}
+    assert(update2.getModel.get == Set(a,b)) //{a,b}
 
-    net2.add(AspRule(c,none,Set(a))) //c :- not a
-    assert(net2.getModel.get == Set(c)) //{c}
+    update2.add(AspRule(n,Set(a,b))) //:- a,b
+    assert(update2.getModel == None)
+
+    update2.add(AspRule(c,none,Set(a))) //c :- not a
+    assert(update2.getModel.get == Set(c)) //{c}
 
   }
 

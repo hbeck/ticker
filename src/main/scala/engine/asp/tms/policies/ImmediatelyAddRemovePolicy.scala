@@ -1,21 +1,22 @@
 package engine.asp.tms.policies
 
+import core.asp._
 import core.lars.TimePoint
 import engine.Result
-import engine.asp.GroundRule
+import engine.asp.GroundAspRule
 import engine.asp.tms.GroundRule
-import jtms.{Jtms, JtmsGreedy}
+import jtms.{TruthMaintenanceNetwork$, JtmsUpdateAlgorithm}
 
 /**
   * Created by FM on 12.06.16.
   */
-case class ImmediatelyAddRemovePolicy(tms: Jtms = JtmsGreedy()) extends TmsPolicy {
+case class ImmediatelyAddRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm()) extends TmsPolicy {
 
-  override def initialize(groundRules: Seq[GroundRule]) = groundRules foreach (x => tms.add(GroundRule.toNormalRule(x)))
+  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => tms.add(x))
 
-  override def add(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = rules foreach (x => tms.add(GroundRule.toNormalRule(x)))
+  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.add(x))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[GroundRule]): Unit = rules foreach (x => tms.remove(GroundRule.toNormalRule(x)))
+  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.remove(x))
 
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 }

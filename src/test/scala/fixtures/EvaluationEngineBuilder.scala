@@ -4,7 +4,8 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
-import jtms.JtmsGreedy
+import jtms.algorithms.{JtmsGreedy, JtmsLearn}
+import jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
@@ -30,31 +31,49 @@ trait EvaluationEngineBuilder {
   // needed?
   lazy val defaultEvaluationType = this match {
     case a: TmsDirectPolicyEngine => AspBasedTms
-    case a: TmsLazyRemovePolicyEngine => AspBasedTms
+    case a: JtmsGreedyLazyRemovePolicyEngine => AspBasedTms
+    case a: JtmsLearnLazyRemovePolicyEngine => AspBasedTms
     case _ => Clingo
   }
 
 }
 
 trait ClingoPullEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePull().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePull().start()
 }
 
 trait ClingoPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withClingo().use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().start()
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
-  val tms = JtmsGreedy(new Random(1))
-  tms.doConsistencyCheck = false
 
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+
+  val defaultEngine = (p: LarsProgram) => {
+    val tms = JtmsGreedy(new OptimizedNetwork(), new Random(1))
+    tms.doConsistencyCheck = false
+
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+  }
 }
 
-trait TmsLazyRemovePolicyEngine extends EvaluationEngineBuilder {
+trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
-  val tms = JtmsGreedy(new Random(1))
-  tms.doConsistencyCheck = false
+  val defaultEngine = (p: LarsProgram) => {
+    val tms = JtmsGreedy(new OptimizedNetwork(),new Random(1))
+    tms.doConsistencyCheck = false
 
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
+  }
+}
+
+trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
+
+  val defaultEngine = (p: LarsProgram) => {
+    val tms = new JtmsLearn(new OptimizedNetwork(),new Random(1))
+    tms.shuffle = false
+    tms.doConsistencyCheck = false
+
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
+  }
 }

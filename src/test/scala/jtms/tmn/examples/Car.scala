@@ -17,7 +17,7 @@ trait CarBehavior {
   val D = Atom("defect")
   val I = Atom("ignition_broken")
   val C = Atom("carb_broken")
-  val Falsum = new ContradictionAtom("f")
+  val Falsum = new ContradictionAtom(Predicate("f"))
 
   val j0 = AspRule.pos(S_not).neg(D).head(G_not);
   val j1 = AspRule.pos(S_not, G).head(D)

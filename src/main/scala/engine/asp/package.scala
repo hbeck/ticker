@@ -10,17 +10,18 @@ import core._
 package object asp {
   val now = Atom("now")
 
-  type PinnedRule = AspRule[PinnedAtom]
-  type PinnedFact = AspFact[PinnedAtom]
-  type PinnedProgram = AspProgram[PinnedAtom, PinnedRule]
+  type PinnedRule = AspRule[AtomWithArgument]
+  type PinnedFact = AspFact[AtomWithArgument]
+  type PinnedProgram = AspProgram[AtomWithArgument, PinnedRule]
 
   type PinnedModel = Set[PinnedAtom]
   type PinnedStream = Set[PinnedFact]
 
-  type LarsRuleMapping = (LarsRule, Set[PinnedRule])
+  //keep original lars rule from which a pinned rule stems
+  type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])
 
-  type GroundRule = AspRule[GroundAtom]
-  type GroundFact = AspFact[GroundAtom]
-  type GroundedStream = Set[GroundFact]
-  type GroundProgram = AspProgram[GroundAtom, GroundRule]
+  type GroundAspRule = AspRule[GroundAtom]
+  type GroundAspFact = AspFact[GroundAtom]
+  type GroundedAspStream = Set[GroundAspFact]
+  type GroundAspProgram = AspProgram[GroundAtom, GroundAspRule]
 }

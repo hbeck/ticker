@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import core.{Atom, ContradictionAtom}
+import core.{Predicate, Atom, ContradictionAtom}
 import fixtures.AtomTestFixture
 import org.scalatest.FunSuite
 
@@ -9,7 +9,7 @@ import org.scalatest.FunSuite
   */
 class Constraints extends FunSuite with AtomTestFixture{
 
-  val n = ContradictionAtom("n")
+  val n = ContradictionAtom(Predicate("n"))
 
   val none = Set[Atom]()
 

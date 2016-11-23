@@ -1,0 +1,3 @@
+a :- w_10s_d_x
+b :- w_5t_b_y(1)
+c :- a, not b

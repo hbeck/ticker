@@ -4,7 +4,8 @@ import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import jtms.{JtmsDoyle, JtmsBeierle, JtmsBeierleFixed, JtmsGreedy}
+import jtms._
+import jtms.algorithms._
 import org.scalatest.FunSuite
 
 /**
@@ -13,7 +14,9 @@ import org.scalatest.FunSuite
 class AspAddRemove extends FunSuite with AtomTestFixture {
   
   //def jtmsImpl = JtmsDoyle
-  def jtmsImpl = JtmsGreedy
+  //def jtmsImpl = JtmsGreedy
+  def jtmsImpl() = new JtmsLearn()
+  def jtmsImpl(program: NormalProgram) = JtmsLearn(program)
 
   val none = Set[Atom]()
 
@@ -21,7 +24,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
 
   test("a :- b. b :- not c. c :- not d.") {
 
-    times foreach { _ =>
+    //times foreach { _ =>
 
       val r1 = AspRule(a, b)
       val r2 = AspRule(b, none, Set(c))
@@ -74,7 +77,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
       tms.remove(r3)
       assert(m == Set(b))
 
-    }
+    //}
   }
 
   test("remove case repercussion vs cons-star") {
@@ -499,6 +502,8 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
         AspRule(b, none, Set(a)), //b :- not a
         AspRule(c, none, Set(a))) //c :- not a
       )
+
+      tms.recordChoiceSeq=true
 
       def m = tms.getModel.get
 

@@ -19,15 +19,15 @@ trait Result {
 }
 
 object EmptyResult extends Result {
-  override def get: Option[Set[Atom]] = Some(Set())
+  override def get: Option[Model] = Some(Set())
 }
 
 object NoResult extends Result {
-  override def get: Option[Set[Atom]] = None
+  override def get: Option[Model] = None
 }
 
 object UnknownResult extends Result {
-  override def get: Option[Set[Atom]] = throw new IllegalStateException("No known model was derived")
+  override def get: Option[Model] = throw new IllegalStateException("No known model was derived")
 }
 
 object Result {

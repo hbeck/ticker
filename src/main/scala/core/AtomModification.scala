@@ -4,29 +4,34 @@ import core.lars.Time
 
 /**
   * Created by FM on 17.06.16.
+  *
+  * helper class for algorithmic issues;
+  * intended not to confuse more generic use cases
+  * of Atom
   */
 case class AtomModification(atom: Atom) {
+
   def apply(time: Time) = PinnedAtom(atom, time)
 
-
-  def apply(arguments: List[Argument]): AtomWithArgument = {
-    val otherArguments: Seq[Argument] = atom match {
-      case aa: AtomWithArgument => aa.arguments
-      case a: Predicate => Seq()
-      case _ => Seq()
+  def apply(arguments: List[Argument]): Atom = {
+    val (pred,atomArgs): (Predicate, Seq[Argument]) = atom match {
+      case aa: AtomWithArgument => (aa.predicate, aa.arguments)
+      case _ => (atom.predicate, Seq())
     }
-
-    val combinedArguments = otherArguments ++ arguments
-
-    // TODO: use some real pattern matching
-    //    combinedArguments match {
-    //      case onlyValues: Seq[Value] => GroundAtomWithArguments(atom, onlyValues)
-    //      case _ => AtomWithArguments(atom, combinedArguments)
-    //    }
-    combinedArguments.forall(_.isInstanceOf[Value]) match {
-      case true => GroundAtomWithArguments(atom, combinedArguments.map(_.asInstanceOf[Value]).toList)
-      case false => NonGroundAtom(atom, combinedArguments)
-    }
+    Atom(pred, atomArgs ++ arguments)
   }
-  def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
+
+  def apply(arguments: Argument*): Atom = this.apply(arguments.toList)
+
+  def asTupleReference(position: Long) = {
+    GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(Value(position)))
+  }
+
+  def asFluentReference(): AtomWithArgument = {
+    val arguments = atom match {
+      case aa: AtomWithArgument => aa.arguments
+      case a: Atom => Seq()
+    }
+    AtomWithArgument(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
+  }
 }

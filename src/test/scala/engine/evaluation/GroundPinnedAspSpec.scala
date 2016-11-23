@@ -1,7 +1,7 @@
 package engine.evaluation
 
-import core.{GroundAtom, GroundAtomWithArguments, Value}
 import core.asp._
+import core.{AtomWithArgument, GroundAtom}
 import engine.asp.tms.Pin
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -13,9 +13,9 @@ import org.scalatest.Matchers._
 class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
 
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
-    val r = AspRule(a(T), Set(b(T + 1)))
+    val r: AspRule[AtomWithArgument] = AspRule(a(T), Set(b(T + 1)))
 
-    Pin(t0)(r) should be(AspRule(GroundAtom(a, t0), Set(GroundAtom(b, t1))))
+    Pin(t0)(r) should be(AspRule(GroundAtom(a.predicate, t0), Set(GroundAtom(b.predicate, t1))))
   }
 
   "An atom a(T) at t1" should "be grounded to a(t1)" in {
@@ -29,7 +29,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "A rule a(T). at t1" should "be grounded to a(t1)." in {
-    Pin(t1)(AspFact(a(T))) should be(AspRule(GroundAtom(a,t1)))
+    Pin(t1)(AspFact[AtomWithArgument](a(T))) should be(AspRule(GroundAtom(a.predicate, t1)))
   }
 
   "An atom a(T-1,T) at t1" should "be grounded to a(0,1)" in {

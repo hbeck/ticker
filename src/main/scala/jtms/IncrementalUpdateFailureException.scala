@@ -5,6 +5,4 @@ package jtms
   *
   * Created by hb on 5/30/16.
   */
-class IncrementalUpdateFailureException(msg:String = "") extends Exception {
-
-}
+class IncrementalUpdateFailureException(msg:String = "") extends Exception

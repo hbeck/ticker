@@ -4,6 +4,7 @@ import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import jtms._
+import jtms.algorithms.JtmsDoyle
 import jtms.asp.examples.EvaluateJtmsImplementations
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
@@ -25,7 +26,7 @@ trait LibraryBehavior {
   val A_not = Atom("nicht_ausleihbar")
   val H = Atom("im_Handapperart_einer_Veranstaltung")
 
-  val Falsum = new ContradictionAtom("f")
+  val Falsum = new ContradictionAtom(Predicate("f"))
 
   val j1 = AspFact(V)
   val j2 = AspRule.pos(V).neg(F, G).head(P)

@@ -31,26 +31,27 @@ import engine.asp._
   * e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).
   *
   */
-case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
-
-  def atoms(atoms: Set[Atom]): PinnedStream = {
-    atoms map (apply(_))
-  }
+case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOffset = T) {
 
   def apply(atom: Atom): PinnedFact = {
     AspFact(atom(timePoint))
   }
 
-  def apply(atom: PinnedAtom): PinnedAtom = {
-    val groundedBaseAtom = atom.timedAtom match {
-      case t: PinnedAtom => apply(t)
+  def apply(aa: AtomWithArgument): AtomWithArgument = aa match {
+    case pa: PinnedAtom => apply(pa)
+    case _ => aa
+  }
+
+  def apply(pinnedAtom: PinnedAtom): PinnedAtom = {
+
+    val groundedBaseAtom = pinnedAtom.atom match {
+      case pa: PinnedAtom => apply(pa)
       case a: Atom => a
     }
 
-    // TODO: move into AtomWithTime.ground Function?
-    val timeVariable = variable.variable
+    val timeVariable = timeVariableWithOffset.variable
 
-    val groundedTimePoint = atom.time match {
+    val groundedTimePoint = pinnedAtom.time match {
       case v@TimeVariableWithOffset(`timeVariable`, _) => v.ground(timePoint)
       // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).)
       case v: TimeVariableWithOffset => v.ground(timePoint)
@@ -60,18 +61,19 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     groundedBaseAtom(groundedTimePoint)
   }
 
-  def ground(atom: Atom): GroundAtom = atom match {
+  def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-      ground(g)
+//      ground(g)
+      g
     }
-    case p: Predicate => p
     case a: GroundAtom => a
+    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
-  def ground(fact: NormalFact): GroundFact = AspFact(this.ground(fact.head))
+  def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))
 
-  def ground(rule: NormalRule): GroundRule = {
+  def ground(rule: NormalRule): NormalRule = {
     AspRule(
       this.ground(rule.head),
       rule.pos map this.ground,
@@ -79,20 +81,19 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
     )
   }
 
-  def ground(pinnedAtom: PinnedAtom): GroundAtomWithArguments = {
-    // TODO: unifiy
-    GroundAtomWithArguments(pinnedAtom.atom, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList)
-  }
+//  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
+//    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
+//  }
 
-  def ground(dataStream: PinnedStream): GroundedStream = apply(dataStream)
+  def ground(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 
-  def ground(rules: Seq[NormalRule]): Seq[GroundRule] = rules map ground
+  def ground(rules: Seq[NormalRule]): Seq[NormalRule] = rules map ground
 
-  def apply(dataStream: PinnedStream): Set[GroundFact] = dataStream map apply
+  def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): GroundFact = AspFact(ground(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(ground(this.apply(pinnedFact.head)))
 
-  def apply(pinnedAspRule: PinnedRule): GroundRule = {
+  def apply(pinnedAspRule: PinnedRule): NormalRule = {
     AspRule(
       ground(this.apply(pinnedAspRule.head)),
       pinnedAspRule.pos map this.apply map this.ground,
@@ -102,8 +103,8 @@ case class Pin(timePoint: TimePoint, variable: TimeVariableWithOffset = T) {
 }
 
 object GroundedNormalRule {
-  // TODO: get rid of this
-  def apply(rule: NormalRule): GroundRule = {
+
+  def apply(rule: NormalRule): GroundAspRule = {
     if (rule.isGround) {
       AspRule(
         rule.head.asInstanceOf[GroundAtom],
@@ -118,9 +119,7 @@ object GroundedNormalRule {
 }
 
 object GroundRule {
-
-  // TODO: get rid of this
-  def toNormalRule(rule: GroundRule): NormalRule = {
+  def asNormalRule(rule: GroundAspRule): NormalRule = {
     AspRule(rule.head.asInstanceOf[Atom], rule.pos map (_.asInstanceOf[Atom]), rule.neg map (_.asInstanceOf[Atom]))
   }
 }

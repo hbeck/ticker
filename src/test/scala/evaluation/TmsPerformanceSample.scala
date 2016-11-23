@@ -4,7 +4,8 @@ import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
 import fixtures.{ConfigurableEvaluationSpec, EvaluationEngineBuilder, TimeTestFixtures, TmsDirectPolicyEngine}
-import jtms.JtmsGreedy
+import jtms.algorithms.JtmsGreedy
+import jtms.networks.OptimizedNetwork
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 import org.scalatest.Inspectors._
@@ -27,7 +28,12 @@ class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtu
     i <= j,
     j <= W(100, Diamond, k)
   )
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).useAsp().withTms().usingPolicy(LazyRemovePolicy(JtmsGreedy(new Random(1)), 10)).start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.
+    withProgram(p).
+    configure().
+    withTms().
+    withPolicy(LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random(1)), 10)).
+    start()
 
   "An empty Program" should "lead to an empty model at t0" in {
     evaluationEngine.evaluate(t0).get.value shouldBe empty

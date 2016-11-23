@@ -4,12 +4,12 @@ import core.Atom
 import core.asp.{AspFact, NormalProgram}
 import core.lars.TimePoint
 import engine.{Result, _}
-import jtms.JtmsGreedy
+import jtms.algorithms.JtmsGreedy
 
 /**
   * Created by FM on 05.04.16.
   *
-  * TODO deprecated
+  * TODO deprecated : replace with real incremental implementation
   */
 case class AnswerUpdateEvaluation(private val program: NormalProgram) extends EvaluationEngine {
   val extensionalAtomStream: OrderedAtomStream = new OrderedAtomStream

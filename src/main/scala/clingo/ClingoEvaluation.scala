@@ -22,7 +22,7 @@ object ClingoEvaluation {
       return Atom(result)
 
     val nameParts = result.split('(')
-    val atom = Atom(nameParts.head)
+    val predicate = Predicate(nameParts.head)
     val arguments = nameParts.tail.head.replace("(", "").replace(")", "").split(',')
 
     // TODO convert arguments into correct type
@@ -36,7 +36,7 @@ object ClingoEvaluation {
     //    var arguments = matche.get.group("arguments")
 
     // TODO do we have always ground results?
-    NonGroundAtom(atom, arguments map Argument.convertToArgument)
+    NonGroundAtom(predicate, arguments map Argument.convertToArgument)
   }
 }
 

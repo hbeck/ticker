@@ -1,7 +1,8 @@
 package clingo
 
-import core._
+import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
+import core.lars.{LarsBasedProgram, LarsRule}
 
 /**
   * Created by FM on 22.02.16.
@@ -9,7 +10,12 @@ import core.asp.{AspProgram, AspRule}
 object ClingoConversion {
 
   def apply[TAtom <: Atom, TRule <: AspRule[TAtom]](program: AspProgram[TAtom, TRule]): ClingoProgram = {
-    program.rules.map(apply[TAtom]).toSet
+    PlainClingoProgram(program.rules.map(apply[TAtom]).toSet)
+  }
+
+  def fromLars[TAtom <: Atom, TRule <: AspRule[TAtom]](program: AspProgram[TAtom, TRule] with LarsBasedProgram): ClingoProgramWithLars = {
+    val rules = program.rules.map(apply[TAtom]).toSet
+    ClingoProgramWithLars(rules, program.larsRules)
   }
 
   def apply[TAtom <: Atom](rule: AspRule[TAtom]): ClingoExpression = {
@@ -30,8 +36,8 @@ object ClingoConversion {
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
-      case Predicate(caption) => (caption, "")
-      case aa: AtomWithArgument => (aa.atom.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case x: GroundAtom => (x.predicate.caption, "")
       case _ => (atom.toString, "")
     }
 
@@ -49,8 +55,19 @@ object ClingoConversion {
 
   def apply(argument: Argument): String = argument match {
     case StringValue(v) => v
+    case IntValue(v) => v.toString
     case TimeValue(t) => t.toString
 
     case Variable(v) => v
   }
+}
+
+trait ClingoProgram {
+  val rules: Set[ClingoExpression]
+}
+
+case class PlainClingoProgram(rules: Set[ClingoExpression]) extends ClingoProgram
+
+case class ClingoProgramWithLars(rules: Set[ClingoExpression], larsRules: Seq[LarsRule]) extends ClingoProgram with LarsBasedProgram {
+
 }

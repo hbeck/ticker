@@ -1,6 +1,9 @@
 package core.lars
 
+
 import core.Atom
+
+import scala.concurrent.duration._
 
 /**
   * Created by FM on 01.05.16.
@@ -8,7 +11,9 @@ import core.Atom
 object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
-    case SlidingTimeWindow(windowSize) => f"⊞^$windowSize"
+    case SlidingTimeWindow(windowSize) => f"⊞^${windowSize.ticks(1 second)}"
+    case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
+    case FluentWindow => f"⊞^f"
   }
 
   def apply(temporalOperator: TemporalModality) = temporalOperator match {
@@ -21,27 +26,41 @@ object Format {
     val parts = Seq(
       apply(atom.windowFunction),
       apply(atom.temporalModality),
-      atom.atom
+      apply(atom.atom)
     )
     parts mkString " "
   }
 
+  def apply(atom: Atom): String = {
+    atom.toString
+  }
+
   def apply(atom: ExtendedAtom): String = atom match {
     case w: WindowAtom => apply(w)
-    case a: Atom => a.toString
+    case a: Atom => apply(a)
   }
 
   def apply(atom: HeadAtom): String = atom match {
-    case a: Atom => a.toString
-    case at: AtAtom => apply(At(at.time)) + " " + at.atom
+    case a: Atom => apply(a)
+    case at: AtAtom => apply(At(at.time)) + " " + at.atom.predicate
   }
 
   def apply(rule: LarsRule): String = {
-    f"${apply(rule.head)} :- ${rule.pos map apply mkString ", "}${rule.neg map apply mkString(", not ", ", not ", "")}. "
+    val head = apply(rule.head)
+    val pos = rule.pos map apply mkString ", "
+    val neg = rule.neg map apply mkString ", not "
+
+    if (pos.nonEmpty && neg.nonEmpty)
+      f"$head :- $pos, not $neg."
+    else if (neg.nonEmpty)
+      f"$head :- not $neg."
+    else
+      f"$head :- $pos."
   }
 
-  def apply(program: LarsProgram): Seq[String] = {
-    program.rules map apply
-  }
+  def apply(rules: Seq[LarsRule]): Seq[String] = rules map apply
+
+  def apply(program: LarsProgram): Seq[String] = apply(program.rules)
+
 
 }

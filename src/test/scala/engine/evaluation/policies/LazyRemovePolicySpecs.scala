@@ -4,9 +4,10 @@ import core.Atom
 import core.asp.NormalRule
 import core.lars.Duration
 import engine.asp.tms.GroundedNormalRule
-import engine.asp.tms.policies.{LazyRemovePolicy, TmsPolicy}
+import engine.asp.tms.policies.LazyRemovePolicy
 import fixtures.TimeTestFixtures
-import jtms.Jtms
+import jtms.algorithms.JtmsGreedy
+import jtms.networks.SimpleNetwork
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -15,9 +16,10 @@ import org.scalatest.Matchers._
   */
 class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
 
-  class JTmsSpy extends Jtms {
+  class JTmsSpy extends JtmsGreedy(new SimpleNetwork) {
 
-    override def allAtoms() = addCalls flatMap(_.atoms) to
+    // TODO
+//    override def allAtoms() = addCalls flatMap(_.atoms) to
 
     var addCalls = List[NormalRule]()
     var removeCalls = List[NormalRule]()
@@ -36,7 +38,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     override def getModel(): Option[Set[Atom]] = None
   }
 
-  val sr = GroundedNormalRule(a)
+  val sr = a
 
   case class LazyPolicy(laziness: Duration = 0) {
     val spy = new JTmsSpy
@@ -75,7 +77,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     assume(spy.removeCalls.isEmpty)
     spy.reset
 
-    policy.add(t1)(Seq(GroundedNormalRule(b)))
+    policy.add(t1)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls should have length (1)
@@ -86,7 +88,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     policy.remove(t0)(Seq(sr))
     spy.reset
 
-    policy.add(t1)(Seq(GroundedNormalRule(b)))
+    policy.add(t1)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls shouldBe empty
@@ -96,7 +98,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
     policy.remove(t0)(Seq(sr))
     spy.reset
 
-    policy.add(t2)(Seq(GroundedNormalRule(b)))
+    policy.add(t2)(Seq(b))
 
     spy.addCalls should have length (1)
     spy.removeCalls should have length (1)

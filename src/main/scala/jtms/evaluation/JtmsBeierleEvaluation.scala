@@ -2,7 +2,7 @@ package jtms.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.JtmsBeierle
+import jtms.algorithms.JtmsBeierle
 
 /**
   * Created by FM on 25.02.16.

@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-case class FutureStreamingAspInterpreter(private val aspEvaluation: AspEvaluation, waitingAtMost: Duration) extends AspEvaluation {
+case class FutureStreamingAspInterpreter(private val aspEvaluation: OneShotEvaluation, waitingAtMost: Duration) extends OneShotEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val future = Future {

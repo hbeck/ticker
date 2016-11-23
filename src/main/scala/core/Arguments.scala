@@ -12,13 +12,15 @@ object Argument {
     if (nameOrValue.head.isUpper)
       Variable(nameOrValue)
     else
-      StringValue(nameOrValue)
+      Value(nameOrValue)
   }
 
   implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
 }
 
-case class Variable(name: String) extends Argument
+case class Variable(name: String) extends Argument {
+  override def toString = name
+}
 
 object Variable {
   implicit def convertToVariable(name: String): Variable = {
@@ -31,14 +33,32 @@ object Variable {
 
 sealed trait Value extends Argument
 
-case class StringValue(value: String) extends Value
+case class StringValue(value: String) extends Value {
+  override def toString = value
+}
 
-case class TimeValue(timePoint: TimePoint) extends Value
+case class TimeValue(timePoint: TimePoint) extends Value {
+  override def toString = timePoint.value.toString
+}
+
+case class IntValue(int: Int) extends Value {
+  override def toString = ""+int
+}
+
+object IntValue {
+  def apply(value: String): IntValue = IntValue(Integer.parseInt(value))
+}
 
 object Value {
   def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
 
-  def apply(value: String): Value = StringValue(value)
+  def apply(value: String): Value = if (value forall (_.isDigit)) {
+    IntValue(Integer.parseInt(value))
+  } else {
+    StringValue(value)
+  }
+
+  def apply(value: Int): Value = IntValue(value)
 
   implicit def convertToValue(value: String): Value = {
     if (value.head.isUpper)
