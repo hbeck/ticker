@@ -24,6 +24,12 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
 
     keyboardInput.setDaemon(false)
 
+    println("Receiving input from keyboard: ")
+    println("List of atoms: <atom>,<atom>")
+    println("eg: a,b(1),d(2)")
+    println("Or time and List of Atoms: @<time>: <atom>,<atom>")
+    println("eg: @15: a,b(1),d(2)")
+
     keyboardInput.start
   }
 
@@ -44,7 +50,7 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
   def parseAtoms(atoms: String) = atoms.
     split(',').
     map(_.trim).
-    map(Load.signal(_))
+    map(Load.signal)
 
 
 }

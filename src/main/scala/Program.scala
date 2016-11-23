@@ -32,6 +32,8 @@ object Program {
 
         printProgram(program)
 
+        println()
+
         val engine = BuildEngine.
           withProgram(program).
           withTickSize(config.inputSpeed).
@@ -55,7 +57,7 @@ object Program {
   }
 
   def printProgram(program: LarsProgram): Unit = {
-    println(f"Lars Program of ${program.rules.size} with ${program.atoms.size} different atoms.")
+    println(f"Lars Program of ${program.rules.size} rules with ${program.atoms.size} different atoms.")
 
     if (program.rules.length <= 10) {
       Format(program) foreach println
