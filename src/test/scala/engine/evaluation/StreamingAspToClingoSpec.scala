@@ -1,5 +1,6 @@
 package engine.evaluation
 
+import clingo.{ClingoProgramWithLars, PlainClingoProgram}
 import core.NonGroundAtom
 import engine.asp._
 import engine.asp.oneshot.StreamingClingoInterpreter
@@ -13,7 +14,7 @@ import org.scalatest.Matchers._
 class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
-    val convert = StreamingClingoInterpreter(Set())
+    val convert = StreamingClingoInterpreter(ClingoProgramWithLars(Set(), Seq()))
     convert(t0, Set()) should be(empty)
   }
 

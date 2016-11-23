@@ -1,10 +1,35 @@
 package core.lars
 
-import core.{Atom,Fact}
+import core.{Atom, Fact}
 
 /**
   * Created by FM on 01.05.16.
   */
+trait LarsBasedProgram {
+  val larsRules: Seq[LarsRule]
+
+  lazy val windowAtoms = larsRules flatMap {
+    _.body collect { case w: WindowAtom => w }
+  }
+
+  lazy val slidingTimeWindowsAtoms = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
+  }
+  lazy val slidingTupleWindowsAtoms = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
+  }
+  //TODO fluent window
+
+  lazy val maximumWindowSize: TimeWindowSize = slidingTimeWindowsAtoms.isEmpty match {
+    case true => TimeWindowSize(0)
+    case false => slidingTimeWindowsAtoms.maxBy(_.windowSize).windowSize
+  }
+  lazy val maximumTupleWindowSize: TupleCount = slidingTupleWindowsAtoms.isEmpty match {
+    case true => 0
+    case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
+  }
+}
+
 object LarsRule {
   def apply(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]) = UserDefinedLarsRule(head, pos, neg)
 }
@@ -14,7 +39,7 @@ case class UserDefinedLarsRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[
   override lazy val atoms: Set[ExtendedAtom] = pos union neg + head
 
   override def from(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): UserDefinedLarsRule = {
-    UserDefinedLarsRule(head,pos,neg)
+    UserDefinedLarsRule(head, pos, neg)
   }
 }
 
@@ -36,14 +61,18 @@ case class BasicLarsFact(head: Atom) extends Fact[Atom, ExtendedAtom] {
   }
 }
 
-case class LarsProgram(rules: Seq[LarsRule]) {
+case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
+  val larsRules: Seq[LarsRule] = rules
+
   lazy val atoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
+
+
   override def toString(): String = {
     val sb = new StringBuilder
     sb.append("{")
     if (rules.nonEmpty) {
       sb.append(" ").append(rules.head)
-      if (rules.size>1) {
+      if (rules.size > 1) {
         rules.tail foreach (sb.append("; ").append(_))
       }
       sb.append(" ")
@@ -51,6 +80,7 @@ case class LarsProgram(rules: Seq[LarsRule]) {
     sb.append("}")
     sb.toString
   }
+
   def ==(other: LarsProgram): Boolean = {
     this.rules.toSet == other.rules.toSet
   }

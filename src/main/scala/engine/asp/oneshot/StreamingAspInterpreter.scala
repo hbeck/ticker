@@ -10,12 +10,6 @@ trait StreamingAspInterpreter {
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel]
 }
 
-object StreamingAspInterpreter {
-
-  def select(program: NormalProgram, interpretationMode: InterpretationMode): StreamingAspInterpreter = interpretationMode match {
-    case Clingo => StreamingClingoInterpreter(ClingoConversion(program))
-  }
-}
 
 trait InterpretationMode
 

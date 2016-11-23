@@ -1,6 +1,8 @@
 package engine.asp.oneshot
 
+import clingo.ClingoProgramWithLars
 import core._
+import core.asp.AspFact
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.Pin
@@ -13,12 +15,23 @@ trait OneShotEvaluation {
   def apply(timePoint: TimePoint, dataStream: Stream): Result
 }
 
-case class OneShotEvaluationEngine(interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
+case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val input = OneShotEvaluationEngine.pinnedInput(time, dataStream)
+    val tupleReferences = dataStream.
+      toSeq.
+      sortBy(_.time).
+      flatMap(_.atoms).
+      reverse
 
-    val aspResult = interpreter(time, input)
+    val tupleCount = tupleReferences.
+      zipWithIndex.
+      map { case (atom, index) => atom.asTupleReference(index) }.
+      map(AspFact[AtomWithArgument]).
+      take(program.maximumTupleWindowSize.toInt)
+
+    val aspResult = interpreter(time, input ++ tupleCount)
 
     val result = aspResult match {
       case Some(model) => Some(PinnedModelToLarsModel(time, model))

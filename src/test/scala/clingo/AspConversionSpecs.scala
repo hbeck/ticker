@@ -55,13 +55,13 @@ class AspConversionSpecs extends FlatSpec with AtomTestFixture {
   "An empty program" should "return no AspExpressions" in {
     val p = AspProgram()
 
-    assert(ClingoConversion(p).isEmpty)
+    assert(ClingoConversion(p).rules.isEmpty)
   }
 
   "A program containing one rule" should "return one expression" in {
     val p = AspProgram(AspFact(a))
 
-    assert(ClingoConversion(p).size == 1)
+    assert(ClingoConversion(p).rules.size == 1)
   }
 
   "An exception" should "be thrown if the Atom starts with an uppercase letter" in {

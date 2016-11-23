@@ -178,28 +178,9 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 /*
  * we keep the original lars rule for potential later optimizations
  */
-case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules], tickSize: EngineTick) extends PinnedProgram {
+case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules], tickSize: EngineTick) extends PinnedProgram with LarsBasedProgram {
 
   override val rules = larsRulesAsPinnedRules flatMap { case (_, pinned) => pinned }
 
-  val windowAtoms = larsRulesAsPinnedRules map { case (lars, _) => lars } flatMap {
-    _.body collect { case w: WindowAtom => w }
-  } toSet
-
-  val slidingTimeWindowsAtoms = windowAtoms collect {
-    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
-  }
-  val slidingTupleWindowsAtoms = windowAtoms collect {
-    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
-  }
-  //TODO fluent window
-
-  val maximumWindowSize: TimeWindowSize = slidingTimeWindowsAtoms.isEmpty match {
-    case true => TimeWindowSize(0)
-    case false => slidingTimeWindowsAtoms.maxBy(_.windowSize).windowSize
-  }
-  val maximumTupleWindowSize: TupleCount = slidingTupleWindowsAtoms.isEmpty match {
-    case true => 0
-    case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
-  }
+  override val larsRules = larsRulesAsPinnedRules map { case (lars, _) => lars }
 }

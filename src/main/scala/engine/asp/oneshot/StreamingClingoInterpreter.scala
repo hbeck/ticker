@@ -16,7 +16,7 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 
     val transformed = pinnedAtoms map (ClingoConversion(_))
 
-    val aspResult = clingoEvaluation(program ++ transformed).headOption
+    val aspResult = clingoEvaluation(PlainClingoProgram(program.rules ++ transformed)).headOption
 
     aspResult match {
       case Some(model) => Some(StreamingClingoInterpreter.asPinnedAtom(model, timePoint))

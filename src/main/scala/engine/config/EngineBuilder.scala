@@ -2,7 +2,7 @@ package engine.config
 
 import java.util.concurrent.TimeUnit
 
-import clingo.ClingoConversion
+import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.lars.{EngineTick, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
@@ -13,7 +13,7 @@ import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.algorithms.JtmsGreedy
 import jtms.networks.OptimizedNetwork
-import jtms.{TruthMaintenanceNetwork$, JtmsUpdateAlgorithm}
+import jtms.{JtmsUpdateAlgorithm, TruthMaintenanceNetwork$}
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -37,7 +37,7 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 
 case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars) {
 
-  def withClingo() = EvaluationModeConfiguration(StreamingClingoInterpreter(ClingoConversion(pinnedProgram)))
+  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(pinnedProgram))
 
   def withTms() = TmsConfiguration(pinnedProgram)
 
@@ -57,10 +57,10 @@ object TmsConfiguration {
   implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.pinnedProgram, config.policy))
 }
 
-case class EvaluationModeConfiguration(streamingAspInterpreter: StreamingAspInterpreter) {
+case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
   def use(evaluationMode: EvaluationMode = Direct) = {
-    val aspEvaluation = buildEvaluationMode(OneShotEvaluationEngine(streamingAspInterpreter), evaluationMode)
+    val aspEvaluation = buildEvaluationMode(OneShotEvaluationEngine(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }
 
