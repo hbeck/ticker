@@ -21,9 +21,11 @@ object Program {
 
     val myargs = Seq(
       "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
-      "--evaluationType", "Tms",
-      "--evaluationModifier", "Greedy",
-      "--inputType", "Http,StdIn"
+      "--evaluationType", "Clingo",
+      "--evaluationModifier", "Push",
+      "--inputType", "Http,StdIn",
+      "--inputSpeed", "1s",
+      "--outputSpeed", "1min"
     ).toArray
 
     parseParameters(args) match {
@@ -83,23 +85,25 @@ object Program {
         action((x, c) => c.copy(evaluationModifier = x)).
         text("An evaluation type is required, possible values: " + EvaluationModifier.values)
 
-      opt[Duration]("inputSpeed").optional().valueName("<input speed>").
+      opt[Duration]("inputSpeed").optional().valueName("<value><unit>").
         validate(d =>
           if (d lt Duration.Zero)
             Left("inputSpeed must be > 0")
           else
             Right()
         ).
-        action((x, c) => c.copy(inputSpeed = x))
+        action((x, c) => c.copy(inputSpeed = x)).
+        text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[Duration]("outputSpeed").optional().valueName("<output speed>").
+      opt[Duration]("outputSpeed").optional().valueName("<value><unit>").
         validate(d =>
           if (d lt Duration.Zero)
             Left("outputSpeed must be > 0")
           else
             Right()
         ).
-        action((x, c) => c.copy(outputSpeed = x))
+        action((x, c) => c.copy(outputSpeed = x)).
+        text("valid units: ms, s, min, h. eg: 10ms")
 
       opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
         action((x, c) => c.copy(inputs = x))
