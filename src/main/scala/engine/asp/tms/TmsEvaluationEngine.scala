@@ -12,6 +12,7 @@ import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
   */
 case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolicy: TmsPolicy) extends EvaluationEngine {
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
+  val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
@@ -88,7 +89,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     }
 
     resultingModel match {
-      case Some(m) => Result(Some(PinnedModelToLarsModel(time, asPinnedAtoms(m, time))))
+      case Some(m) => Result(Some(convertToPinned(time, asPinnedAtoms(m, time))))
       case None => NoResult
     }
   }

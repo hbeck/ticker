@@ -17,6 +17,8 @@ trait OneShotEvaluation {
 
 case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
+  val convertToPinned = PinnedModelToLarsModel(program)
+
   def apply(time: TimePoint, dataStream: Stream): Result = {
     val input = OneShotEvaluationEngine.pinnedInput(time, dataStream)
     val tupleReferences = dataStream.
@@ -34,7 +36,7 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     val aspResult = interpreter(time, input ++ tupleCount)
 
     val result = aspResult match {
-      case Some(model) => Some(PinnedModelToLarsModel(time, model))
+      case Some(model) => Some(convertToPinned(time, model))
       case None => None
     }
 

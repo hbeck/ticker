@@ -44,27 +44,28 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     evaluationEngine
   }
 
-  it should "not lead to z at t0" in pendingWithTms("Missing grounding of Variable U") {
+  //  pendingWithTms("Missing grounding of Variable U")
+  it should "not lead to z at t0" in {
     preparedEngine.evaluate(t0).get shouldNot contain(z)
   }
 
-  it should "not lead to z at t1" in pendingWithTms("Missing grounding of Variable U") {
+  it should "not lead to z at t1" in  {
     preparedEngine.evaluate(t1).get.value shouldNot contain(z)
   }
 
-  it should "lead to z and i at t2" in pendingWithTms {
+  it should "lead to z and i at t2" in {
 
     preparedEngine.evaluate(t2).get.value should contain allOf(z, i)
   }
 
-  it should "not lead to z but to i at t3" in pendingWithTms {
+  it should "not lead to z but to i at t3" in  {
     val result = preparedEngine.evaluate(t3).get.value
 
     result should contain(i)
     result shouldNot contain(z)
   }
 
-  it should "not lead to z or i at t4" in pendingWithTms("Missing grounding of Variable U") {
+  it should "not lead to z or i at t4" in  {
     val result = preparedEngine.evaluate(t4).get.value
 
     result shouldNot contain allOf(i, z)
