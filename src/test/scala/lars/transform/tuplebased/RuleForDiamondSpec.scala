@@ -11,7 +11,7 @@ import org.scalatest.Matchers._
   * Created by FM on 09.05.16.
   */
 class RuleForDiamondSpec extends TransformLarsSpec {
-  val a_TUPLE = Atom("a_TUPLE")
+  def a_TUPLE(pos: Int) = Atom("a").asTupleReference(pos)
 
   val w_tu_2_d_a = WindowAtom(SlidingTupleWindow(2), Diamond, a)
 

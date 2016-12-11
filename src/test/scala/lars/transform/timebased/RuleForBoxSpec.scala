@@ -35,6 +35,6 @@ class RuleForBoxSpec extends TransformLarsSpec {
   "The rule for w^1 b a(1)" should "have head w_te_1_b_a(1, T)" in {
    val head = DefaultLarsToPinnedProgram.rulesForBox(w_te_1_b_a_1).head.head
     head .toString should include("w_te_1_b_a")
-    head.arguments should contain inOrder(StringValue("1"), T.variable)
+    head.arguments should contain inOrder(StringValue("1"), T)
   }
 }

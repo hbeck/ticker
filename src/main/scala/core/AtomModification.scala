@@ -24,7 +24,7 @@ case class AtomModification(atom: Atom) {
   def apply(arguments: Argument*): Atom = this.apply(arguments.toList)
 
   def asTupleReference(position: Long) = {
-    GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(Value(position)))
+    GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
 
   def asFluentReference(): AtomWithArgument = {

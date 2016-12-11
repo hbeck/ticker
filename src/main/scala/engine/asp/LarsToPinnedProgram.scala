@@ -78,10 +78,10 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def rulesForBox(windowAtom: WindowAtom): Set[PinnedRule] = {
     val generatedAtoms: Set[AtomWithArgument] = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T) ++ Set(windowAtom.atom(T))
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, windowAtom.atom, T).toSet[AtomWithArgument] ++ Set(windowAtom.atom(T))
       case SlidingTupleWindow(size) => {
         val rAtom = tupleReference(windowAtom.atom) _
-        (0 to (size.toInt - 1)) map (rAtom(_)) toSet
+        0 until size.toInt map (rAtom(_)) toSet
       }
     }
 
@@ -119,7 +119,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
   }
 
   def rulesForAtTimePoint(windowAtom: WindowAtom, timePoint: TimePoint): Set[PinnedRule] = {
-    val h = head(windowAtom)
+    val h = atomFor(windowAtom)
 
     val atomAtTime = windowAtom.atom(timePoint)
 
@@ -127,7 +127,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
       case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t + i)
     }
 
-    val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
+    val rules = nowAtoms map (n => AspRule[AtomWithArgument, AtomWithArgument](h(n.time), Set(atomAtTime, n)))
 
     rules.toSet
   }
@@ -169,7 +169,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[AtomWithArgument] = {
+  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[PinnedAtom] = {
     val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculateTime(referenceTime, _)) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }
