@@ -12,6 +12,10 @@ trait LarsBasedProgram {
     _.body collect { case w: WindowAtom => w }
   }
 
+  lazy val atAtoms = larsRules flatMap {
+    _.atoms collect { case a: AtAtom => a }
+  }
+
   lazy val slidingTimeWindowsAtoms = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
   }

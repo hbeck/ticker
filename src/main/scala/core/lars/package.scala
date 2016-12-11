@@ -5,7 +5,7 @@ package core
   */
 package object lars {
   type TimeVariable = Variable
-//  type WindowSize = (Long, TimeUnit)
+  //  type WindowSize = (Long, TimeUnit)
   type TupleCount = Long
   type Duration = Long
 

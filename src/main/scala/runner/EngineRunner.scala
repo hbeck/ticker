@@ -23,7 +23,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   type ResultCallback = (Result, TimePoint) => Unit
 
-  implicit val executor = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
+  private implicit val executor = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
 
   val timer = new java.util.Timer()
 

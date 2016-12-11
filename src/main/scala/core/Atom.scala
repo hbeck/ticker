@@ -20,9 +20,10 @@ sealed trait Atom extends HeadAtom {
 
 case class Predicate(caption: String) {
   override def toString = caption
-  def apply(arguments: Any*) = Atom(this,arguments map {
-    case a:Argument => a
-    case x:Any => Argument.convertToArgument(x.toString)
+
+  def apply(arguments: Any*) = Atom(this, arguments map {
+    case a: Argument => a
+    case x: Any => Argument.convertToArgument(x.toString)
   })
 }
 
@@ -83,12 +84,18 @@ trait AtomWithArgument extends Atom {
 object AtomWithArgument {
   def apply(predicate: Predicate, arguments: Seq[Argument]): AtomWithArgument = arguments.forall(_.isInstanceOf[Value]) match {
     case true => GroundAtomWithArguments(predicate, arguments.map(_.asInstanceOf[Value]).toList)
-    case false => NonGroundAtom(predicate, arguments)
+    case false => NonGroundAtomWithArguments(predicate, arguments)
   }
 }
 
+trait NonGroundAtom extends AtomWithArgument
 
-case class NonGroundAtom(override val predicate: Predicate, arguments: Seq[Argument]) extends AtomWithArgument {
+object NonGroundAtom {
+  def apply(predicate: Predicate, argument: Seq[Argument]) = NonGroundAtomWithArguments(predicate, argument)
+}
+
+// TODO: Naming
+case class NonGroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Argument]) extends NonGroundAtom {
   override def assign(assignment: Assignment): Atom = {
     val newArguments = arguments map { arg =>
       assignment(arg) match {
@@ -117,8 +124,9 @@ object GroundAtom {
   }
 }
 
-
-case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgument {
+trait PinnedAtom extends AtomWithArgument {
+  val atom: Atom
+  val time: Time
 
   override val predicate = atom match {
     case aa: AtomWithArgument => aa.predicate
@@ -134,13 +142,44 @@ case class PinnedAtom(override val atom: Atom, time: Time) extends AtomWithArgum
     case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
     case _ => Seq(timeAsArgument)
   }
-
-  override def isGround(): Boolean = timeAsArgument.isInstanceOf[Value]
-
-  //assume pinned atoms may have variables only in its special time argument
-  override def assign(assignment: Assignment): ExtendedAtom = this
 }
 
+object PinnedAtom {
+  def apply(atom: Atom, time: Time): PinnedAtom = time match {
+    case t: TimePoint => ConcretePinnedAtom(atom, t)
+    case v: TimeVariableWithOffset => VariablePinnedAtom(atom, v)
+  }
+}
+
+case class ConcretePinnedAtom(override val atom: Atom, time: TimePoint) extends PinnedAtom with GroundAtom {
+
+  override def isGround(): Boolean = true
+
+  //assume pinned atoms may have variables only in its special time argument
+  //  override def assign(assignment: Assignment): ExtendedAtom = this
+}
+
+case class VariablePinnedAtom(override val atom: Atom, time: TimeVariableWithOffset) extends PinnedAtom with NonGroundAtom {
+
+  override def isGround(): Boolean = false
+
+  //assume pinned atoms may have variables only in its special time argument
+  override def assign(assignment: Assignment): ExtendedAtom = {
+    val assign = assignment.apply(time.variable)
+    if (assign.isDefined) {
+      val value = assign.get match {
+        case i: IntValue => Some(TimePoint(i.int))
+        case t: TimeValue => Some(t.timePoint)
+        case _ => None
+      }
+      value match {
+        case Some(t) => ConcretePinnedAtom(atom, time.ground(t))
+        case None => this
+      }
+    } else
+      this
+  }
+}
 
 object Atom {
 
