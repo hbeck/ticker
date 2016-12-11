@@ -1,6 +1,6 @@
 package core
 
-import core.lars.{Assignment, ExtendedAtom, HeadAtom}
+import core.lars.{Assignment, ExtendedAtom, HeadAtom, TimeVariableWithOffset}
 
 /**
   * Created by FM on 15.06.16.
@@ -28,7 +28,10 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   lazy val variables: Set[Variable] = {
     atoms flatMap {
-      case a: AtomWithArgument => a.arguments collect { case v:Variable => v }
+      case a: AtomWithArgument => a.arguments collect {
+        case t:TimeVariableWithOffset=>t.variable
+        case v:Variable => v
+      }
       case _ => Set()
     }
   }

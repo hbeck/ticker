@@ -58,7 +58,7 @@ object ClingoConversion {
     case IntValue(v) => v.toString
     case TimeValue(t) => t.toString
 
-    case Variable(v) => v
+    case v: Variable => v.name
   }
 }
 

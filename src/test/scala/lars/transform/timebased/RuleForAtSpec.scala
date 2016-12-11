@@ -23,8 +23,8 @@ class RuleForAtSpec extends TransformLarsSpec {
       } should contain(now.predicate)
     }
   }
-  it should "contain now(t0)" in {
-    forExactly(1, DefaultLarsToPinnedProgram.rulesForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(t0)) }
+  it should "contain now(t2)" in {
+    forExactly(1, DefaultLarsToPinnedProgram.rulesForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(t2)) }
   }
   it should "contain now(t1)" in {
     forExactly(1, DefaultLarsToPinnedProgram.rulesForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(t1)) }
@@ -36,8 +36,8 @@ class RuleForAtSpec extends TransformLarsSpec {
     forAll(DefaultLarsToPinnedProgram.rulesForAt(w_te_1_a_1_a)) { rule => rule.body should contain(a(t1)) }
   }
 
-  "The rule for w^2 at_2 a" should "contain now(t0), now(t1), now(t2), a(t2)" in {
-    DefaultLarsToPinnedProgram.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t0), now(t1), now(t2), a(t2))
+  "The rule for w^2 at_2 a" should "contain now(t3), now(t4), now(t2), a(t2)" in {
+    DefaultLarsToPinnedProgram.rulesForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t3), now(t4), now(t2), a(t2))
   }
 
   val w_te_1_at_U_a = W(1, At(U), a)

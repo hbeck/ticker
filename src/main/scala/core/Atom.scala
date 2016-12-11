@@ -54,6 +54,8 @@ trait AtomWithArgument extends Atom {
 
   val arguments: Seq[Argument]
 
+  def positionOf(argument: Argument): Int = arguments.indexOf(argument)
+
   override def arity = arguments.size
 
   def ==(other: AtomWithArgument): Boolean = {
@@ -128,15 +130,18 @@ trait PinnedAtom extends AtomWithArgument {
   val atom: Atom
   val time: Time
 
+  override def positionOf(argument: Argument): Int = argument match {
+    case v: Variable => arguments.
+      indexWhere(a => a.isInstanceOf[Variable] && a.asInstanceOf[Variable].name == v.name)
+    case _ => super.positionOf(argument)
+  }
+
   override val predicate = atom match {
     case aa: AtomWithArgument => aa.predicate
     case _ => atom.predicate
   }
 
-  val timeAsArgument: Argument = time match {
-    case TimePoint(t) => Value(t)
-    case t: TimeVariableWithOffset => Variable(t.toString)
-  }
+  val timeAsArgument: Argument = time
 
   override val arguments = atom match {
     case aa: AtomWithArgument => aa.arguments :+ timeAsArgument
@@ -170,10 +175,13 @@ case class VariablePinnedAtom(override val atom: Atom, time: TimeVariableWithOff
       val value = assign.get match {
         case i: IntValue => Some(TimePoint(i.int))
         case t: TimeValue => Some(t.timePoint)
+        case t: TimePoint => Some(t)
         case _ => None
       }
+
       value match {
         case Some(t) => ConcretePinnedAtom(atom, time.ground(t))
+          // No matching variable found -> ignore assignment
         case None => this
       }
     } else

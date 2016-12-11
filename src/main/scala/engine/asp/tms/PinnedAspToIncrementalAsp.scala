@@ -21,7 +21,7 @@ object PinnedAspToIncrementalAsp {
     case p: PinnedAtom => p
     case _ => pinned.arguments match {
       case pinned.timeAsArgument :: Nil => pinned.time match {
-        case TimeVariableWithOffset(`T`, _) => pinned.atom
+        case t: TimeVariableWithOffset if t.variable == T.variable => pinned.atom
         case p: TimePoint => pinned.atom
         case _ => pinned
       }
