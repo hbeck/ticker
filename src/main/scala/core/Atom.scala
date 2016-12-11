@@ -181,7 +181,7 @@ case class VariablePinnedAtom(override val atom: Atom, time: TimeVariableWithOff
 
       value match {
         case Some(t) => ConcretePinnedAtom(atom, time.ground(t))
-          // No matching variable found -> ignore assignment
+        // No matching variable found -> ignore assignment
         case None => this
       }
     } else

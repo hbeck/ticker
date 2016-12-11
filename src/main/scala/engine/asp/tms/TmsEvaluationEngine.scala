@@ -33,34 +33,43 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
     val pin = Pin(time)
 
-    val pinnedGroundedRules = pin.ground(nonGroundRules).toSet.toSeq
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
+
+    // performs simple pinning-calcuations (eg. T + 1)
+    val pregrounded = nonGroundRules map (r => pin.ground(r))
+    val inspect = LarsProgramInspection.from(pregrounded ++ pinnedSignals)
+    val grounded = pregrounded flatMap new GroundRule[NormalRule, Atom, Atom].ground(inspect)
+
     val signalsNow = signalAtoms map (AspFact(_)) toSeq
     val orderedTuples = deriveOrderedTuples
     val fluentTuples = fluentAtoms.values.map(pin.ground).map(AspFact[Atom](_)).toSeq
+
+    val now = Seq(AspFact[Atom](engine.asp.now(time)))
 
     val add = tmsPolicy.add(time) _
 
     // separating the calls ensures maximum on support for rules
     // facts first
+    add(now)
     add(signalsNow)
     add(pinnedSignals.toSeq)
     add(orderedTuples)
-//        add(fluentTuples)
+    //        add(fluentTuples)
     // then rules
-    add(pinnedGroundedRules)
+    add(grounded)
 
     val model = tmsPolicy.getModel(time)
 
     val remove = tmsPolicy.remove(time) _
 
     // rules first
-    remove(pinnedGroundedRules)
+    remove(grounded)
     // then facts
     // we never remove extensional atoms explicitly (the policy might do it)
     remove(orderedTuples)
     remove(fluentTuples)
     remove(signalsNow)
+    remove(now)
 
     model
   }

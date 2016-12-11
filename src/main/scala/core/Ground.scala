@@ -1,5 +1,6 @@
 package core
 
+import core.asp.AspRule
 import core.lars._
 
 
@@ -41,13 +42,13 @@ case class Ground(substitutions: Map[Variable, Value]) {
     )
   }
 
-  //  def apply[TAtom <: Atom](rule: AspRule[TAtom]):AspRule[TAtom] = {
-  //    AspRule(
-  //      apply(rule.head),
-  //      rule.pos map this.apply,
-  //      rule.neg map this.apply
-  //    )
-  //  }
+  def apply(rule: AspRule[Atom]): AspRule[Atom] = {
+    rule.from(
+      apply(rule.head),
+      rule.pos map this.apply,
+      rule.neg map this.apply
+    ).asInstanceOf[AspRule[Atom]]
+  }
 }
 
 
