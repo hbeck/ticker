@@ -54,7 +54,7 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
     val groundedTimePoint = pinnedAtom.time match {
       case v@TimeVariableWithOffset(`timeVariable`, _) => v.ground(timePoint)
       // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).)
-      case v: TimeVariableWithOffset => v.ground(timePoint)
+      case v: TimeVariableWithOffset => v
       case t: TimePoint => t
     }
 
@@ -68,7 +68,8 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
       g
     }
     case a: GroundAtom => a
-    case _ => throw new RuntimeException("cannot ground " + atom)
+    case _ => atom
+//    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
   def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))

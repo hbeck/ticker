@@ -17,7 +17,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
   def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
     case AtAtom(t, a) => a(t)
     // TODO: discuss if this approach is correct: can an head-atom be already pinned?
-    case PinnedAtom(a, v: TimeVariableWithOffset) => a(v)
+    case VariablePinnedAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
   }
 
@@ -124,7 +124,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     val atomAtTime = windowAtom.atom(timePoint)
 
     val nowAtoms = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint)
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t + i)
     }
 
     val rules = nowAtoms map (n => AspRule(h, Set(atomAtTime, n)))
@@ -137,7 +137,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
     // we need the reach atom in the form of atom(T-k,T)
     val reachAtoms = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T) map (a => a(T))
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T, (t, i) => t + i) map (a => a(T))
     }
 
     val reachRules = reachAtoms.toSet[AtomWithArgument] map (r => AspRule(r, Set[AtomWithArgument](now(T))))
@@ -169,8 +169,8 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time): Set[AtomWithArgument] = {
-    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (referenceTime - _) map (atom(_))
+  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[AtomWithArgument] = {
+    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculateTime(referenceTime, _)) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }
 }

@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
-import core.lars.TimePoint
+import core.lars.{GroundRule, Grounder, LarsProgramInspection, TimePoint}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
 import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
@@ -25,8 +25,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    tuplePositions = atoms.toList ++ tuplePositions
-    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
+    trackAuxiliaryAtoms(atoms)
     cachedResults(time) = prepare(time, atoms.toSet)
     discardOutdatedAuxiliaryAtoms(time)
   }
@@ -104,6 +103,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     stream = stream -- atomsToRemove.keySet
 
     atomsToRemove foreach { case (timePoint, signals) => tmsPolicy.remove(timePoint)(signals.toSeq) }
+  }
+
+  private def trackAuxiliaryAtoms(atoms: Seq[Atom]) = {
+    tuplePositions = atoms.toList ++ tuplePositions
+    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
   }
 
   def asFluentMap(atom: Atom) = {

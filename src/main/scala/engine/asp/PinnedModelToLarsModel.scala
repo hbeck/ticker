@@ -11,8 +11,8 @@ object PinnedModelToLarsModel {
   def apply(timePoint: TimePoint, model: PinnedModel): Model = {
 
     val filtered = model filter {
-      case PinnedAtom(`now`, _) => false
-      case PinnedAtom(atom, time) => time == timePoint
+      case p: PinnedAtom if p.atom == now => false
+      case ConcretePinnedAtom(atom, time) => time == timePoint
       case _ => true
     }
 
