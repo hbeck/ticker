@@ -28,9 +28,9 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "now(T)" should "be removed from a rule" in {
-    val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
+    val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(T)))
 
-    PinnedAspToIncrementalAsp(r, Set()).body should not contain (now(t0))
+    PinnedAspToIncrementalAsp(r, Set()).body should not contain (now(T))
   }
 
   "The head of a transformed rule" should "not be pinned" in {

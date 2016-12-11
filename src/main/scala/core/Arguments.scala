@@ -5,12 +5,12 @@ import core.lars.TimePoint
 /**
   * Created by FM on 15.06.16.
   */
-sealed trait Argument
+trait Argument
 
 object Argument {
   implicit def convertToArgument(nameOrValue: String): Argument = {
     if (nameOrValue.head.isUpper)
-      Variable(nameOrValue)
+      StringVariable(nameOrValue)
     else
       Value(nameOrValue)
   }
@@ -18,20 +18,26 @@ object Argument {
   implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
 }
 
-case class Variable(name: String) extends Argument {
+trait Variable extends Argument {
+  val name: String
+}
+
+case class StringVariable(name: String) extends Variable {
   override def toString = name
 }
 
 object Variable {
+  def apply(name: String): Variable = StringVariable(name)
+
   implicit def convertToVariable(name: String): Variable = {
     if (!name.head.isUpper)
       throw new IllegalArgumentException("A variable must start with an upper-case char")
 
-    Variable(name)
+    StringVariable(name)
   }
 }
 
-sealed trait Value extends Argument
+trait Value extends Argument
 
 case class StringValue(value: String) extends Value {
   override def toString = value
@@ -42,7 +48,7 @@ case class TimeValue(timePoint: TimePoint) extends Value {
 }
 
 case class IntValue(int: Int) extends Value {
-  override def toString = ""+int
+  override def toString = "" + int
 }
 
 object IntValue {

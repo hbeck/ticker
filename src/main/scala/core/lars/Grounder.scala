@@ -1,6 +1,7 @@
 package core.lars
 
 import core._
+import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
 
 import scala.collection.immutable.HashMap
 

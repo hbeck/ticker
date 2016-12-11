@@ -1,9 +1,11 @@
 package core.lars
 
+import core.{Argument, Value, Variable}
+
 /**
   * Created by FM on 05.04.16.
   */
-sealed trait Time {
+sealed trait Time extends Argument {
   def -(duration: Duration): Time
 
   def +(duration: Duration): Time
@@ -15,7 +17,7 @@ object Time {
   implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
 }
 
-case class TimePoint(value: Long) extends Time {
+case class TimePoint(value: Long) extends Time with Value {
   def -(duration: Duration) = TimePoint(value - duration)
 
   def +(duration: Duration) = TimePoint(value + duration)
@@ -33,7 +35,8 @@ object TimePoint {
   implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
 }
 
-case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time {
+case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time with Variable {
+  override val name: String = variable.name
 
   def ground(timePoint: TimePoint) = TimePoint(timePoint.value + offset)
 
