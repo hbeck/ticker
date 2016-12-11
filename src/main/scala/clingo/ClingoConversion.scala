@@ -2,7 +2,7 @@ package clingo
 
 import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
-import core.lars.{LarsBasedProgram, LarsRule}
+import core.lars.{LarsBasedProgram, LarsRule, TimePoint, TimeVariableWithOffset}
 
 /**
   * Created by FM on 22.02.16.
@@ -57,6 +57,8 @@ object ClingoConversion {
     case StringValue(v) => v
     case IntValue(v) => v.toString
     case TimeValue(t) => t.toString
+    case TimePoint(t) => t.toString
+    case v: TimeVariableWithOffset => v.toString
 
     case v: Variable => v.name
   }

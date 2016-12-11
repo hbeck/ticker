@@ -1,6 +1,6 @@
 package lars.transform.tuplebased
 
-import core.Atom
+import core.{Atom, IntValue}
 import core.lars.{Box, SlidingTimeWindow, SlidingTupleWindow, WindowAtom}
 import engine.asp.LarsToPinnedProgram
 import lars.transform.TransformLarsSpec
@@ -11,7 +11,7 @@ import org.scalatest.Matchers._
   * Created by FM on 05.05.16.
   */
 class RuleForBoxSpec extends TransformLarsSpec {
-  val a_TUPLE = Atom("a_TUPLE")
+  def a_TUPLE(pos:Int) = Atom("a").asTupleReference(pos)
 
   val w_tu_2_b_a = WindowAtom(SlidingTupleWindow(2), Box, a)
 

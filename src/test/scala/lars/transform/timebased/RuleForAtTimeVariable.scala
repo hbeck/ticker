@@ -1,8 +1,8 @@
 package lars.transform.timebased
 
 import core.lars._
-import core.{Atom, Variable}
-import engine.asp.LarsToPinnedProgram
+import core.{Atom, PinnedAtom, Variable}
+import engine.asp.{LarsToPinnedProgram, PinnedRule}
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -26,14 +26,14 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   it should "return two rules with head reach_w_te_1_at_U_a" in {
     forExactly(2, DefaultLarsToPinnedProgram.rulesForAtTimeVariable(w_te_1_at_U_a, U)) { rule => rule.head.toString should startWith("reach_w_te_1_at_U_a") }
   }
-  it should "return  reach_w_te_1_at_U_a(T -1, T)" in {
+  it should "return  reach_w_te_1_at_U_a(T + 1, T)" in {
     forExactly(1, DefaultLarsToPinnedProgram.rulesForAtTimeVariable(w_te_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain inOrder(Variable("T + 1"), Variable("T"))
+      rule => headArguments(rule.head) should contain inOrder(TimeVariableWithOffset("T", 1), TimeVariableWithOffset("T"))
     }
   }
   it should "return  reach_w_te_1_at_U_a(T, T)" in {
     forExactly(1, DefaultLarsToPinnedProgram.rulesForAtTimeVariable(w_te_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq(Variable("T"), Variable("T"))
+      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq(TimeVariableWithOffset("T"), TimeVariableWithOffset("T"))
     }
   }
 
@@ -42,7 +42,7 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   }
   it should "have one head with Time-Variables U,T" in {
     forExactly(1, DefaultLarsToPinnedProgram.rulesForAtTimeVariable(w_te_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain inOrder(U.variable, T.variable)
+      rule => headArguments(rule.head) should contain inOrder(U, T)
     }
   }
 
@@ -62,14 +62,17 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
       reach(T + 1)(T),
       reach(T)(T),
       Atom("w_te_2_at_U_a")(U)(T)
-      )
+    )
   }
 
 
-  def headArguments(atom: Atom) = {
-    val Atom(arguments) = atom
+  def headArguments(atom: Atom) = atom match {
+    case p: PinnedAtom => p.arguments
+    case _ => {
+      val Atom(arguments) = atom
 
-    arguments
+      arguments
+    }
   }
 
 }

@@ -10,13 +10,13 @@ import org.scalatest.Matchers._
   */
 class AtomWithTimeSpec extends FlatSpec with TimeTestFixtures {
   "An atom a with time t1 " should "have one argument T" in {
-    a(T).arguments should contain only (T.variable)
+    a(T).arguments should contain only (T)
   }
   "An atom a(1) with time t1" should "have arguments 1, T" in {
-    a("1")(T).arguments should contain inOrderOnly(Value("1"), T.variable)
+    a("1")(T).arguments should contain inOrderOnly(Value("1"), T)
   }
   "An atom with TimeVariable U at time t1" should "have arguments U, T" in {
     val atom = a(U)
-    atom(T).arguments should contain inOrderOnly(U.variable, T.variable)
+    atom(T).arguments should contain inOrderOnly(U, T)
   }
 }

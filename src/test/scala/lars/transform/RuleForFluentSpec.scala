@@ -35,7 +35,7 @@ class RuleForFluentSpec extends TransformLarsSpec {
   "The rule for w^f d a(1)" should "have head w_fl_d_a(1, T)" in {
     val head = DefaultLarsToPinnedProgram.rulesForDiamond(w_fl_d_a_1).head.head
     head.toString should include("w_fl_d_a")
-    head.arguments should contain inOrderOnly(StringValue("1"), T.variable)
+    head.arguments should contain inOrderOnly(StringValue("1"), T)
   }
 
   it should "contain in body a_FLUENT(1)" in {
@@ -47,7 +47,7 @@ class RuleForFluentSpec extends TransformLarsSpec {
   "The rule for w^f d a(M, on)" should "have head w_fl_d_a(M, T)" in {
     val head = DefaultLarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on).head.head
     head.toString should include("w_fl_d_a")
-    head.arguments should contain inOrderOnly(Variable("M"), T.variable)
+    head.arguments should contain inOrderOnly(Variable("M"), T)
   }
 
   it should "contain in body a_FLUENT(M, on)" in {
@@ -59,7 +59,7 @@ class RuleForFluentSpec extends TransformLarsSpec {
   "The rule for w^f d a(M, on, bar)" should "have head w_fl_d_a(M, T)" in {
     val head = DefaultLarsToPinnedProgram.rulesForDiamond(w_fl_d_a_M_on_bar).head.head
     head.toString should include("w_fl_d_a")
-    head.arguments should contain inOrderOnly(Variable("M"), T.variable)
+    head.arguments should contain inOrderOnly(Variable("M"), T)
   }
 
   it should "contain in body a_FLUENT(M, on, bar)" in {
