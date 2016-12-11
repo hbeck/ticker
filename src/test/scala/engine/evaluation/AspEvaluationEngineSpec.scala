@@ -11,8 +11,8 @@ import org.scalatest.Matchers._
 /**
   * Created by FM on 16.05.16.
   */
-class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures{
-
+class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures {
+  val PinnedModelToLarsModel = engine.asp.PinnedModelToLarsModel(ClingoProgramWithLars(Set(), Seq()))
   "An empty model" should "be empty afterwards" in {
     PinnedModelToLarsModel(t1, Set()) should have size 0
   }
