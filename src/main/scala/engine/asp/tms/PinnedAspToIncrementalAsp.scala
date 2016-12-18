@@ -61,7 +61,8 @@ object PinnedAspToIncrementalAsp {
       case pinned: PinnedAtom if pinned.time == core.lars.T => pinned
     }
 
-    val atomsToKeepPinned = pinnedTimestamptedAtoms diff atomAtT
+    val atPrediactes = atAtoms map (a => a.predicate)
+    val atomsToKeepPinned = pinnedTimestamptedAtoms diff (atomAtT filterNot (a => atPrediactes contains (a.predicate)))
 
     val atomsToUnpin = (p.atoms diff atomsToKeepPinned).toSet[ExtendedAtom]
 

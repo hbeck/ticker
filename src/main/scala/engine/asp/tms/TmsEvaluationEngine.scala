@@ -26,7 +26,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    trackAuxiliaryAtoms(atoms)
+    trackAuxiliaryAtoms(time, atoms)
     cachedResults(time) = prepare(time, atoms.toSet)
     discardOutdatedAuxiliaryAtoms(time)
   }
@@ -36,9 +36,13 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
     val pinnedSignals = pin.ground(signalAtoms map pin.apply)
 
+    stream = stream updated(time, pinnedSignals ++ stream.getOrElse(time, Set()))
+
+    val t: Seq[NormalRule] = stream.values flatMap (_.toSeq) toSeq
+
     // performs simple pinning-calcuations (eg. T + 1)
     val pregrounded = nonGroundRules map (r => pin.ground(r))
-    val inspect = LarsProgramInspection.from(pregrounded ++ pinnedSignals)
+    val inspect = LarsProgramInspection.from(pregrounded ++ t)
     val grounded = pregrounded flatMap new GroundRule[NormalRule, Atom, Atom].ground(inspect)
 
     val signalsNow = signalAtoms map (AspFact(_)) toSeq
@@ -115,9 +119,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     atomsToRemove foreach { case (timePoint, signals) => tmsPolicy.remove(timePoint)(signals.toSeq) }
   }
 
-  private def trackAuxiliaryAtoms(atoms: Seq[Atom]) = {
+  private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
     tuplePositions = atoms.toList ++ tuplePositions
     fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
+    //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
   }
 
   def asFluentMap(atom: Atom) = {
