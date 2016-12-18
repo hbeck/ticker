@@ -33,8 +33,10 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
     engine.evaluate(40).get.get should contain(temp)
     engine.evaluate(41).get.get should contain(temp)
   }
-  t
+
   it should "hold w 3m @37m busG at all time points t ∈ [37.2m, 40.2m]." in {
+
+    // TODO: discuss if we should use lookahead for concrete timepoints???
     val program = LarsProgram.from(
       temp <= WindowAtom(STW(3), At(t37), busG)
     )
