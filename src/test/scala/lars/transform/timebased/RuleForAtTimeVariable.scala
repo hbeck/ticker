@@ -28,7 +28,7 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   }
   it should "return  reach_w_te_1_at_U_a(T + 1, T)" in {
     forExactly(1, DefaultLarsToPinnedProgram.rulesForAtTimeVariable(w_te_1_at_U_a, U)) {
-      rule => headArguments(rule.head) should contain inOrder(TimeVariableWithOffset("T", 1), TimeVariableWithOffset("T"))
+      rule => headArguments(rule.head) should contain inOrder(TimeVariableWithOffset("T", -1), TimeVariableWithOffset("T"))
     }
   }
   it should "return  reach_w_te_1_at_U_a(T, T)" in {
@@ -58,8 +58,8 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
     val reach = Atom("reach_w_te_2_at_U_a")
     val body = DefaultLarsToPinnedProgram.rulesForAtTimeVariable(WindowAtom(SlidingTimeWindow(2), At(U), a), U) map (_.head)
     body should contain allOf(
-      reach(T + 2)(T),
-      reach(T + 1)(T),
+      reach(T - 2)(T),
+      reach(T - 1)(T),
       reach(T)(T),
       Atom("w_te_2_at_U_a")(U)(T)
     )

@@ -12,7 +12,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPushEngine {
+class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val aspProgram =
     """
     z(X) :- w2ta(U,T), X = U + 1.
@@ -46,7 +46,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
 
   //  pendingWithTms("Missing grounding of Variable U")
   it should "not lead to z at t0" in {
-    preparedEngine.evaluate(t0).get shouldNot contain(z)
+    evaluationEngine.evaluate(t0).get shouldNot contain(z)
   }
 
   it should "not lead to z at t1" in  {
@@ -54,7 +54,6 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
   }
 
   it should "lead to z and i at t2" in {
-
     preparedEngine.evaluate(t2).get.value should contain allOf(z, i)
   }
 

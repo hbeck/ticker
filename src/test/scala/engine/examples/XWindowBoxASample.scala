@@ -43,6 +43,8 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 
+  info ( "Engine " + this.evaluationType)
+
   def engineWithStream = {
     info("Given '{t1 -> a}, {t2 -> a}' ")
 

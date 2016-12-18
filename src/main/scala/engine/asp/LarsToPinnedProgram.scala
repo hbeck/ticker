@@ -124,7 +124,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     val atomAtTime = windowAtom.atom(timePoint)
 
     val nowAtoms = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t + i)
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t - i)
     }
 
     val rules = nowAtoms map (n => AspRule[AtomWithArgument, AtomWithArgument](h(n.time), Set(atomAtTime, n)))
@@ -137,7 +137,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
     // we need the reach atom in the form of atom(T-k,T)
     val reachAtoms = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T, (t, i) => t + i) map (a => a(T))
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, reachAtom, T, (t, i) => t - i) map (a => a(T))
     }
 
     val reachRules = reachAtoms.toSet[AtomWithArgument] map (r => AspRule(r, Set[AtomWithArgument](now(T))))
