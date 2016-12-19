@@ -124,7 +124,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     val atomAtTime = windowAtom.atom(timePoint)
 
     val nowAtoms = windowAtom.windowFunction match {
-      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t - i)
+      case SlidingTimeWindow(size) => generateAtomsOfT(size, now, timePoint, (t, i) => t + i)
     }
 
     val rules = nowAtoms map (n => AspRule[AtomWithArgument, AtomWithArgument](h(n.time), Set(atomAtTime, n)))
