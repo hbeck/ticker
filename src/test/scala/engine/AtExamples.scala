@@ -54,12 +54,12 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
     engine.evaluate(42).get.get should not contain (temp)
   }
 
-  "For { 37m → {busG} }  @_{T +3m} expBusM " should "hold for w 3m @37m busG" in {
+  "For { 37m → {busG} }  @_{T +3m} expBusM " should "hold for w6 3m @T busG at T_40" in {
     val expBusM = Atom("expBusM")
     val U = TimeVariableWithOffset("U")
 
     val program = LarsProgram.from(
-      AtAtom(U + 3, expBusM) <= WindowAtom(STW(4), At(U), busG)
+      AtAtom(U + 3, expBusM) <= WindowAtom(STW(3), At(U), busG)
     )
 
     val engine = defaultEngine(program)
@@ -71,6 +71,24 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
     engine.evaluate(39).get.get should not contain (expBusM)
 
     engine.evaluate(40).get.get should contain(expBusM)
+  }
 
+  "For { 37 → {a} }  @_{T - 1} b :- w^3 @T a. c :- w^2 d b." should "hold c for T_37, T_38" in {
+    val U = TimeVariableWithOffset("U")
+
+    val program = LarsProgram.from(
+      AtAtom(U - 1, b) <= WindowAtom(STW(3), At(U), a),
+      c <= WindowAtom(STW(2), Diamond, b)
+    )
+
+    val engine = defaultEngine(program)
+
+    engine.append(t37)(a)
+
+    // t_36 is not possible to evaluate (before timestamp t_37)
+    engine.evaluate(37).get.get should contain(c)
+    engine.evaluate(38).get.get should contain(c)
+
+    engine.evaluate(39).get.get should not contain (c)
   }
 }
