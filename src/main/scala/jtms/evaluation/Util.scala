@@ -24,7 +24,7 @@ object Util {
     println("  non-ground preds: " + i.nonGroundFactAtomPredicates)
     println("intensional:")
     println("  ground atoms:     " + i.groundIntensionalAtoms)
-    println("  non-ground preds: " + i.nonGroundIntensionalPredicates)
+    println("  non-ground preds: " + i.nonGroundIntensionalPredicatesSansFacts)
     println()
     println("non-ground fact atoms/var in rule:\n")
     printNestedMap(i.nonGroundFactAtomsPerVariableInRule)

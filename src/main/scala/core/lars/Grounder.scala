@@ -1,7 +1,7 @@
 package core.lars
 
 import core._
-import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
+import core.asp.NormalRule
 
 import scala.collection.immutable.HashMap
 
@@ -191,8 +191,12 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
   val groundIntensionalPredicates = groundIntensionalAtoms map (_.predicate)
 
-  val nonGroundRuleHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate }
-  val nonGroundIntensionalPredicates = nonGroundRuleHeadPredicates diff nonGroundFactAtomPredicates
+  val nonGroundHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate }
+  val nonGroundBodyPredicates = ruleCores flatMap (_.pos) collect { case x: NonGroundAtom => x.predicate }
+  val nonGroundPredicates = nonGroundHeadPredicates union nonGroundBodyPredicates
+  val intensionalPredicates = ruleCores map (_.head.atom.predicate)
+  val nonGroundIntensionalPredicates = nonGroundPredicates intersect intensionalPredicates
+  val nonGroundIntensionalPredicatesSansFacts = nonGroundIntensionalPredicates diff nonGroundFactAtomPredicates
 
   val justificationsOfNonGroundIntensionalPredicate: Map[Predicate, Set[TRule]] =
     ruleCores filter (r => !r.isFact && r.head.isInstanceOf[NonGroundAtom]) groupBy (_.head.atom.predicate)
@@ -229,7 +233,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   }
 
   val nonGroundFactAtomsPerVariableInRule = makeAtomLookupMap(nonGroundFactAtomPredicates)
-  val nonGroundIntensionalAtomsPerVariableInRule = makeAtomLookupMap(nonGroundIntensionalPredicates)
+  val nonGroundIntensionalAtomsPerVariableInRule = makeAtomLookupMap(nonGroundIntensionalPredicatesSansFacts)
 
   //
   //
@@ -314,7 +318,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
         Set()
       }
 
-    if (!nonGroundIntensionalPredicates.contains(predicate)) {
+    if (!nonGroundIntensionalPredicatesSansFacts.contains(predicate)) {
       return groundIntensional
     }
 
