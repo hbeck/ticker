@@ -198,7 +198,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   val nonGroundIntensionalPredicates = nonGroundPredicates intersect intensionalPredicates
   val nonGroundIntensionalPredicatesSansFacts = nonGroundIntensionalPredicates diff nonGroundFactAtomPredicates
 
-  val justificationsOfNonGroundIntensionalPredicate: Map[Predicate, Set[TRule]] =
+  val justificationsOfNonGroundIntensionalHeadPredicate: Map[Predicate, Set[TRule]] =
     ruleCores filter (r => !r.isFact && r.head.isInstanceOf[NonGroundAtom]) groupBy (_.head.atom.predicate)
 
   val groundFactAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundFactAtoms groupBy (_.predicate)
@@ -318,11 +318,11 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
         Set()
       }
 
-    if (!nonGroundIntensionalPredicatesSansFacts.contains(predicate)) {
+    if (!nonGroundHeadPredicates.contains(predicate)) {
       return groundIntensional
     }
 
-    val justifications: Set[TRule] = justificationsOfNonGroundIntensionalPredicate(predicate)
+    val justifications: Set[TRule] = justificationsOfNonGroundIntensionalHeadPredicate(predicate)
 
     //first consider head atoms where the given argument appears ground
     val tuple: (Set[TRule], Set[TRule]) = justifications partition { rule =>
