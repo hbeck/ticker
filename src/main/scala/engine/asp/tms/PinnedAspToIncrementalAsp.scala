@@ -39,7 +39,7 @@ object PinnedAspToIncrementalAsp {
     AspRule(
       unpin(rule.head),
       (rule.pos filterNot (_.atom == now) map unpinIfNeeded) ++
-        // at rules have a concrete now, we want to keep that
+        // @ with a concrete Timepoint (e.g. @_10 a)requires a now(t) => therefore we need to keep now when t is a concrete Timepoint
         (rule.pos collect { case p: PinnedAtom if p.atom == now && p.time.isInstanceOf[TimePoint] => p }),
       rule.neg map unpinIfNeeded
     )
@@ -56,18 +56,19 @@ object PinnedAspToIncrementalAsp {
     }
 
     // get pinned window atoms (that is matching predicates and arguments, except the last argument which is the Time-Variable)
-    val pinnedTimestamptedAtoms = p.atoms filter (a => timestampedAtoms.contains((a.predicate, a.arguments.init)))
-    val atomAtT: Set[AtomWithArgument] = pinnedTimestamptedAtoms collect {
+    val pinnedTimestampedAtoms = p.atoms filter (a => timestampedAtoms.contains((a.predicate, a.arguments.init)))
+    val atomAtT: Set[AtomWithArgument] = pinnedTimestampedAtoms collect {
       case pinned: PinnedAtom if pinned.time == core.lars.T => pinned
     }
 
-    val atPrediactes = atAtoms map (a => a.predicate)
-    val atomsToKeepPinned = pinnedTimestamptedAtoms diff (atomAtT filterNot (a => atPrediactes contains (a.predicate)))
+    val atPredicates = atAtoms map (a => a.predicate)
+    // for @ atoms we want to keep the timestamp
+    val atomsAtTWithoutAt = atomAtT filterNot (a => atPredicates contains a.predicate)
 
+    val atomsToKeepPinned = pinnedTimestampedAtoms diff atomsAtTWithoutAt
+
+    // Unpin atoms which have a time-variable == T  and are not @-Atoms with time variables
     val atomsToUnpin = (p.atoms diff atomsToKeepPinned).toSet[ExtendedAtom]
-
-    val headAtoms = p.larsRulesAsPinnedRules.flatMap(r => r._2 map (_.head)).toSet[ExtendedAtom] //i.e., intensional atoms
-    //    val atomsToUnpin = headAtoms
 
     val semiPinnedRules = p.rules map (r => apply(r, atomsToUnpin))
 
