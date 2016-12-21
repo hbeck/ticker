@@ -18,9 +18,10 @@ class RuleForAtSpec extends TransformLarsSpec {
   }
   it should "contain now in all rules" in {
     forAll(DefaultLarsToPinnedProgram.rulesForAt(w_te_1_a_1_a)) {
-      rule => rule.body map {
-         a: AtomWithArgument => a.predicate
-      } should contain(now.predicate)
+      rule =>
+        rule.body map {
+          a: AtomWithArgument => a.predicate
+        } should contain(now.predicate)
     }
   }
   it should "contain now(t2)" in {
@@ -42,8 +43,9 @@ class RuleForAtSpec extends TransformLarsSpec {
 
   val w_te_1_at_U_a = W(1, At(U), a)
 
-  "The window atom wˆ at_U a" should "have one rule with head w_te_1_at_U_a" in {
-    forExactly(1, DefaultLarsToPinnedProgram.rulesForAt(w_te_1_at_U_a)) { rule => rule.head.toString should startWith("w_te_1_at_U_a") }
+  "The window atom wˆ at_U a" should "have TWOE rule with head w_te_1_at_U_a" in {
+    forExactly(2, DefaultLarsToPinnedProgram.rulesForAt(w_te_1_at_U_a)) {
+      rule => rule.head.toString should startWith("w_te_1_at_U_a")
+    }
   }
-
 }

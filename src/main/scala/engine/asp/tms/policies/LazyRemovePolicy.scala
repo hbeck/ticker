@@ -26,9 +26,9 @@ case class LazyRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm(), la
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 
   override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = {
-    val markedAsDeleteEntries = reverseDeleteMap filter { case (rule,_) => rules contains rule }
+    val markedAsDeleteEntries = reverseDeleteMap filter { case (rule, _) => rules contains rule }
     // We don't need to add these rules - instead don't remove them
-    markedAsDeleteEntries foreach { case (rule,timePoint) => unmarkAsDeleted(rule,timePoint) }
+    markedAsDeleteEntries foreach { case (rule, timePoint) => unmarkAsDeleted(rule, timePoint) }
 
     val newRules = rules filterNot markedAsDeleteEntries.contains
     newRules foreach (x => tms.add(x))

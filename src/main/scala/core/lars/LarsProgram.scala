@@ -13,7 +13,10 @@ trait LarsBasedProgram {
   }
 
   lazy val atAtoms = larsRules flatMap {
-    _.atoms collect { case a: AtAtom => a }
+    _.atoms collect {
+      case a: AtAtom => a
+      case WindowAtom(_, At(_), a) => a
+    }
   }
 
   lazy val slidingTimeWindowsAtoms = windowAtoms collect {
