@@ -27,7 +27,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
     PinnedAspToIncrementalAsp(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
   }
 
-  "now(T)" should "be removed from a rule" in {
+  "now(T)" should "be removed from a normal rule" in {
     val r: AspRule[AtomWithArgument] = AspRule(PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(T)))
 
     PinnedAspToIncrementalAsp(r, Set()).body should not contain (now(T))
@@ -44,6 +44,25 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
 
     val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
     forAll(converted)(r => r.head shouldBe an[PredicateAtom])
+  }
+  it should "be pinned for an @_U atom" in {
+    val rules = LarsToPinnedProgram(a <= W(1, At(U), b))
+
+    val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
+    forExactly(2, converted)(r => r.head.variables should contain(T.variable))
+  }
+  it should "contain now(t) for an @_t atom" in {
+    val rules = LarsToPinnedProgram(a <= W(1, At(t1), b))
+
+    val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
+    forExactly(2, converted)(r => r.body map (_.predicate) should contain(now.predicate))
+  }
+
+  "The head of a rule containing @_U" should "still be pinned" in {
+    val rules = LarsToPinnedProgram(AtAtom(U, a) <= b)
+
+    val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
+    forAll(converted)(r => r.head.variables should contain(U.variable))
   }
 
   "The usage of the window-atom body" should "not be pinned" in {
