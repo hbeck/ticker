@@ -13,21 +13,21 @@ class RuleOnlySpec extends TransformLarsSpec {
   "A fact" should "be translated in a fact with now(T) in the body" in {
     val f = LarsFact(a)
 
-    DefaultLarsToPinnedProgram.rule(f).body should contain(now(T))
+    DefaultLarsToPinnedProgram.transformRule(f).body should contain(now(T))
   }
 
   it should "transform an at-atom in the head" in {
     val f = LarsFact(AtAtom(t1, a))
-    assert(DefaultLarsToPinnedProgram.rule(f) == AspRule(a(t1), Set(now(T))))
+    assert(DefaultLarsToPinnedProgram.transformRule(f) == AspRule(a(t1), Set(now(T))))
   }
 
   "A rule containing only positive elements" should "have the same amount of items in its transformed pos. body and now(T)" in {
     val r = UserDefinedLarsRule(a, Set(b, c))
-    DefaultLarsToPinnedProgram.rule(r).pos should have size 3
+    DefaultLarsToPinnedProgram.transformRule(r).pos should have size 3
   }
   "A rule containing only negative elements" should "have the same amount of items in its transformed neg. body" in {
     val r = UserDefinedLarsRule(a, Set(), Set(b, c))
-    DefaultLarsToPinnedProgram.rule(r).neg should have size 2
+    DefaultLarsToPinnedProgram.transformRule(r).neg should have size 2
   }
 }
 

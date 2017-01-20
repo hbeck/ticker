@@ -11,27 +11,20 @@ import scala.concurrent.duration._
   */
 
 case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
-
-  //TODO hb: maybe better called "toAspAtom"
-  def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
-    case AtAtom(t, a) => a(t)
-    // TODO: discuss if this approach is correct: can an head-atom be already pinned?
-    case VariablePinnedAtom(a, v: TimeVariableWithOffset) => a(v)
-    case a: Atom => a(T)
-  }
-
   //TODO hb: maybe better called "toAspAtom"
   def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
     case AtAtom(t, a) => a(t)
+    // TODO: discuss if this approach is correct: can an head-atom be already pinned?
+    case VariablePinnedAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
 
   //TODO hb: maybe better called "asAspRules; change output type to NormalRule"
   def apply(rule: LarsRule): Set[PinnedRule] = {
-    val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
+    val derivedBodyRules = (rule.pos ++ rule.neg) flatMap derivation
 
-    Set(this.rule(rule)) ++ rulesForBody
+    Set(this.transformRule(rule)) ++ derivedBodyRules
   }
 
   def apply(program: LarsProgram): PinnedProgramWithLars = {
@@ -45,8 +38,8 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     basicAtom(T)
   }
 
-  //TODO hb: better name, e.g., "toAspRule"
-  def rule(rule: LarsRule): PinnedRule = {
+//TODO hb: maybe better called "toAspRule"  
+def transformRule(rule: LarsRule): PinnedRule = {
     AspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
@@ -69,7 +62,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     f"${windowFunction}_${operator}_${atomName}"
   }
 
-  def additionalRules(extendedAtom: ExtendedAtom): Set[PinnedRule] = extendedAtom match {
+  def derivation(extendedAtom: ExtendedAtom): Set[PinnedRule] = extendedAtom match {
     case w@WindowAtom(_, temporalOperator, _) => temporalOperator match {
       case a: At => rulesForAt(w)
       case Diamond => rulesForDiamond(w)
