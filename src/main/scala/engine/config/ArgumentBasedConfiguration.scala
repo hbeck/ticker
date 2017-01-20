@@ -34,8 +34,11 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick
                   jtms: TruthMaintenanceNetwork = new OptimizedNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
+    //TODO hb: before this class was called, the following chain was already used.
+    //shouldn't this (EngineEvaluationConfiguration) config replace the program: LarsProgram argument of this case class?
     val config = BuildEngine.withProgram(program).withTickSize(tickSize)
 
+    //TODO hb: pattern matching instead of nested ifs?
     if (evaluationType == EvaluationTypes.Tms) {
       if (evaluationModifier == EvaluationModifier.Greedy) {
         return Some(greedyTms(config, jtms, random))

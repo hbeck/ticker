@@ -1,10 +1,8 @@
 package engine.asp
 
-import java.util.concurrent.TimeUnit
-
+import core._
 import core.asp.AspRule
 import core.lars._
-import core._
 
 import scala.concurrent.duration._
 
@@ -14,6 +12,7 @@ import scala.concurrent.duration._
 
 case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
+  //TODO hb: maybe better called "toAspAtom"
   def apply(headAtom: HeadAtom): AtomWithArgument = headAtom match {
     case AtAtom(t, a) => a(t)
     // TODO: discuss if this approach is correct: can an head-atom be already pinned?
@@ -21,12 +20,14 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     case a: Atom => a(T)
   }
 
+  //TODO hb: maybe better called "toAspAtom"
   def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
     case AtAtom(t, a) => a(t)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
 
+  //TODO hb: maybe better called "asAspRules; change output type to NormalRule"
   def apply(rule: LarsRule): Set[PinnedRule] = {
     val rulesForBody = (rule.pos ++ rule.neg) flatMap additionalRules
 
@@ -44,6 +45,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     basicAtom(T)
   }
 
+  //TODO hb: better name, e.g., "toAspRule"
   def rule(rule: LarsRule): PinnedRule = {
     AspRule(
       this.apply(rule.head),

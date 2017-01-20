@@ -1,7 +1,5 @@
 package engine.config
 
-import java.util.concurrent.TimeUnit
-
 import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.lars.{EngineTick, LarsProgram}
 import engine.EvaluationEngine
@@ -11,9 +9,9 @@ import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
+import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.JtmsGreedy
 import jtms.networks.OptimizedNetwork
-import jtms.{JtmsUpdateAlgorithm, TruthMaintenanceNetwork$}
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -29,12 +27,14 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 
   def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
 
+  //TODO hb: assuming correct understanding: due to the new mapping, we should simply have a "LarsToAsp" mapping, since the result
+  //is no longer "pinned" (in the sense that only some atoms get an additional time argument)
   def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
 
   def withTickSize(tickSize: EngineTick) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
-
+//TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
 case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars) {
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(pinnedProgram))

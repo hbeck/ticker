@@ -3,9 +3,9 @@ package runner
 import java.util.TimerTask
 import java.util.concurrent.{Executors, TimeUnit}
 
-import core.{Atom, Model}
+import core.Atom
 import core.lars.TimePoint
-import engine.{EvaluationEngine, NoResult, Result}
+import engine.{EvaluationEngine, Result}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}

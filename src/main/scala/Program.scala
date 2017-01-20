@@ -1,12 +1,11 @@
 
-import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
-import jtms.evaluation.Util
 import java.io.File
 
 import Program.InputTypes.InputTypes
 import core.lars.{Format, LarsProgram}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes._
+import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
 import runner._
 
 import scala.concurrent.duration._
@@ -20,7 +19,7 @@ object Program {
   def main(args: Array[String]): Unit = {
 
     val myargs = Seq(
-      "--program", "/Users/FM/Documents/OneDrive/Uni/Diplom_Beck/steen/src/test/resources/test.rules",
+      "--program", "src/test/resources/test.rules",
       "--evaluationType", "Clingo",
       "--evaluationModifier", "Push",
       "--inputType", "Http,StdIn",

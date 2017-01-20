@@ -1,8 +1,8 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, AspRule, NormalRule}
-import core.lars.{GroundRule, Grounder, LarsProgramInspection, TimePoint}
+import core.asp.{AspFact, NormalRule}
+import core.lars.{GroundRule, LarsProgramInspection, TimePoint}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
 import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
@@ -11,6 +11,7 @@ import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
   * Created by FM on 18.05.16.
   */
 case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
   val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
 
@@ -39,12 +40,15 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     // TODO: this bookkeeping should be done in trackAux
     signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
 
+    // TODO hb: seems crazy to always create the entire sequency from scratch instead of updating a data structure
+    // (we have three iterations over all values instead of a single addition of the new atoms;
+    //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
     val allHistoricalSignals: Seq[NormalRule] = signalStream.values flatMap (_.toSeq) toSeq
 
-    // performs simple pinning-calcuations (eg. T + 1)
+    // performs simple pinning-calculations (eg. T + 1)
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
-    val grounder = new GroundRule[NormalRule, Atom, Atom]
+    val grounder = new GroundRule[NormalRule, Atom, Atom]()
     val inspectWithAllSignals = LarsProgramInspection.from(groundTimeVariableCalculations ++ allHistoricalSignals)
     val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals)
 

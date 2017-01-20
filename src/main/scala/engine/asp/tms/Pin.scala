@@ -45,7 +45,7 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
   def apply(pinnedAtom: PinnedAtom): PinnedAtom = {
 
     val groundedBaseAtom = pinnedAtom.atom match {
-      case pa: PinnedAtom => apply(pa)
+      case pa: PinnedAtom => apply(pa) //TODO hb: infinite circle? if all methods are called apply, it is difficult to understand what's happening
       case a: Atom => a
     }
 
@@ -64,7 +64,7 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
   def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-//      ground(g)
+//      ground(g) //TODO hb: why is this commented?
       g
     }
     case a: GroundAtom => a

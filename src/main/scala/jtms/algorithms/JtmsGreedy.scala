@@ -3,14 +3,14 @@ package jtms.algorithms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 import jtms._
-import jtms.networks.{OptimizedNetwork, SimpleNetwork}
+import jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy(new OptimizedNetwork())
+    val net = new JtmsGreedy(new OptimizedNetwork()) //TODO hb: why don't we use "TruthMaintenanceNetwork()" here (as below)?
     P.rules foreach net.add
     net
   }
