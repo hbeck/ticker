@@ -1,0 +1,123 @@
+
+#script (python) 
+
+import socket
+import os
+import errno
+import clingo
+# from gringo import Fun, SolveResult, Model
+from clingo import SolveResult,Model
+
+class Receiver:
+    def __init__(self, conn):
+        self.conn = conn
+        self.data = bytearray()
+    def readline(self):
+        pos = self.data.find("\n")
+        while pos < 0:
+            while True:
+                try: self.data.extend(self.conn.recv(4096))
+                except socket.error as (code, msg):
+                    if code != errno.EINTR: raise
+                else: break
+            pos = self. data.find("\n")
+        msg = self.data[:pos]
+        self.data = self.data[pos+1:]
+        return msg
+
+class States:
+    SOLVE = 1
+    IDLE  = 2
+
+def printModel(model):
+    print "Model ", dir(model)
+    print "Atoms ", model.symbols(True)
+
+def on_model(conn, model):
+    printModel(model)    
+    conn.sendall("Answer: " + str(model) + "\n")
+
+def finished(conn, ret, interrupted):
+    conn.sendall("finish:" + str(ret) + (":INTERRUPTED" if interrupted else "") + "\n")
+
+def main(prg):
+    with open(".controller.PORT", "r") as f:
+        p = int(f.read())
+    os.remove(".controller.PORT")
+    conn = socket.create_connection(("127.0.0.1", p))
+
+    print dir(prg)
+
+    def fin(ret):
+        finished(conn, ret, False)
+
+    def model(model):
+        on_model(conn, model)
+
+    try:
+        recv  = Receiver(conn)
+        state = States.IDLE
+        k     = 0
+        tick = 0
+
+        prg.ground([("base",[]), ("volatile", [tick])])
+        prg.assign_external(clingo.Function("now", [tick]), True)
+        while True:
+            if state == States.SOLVE:              
+                # m = prg.solve(printModel)
+                # print m
+                f = prg.solve_async(
+                    # on_model  = lambda model: on_model(conn, model),
+                    model,
+                    # on_model  = lambda model: print model, conn.sendall("Answer: " + str(model) + "\n" + str(model.symbols(True))+ "\n"),
+                    # on_finish = lambda ret, interrupted: finished(conn, ret, interrupted) )
+                    fin
+                    )
+
+            msg = recv.readline()
+            if state == States.SOLVE:
+                f.cancel()
+                ret = f.get()
+            else:
+                ret = SolveResult.unknown
+            if msg == "interrupt":
+                state = States.IDLE
+            elif msg == "exit":
+                return
+            elif msg.startswith("tick "):
+                prg.release_external(clingo.Function("now", [tick]))
+
+                prg.cleanup()
+                tick = int(msg.split(" ").pop())
+                print "Current Tick: "+ str(tick)
+                
+                parts = []            
+                parts.append(("volatile", [tick]))
+                parts.append(("signals", [tick]))
+                print parts
+                prg.ground(parts)
+                
+                prg.assign_external(clingo.Function("now",[tick]), True)
+                state = States.IDLE
+            elif msg.startswith("signal "):
+                tokens = msg.split(" ")
+                inputSignals = tokens[1:]
+                print "Signals: " + str(inputSignals)
+                for s in inputSignals: 
+                    atom = clingo.Function(str(s),[tick])
+                    print "Atom ", atom
+                    prg.assign_external(atom, True)                
+                state = States.IDLE
+            elif msg == "solve":
+                state = States.SOLVE
+            else: raise(RuntimeError("unexpected message: " + msg))
+            # if ret != SolveResult.UNKNOWN:
+                # k = k + 1
+                # print "Sleep " + str(k)
+                # prg.ground([("sleep", [k])])
+                # prg.release_external(Fun("sleep", [k-1]))
+                # prg.assign_external(Fun("sleep", [k]), True)
+    finally:
+        conn.close()
+#end.
+
