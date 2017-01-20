@@ -343,7 +343,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
       val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
       val allSources: Set[(Predicate, Int)] = rule.pos collect {
         //neg ignored!
-        case x: NonGroundAtom if x.positionOf(variable) >=0 => (x.predicate, x.positionOf(variable))
+        case x: NonGroundAtom if x.positionOf(variable) >= 0 => (x.predicate, x.positionOf(variable))
       }
       val groundFactAtomSources: Set[(Predicate, Int)] = allSources filter { case (p, i) => groundFactAtomPredicates.contains(p) }
       if (groundFactAtomSources.nonEmpty) {
