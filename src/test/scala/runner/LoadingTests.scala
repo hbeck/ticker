@@ -69,7 +69,7 @@ class LoadingTests extends FlatSpec {
     val program = loader.readProgram(stringProgram.lines.toArray)
 
     program.rules should have length (3)
-    program.atoms.map(_.atom.predicate.caption) should contain allOf("a", "b", "c", "x", "y")
-    program.atoms.map(_.atom) should contain(Atom(Predicate("y"), Seq(IntValue(1))))
+    program.extendedAtoms.map(_.atom.predicate.caption) should contain allOf("a", "b", "c", "x", "y")
+    program.extendedAtoms.map(_.atom) should contain(Atom(Predicate("y"), Seq(IntValue(1))))
   }
 }

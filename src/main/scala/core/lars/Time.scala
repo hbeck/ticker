@@ -40,9 +40,9 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) 
 
   def ground(timePoint: TimePoint) = TimePoint(timePoint.value + offset)
 
-  def +(duration: Duration) = TimeVariableWithOffset(variable, duration)
+  override def +(duration: Long) = TimeVariableWithOffset(variable, duration)
 
-  def -(duration: Duration) = TimeVariableWithOffset(variable, -duration)
+  override def -(duration: Long) = TimeVariableWithOffset(variable, -duration)
 
   override def toString: String = {
     val name = variable.name

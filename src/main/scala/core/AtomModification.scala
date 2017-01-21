@@ -14,7 +14,7 @@ case class AtomModification(atom: Atom) {
   def apply(time: Time) = PinnedAtom(atom, time)
 
   def apply(arguments: List[Argument]): Atom = {
-    val (pred,atomArgs): (Predicate, Seq[Argument]) = atom match {
+    val (pred, atomArgs): (Predicate, Seq[Argument]) = atom match {
       case aa: AtomWithArgument => (aa.predicate, aa.arguments)
       case _ => (atom.predicate, Seq())
     }
@@ -26,6 +26,8 @@ case class AtomModification(atom: Atom) {
   def asTupleReference(position: Long) = {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
+
+  def asCountReference(argument: Argument) = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), Atom.unapply(atom).getOrElse(Seq()) :+ argument)
 
   def asFluentReference(): AtomWithArgument = {
     val arguments = atom match {

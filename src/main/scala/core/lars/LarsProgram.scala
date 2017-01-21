@@ -8,21 +8,21 @@ import core.{Atom, Fact}
 trait LarsBasedProgram {
   val larsRules: Seq[LarsRule]
 
-  lazy val windowAtoms = larsRules flatMap {
+  lazy val windowAtoms: Seq[WindowAtom] = larsRules flatMap {
     _.body collect { case w: WindowAtom => w }
   }
 
-  lazy val atAtoms = larsRules flatMap {
+  lazy val atAtoms: Seq[HeadAtom] = larsRules flatMap {
     _.atoms collect {
       case a: AtAtom => a
       case WindowAtom(_, At(_), a) => a
     }
   }
 
-  lazy val slidingTimeWindowsAtoms = windowAtoms collect {
+  lazy val slidingTimeWindowsAtoms: Seq[SlidingTimeWindow] = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
   }
-  lazy val slidingTupleWindowsAtoms = windowAtoms collect {
+  lazy val slidingTupleWindowsAtoms: Seq[SlidingTupleWindow] = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
   }
   //TODO fluent window
@@ -71,8 +71,8 @@ case class BasicLarsFact(head: Atom) extends Fact[Atom, ExtendedAtom] {
 case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
   val larsRules: Seq[LarsRule] = rules
 
-  lazy val atoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
-
+  lazy val extendedAtoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
+  lazy val atoms: Set[Atom] = extendedAtoms collect { case a: Atom => a }
 
   override def toString(): String = {
     val sb = new StringBuilder

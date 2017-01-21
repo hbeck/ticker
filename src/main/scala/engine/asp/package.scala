@@ -1,6 +1,6 @@
 package engine
 
-import core.asp.{AspFact, AspProgram, AspRule}
+import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import core.lars._
 import core._
 
@@ -19,6 +19,7 @@ package object asp {
 
   //keep original lars rule from which a pinned rule stems
   type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])
+  type LarsRuleAsAspRules = (LarsRule, Set[NormalRule])
 
   type GroundAspRule = AspRule[GroundAtom]
   type GroundAspFact = AspFact[GroundAtom]

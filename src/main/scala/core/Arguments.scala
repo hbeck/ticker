@@ -1,5 +1,6 @@
 package core
 
+import core.Variable.Offset
 import core.lars.TimePoint
 
 /**
@@ -19,14 +20,29 @@ object Argument {
 }
 
 trait Variable extends Argument {
+
   val name: String
+
+  val offset: Offset
+
+
+  def -(offset: Offset): Variable
+
+  def +(offset: Offset): Variable
+
 }
 
-case class StringVariable(name: String) extends Variable {
+case class StringVariable(name: String, offset: Offset = 0) extends Variable {
   override def toString = name
+
+  override def -(offset: Offset): Variable = StringVariable(name, this.offset - offset)
+
+  override def +(offset: Offset): Variable = StringVariable(name, this.offset + offset)
 }
 
 object Variable {
+  type Offset = Int
+
   def apply(name: String): Variable = StringVariable(name)
 
   implicit def convertToVariable(name: String): Variable = {

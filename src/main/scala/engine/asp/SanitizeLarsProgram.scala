@@ -8,7 +8,7 @@ import core.lars._
   */
 case class SanitizeLarsProgram(program: LarsProgram) {
   val intensionalAtoms = program.rules map (_.head) toSet
-  val extensionalAtoms: Set[ExtendedAtom] = program.atoms diff intensionalAtoms.toSet[ExtendedAtom]
+  val extensionalAtoms: Set[ExtendedAtom] = program.extendedAtoms diff intensionalAtoms.toSet[ExtendedAtom]
 
   val sanitizedProgram = LarsProgram(program.rules map sanitize)
 

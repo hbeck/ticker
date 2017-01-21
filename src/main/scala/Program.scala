@@ -58,7 +58,7 @@ object Program {
   }
 
   def printProgram(program: LarsProgram): Unit = {
-    println(f"Lars Program of ${program.rules.size} rules with ${program.atoms.size} different atoms.")
+    println(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
 
     if (program.rules.length <= 10) {
       Format(program) foreach println
