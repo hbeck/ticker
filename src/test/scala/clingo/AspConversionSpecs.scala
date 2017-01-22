@@ -94,4 +94,26 @@ class AspConversionSpecs extends FlatSpec with AtomTestFixture {
 
     assert(ClingoConversion(atomValue) == "a(asdf,2)")
   }
+
+  val A = StringVariable("A")
+  val B = StringVariable("B")
+  val C = StringVariable("C")
+
+  "The atom Leq(A,B)" should "be converted into A <= B" in {
+    val atom = Leq(A, B)
+
+    assert(ClingoConversion(atom) == "A <= B")
+  }
+
+  "The atom Geq(A,B)" should "be converted into A >= B" in {
+    val atom = Geq(A, B)
+
+    assert(ClingoConversion(atom) == "A >= B")
+  }
+
+  "The atom Sum(A,B,C)" should "be converted into A + B = C" in {
+    val atom = Sum(A, B, C)
+
+    assert(ClingoConversion(atom) == "A + B = C")
+  }
 }

@@ -33,11 +33,22 @@ object ClingoConversion {
     }
   }
 
+  def apply(relationAtom: RelationAtom): ClingoAtom = relationAtom match {
+    case Neq(l, r) => f"$l != $r"
+    case Leq(l, r) => f"$l <= $r"
+    case Geq(l, r) => f"$l >= $r"
+    case Lt(l, r) => f"$l < $r"
+    case Gt(l, r) => f"$l > $r"
+    case Sum(l, r, e) => f"$l + $r = $e"
+    case Product(l, r, e) => f"$l * $r = $e"
+  }
+
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case x: GroundAtom => (x.predicate.caption, "")
+      case r: RelationAtom => (this.apply(r), "")
       case _ => (atom.toString, "")
     }
 
