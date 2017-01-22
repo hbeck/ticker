@@ -1,6 +1,6 @@
 package clingo
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, SequenceInputStream}
 import java.nio.charset.StandardCharsets
 
 import scala.sys.process._
@@ -61,6 +61,17 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
     //    process.exitValue()
     //
     //    output.toString()
+  }
+
+  def runReactive(program: String) = {
+
+    val inputStream = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8))
+
+    val client = this.getClass.getResourceAsStream("/python/clingo/client-py.lp")
+
+    val result = clingoProcess.#<(new SequenceInputStream(inputStream, client)) !
+
+    result
   }
 
   def parseResult(result: String): Option[Set[ClingoModel]] = {
