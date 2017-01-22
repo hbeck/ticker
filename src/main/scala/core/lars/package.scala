@@ -13,7 +13,10 @@ package object lars {
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
   val T = TimeVariableWithOffset(Variable("T"))
+  val C = Variable("C")
   val D = Variable("D")
+
+  val U = Variable("U")
 
   def STW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
 

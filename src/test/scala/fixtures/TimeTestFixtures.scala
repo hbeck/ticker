@@ -1,5 +1,6 @@
 package fixtures
 
+import core.Variable
 import core.lars.{TimePoint, TimeVariableWithOffset}
 
 /**
@@ -12,6 +13,6 @@ trait TimeTestFixtures extends AtomTestFixture {
   val t3 = TimePoint(3)
   val t4 = TimePoint(4)
 
-  val U = TimeVariableWithOffset("U")
+  val U = Variable("U")
   val T =  core.lars.T
 }

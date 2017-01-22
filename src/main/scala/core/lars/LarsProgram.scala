@@ -72,7 +72,7 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
   val larsRules: Seq[LarsRule] = rules
 
   lazy val extendedAtoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
-  lazy val atoms: Set[Atom] = extendedAtoms collect { case a: Atom => a }
+  lazy val atoms: Set[Atom] = extendedAtoms map (_.atom)
 
   override def toString(): String = {
     val sb = new StringBuilder

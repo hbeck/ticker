@@ -47,7 +47,7 @@ def transformRule(rule: LarsRule): PinnedRule = {
     )
   }
 
-  def nameFor(window: WindowAtom) = {
+  def predicateFor(window: WindowAtom) = {
     val windowFunction = window.windowFunction match {
       case SlidingTimeWindow(size) => f"w_te_${size.ticks(engineTick)}"
       case SlidingTupleWindow(size) => f"w_tu_$size"
@@ -128,7 +128,7 @@ def transformRule(rule: LarsRule): PinnedRule = {
   }
 
   def rulesForAtTimeVariable(windowAtom: WindowAtom, timeVariable: TimeVariableWithOffset): Set[PinnedRule] = {
-    val h = Atom(nameFor(windowAtom))
+    val h = Atom(predicateFor(windowAtom))
 
     val generatedRules = windowAtom.windowFunction match {
       case SlidingTimeWindow(size) => (0 to size.ticks(engineTick).toInt) map { t =>
@@ -146,7 +146,7 @@ def transformRule(rule: LarsRule): PinnedRule = {
   }
 
   private def atomFor(windowAtom: WindowAtom) = {
-    val atom = Atom(nameFor(windowAtom))
+    val atom = Atom(predicateFor(windowAtom))
     val previousArguments = windowAtom.atom match {
       case aa: AtomWithArgument => aa.arguments
       case a: Atom => Seq()

@@ -23,21 +23,21 @@ trait Variable extends Argument {
 
   val name: String
 
-  val offset: Offset
-
-
-  def -(offset: Offset): Variable
-
-  def +(offset: Offset): Variable
+//  val offset: Offset
+//
+//
+//  def -(offset: Offset): Variable
+//
+//  def +(offset: Offset): Variable
 
 }
 
 case class StringVariable(name: String, offset: Offset = 0) extends Variable {
   override def toString = name
 
-  override def -(offset: Offset): Variable = StringVariable(name, this.offset - offset)
-
-  override def +(offset: Offset): Variable = StringVariable(name, this.offset + offset)
+//  override def -(offset: Offset): Variable = StringVariable(name, this.offset - offset)
+//
+//  override def +(offset: Offset): Variable = StringVariable(name, this.offset + offset)
 }
 
 object Variable {

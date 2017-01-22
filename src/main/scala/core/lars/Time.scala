@@ -15,6 +15,7 @@ object Time {
   implicit def convertToTimePoint(timePoint: Long): Time = TimePoint(timePoint)
 
   implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
+  implicit def convertToTimeVariable(variable: Variable): Time = TimeVariableWithOffset(variable)
 }
 
 case class TimePoint(value: Long) extends Time with Value {
@@ -53,4 +54,8 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) 
 
     name
   }
+}
+
+object TimeVariableWithOffset{
+  implicit def convertToTimeVariable(variable: Variable): TimeVariableWithOffset = TimeVariableWithOffset(variable)
 }

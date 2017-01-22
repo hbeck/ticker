@@ -31,14 +31,14 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
 
     val staticAtoms = program.atoms.
       flatMap(a => Seq(
-        AspRule[Atom, Atom](a, Set(now(T), a(T))),
-        AspRule[Atom, Atom](a(T), Set(now(T), a))
+        AspRule[Atom, Atom](a, Set(now(T), a.asAtReference(T))),
+        AspRule[Atom, Atom](a.asAtReference(T), Set(now(T), a))
       )).
       toSeq
 
     val staticWindowAtom = program.windowAtoms.
       map(_.atom).
-      map(a => AspRule[Atom, Atom](a(T), Set(a.asCountReference(D))))
+      map(a => AspRule[Atom, Atom](a.asAtReference(T), Set(a.asCountReference(T, D))))
 
     val static = staticAtoms ++ staticWindowAtom
 
@@ -56,15 +56,15 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
   def transformRule(rule: LarsRule): NormalRule = {
     AspRule(
       this.apply(rule.head),
-      (rule.pos map this.apply) + now(T),
+      rule.pos map this.apply,
       rule.neg map this.apply
     )
   }
 
-  def predicateFor(window: WindowAtom) = predicateFor(window.windowFunction, window.temporalModality, window.atom)
+  def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
 
   def predicateFor(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) = {
-    val windowFunction = windowFunction match {
+    val window = windowFunction match {
       case SlidingTimeWindow(size) => f"w_te_${size.ticks(engineTick)}"
       case SlidingTupleWindow(size) => f"w_tu_$size"
       case FluentWindow => f"w_fl"
@@ -75,105 +75,174 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
       case a: At => f"at_${a.time}"
     }
     val atomName = atom.predicate.toString
-    Predicate(f"${windowFunction}_${operator}_${atomName}")
+    Predicate(f"${window}_${operator}_${atomName}")
   }
 
   def derivation(extendedAtom: ExtendedAtom): Set[NormalRule] = extendedAtom match {
-    case w@WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => slidingTime(k, temporalModality, atom)
-    case w@WindowAtom(SlidingTupleWindow(n), temporalModality, atom) => slidingTuple(n, temporalModality, atom)
-    //    case w@WindowAtom(SlidingTimeWindow(k), temporalModality, atom) => slidingTime(k, temporalModality, atom)
+    case WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => slidingTime(k, temporalModality, atom)
+    case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
+    case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
     case _ => Set()
   }
 
   def slidingTime(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
-    val size = window.windowSize.ticks(engineTick)
-
+    val size = window.windowSize.ticks(engineTick).toInt
+    val head = headFor(window, temporalModality, atom)
+    val L = Variable("L")
     temporalModality match {
       case a: At => {
-        val head = headFor(window, temporalModality, atom)
-        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        val rule = AspRule[Atom, Atom](
+          head(U),
+          Set(now(T), atom.asAtReference(U), Leq(U, T), Sum(T, IntValue(-size), L), Leq(L, U))
+        )
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
       }
       case Diamond => {
-        val head = headFor(window, temporalModality, atom)
-        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        val rule = AspRule[Atom, Atom](
+          head,
+          Set(now(T), atom.asAtReference(U), Leq(U, T), Sum(T, IntValue(-size), L), Leq(L, U))
+        )
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
       }
       case Box => {
-        val head = headFor(window, temporalModality, atom)
-
-        bodiesForBox(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        val atoms = (0 to size) map (i => atom.asAtReference(T - i)) toSet
+        val rule = AspRule[Atom, Atom](
+          head,
+          atoms + now(T)
+        )
+        Set(rule)
+        //        bodiesForBox(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
       }
     }
   }
 
-  private def headFor(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom) = {
+
+  def slidingTuple(window: SlidingTupleWindow, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
+    val size = window.windowSize
+    val head = headFor(window, temporalModality, atom)
+    val L = Variable("L")
+    temporalModality match {
+      case a: At => {
+        val rule = AspRule[Atom, Atom](head(U), Set(cnt(C), atom.asCountReference(U, D), Leq(D, C), Sum(C, IntValue(1 - size.toInt), L), Leq(L, D)))
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
+      }
+      case Diamond => {
+        val rule = AspRule[Atom, Atom](head, Set(cnt(C), atom.asCountReference(U, D), Leq(D, C), Sum(C, IntValue(1 - size.toInt), L), Leq(L, D)))
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
+      }
+      case Box => {
+
+        val rule = AspRule[Atom, Atom](
+          head,
+          Set(
+            cnt(C), atom.asCountReference(U, D), Sum(C, IntValue(1 - size.toInt), L),
+            atom.asAtReference(L), Geq(L, U), Leq(L, T)
+          )
+        )
+
+        Set(rule)
+      }
+    }
+  }
+
+  def slidingSpecificTuple(window: SlidingSpecificTupleWindow, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
+    val size = window.windowSize
+    val head = headFor(window, temporalModality, atom)
+    val L = Variable("L")
+    temporalModality match {
+      case a: At => {
+        val rule = AspRule[Atom, Atom](head(U), Set(cnt(C), atom.asSpecificCountReference(U, D), Leq(D, C), Sum(C, IntValue(1 - size.toInt), L), Leq(L, D)))
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
+      }
+      case Diamond => {
+        val rule = AspRule[Atom, Atom](head, Set(cnt(C), atom.asSpecificCountReference(U, D), Leq(D, C), Sum(C, IntValue(1 - size.toInt), L), Leq(L, D)))
+        //        bodiesForDiamond(atom, now, size, T) map (body => AspRule[Atom, Atom](head, body))
+        Set(rule)
+      }
+      case Box => {
+
+        val rule = AspRule[Atom, Atom](
+          head,
+          Set(
+            cnt(StringValue(atom.predicate.caption), C), atom.asSpecificCountReference(U, D), Sum(C, IntValue(1 - size.toInt), L),
+            atom.asAtReference(L), Geq(L, U), Leq(L, T)
+          )
+        )
+
+        Set(rule)
+      }
+    }
+  }
+
+  private def headFor(window: WindowFunction, temporalModality: TemporalModality, atom: Atom): Atom = {
     val predicate = predicateFor(window, temporalModality, atom)
     val head = AtomWithArgument(predicate, Atom.unapply(atom).getOrElse(Seq()))
     head
   }
 
-  def slidingTuple(count: TupleCount, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
+  //  def bodiesForDiamond(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
+  //
+  //    val atoms = generateAtomsOfT(start, atom, variable)
+  //
+  //    val bodies = atoms map (Set(constrainAtom(variable), _))
+  //
+  //    bodies
+  //  }
+  //
+  //  def bodiesForBox(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
+  //
+  //    val atoms = generateAtomsOfT(start, atom, variable)
+  //
+  //    val body = Set(constrainAtom(variable)) ++ atoms
+  //
+  //    // we only have a single rule
+  //    Set(body)
+  //  }
 
-  }
-
-
-  def bodiesForDiamond(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-
-    val atoms = generateAtomsOfT(start, atom, variable)
-
-    val bodies = atoms map (Set(constrainAtom(variable), _))
-
-    bodies
-  }
-
-  def bodiesForBox(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-
-    val atoms = generateAtomsOfT(start, atom, variable)
-
-    val body = Set(constrainAtom(variable)) ++ atoms
-
-    // we only have a single rule
-    Set(body)
-  }
-
-  def bodiesForAt(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-
-    val atoms = generateAtomsOfT(start, atom, variable)
-
-    val bodies = atoms map (Set(constrainAtom(variable), _))
-
-    bodies
-  }
+  //  def bodiesForAt(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
+  //
+  //    val atoms = generateAtomsOfT(start, atom, variable)
+  //
+  //    val bodies = atoms map (Set(constrainAtom(variable), _))
+  //
+  //    bodies
+  //  }
 
 
-    def rulesForAt(at: At, atom: Atom, time: Time, constraintAtom: Atom,size: Int): Set[NormalRule] = at.time match {
-      case t: TimePoint => rulesForAtTimePoint(headFor(), atom, constraintAtom, size, t)
-      case v: TimeVariableWithOffset => rulesForAtTimeVariable(windowAtom, v)
-    }
+  //  def rulesForAt(at: At, atom: Atom, time: Time, constraintAtom: Atom, size: Int): Set[NormalRule] = at.time match {
+  //    case t: TimePoint => rulesForAtTimePoint(headFor(), atom, constraintAtom, size, t)
+  //    case v: TimeVariableWithOffset => rulesForAtTimeVariable(windowAtom, v)
+  //  }
 
-  def rulesForAtTimePoint(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timePoint: TimePoint): Set[NormalRule] = {
-    val atomAtTime = atom(timePoint)
-
-    val rules = (0 to size.toInt) map (n => AspRule[Atom, Atom](head(n), Set(atomAtTime, constraintAtom(n))))
-
-    rules.toSet
-  }
-
-  def rulesForAtTimeVariable(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timeVariable: TimeVariableWithOffset): Set[NormalRule] = {
-
-    val generatedRules = (0 to size.toInt) map { t =>
-      AspRule(
-        head(timeVariable - t).asInstanceOf[Atom],
-        Set[Atom](
-          atom(timeVariable - t),
-          constraintAtom(T)
-        )
-      )
-    }
-    generatedRules.toSet
-  }
+//  def rulesForAtTimePoint(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timePoint: TimePoint): Set[NormalRule] = {
+//    val atomAtTime = atom(timePoint)
+//
+//    val rules = (0 to size.toInt) map (n => AspRule[Atom, Atom](head(n), Set(atomAtTime, constraintAtom(n))))
+//
+//    rules.toSet
+//  }
+//
+//  def rulesForAtTimeVariable(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timeVariable: TimeVariableWithOffset): Set[NormalRule] = {
+//
+//    val generatedRules = (0 to size.toInt) map { t =>
+//      AspRule(
+//        head(timeVariable - t).asInstanceOf[Atom],
+//        Set[Atom](
+//          atom(timeVariable - t),
+//          constraintAtom(T)
+//        )
+//      )
+//    }
+//    generatedRules.toSet
+//  }
 
   private def atomFor(windowAtom: WindowAtom) = {
-    val atom = Atom(predicateFor(windowAtom))
+    val atom = PredicateAtom(predicateFor(windowAtom))
     val previousArguments = windowAtom.atom match {
       case aa: AtomWithArgument => aa.arguments
       case a: Atom => Seq()
@@ -190,14 +259,14 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     }
   }
 
-  def tupleReference(atom: Atom)(position: Long): GroundAtomWithArguments = atom.asTupleReference(position)
+//  def tupleReference(atom: Atom)(position: Long): GroundAtomWithArguments = atom.asTupleReference(position)
 
-  def head(atom: WindowAtom): Atom = atomFor(atom)
+//  def head(atom: WindowAtom): Atom = atomFor(atom)
 
-  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, variable: Variable, calculate: (Variable, Int) => Variable = (t, i) => t - i): Set[Atom] = {
-    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculate(variable, _)) map (atom(_))
-    (generateAtoms :+ atom(variable)).toSet
-  }
+  //  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, variable: Variable, calculate: (Variable, Int) => Variable = (t, i) => t - i): Set[Atom] = {
+  //    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculate(variable, _)) map (atom(_))
+  //    (generateAtoms :+ atom(variable)).toSet
+  //  }
 }
 
 case class TransformedLarsProgram(larsRulesAsAspRules: Seq[LarsRuleAsAspRules], staticRules: Seq[NormalRule], tickSize: EngineTick) extends NormalProgram with LarsBasedProgram {

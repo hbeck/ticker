@@ -9,6 +9,7 @@ import core._
   */
 package object asp {
   val now = Atom("now")
+  val cnt = Atom("cnt")
 
   type PinnedRule = AspRule[AtomWithArgument]
   type PinnedFact = AspFact[AtomWithArgument]

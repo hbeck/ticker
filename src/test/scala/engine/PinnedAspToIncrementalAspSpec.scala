@@ -62,7 +62,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
     val rules = LarsToPinnedProgram(AtAtom(U, a) <= b)
 
     val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
-    forAll(converted)(r => r.head.variables should contain(U.variable))
+    forAll(converted)(r => r.head.variables should contain(U))
   }
 
   "The usage of the window-atom body" should "not be pinned" in {

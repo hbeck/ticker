@@ -27,7 +27,11 @@ case class AtomModification(atom: Atom) {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
 
-  def asCountReference(argument: Argument) = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), Atom.unapply(atom).getOrElse(Seq()) :+ argument)
+  def asCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), arguments(time, count))
+
+  def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_specific_" + atom.predicate.caption), arguments(time, count))
+
+  def asAtReference(time: Argument): Atom = AtomWithArgument(Predicate("at_" + atom.predicate.caption), arguments(time))
 
   def asFluentReference(): AtomWithArgument = {
     val arguments = atom match {
@@ -36,4 +40,8 @@ case class AtomModification(atom: Atom) {
     }
     AtomWithArgument(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
   }
+
+
+  private def arguments(arguments: Argument*): Seq[Argument] = Atom.unapply(atom).getOrElse(Seq()) ++ arguments
+
 }
