@@ -63,15 +63,14 @@ class ClingoWrapper(val clingoProcess: ProcessBuilder, val clingoVersion: String
     //    output.toString()
   }
 
-  def runReactive(program: String) = {
-
+  def runReactive(program: String): Process = {
     val inputStream = new ByteArrayInputStream(program.getBytes(StandardCharsets.UTF_8))
 
     val client = this.getClass.getResourceAsStream("/python/clingo/client-py.lp")
 
-    val result = clingoProcess.#<(new SequenceInputStream(inputStream, client)) !
+    val result = clingoProcess.#<(new SequenceInputStream(inputStream, client))
 
-    result
+    result.run()
   }
 
   def parseResult(result: String): Option[Set[ClingoModel]] = {

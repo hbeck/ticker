@@ -43,6 +43,8 @@ def finished(conn, ret, interrupted):
 
 def main(prg):
 
+    print "called..."
+
     port = 5123
     conn = socket.create_connection(("127.0.0.1", port))
 

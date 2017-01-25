@@ -3,7 +3,7 @@ package clingo.reactive
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import clingo.ClingoWrapper
+import clingo.{ClingoWrapper, ReactiveClingoServer}
 import org.scalatest.FlatSpec
 
 import scala.io.Source
@@ -56,4 +56,36 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     pending
     val result = wrapper.runReactive(program)
   }
+
+  "With explicitly connecting client" should "solve an asp program" in {
+    info("Needs a connecting client")
+    pending
+
+    val server = new ReactiveClingoServer()
+
+    server.connect()
+
+    server.sendTick(1)
+    server.sendSignal(Seq("b"))
+    val result = server.evaluate()
+
+    assert(result.isDefined)
+    assert(result.get.contains(Set("b(1)")))
+  }
+
+  "Starting client and server" should "lead to an asp model" in {
+    val server = new ReactiveClingoServer()
+
+    server.connect()
+
+    wrapper.runReactive(program)
+
+    server.sendTick(1)
+    server.sendSignal(Seq("b"))
+    val result = server.evaluate()
+
+    assert(result.isDefined)
+    assert(result.get.contains(Set("b(1)")))
+  }
+
 }
