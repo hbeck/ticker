@@ -1,19 +1,21 @@
 package clingo
 
 import java.io.PrintStream
-import java.net.{ServerSocket, Socket}
 import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.BufferedSource
+import scala.tools.nsc.io.Socket
+
+case class TickValue(parameter: TickAtom, value: Long)
 
 /**
   * Created by fm on 25/01/2017.
   */
-class ReactiveClingoServer(port: Int = 5123) {
-  private val server = new ServerSocket(port)
+class ReactiveClingoClient(port: Int = 5123) {
+  private val socket = Socket.localhost(port)
 
   private var connected: Option[ConnectedClingo] = None
 
@@ -23,25 +25,35 @@ class ReactiveClingoServer(port: Int = 5123) {
   }
 
   def connect() = {
-    Future {
-      val connectedClingo = new ConnectedClingo(server.accept())
 
-      connected = Some(connectedClingo)
+    socket.either match {
+      case Left(ex) => throw new RuntimeException("Could not connect to clingo", ex)
+      case Right(s) => {
 
-      connectedClingo.communicateOverSocket()
+        val connectedClingo = new ConnectedClingo(s)
+
+        connected = Some(connectedClingo)
+
+        //        connectedClingo.communicateOverSocket()
+      }
     }
   }
 
-  def sendTick(tick: Long) = {
-    clingo.sendCommand("tick " + tick)
-    //
-    //    val result = connected.result()
-    //    assert(result.contains(tick.toString))
+  def terminate() = {
+    clingo.sendCommand("exit")
+
+    clingo.terminate
+  }
+
+  def sendTick(ticks: Seq[TickValue]) = {
+    val ticksAsString = ticks.map(t => t.parameter + ":" + t.value)
+    clingo.sendCommand("tick " + ticksAsString.mkString(" "))
   }
 
   def sendSignal(signals: Seq[ClingoAtom]) = clingo.sendCommand("signal " + signals.mkString(" "))
 
   def evaluate(): Option[Set[ClingoModel]] = {
+
     clingo.sendCommand("solve")
 
     val model = clingo.result()
@@ -78,15 +90,11 @@ class ReactiveClingoServer(port: Int = 5123) {
   }
 
   class ConnectedClingo(socket: Socket) {
-    var running = true
-    val in = new BufferedSource(socket.getInputStream()).getLines()
-    val out = new PrintStream(socket.getOutputStream())
 
-    val commands: mutable.Queue[String] = mutable.Queue()
-    val results: BlockingQueue[String] = new LinkedBlockingQueue[String]()
+    val in = new BufferedSource(socket.inputStream()).getLines()
+    val out = new PrintStream(socket.outputStream())
 
     def terminate = {
-      running = false
       socket.close()
     }
 
@@ -94,18 +102,8 @@ class ReactiveClingoServer(port: Int = 5123) {
       out.println(command)
     }
 
-    def result() = results.take()
+    def result() = in.next()
 
-    def communicateOverSocket() = {
-      while (running) {
-        val result = in.next()
-        results.put(result)
-
-        //        val command = commands.dequeue()
-
-
-      }
-    }
   }
 
 }

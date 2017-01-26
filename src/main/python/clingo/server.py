@@ -45,20 +45,21 @@ def handleMessages(conn):
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    for i in range(0,10):
-        try:
-            p = random.randrange(1000, 60000)
-            s.bind(("", p))
-        except socket.error as (code, msg):
-            if code != errno.EADDRINUSE: raise
-            continue
-        else:
-            with open(".controller.PORT", "w") as f: f.write(str(p))
-            print "waiting for connections..."
-            break
-        raise "no port found"
-    s.listen(1)
-    conn, addr = s.accept()
+    # for i in range(0,10):
+    #     try:
+    #         p = random.randrange(1000, 60000)
+    #         s.bind(("", p))
+    #     except socket.error as (code, msg):
+    #         if code != errno.EADDRINUSE: raise
+    #         continue
+    #     else:
+    #         with open(".controller.PORT", "w") as f: f.write(str(p))
+    #         print "waiting for connections..."
+    #         break
+    #     raise "no port found"
+    # s.listen(1)
+    p = 5123
+    conn = socket.create_connection(("127.0.0.1", p))
     print
     print "this prompt accepts the following commands:"
     print "  solve              - start solving"

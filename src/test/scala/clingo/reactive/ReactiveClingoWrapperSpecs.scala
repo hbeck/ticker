@@ -3,7 +3,7 @@ package clingo.reactive
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import clingo.{ClingoWrapper, ReactiveClingoServer}
+import clingo._
 import org.scalatest.FlatSpec
 
 import scala.io.Source
@@ -18,17 +18,17 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
   val program =
     """#program signals(t).
 
-      #external b(t).
+      |#external b(t).
 
 
-      #program volatile(t).
+      |#program volatile(t).
 
-      #external now(t).
+      |#external now(t).
 
-      a(t) :- wd_b(t).
+      |a(t) :- wd_b(t).
 
-      wd_b(t) :- b(t), now(t).
-      wd_b(t) :- b(t-1), now(t).
+      |wd_b(t) :- b(t), now(t).
+      |wd_b(t) :- b(t-1), now(t).
 
     """.stripMargin
 
@@ -57,15 +57,17 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     val result = wrapper.runReactive(program)
   }
 
+  val tick_now_1 = TickValue(TickAtom("now"), 1)
+
   "With explicitly connecting client" should "solve an asp program" in {
     info("Needs a connecting client")
     pending
 
-    val server = new ReactiveClingoServer()
+    val server = new ReactiveClingoClient()
 
     server.connect()
 
-    server.sendTick(1)
+    server.sendTick(Seq(tick_now_1))
     server.sendSignal(Seq("b"))
     val result = server.evaluate()
 
@@ -74,18 +76,51 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
   }
 
   "Starting client and server" should "lead to an asp model" in {
-    val server = new ReactiveClingoServer()
+    val clingo = wrapper.runReactive(program)
+    try {
+      val server = new ReactiveClingoClient()
 
-    server.connect()
+      server.connect()
 
-    wrapper.runReactive(program)
+      server.sendTick(Seq(tick_now_1))
+      server.sendSignal(Seq("b"))
+      val result = server.evaluate()
 
-    server.sendTick(1)
-    server.sendSignal(Seq("b"))
-    val result = server.evaluate()
+      assert(result.isDefined)
+      assert(result.get.flatten.contains("b(1)"))
 
-    assert(result.isDefined)
-    assert(result.get.contains(Set("b(1)")))
+    } finally {
+
+      clingo.destroy()
+    }
+
   }
 
+  "Explicitly starting reactive clingo" should "lead to an asp model" in {
+    val reactiveClingo = new ReactiveClingo(wrapper)
+
+    val p = Set(
+      "a(t) :- wd_b(X,t).",
+      "wd_b(X,t) :- b(X,t),now(t).",
+      "wd_b(X,t) :- b(X,t-1),now(t)."
+    )
+    val reactiveProgram = ReactiveClingoProgram(p, Set())
+    val runner = reactiveClingo.executeProgram(reactiveProgram)
+
+    try {
+
+      runner.ticks(Seq(TickValue(TickAtom("now"), 2), TickValue(TickAtom("cnt"), 1)))
+      runner.signal(Seq("b(y,2)"))
+      runner.ticks(Seq(TickValue(TickAtom("now"), 3), TickValue(TickAtom("cnt"), 1)))
+
+      val model = runner.evaluate
+
+      assert(model.isDefined)
+      assert(!model.get.isEmpty)
+      assert(model.get.flatten.contains("a(1)"))
+
+    } finally {
+      runner.terminate
+    }
+  }
 }
