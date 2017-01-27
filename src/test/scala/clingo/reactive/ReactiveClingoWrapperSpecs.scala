@@ -60,9 +60,11 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     val result = wrapper.runReactive(program)
   }
 
-  def tick_now(count: Int = 1) = Tick(TickParameter("t"), count)
+  def tick_now(value: Int = 1) = Tick(TickParameter("t"), value)
 
-  def tick_cnt(count: Int = 1) = Tick(TickParameter("c"), count)
+  def tick_cnt(value: Int = 1) = Tick(TickParameter("c"), value)
+
+  def tickAt(now: Int, cnt: Int) = Seq(tick_now(now), tick_cnt(cnt))
 
   "With explicitly connecting client" should "solve an asp program" in {
     info("Needs a connecting client")
@@ -97,7 +99,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   }
 
-  "Explicitly starting reactive clingo" should "lead to an asp model" in {
+  "Explicitly starting reactive clingo and evaluating 'a :- w^1 d b(X)' with {2 -> b(y) }" should "lead to 'a' at t=2,t=3 and not to a at t=4 " in {
     val reactiveClingo = new ReactiveClingo(wrapper)
 
     val X = Variable("X")
@@ -113,20 +115,32 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      runner.evaluate(Seq(tick_now(1), tick_cnt(0)))
-      val p = Seq(tick_now(2), tick_cnt(1))
+      runner.evaluate(tickAt(1, 0))
+
+      val tickAt_2_1 = tickAt(2, 1)
 
       val groundSignal = b.assign(Assignment(Map(X -> Value("y"))))
       assert(groundSignal.isGround())
-      
-      runner.signal(Seq((groundSignal.asInstanceOf[GroundAtom], p)))
 
+      val signal_2_1 = Seq((groundSignal.asInstanceOf[GroundAtom], tickAt_2_1))
+      runner.signal(signal_2_1)
 
-      val model = runner.evaluate(p)
+      def assertModel(model: Option[Set[ClingoModel]], time: Long) = {
+        assert(model.isDefined)
+        assert(!model.get.isEmpty)
+        assert(model.get.flatten.contains(f"a($time)"))
+      }
+
+      assertModel(runner.evaluate(tickAt_2_1), 2)
+      assertModel(runner.evaluate(tickAt(3, 1)), 3)
+
+      runner.expire(signal_2_1)
+
+      val model = runner.evaluate(tickAt(4, 1))
 
       assert(model.isDefined)
       assert(!model.get.isEmpty)
-      assert(model.get.flatten.contains("a(2)"))
+      assert(!model.get.flatten.contains("a(4)"))
 
     } finally {
       runner.terminate

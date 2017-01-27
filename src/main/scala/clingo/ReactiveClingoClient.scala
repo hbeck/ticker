@@ -11,11 +11,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.BufferedSource
 import scala.tools.nsc.io.Socket
 
-case class Tick(parameter: TickParameter, value: Long)
 
 /**
   * Created by fm on 25/01/2017.
   */
+
+case class Tick(parameter: TickParameter, value: Long)
 
 case class ReactiveClingoSignal(predicate: ClingoAtom, arguments: Seq[Value], ticks: Seq[Tick])
 
@@ -45,6 +46,8 @@ class ReactiveClingoClient(socket: Socket) {
     socket.close()
   }
 
+  private def send(command: String, arguments: Seq[String] = Seq()) = sendCommand(command + " " + arguments.mkString(" "))
+
   private def sendCommand(command: String) = {
     out.println(command)
   }
@@ -61,18 +64,30 @@ class ReactiveClingoClient(socket: Socket) {
   }
 
   def sendSignal(signals: Seq[ReactiveClingoSignal]): Unit = {
+    val signalEncoding: Seq[String] = convertToSignalArguments(signals)
+
+    send("signal", signalEncoding)
+  }
+
+  def sendExpire(signals: Seq[ReactiveClingoSignal]): Unit = {
+    val signalEncoding: Seq[String] = convertToSignalArguments(signals)
+
+    send("expire", signalEncoding)
+  }
+
+  private def convertToSignalArguments(signals: Seq[ReactiveClingoSignal]) = {
     def concatParts(s: ReactiveClingoSignal) = Seq(s.predicate) ++ s.ticks.map(_.value.toString) ++ s.arguments
 
     val signalEncoding = signals.
       map(concatParts).
       map(_.mkString(":"))
-
-    sendCommand("signal " + signalEncoding.mkString(" "))
+    signalEncoding
   }
+
 
   def evaluate(ticks: Seq[Tick]): Option[Set[ClingoModel]] = {
     val ticksAsString = ticks.map(t => t.parameter + ":" + t.value)
-    sendCommand("solve " + ticksAsString.mkString(" "))
+    send("solve", ticksAsString)
 
     val model = fetchResult()
     if (model.startsWith("Answer:")) {

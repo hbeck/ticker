@@ -96,7 +96,14 @@ def signalParameters(signal):
     predicate = parts[0]
     params = map(asNumber, parts[1:])
 
-    return predicate, params
+    atomParameters = []
+    if len(params) > 2:
+        atomParameters = params[2:]
+
+    t = params[0]
+    c = params[1]
+
+    return predicate, t, c, atomParameters
 
 
 def nowAtom(ticks):
@@ -178,22 +185,26 @@ def main(prg):
                 signals = str(msg).split(" ")[1:]  # first element is string "signal"
 
                 for signal in signals:
-                    predicate, params = signalParameters(signal)
-                    print "building signal", predicate, params
-
-                    atomParameters = []
-                    if len(params) > 2:
-                        atomParameters = params[2:]
-
-                    t = params[0]
-                    c = params[1]
+                    predicate, t, c, atomParameters = signalParameters(signal)
+                    print "building signal", predicate, t, c, atomParameters
 
                     # ground first.
                     functionName = "signals_" + predicate + "_" + str(len(atomParameters))
-                    ground(functionName, params)
+                    ground(functionName, [t, c] + atomParameters)
 
                     addExternal(atom("at_" + predicate, atomParameters + [t]))
                     addExternal(atom("cnt_" + predicate, atomParameters + [c]))
+
+                    state = States.IDLE
+            elif msg.startswith("expire "):
+                signals = str(msg).split(" ")[1:]  # first element is string "expire"
+
+                for expire in signals:
+                    predicate, t, c, atomParameters = signalParameters(expire)
+                    print "expiring signal", predicate, t, c, atomParameters
+
+                    removeExternal(atom("at_" + predicate, atomParameters + [t]))
+                    removeExternal(atom("cnt_" + predicate, atomParameters + [c]))
 
                     state = States.IDLE
 
