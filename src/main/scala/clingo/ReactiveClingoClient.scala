@@ -96,10 +96,14 @@ class ReactiveClingoClient(port: Int = 5123) {
 
   class ConnectedClingo(socket: Socket) {
 
-    val in = new BufferedSource(socket.inputStream()).getLines()
+    val in = new BufferedSource(socket.inputStream())
+    val lines = in.getLines()
     val out = new PrintStream(socket.outputStream())
 
     def terminate = {
+      in.close()
+      out.flush()
+      out.close()
       socket.close()
     }
 
@@ -107,7 +111,7 @@ class ReactiveClingoClient(port: Int = 5123) {
       out.println(command)
     }
 
-    def result() = in.next()
+    def result() = lines.next()
 
   }
 

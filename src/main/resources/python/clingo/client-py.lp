@@ -59,8 +59,10 @@ def asNumber(value):
     else:
         return value
 
+
 def atom(predicate, arguments):
     return clingo.Function(predicate, arguments)
+
 
 def atomFromTick(predicate, value):
     return clingo.Function(str(predicate), [asNumber(value)])
@@ -84,27 +86,25 @@ def parseTicks(msg):
             asNumber(parts[1])  # count/number of atom
         ]
 
-    tickParts = map(splitParts, tickComponents)
+    parts = map(splitParts, tickComponents)
 
-    return OrderedDict(tickParts)
-
-
-def parameters(atomAsString):
-    paramBegin = atomAsString.find('(')
-    # no parameters
-    if (paramBegin < 0):
-        return []
-
-    stringParams = atomAsString[paramBegin + 1:].replace(')', '')
-    print stringParams
-
-    params = stringParams.split(',')
-
-    return map(asNumber, params)
+    return OrderedDict(parts)
 
 
-def signalParameters(params):
-    return map(asNumber, params)
+def signalParameters(signal):
+    parts = signal.split(':')
+    predicate = parts[0]
+    params = map(asNumber, parts[1:])
+
+    return predicate, params
+
+
+def nowAtom(ticks):
+    return atomFromTick("now", ticks['t'])
+
+
+def cntAtom(ticks):
+    return atomFromTick("cnt", ticks['c'])
 
 
 def main(prg):
@@ -140,15 +140,20 @@ def main(prg):
         print "Assign external", externalAtom
         prg.assign_external(externalAtom, True)
 
+    def removeExternal(externalAtom):
+        print "removing external", externalAtom
+        prg.release_external(externalAtom)
+
+    def ground(functionName, params):
+        parts = []
+        parts.append((functionName, params))
+        print "grounding", parts
+        prg.ground(parts)
+
     try:
         recv = Receiver(conn)
         state = States.IDLE
-        ticks = OrderedDict([('now', 0), ('cnt', 0)])
-        #
-        # prg.ground([("base", []), ("volatile", ticks.values())])
-        #
-        # for atomTicks in atomsFromTicks(ticks):
-        #     addExternal(atomTicks)
+        ticks = OrderedDict([('t', 0), ('c', 0)])
 
         while True:
             if state == States.SOLVE:
@@ -169,49 +174,12 @@ def main(prg):
                 conn.close()
                 s.close()
                 return
-            elif msg.startswith("tick "):
-                # nicht mehr notwendig (sondern beim expire von signals)
-                # for atom in atomsFromTicks(ticks):
-                #   prg.release_external(atom)
-
-                # prg.cleanup()
-                ##
-
-                ticks = parseTicks(msg)
-
-                print ticks
-
-                parts = []
-                parts.append(("volatile", ticks.values()))
-                parts.append(("signals", ticks.values()))
-
-                print parts
-                prg.ground(parts)
-
-                # nicht mehr notwendig (sondern beim expire von signals)
-                for tickAtom in atomsFromTicks(ticks):
-                    addExternal(tickAtom)
-
-                ###
-
-                state = States.IDLE
             elif msg.startswith("signal "):
-                differentSignals = str(msg).split(" ")[1:]  # first element is "signal"
+                signals = str(msg).split(" ")[1:]  # first element is string "signal"
 
-                print "Signals: " + str(differentSignals)
-                for signal in differentSignals:
-                    signalParts = signal.split(':')
-                    predicate = signalParts[0]
-                    params = signalParameters(signalParts[1:])
-
-                    # ground first
-                    functionName = "signals_" + predicate + "_" + str(len(params) - 2)
-
-                    parts = []
-                    parts.append((functionName, params))
-
-                    print "grounding signals", parts
-                    prg.ground(parts)
+                for signal in signals:
+                    predicate, params = signalParameters(signal)
+                    print "building signal", predicate, params
 
                     atomParameters = []
                     if len(params) > 2:
@@ -219,6 +187,10 @@ def main(prg):
 
                     t = params[0]
                     c = params[1]
+
+                    # ground first.
+                    functionName = "signals_" + predicate + "_" + str(len(atomParameters))
+                    ground(functionName, params)
 
                     addExternal(atom("at_" + predicate, atomParameters + [t]))
                     addExternal(atom("cnt_" + predicate, atomParameters + [c]))
@@ -228,18 +200,17 @@ def main(prg):
             elif msg.startswith("solve "):
                 # state = States.SOLVE
 
-                currentTicks = parseTicks(msg)
+                # expire the old now/cnt atoms before we update the tick
+                removeExternal(nowAtom(ticks))
+                removeExternal(cntAtom(ticks))
 
-                print "ticks: ", currentTicks
+                ticks = parseTicks(msg)
 
-                parts = []
-                parts.append(("volatile", currentTicks.values()))
+                print "Solving with ticks", ticks
+                ground("volatile", ticks.values())
 
-                print "Grounding/Solving", parts
-                prg.ground(parts)
-
-                addExternal(atomFromTick("now", currentTicks['t']))
-                addExternal(atomFromTick("cnt", currentTicks['c']))
+                addExternal(nowAtom(ticks))
+                addExternal(cntAtom(ticks))
 
                 # result = prg.solve(model)
                 # print result
