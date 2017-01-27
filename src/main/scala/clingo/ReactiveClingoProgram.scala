@@ -1,12 +1,37 @@
 package clingo
 
-import core.{Atom, Predicate}
+import core._
 
 /**
   * Created by fm on 25/01/2017.
   */
 
-case class ClingoSignalAtom(atom: Predicate, arguments: Seq[TickParameter] = Seq())
+object ClingoSignalAtom {
+
+  def fromAtom(atom: Atom): ClingoSignalAtom = atom match {
+    case GroundAtomWithArguments(p, args) => ClingoSignalAtom(p, args)
+    case NonGroundAtomWithArguments(p, args) => ClingoSignalAtom(p, convert(p, args))
+    case _ => ClingoSignalAtom(atom.predicate, Seq())
+  }
+
+  def convert(predicate: Predicate, arguments: Seq[Argument]): Seq[Argument] = arguments collect {
+    case v: Value => v
+    case v: Variable => TickParameter(deriveCaption(predicate, v))
+  }
+
+  private def deriveCaption(predicate: Predicate, variable: Variable) = lowerCasedPredicate(predicate) + "_" + variable.name
+
+  private def lowerCasedPredicate(predicate: Predicate) = predicate.caption.head.toLower + predicate.caption.tail
+}
+
+case class ClingoSignalAtom(atom: Predicate, arguments: Seq[Argument] = Seq()) {
+  val atName: ClingoAtom = f"at_$atom"
+  val cntName: ClingoAtom = f"cnt_$atom"
+  val functionName = f"signals_${atom}_${arguments.size}"
+  val parameters: Seq[TickParameter] = arguments collect {
+    case t: TickParameter => t
+  }
+}
 
 object TickParameter {
   def fromName(parameter: String): Either[String, TickParameter] = {
@@ -14,48 +39,42 @@ object TickParameter {
       Left("Parameter cannot contain whitespaces")
     else
       Right(TickParameter(parameter))
-
   }
 }
 
-case class TickParameter private[clingo](value: String) {
-  override def toString: ClingoExpression = value
-}
-
-case class TickAtom(atom: ClingoAtom) {
-  override def toString: ClingoExpression = atom
+case class TickParameter private[clingo](name: String) extends Variable {
+  override def toString: ClingoExpression = name
 }
 
 case class TickConstraint(predicate: Predicate, parameter: TickParameter) {
   override def toString: ClingoExpression = f"$predicate($parameter)"
 }
 
-case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignalAtom],
-                                 time: TickConstraint = TickConstraint(Predicate("now"), TickParameter("t")),
-                                 count: TickConstraint = TickConstraint(Predicate("cnt"), TickParameter("c"))
-                                ) {
+case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignalAtom]) {
 
-  val newLine = System.lineSeparator()
+  val timeConstraint: TickConstraint = TickConstraint(Predicate("now"), TickParameter("t"))
+  val countConstraint: TickConstraint = TickConstraint(Predicate("cnt"), TickParameter("c"))
 
-  val constraints = Seq(time, count)
-  val tickParameters = constraints map (_.parameter)
+  val constraints = Seq(timeConstraint, countConstraint)
+  val tickParameters: Seq[TickParameter] = constraints map (_.parameter)
 
   def external(constraint: TickConstraint): String = external(constraint.predicate.toString, Seq(constraint.parameter))
 
-  def external(atom: ClingoAtom, arguments: Seq[TickParameter]): String = f"#external $atom(${argumentList(arguments)})."
+  def external(atom: ClingoAtom, arguments: Seq[Argument]): String = f"#external $atom(${argumentList(arguments)})."
 
-  val externalConstraints = constraints map external
+  val externalConstraints: Seq[ClingoExpression] = constraints map external
 
-  val signalPrograms = signals map (s =>
-    f"""#program signals_${s.atom}_${s.arguments.size}(${argumentList(tickParameters ++ s.arguments)}).
+  val signalPrograms: Set[ClingoExpression] = signals map (signal =>
+    f"""#program ${signal.functionName}(${argumentList(tickParameters ++ signal.parameters)}).
        |
-       |${external(f"at_${s.atom}", s.arguments :+ time.parameter)}
-       |${external(f"cnt_${s.atom}", s.arguments :+ count.parameter)}
+       |${external(signal.atName, signal.arguments :+ timeConstraint.parameter)}
+       |${external(signal.cntName, signal.arguments :+ countConstraint.parameter)}
        |
      """.stripMargin)
 
 
-  val program =
+  private val newLine = System.lineSeparator()
+  val program: ClingoExpression =
     f"""${signalPrograms.mkString(newLine)}
        |
        |#program volatile(${tickParameters.mkString(", ")}).
@@ -66,5 +85,5 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |
   """.stripMargin
 
-  def argumentList(arguments: Seq[TickParameter]) = arguments.mkString(", ")
+  private def argumentList(arguments: Seq[Argument]) = arguments.mkString(", ")
 }

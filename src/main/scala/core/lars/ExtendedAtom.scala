@@ -7,7 +7,9 @@ import core.Atom
   */
 trait ExtendedAtom {
   val atom: Atom
+
   def isGround(): Boolean
+
   def assign(assignment: Assignment): ExtendedAtom //not called 'ground' since assignment might be partial
 }
 
@@ -16,6 +18,7 @@ trait HeadAtom extends ExtendedAtom {
 
 trait GroundExtendedAtom extends ExtendedAtom {
   override def isGround(): Boolean = true
+
   override def assign(assignment: Assignment) = this
 }
 
@@ -27,10 +30,12 @@ object HeadAtom {
 
 case class WindowAtom(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) extends ExtendedAtom {
   override def isGround(): Boolean = atom.isGround()
+
   override def assign(assignment: Assignment) = WindowAtom(windowFunction, temporalModality, (atom assign assignment).asInstanceOf[Atom])
 }
 
 case class AtAtom(time: Time, atom: Atom) extends HeadAtom {
   override def isGround(): Boolean = time.isInstanceOf[TimePoint] && atom.isGround()
+
   override def assign(assignment: Assignment): ExtendedAtom = atom assign assignment
 }

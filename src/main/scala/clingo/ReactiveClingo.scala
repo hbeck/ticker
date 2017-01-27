@@ -1,6 +1,6 @@
 package clingo
 
-import core.{Predicate, Value}
+import core.{GroundAtom, GroundAtomWithArguments, Predicate, Value}
 
 /**
   * Created by fm on 25/01/2017.
@@ -11,9 +11,7 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
 
     val reactiveClingoProcess = wrapper.runReactive(program.program)
 
-    val client = new ReactiveClingoClient(port)
-
-    client.connect()
+    val client = ReactiveClingoClient.connect(port)
 
     new RunningReactiveClingo(reactiveClingoProcess, client)
   }
@@ -26,8 +24,15 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
       clingoProcess.destroy()
     }
 
-    def signal(signals: Seq[(Predicate, Seq[Value], Seq[Tick])]) = {
-      client.sendSignal(signals)
+    def signal(signals: Seq[(GroundAtom, Seq[Tick])]) = {
+      val clingoSignal = signals.collect {
+        case (groundAtom, ticks) => groundAtom match {
+          case GroundAtomWithArguments(p, args) => ReactiveClingoSignal(p.caption, args, ticks)
+          case g: GroundAtom => ReactiveClingoSignal(g.predicate.caption, Seq(), ticks)
+        }
+      }
+
+      client.sendSignal(clingoSignal)
     }
 
     def evaluate(ticks: Seq[Tick]) = client.evaluate(ticks)

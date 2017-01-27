@@ -27,7 +27,7 @@ object ClingoWrapper {
 
     val clingoVersion = parseVersion(versionOutput)
 
-    new ClingoWrapper(Process(executable, List( "--warn=no-atom-undefined", "--verbose=0", "--models=0")), clingoVersion)
+    new ClingoWrapper(Process(executable, List("--warn=no-atom-undefined", "--verbose=0", "--models=0")), clingoVersion)
   }
 }
 

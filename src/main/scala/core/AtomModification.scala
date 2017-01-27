@@ -27,11 +27,11 @@ case class AtomModification(atom: Atom) {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
 
-  def asCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), arguments(time, count))
+  def asCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), appendArguments(time, count))
 
-  def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_specific_" + atom.predicate.caption), arguments(time, count))
+  def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_specific_" + atom.predicate.caption), appendArguments(time, count))
 
-  def asAtReference(time: Argument): Atom = AtomWithArgument(Predicate("at_" + atom.predicate.caption), arguments(time))
+  def asAtReference(time: Argument): Atom = AtomWithArgument(Predicate("at_" + atom.predicate.caption), appendArguments(time))
 
   def asFluentReference(): AtomWithArgument = {
     val arguments = atom match {
@@ -41,7 +41,11 @@ case class AtomModification(atom: Atom) {
     AtomWithArgument(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
   }
 
+  def arguments(): Seq[Argument] = atom match {
+    case aa: AtomWithArgument => aa.arguments
+    case _ => Seq()
+  }
 
-  private def arguments(arguments: Argument*): Seq[Argument] = Atom.unapply(atom).getOrElse(Seq()) ++ arguments
+  private def appendArguments(arguments: Argument*): Seq[Argument] = Atom.unapply(atom).getOrElse(Seq()) ++ arguments
 
 }

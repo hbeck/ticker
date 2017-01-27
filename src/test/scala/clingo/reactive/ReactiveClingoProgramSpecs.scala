@@ -1,7 +1,7 @@
 package clingo.reactive
 
 import clingo.{ClingoSignalAtom, ReactiveClingoProgram, TickParameter}
-import core.Predicate
+import core.{Atom, Predicate, Variable}
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -47,7 +47,8 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
   }
 
   "A program with a signal with arity 1" should "have a program with additional parameters" in {
-    val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom(Predicate("b"), Seq(TickParameter("b_arg")))))
+    val atom = Atom(Predicate("b"), Seq(Variable("arg")))
+    val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom.fromAtom(atom)))
 
     assert(s.program.contains("#program signals_b_1"))
     assert(s.program.contains(", b_arg)"))
@@ -60,7 +61,7 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
   }
 
   "A program with a rule and a signal" should "have both entries" in {
-    val s = ReactiveClingoProgram(Set("a :- b."), Set(ClingoSignalAtom(Predicate("b"))))
+    val s = ReactiveClingoProgram(Set("a :- b."), Set(ClingoSignalAtom.fromAtom(Atom("b"))))
 
     assert(s.program.contains("at_b(t)"))
     assert(s.program.contains("a :- b"))

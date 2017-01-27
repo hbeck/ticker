@@ -4,7 +4,8 @@ import java.io._
 import java.nio.charset.StandardCharsets
 
 import clingo._
-import core.{Predicate, Value}
+import core._
+import core.lars.Assignment
 import org.scalatest.FlatSpec
 
 import scala.io.Source
@@ -67,11 +68,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     info("Needs a connecting client")
     pending
 
-    val server = new ReactiveClingoClient()
+    val server = ReactiveClingoClient.connect()
 
-    server.connect()
-
-    server.sendSignal(Seq((Predicate("at_b"), Seq(), Seq(tick_now(1)))))
+    server.sendSignal(Seq(ReactiveClingoSignal("b", Seq(), Seq(tick_now(1)))))
     val result = server.evaluate(Seq(tick_now(1)))
 
     assert(result.isDefined)
@@ -81,11 +80,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
   "Starting client and server" should "lead to an asp model" in {
     val clingo = wrapper.runReactive(program)
     try {
-      val server = new ReactiveClingoClient()
+      val server = ReactiveClingoClient.connect()
 
-      server.connect()
-
-      server.sendSignal(Seq((Predicate("b"), Seq(), Seq(tick_now(1), tick_cnt(1)))))
+      server.sendSignal(Seq(ReactiveClingoSignal("b", Seq(), Seq(tick_now(1), tick_cnt(1)))))
       val result = server.evaluate(Seq(tick_now(1), tick_cnt(1)))
 
       assert(result.isDefined)
@@ -103,12 +100,15 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
   "Explicitly starting reactive clingo" should "lead to an asp model" in {
     val reactiveClingo = new ReactiveClingo(wrapper)
 
+    val X = Variable("X")
+    val b = Atom(Predicate("b"), Seq(X))
+
     val p = Set(
       "a(t) :- wd_b(X,t).",
       "wd_b(X,t) :- at_b(X,t),now(t).",
       "wd_b(X,t) :- at_b(X,t-1),now(t)."
     )
-    val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignalAtom(Predicate("b"), Seq(TickParameter("b_X")))))
+    val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignalAtom.fromAtom(b)))
     val runner = reactiveClingo.executeProgram(reactiveProgram)
 
     try {
@@ -116,7 +116,11 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
       runner.evaluate(Seq(tick_now(1), tick_cnt(0)))
       val p = Seq(tick_now(2), tick_cnt(1))
 
-      runner.signal(Seq((Predicate("b"), Seq(Value("y")), p)))
+      val groundSignal = b.assign(Assignment(Map(X -> Value("y"))))
+      assert(groundSignal.isGround())
+      
+      runner.signal(Seq((groundSignal.asInstanceOf[GroundAtom], p)))
+
 
       val model = runner.evaluate(p)
 
