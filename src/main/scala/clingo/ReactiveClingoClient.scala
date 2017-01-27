@@ -3,13 +3,15 @@ package clingo
 import java.io.PrintStream
 import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 
+import core.{Predicate, Value}
+
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.BufferedSource
 import scala.tools.nsc.io.Socket
 
-case class TickValue(parameter: TickAtom, value: Long)
+case class Tick(parameter: TickParameter, value: Long)
 
 /**
   * Created by fm on 25/01/2017.
@@ -45,16 +47,19 @@ class ReactiveClingoClient(port: Int = 5123) {
     clingo.terminate
   }
 
-  def sendTick(ticks: Seq[TickValue]) = {
-    val ticksAsString = ticks.map(t => t.parameter + ":" + t.value)
-    clingo.sendCommand("tick " + ticksAsString.mkString(" "))
+  def sendSignal(signals: Seq[(Predicate, Seq[Value], Seq[Tick])]) = {
+    def concatParts(s: (Predicate, Seq[Value], Seq[Tick])) = Seq(s._1) ++ s._3.map(_.value.toString) ++ s._2.map(_.toString)
+
+    val signalEncoding = signals.
+      map(concatParts).
+      map(_.mkString(":"))
+
+    clingo.sendCommand("signal " + signalEncoding.mkString(" "))
   }
 
-  def sendSignal(signals: Seq[ClingoAtom]) = clingo.sendCommand("signal " + signals.mkString(" "))
-
-  def evaluate(): Option[Set[ClingoModel]] = {
-
-    clingo.sendCommand("solve")
+  def evaluate(ticks: Seq[Tick]): Option[Set[ClingoModel]] = {
+    val ticksAsString = ticks.map(t => t.parameter + ":" + t.value)
+    clingo.sendCommand("solve " + ticksAsString.mkString(" "))
 
     val model = clingo.result()
     if (model.startsWith("Answer:")) {

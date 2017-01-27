@@ -4,6 +4,7 @@ import java.io._
 import java.nio.charset.StandardCharsets
 
 import clingo._
+import core.{Predicate, Value}
 import org.scalatest.FlatSpec
 
 import scala.io.Source
@@ -16,19 +17,20 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
   val wrapper = ClingoWrapper("/Users/fm/Documents/diplom/iclingo/clingo-5.1.0-macos-10.9/clingo")
 
   val program =
-    """#program signals(t).
+    """#program signals_b_0(t,c).
 
-      |#external b(t).
+      |#external at_b(t).
+      |#external cnt_b(c).
 
 
-      |#program volatile(t).
+      |#program volatile(t,c).
 
       |#external now(t).
 
       |a(t) :- wd_b(t).
 
-      |wd_b(t) :- b(t), now(t).
-      |wd_b(t) :- b(t-1), now(t).
+      |wd_b(t) :- at_b(t), now(t).
+      |wd_b(t) :- at_b(t-1), now(t).
 
     """.stripMargin
 
@@ -57,7 +59,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     val result = wrapper.runReactive(program)
   }
 
-  val tick_now_1 = TickValue(TickAtom("now"), 1)
+  def tick_now(count: Int = 1) = Tick(TickParameter("t"), count)
+
+  def tick_cnt(count: Int = 1) = Tick(TickParameter("c"), count)
 
   "With explicitly connecting client" should "solve an asp program" in {
     info("Needs a connecting client")
@@ -67,12 +71,11 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     server.connect()
 
-    server.sendTick(Seq(tick_now_1))
-    server.sendSignal(Seq("b"))
-    val result = server.evaluate()
+    server.sendSignal(Seq((Predicate("at_b"), Seq(), Seq(tick_now(1)))))
+    val result = server.evaluate(Seq(tick_now(1)))
 
     assert(result.isDefined)
-    assert(result.get.contains(Set("b(1)")))
+    assert(result.get.contains(Set("a(1)")))
   }
 
   "Starting client and server" should "lead to an asp model" in {
@@ -82,12 +85,13 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
       server.connect()
 
-      server.sendTick(Seq(tick_now_1))
-      server.sendSignal(Seq("b"))
-      val result = server.evaluate()
+      server.sendSignal(Seq((Predicate("b"), Seq(), Seq(tick_now(1), tick_cnt(1)))))
+      val result = server.evaluate(Seq(tick_now(1), tick_cnt(1)))
 
       assert(result.isDefined)
-      assert(result.get.flatten.contains("b(1)"))
+      assert(result.get.flatten.contains("a(1)"))
+
+      server.terminate()
 
     } finally {
 
@@ -101,23 +105,24 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     val p = Set(
       "a(t) :- wd_b(X,t).",
-      "wd_b(X,t) :- b(X,t),now(t).",
-      "wd_b(X,t) :- b(X,t-1),now(t)."
+      "wd_b(X,t) :- at_b(X,t),now(t).",
+      "wd_b(X,t) :- at_b(X,t-1),now(t)."
     )
-    val reactiveProgram = ReactiveClingoProgram(p, Set())
+    val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignalAtom(Predicate("b"), Seq(TickParameter("b_X")))))
     val runner = reactiveClingo.executeProgram(reactiveProgram)
 
     try {
 
-      runner.ticks(Seq(TickValue(TickAtom("now"), 2), TickValue(TickAtom("cnt"), 1)))
-      runner.signal(Seq("b(y,2)"))
-      runner.ticks(Seq(TickValue(TickAtom("now"), 3), TickValue(TickAtom("cnt"), 1)))
+      runner.evaluate(Seq(tick_now(1), tick_cnt(0)))
+      val p = Seq(tick_now(2), tick_cnt(1))
 
-      val model = runner.evaluate
+      runner.signal(Seq((Predicate("b"), Seq(Value("y")), p)))
+
+      val model = runner.evaluate(p)
 
       assert(model.isDefined)
       assert(!model.get.isEmpty)
-      assert(model.get.flatten.contains("a(1)"))
+      assert(model.get.flatten.contains("a(2)"))
 
     } finally {
       runner.terminate

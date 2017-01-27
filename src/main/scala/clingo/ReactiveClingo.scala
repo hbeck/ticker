@@ -1,5 +1,7 @@
 package clingo
 
+import core.{Predicate, Value}
+
 /**
   * Created by fm on 25/01/2017.
   */
@@ -19,18 +21,16 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
   class RunningReactiveClingo(private val clingoProcess: scala.sys.process.Process, client: ReactiveClingoClient) {
 
 
-    def ticks(tick: Seq[TickValue]) = client.sendTick(tick)
-
     def terminate = {
       client.terminate()
       clingoProcess.destroy()
     }
 
-    def signal(atom: Seq[ClingoAtom]) = {
-      client.sendSignal(atom)
+    def signal(signals: Seq[(Predicate, Seq[Value], Seq[Tick])]) = {
+      client.sendSignal(signals)
     }
 
-    def evaluate = client.evaluate()
+    def evaluate(ticks: Seq[Tick]) = client.evaluate(ticks)
   }
 
 }

@@ -26,25 +26,31 @@ case class TickAtom(atom: ClingoAtom) {
   override def toString: ClingoExpression = atom
 }
 
-case class TickConstraint(atom: TickAtom, parameter: TickParameter) {
-  override def toString: ClingoExpression = f"$atom($parameter)"
+case class TickConstraint(predicate: Predicate, parameter: TickParameter) {
+  override def toString: ClingoExpression = f"$predicate($parameter)"
 }
 
 case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignalAtom],
-                                 //                                 constraints: Seq[TickConstraint] = Seq(TickConstraint(TickAtom("now"), TickParameter("t")), TickConstraint(TickAtom("cnt"), TickParameter("c")))
-                                 timeParameter: TickParameter = TickParameter("t"),
-                                 countParameter: TickParameter = TickParameter("c")
+                                 time: TickConstraint = TickConstraint(Predicate("now"), TickParameter("t")),
+                                 count: TickConstraint = TickConstraint(Predicate("cnt"), TickParameter("c"))
                                 ) {
 
-  val tickParameters = Seq(timeParameter, countParameter)
-
   val newLine = System.lineSeparator()
+
+  val constraints = Seq(time, count)
+  val tickParameters = constraints map (_.parameter)
+
+  def external(constraint: TickConstraint): String = external(constraint.predicate.toString, Seq(constraint.parameter))
+
+  def external(atom: ClingoAtom, arguments: Seq[TickParameter]): String = f"#external $atom(${argumentList(arguments)})."
+
+  val externalConstraints = constraints map external
 
   val signalPrograms = signals map (s =>
     f"""#program signals_${s.atom}_${s.arguments.size}(${argumentList(tickParameters ++ s.arguments)}).
        |
-       |#external at_${s.atom}(${argumentList(s.arguments.+:(timeParameter))}).
-       |#external cnt_${s.atom}(${argumentList(s.arguments.+:(countParameter))}).
+       |${external(f"at_${s.atom}", s.arguments :+ time.parameter)}
+       |${external(f"cnt_${s.atom}", s.arguments :+ count.parameter)}
        |
      """.stripMargin)
 
@@ -54,6 +60,8 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |
        |#program volatile(${tickParameters.mkString(", ")}).
 
+       |${externalConstraints.mkString(newLine)}
+       |
        |${volatileRules.mkString(newLine)}
        |
   """.stripMargin

@@ -1,4 +1,5 @@
 #script (python)
+# attention: first line must not have space between hash and script!
 
 import socket
 import sys
@@ -49,17 +50,20 @@ def on_model(conn, model):
 def finished(conn, ret, interrupted):
     conn.sendall("finish:" + str(ret) + (":INTERRUPTED" if interrupted else "") + "\n")
 
+
 def asNumber(value):
-    if(isinstance(value, (int, long))):
+    if (isinstance(value, (int, long))):
         return value
-    if(value.isdigit()):
+    if (value.isdigit()):
         return int(value)
     else:
         return value
 
+def atom(predicate, arguments):
+    return clingo.Function(predicate, arguments)
 
-def atomFromTick(atom, value):
-    return clingo.Function(str(atom), [asNumber(value)])
+def atomFromTick(predicate, value):
+    return clingo.Function(str(predicate), [asNumber(value)])
 
 
 def atomFromItem(item):
@@ -69,14 +73,15 @@ def atomFromItem(item):
 def atomsFromTicks(ticks):
     return map(atomFromItem, ticks.items())
 
+
 def parseTicks(msg):
     tickComponents = str(msg).split(" ")[1:]  # first one is "tick"
 
     def splitParts(part):
         parts = part.split(":")
         return [
-            parts[0], # the atom name
-            asNumber(parts[1]) # count/number of atom
+            parts[0],  # the atom name
+            asNumber(parts[1])  # count/number of atom
         ]
 
     tickParts = map(splitParts, tickComponents)
@@ -87,15 +92,20 @@ def parseTicks(msg):
 def parameters(atomAsString):
     paramBegin = atomAsString.find('(')
     # no parameters
-    if(paramBegin < 0):
+    if (paramBegin < 0):
         return []
 
-    stringParams = atomAsString[paramBegin + 1:].replace(')','')
+    stringParams = atomAsString[paramBegin + 1:].replace(')', '')
     print stringParams
 
     params = stringParams.split(',')
 
     return map(asNumber, params)
+
+
+def signalParameters(params):
+    return map(asNumber, params)
+
 
 def main(prg):
     print "called..."
@@ -109,7 +119,6 @@ def main(prg):
         except socket.error as (code, msg):
             print msg
             if code != errno.EADDRINUSE: raise
-
             continue
         else:
             print "waiting for connections..."
@@ -127,16 +136,19 @@ def main(prg):
     def model(model):
         on_model(conn, model)
 
+    def addExternal(externalAtom):
+        print "Assign external", externalAtom
+        prg.assign_external(externalAtom, True)
+
     try:
         recv = Receiver(conn)
         state = States.IDLE
-        k = 0
         ticks = OrderedDict([('now', 0), ('cnt', 0)])
-
-        prg.ground([("base", []), ("volatile", ticks.values())])
-
-        for atom in atomsFromTicks(ticks):
-            prg.assign_external(atom, True)
+        #
+        # prg.ground([("base", []), ("volatile", ticks.values())])
+        #
+        # for atomTicks in atomsFromTicks(ticks):
+        #     addExternal(atomTicks)
 
         while True:
             if state == States.SOLVE:
@@ -159,10 +171,10 @@ def main(prg):
                 return
             elif msg.startswith("tick "):
                 # nicht mehr notwendig (sondern beim expire von signals)
-                for atom in atomsFromTicks(ticks):
-                    prg.release_external(atom)
+                # for atom in atomsFromTicks(ticks):
+                #   prg.release_external(atom)
 
-                prg.cleanup()
+                # prg.cleanup()
                 ##
 
                 ticks = parseTicks(msg)
@@ -177,30 +189,71 @@ def main(prg):
                 prg.ground(parts)
 
                 # nicht mehr notwendig (sondern beim expire von signals)
-                for atom in atomsFromTicks(ticks):
-                    prg.assign_external(atom, True)
+                for tickAtom in atomsFromTicks(ticks):
+                    addExternal(tickAtom)
 
                 ###
 
                 state = States.IDLE
             elif msg.startswith("signal "):
-                tokens = str(msg).split(" ")
-                inputSignals = tokens[1:]
-                print "Signals: " + str(inputSignals)
-                for s in inputSignals:
-                    predicate = s.split('(')[0]
-                    params = parameters(s)
+                differentSignals = str(msg).split(" ")[1:]  # first element is "signal"
 
-                    atom = clingo.Function(predicate, params)
-                    print "Atom ", atom
-                    prg.assign_external(atom, True)
-                state = States.IDLE
-            elif msg == "solve":
-                state = States.SOLVE
-            else:
-                raise (RuntimeError("unexpected message: " + msg))
+                print "Signals: " + str(differentSignals)
+                for signal in differentSignals:
+                    signalParts = signal.split(':')
+                    predicate = signalParts[0]
+                    params = signalParameters(signalParts[1:])
+
+                    # ground first
+                    functionName = "signals_" + predicate + "_" + str(len(params) - 2)
+
+                    parts = []
+                    parts.append((functionName, params))
+
+                    print "grounding signals", parts
+                    prg.ground(parts)
+
+                    atomParameters = []
+                    if len(params) > 2:
+                        atomParameters = params[2:]
+
+                    t = params[0]
+                    c = params[1]
+
+                    addExternal(atom("at_" + predicate, atomParameters + [t]))
+                    addExternal(atom("cnt_" + predicate, atomParameters + [c]))
+
+                    state = States.IDLE
+
+            elif msg.startswith("solve "):
+                # state = States.SOLVE
+
+                currentTicks = parseTicks(msg)
+
+                print "ticks: ", currentTicks
+
+                parts = []
+                parts.append(("volatile", currentTicks.values()))
+
+                print "Grounding/Solving", parts
+                prg.ground(parts)
+
+                addExternal(atomFromTick("now", currentTicks['t']))
+                addExternal(atomFromTick("cnt", currentTicks['c']))
+
+                # result = prg.solve(model)
+                # print result
+                # fin(result)
+                f = prg.solve_async(
+                    model,
+                    fin
+                )
+
+        else:
+            raise (RuntimeError("unexpected message: " + msg))
     finally:
-        # conn.close()
+        conn.close()
         s.close()
 
+# attention: last line must not have space between hash and end!
 #end.
