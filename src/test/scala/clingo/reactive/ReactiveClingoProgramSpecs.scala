@@ -1,6 +1,6 @@
 package clingo.reactive
 
-import clingo.{ClingoSignalAtom, ReactiveClingoProgram, TickParameter}
+
 import core.{Atom, Predicate, Variable}
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._

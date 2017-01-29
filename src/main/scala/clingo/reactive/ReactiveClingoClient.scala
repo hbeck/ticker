@@ -1,13 +1,10 @@
-package clingo
+package clingo.reactive
 
 import java.io.PrintStream
-import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 
-import core.{Predicate, Value}
+import clingo.{ClingoAtom, ClingoModel}
+import core.Value
 
-import scala.collection.mutable
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.BufferedSource
 import scala.tools.nsc.io.Socket
 

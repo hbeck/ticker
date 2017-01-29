@@ -1,5 +1,6 @@
-package clingo
+package clingo.reactive
 
+import clingo.{ClingoAtom, ClingoExpression}
 import core._
 
 /**

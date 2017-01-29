@@ -15,7 +15,7 @@ import scala.io.Source
   */
 class ReactiveClingoWrapperSpecs extends FlatSpec {
 
-  val wrapper = ClingoWrapper("/Users/fm/Documents/diplom/iclingo/clingo-5.1.0-macos-10.9/clingo")
+  val wrapper = ClingoWrapper()
 
   val program =
     """#program signals_b_0(t,c).

@@ -1,6 +1,7 @@
-package clingo
+package clingo.reactive
 
-import core.{GroundAtom, GroundAtomWithArguments, Predicate, Value}
+import clingo._
+import core.{GroundAtom, GroundAtomWithArguments}
 
 /**
   * Created by fm on 25/01/2017.
