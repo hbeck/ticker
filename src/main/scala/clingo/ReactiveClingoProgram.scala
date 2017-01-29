@@ -68,7 +68,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
     f"""#program ${signal.functionName}(${argumentList(tickParameters ++ signal.parameters)}).
        |
        |${external(signal.atName, signal.arguments :+ timeConstraint.parameter)}
-       |${external(signal.cntName, signal.arguments :+ countConstraint.parameter)}
+       |${external(signal.cntName, signal.arguments ++ constraints.map(_.parameter))}
        |
      """.stripMargin)
 

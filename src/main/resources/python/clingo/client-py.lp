@@ -31,6 +31,25 @@ class Receiver:
         self.data = self.data[pos + 1:]
         return msg
 
+def tryConnect(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    for i in range(0, 10):
+        try:
+            s.bind(("", port))
+        except socket.error as (code, msg):
+            print msg
+            if code != errno.EADDRINUSE: raise
+            continue
+        else:
+            print "waiting for connections..."
+            break
+        raise "no port found"
+
+    s.listen(1)
+    conn, addr = s.accept()
+    return s, conn
+
 
 class States:
     SOLVE = 1
@@ -40,15 +59,6 @@ class States:
 def printModel(model):
     # print "Model ", dir(model)
     print "Atoms ", model.symbols(True, True)
-
-
-def on_model(conn, model):
-    printModel(model)
-    conn.sendall("Answer: " + str(model) + "\n")
-
-
-def finished(conn, ret, interrupted):
-    conn.sendall("finish:" + str(ret) + (":INTERRUPTED" if interrupted else "") + "\n")
 
 
 def asNumber(value):
@@ -64,8 +74,8 @@ def atom(predicate, arguments):
     return clingo.Function(predicate, arguments)
 
 
-def atomFromTick(predicate, value):
-    return clingo.Function(str(predicate), [asNumber(value)])
+def atomFromTick(predicate, *args):
+    return atom(str(predicate), map(asNumber,args))
 
 
 def atomFromItem(item):
@@ -118,30 +128,17 @@ def main(prg):
     print "called..."
 
     port = 5123
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    for i in range(0, 10):
-        try:
-            s.bind(("", port))
-        except socket.error as (code, msg):
-            print msg
-            if code != errno.EADDRINUSE: raise
-            continue
-        else:
-            print "waiting for connections..."
-            break
-        raise "no port found"
-
-    s.listen(1)
-    conn, addr = s.accept()
+    openSocket, conn = tryConnect(port)
 
     print "connected..."
 
     def fin(ret):
-        finished(conn, ret, False)
+        interrupted = False
+        conn.sendall("finish:" + str(ret) + (":INTERRUPTED" if interrupted else "") + "\n")
 
     def model(model):
-        on_model(conn, model)
+        printModel(model)
+        conn.sendall("Answer: " + str(model) + "\n")
 
     def addExternal(externalAtom):
         print "Assign external", externalAtom
@@ -179,7 +176,7 @@ def main(prg):
                 state = States.IDLE
             elif msg == "exit":
                 conn.close()
-                s.close()
+                openSocket.close()
                 return
             elif msg.startswith("signal "):
                 signals = str(msg).split(" ")[1:]  # first element is string "signal"
@@ -215,6 +212,8 @@ def main(prg):
                 removeExternal(nowAtom(ticks))
                 removeExternal(cntAtom(ticks))
 
+                prg.cleanup()
+
                 ticks = parseTicks(msg)
 
                 print "Solving with ticks", ticks
@@ -235,7 +234,7 @@ def main(prg):
             raise (RuntimeError("unexpected message: " + msg))
     finally:
         conn.close()
-        s.close()
+        openSocket.close()
 
 # attention: last line must not have space between hash and end!
 #end.
