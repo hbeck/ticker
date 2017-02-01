@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.Atom
+import core.{Atom, PinnedAtom}
 import core.lars._
 import engine.asp.LarsToPinnedProgram
 
@@ -12,15 +12,15 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
   "An atom a" should "be transformed into a(T)" in {
     assert(DefaultLarsToPinnedProgram(a) == a(T))
   }
-  "An atom a(1)" should "be transformed into a(1,T)" in {
-    assert(DefaultLarsToPinnedProgram(a("1")) == a("1", T))
+  "An atom a(1)" should "be transformed into a_at(1,T)" in {
+    assert(DefaultLarsToPinnedProgram(a("1")) == PinnedAtom(a("1"), T))
   }
 
   "An at-atom @_t1 a" should "be transformed into a(t1)" in {
     assert(DefaultLarsToPinnedProgram(AtAtom(t1, a)) == a(t1))
   }
-  "An at-atom @_t1 a(1)" should "be transformed into a(1,t1)" in {
-    assert(DefaultLarsToPinnedProgram(AtAtom(t1, a("1"))) == a("1", t1))
+  "An at-atom @_t1 a(1)" should "be transformed into a_at(1,t1)" in {
+    assert(DefaultLarsToPinnedProgram(AtAtom(t1, a("1"))) == PinnedAtom(a("1"), t1))
   }
 
   "The window-atom wˆ1 d a" should "be transformed into w_te_1_d_a(T)" in {

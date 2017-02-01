@@ -20,12 +20,12 @@ object PinnedAspToIncrementalAsp {
   def unpin(pinned: PinnedAtom): Atom = pinned.atom match {
     case p: PinnedAtom => p
     case _ => pinned.arguments match {
-      case pinned.timeAsArgument :: Nil => pinned.time match {
+      case pinned.time :: Nil => pinned.time match {
         case t: TimeVariableWithOffset if t.variable == T.variable => pinned.atom
         case p: TimePoint => pinned.atom
         case _ => pinned
       }
-      case _ => Atom(pinned.predicate, pinned.arguments filter (_ != pinned.timeAsArgument))
+      case _ => Atom(pinned.predicate, pinned.arguments filter (_ != pinned.time))
     }
   }
 

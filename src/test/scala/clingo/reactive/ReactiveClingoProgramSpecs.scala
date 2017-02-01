@@ -37,8 +37,8 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
   "A program with a signal" should "have one external entry" in {
     val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom(Predicate("b"))))
 
-    assert(s.program.contains("#external at_b(t)."))
-    assert(s.program.contains("#external cnt_b(c)."))
+    assert(s.program.contains("#external b_at(t)."))
+    assert(s.program.contains("#external b_cnt(c)."))
   }
   it should "have a program named signals_b" in {
     val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom(Predicate("b"))))

@@ -610,7 +610,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //TODO: i want to have an access pinnedAtom.time.asInt
   def getTime(maybeAtom: Option[Atom]): Option[Int] = {
     maybeAtom match {
-      case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedAtom].timeAsArgument.toString))
+      case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedAtom].time.toString))
       case None => None
     }
   }

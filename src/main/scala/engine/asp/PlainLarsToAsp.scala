@@ -6,15 +6,16 @@ import core.lars._
 
 import scala.concurrent.duration._
 
+//case class MappedLarsRule(larsRule: LarsRule, mappedRule:NormalRule, )
+
+
 /**
   * Created by fm on 20/01/2017.
   */
 case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
 
   def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    case AtAtom(t, a) => a(t)
-    // TODO: discuss if this approach is correct: can an head-atom be already pinned?
-    case VariablePinnedAtom(a, v: TimeVariableWithOffset) => a(v)
+    case AtAtom(t, a) => PinnedAtom(a, t)
     case a: Atom => a
     case a: WindowAtom => this.windowAtom(a)
   }
@@ -74,8 +75,11 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
       case Box => "b"
       case a: At => f"at_${a.time}"
     }
-    val atomName = atom.predicate.toString
-    Predicate(f"${window}_${operator}_${atomName}")
+    val atomName = atom match {
+      case p: PinnedAtom => p.atom.predicate
+      case _ => atom.predicate
+    }
+    Predicate(f"${windowFunction}_${operator}_${atomName.toString}")
   }
 
   def derivation(extendedAtom: ExtendedAtom): Set[NormalRule] = extendedAtom match {
@@ -219,27 +223,27 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
   //    case v: TimeVariableWithOffset => rulesForAtTimeVariable(windowAtom, v)
   //  }
 
-//  def rulesForAtTimePoint(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timePoint: TimePoint): Set[NormalRule] = {
-//    val atomAtTime = atom(timePoint)
-//
-//    val rules = (0 to size.toInt) map (n => AspRule[Atom, Atom](head(n), Set(atomAtTime, constraintAtom(n))))
-//
-//    rules.toSet
-//  }
-//
-//  def rulesForAtTimeVariable(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timeVariable: TimeVariableWithOffset): Set[NormalRule] = {
-//
-//    val generatedRules = (0 to size.toInt) map { t =>
-//      AspRule(
-//        head(timeVariable - t).asInstanceOf[Atom],
-//        Set[Atom](
-//          atom(timeVariable - t),
-//          constraintAtom(T)
-//        )
-//      )
-//    }
-//    generatedRules.toSet
-//  }
+  //  def rulesForAtTimePoint(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timePoint: TimePoint): Set[NormalRule] = {
+  //    val atomAtTime = atom(timePoint)
+  //
+  //    val rules = (0 to size.toInt) map (n => AspRule[Atom, Atom](head(n), Set(atomAtTime, constraintAtom(n))))
+  //
+  //    rules.toSet
+  //  }
+  //
+  //  def rulesForAtTimeVariable(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timeVariable: TimeVariableWithOffset): Set[NormalRule] = {
+  //
+  //    val generatedRules = (0 to size.toInt) map { t =>
+  //      AspRule(
+  //        head(timeVariable - t).asInstanceOf[Atom],
+  //        Set[Atom](
+  //          atom(timeVariable - t),
+  //          constraintAtom(T)
+  //        )
+  //      )
+  //    }
+  //    generatedRules.toSet
+  //  }
 
   private def atomFor(windowAtom: WindowAtom) = {
     val atom = PredicateAtom(predicateFor(windowAtom))
@@ -259,9 +263,9 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     }
   }
 
-//  def tupleReference(atom: Atom)(position: Long): GroundAtomWithArguments = atom.asTupleReference(position)
+  //  def tupleReference(atom: Atom)(position: Long): GroundAtomWithArguments = atom.asTupleReference(position)
 
-//  def head(atom: WindowAtom): Atom = atomFor(atom)
+  //  def head(atom: WindowAtom): Atom = atomFor(atom)
 
   //  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, variable: Variable, calculate: (Variable, Int) => Variable = (t, i) => t - i): Set[Atom] = {
   //    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculate(variable, _)) map (atom(_))
@@ -274,4 +278,12 @@ case class TransformedLarsProgram(larsRulesAsAspRules: Seq[LarsRuleAsAspRules], 
   override val rules = (larsRulesAsAspRules flatMap { case (_, pinned) => pinned }) ++ staticRules
 
   override val larsRules = larsRulesAsAspRules map { case (lars, _) => lars }
+}
+
+trait IncrementalRule {
+
+}
+
+case class MappedLarsRule(larsRule: LarsRule, mappedRule: NormalRule, incrementalRule: IncrementalRule) {
+
 }

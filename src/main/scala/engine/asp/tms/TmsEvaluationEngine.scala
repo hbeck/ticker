@@ -81,7 +81,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     // then facts
     // we never remove extensional atoms explicitly (the policy might do it)
     remove(orderedTuples)
-//    remove(fluentTuples)
+    //    remove(fluentTuples)
     remove(signalsHoldingNow)
     remove(nowAtom)
 
@@ -113,7 +113,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimeValue)) => PinnedAtom(GroundAtom(p), t.timePoint)
+    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => PinnedAtom(GroundAtom(p), t)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => a(timePoint)
   }

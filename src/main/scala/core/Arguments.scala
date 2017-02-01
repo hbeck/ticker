@@ -16,7 +16,7 @@ object Argument {
       Value(nameOrValue)
   }
 
-  implicit def convertToValue(timePoint: TimePoint): Value = TimeValue(timePoint)
+  implicit def convertToValue(timePoint: TimePoint): Value = timePoint
 }
 
 trait Variable extends Argument {
@@ -59,10 +59,6 @@ case class StringValue(value: String) extends Value {
   override def toString = value
 }
 
-case class TimeValue(timePoint: TimePoint) extends Value {
-  override def toString = timePoint.value.toString
-}
-
 case class IntValue(int: Int) extends Value {
   override def toString = "" + int
 }
@@ -72,8 +68,6 @@ object IntValue {
 }
 
 object Value {
-  def apply(timePoint: TimePoint): Value = TimeValue(timePoint)
-
   def apply(value: String): Value = if (value forall (_.isDigit)) {
     IntValue(Integer.parseInt(value))
   } else {

@@ -15,7 +15,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
   def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
     case AtAtom(t, a) => a(t)
     // TODO: discuss if this approach is correct: can an head-atom be already pinned?
-    case VariablePinnedAtom(a, v: TimeVariableWithOffset) => a(v)
+    case VariablePinnedAtAtom(a, v: TimeVariableWithOffset) => a(v)
     case a: Atom => a(T)
     case a: WindowAtom => this.apply(a)
   }
@@ -38,8 +38,8 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
     basicAtom(T)
   }
 
-//TODO hb: maybe better called "toAspRule"  
-def transformRule(rule: LarsRule): PinnedRule = {
+  //TODO hb: maybe better called "toAspRule"
+  def transformRule(rule: LarsRule): PinnedRule = {
     AspRule(
       this.apply(rule.head),
       (rule.pos map this.apply) + now(T),
@@ -58,8 +58,11 @@ def transformRule(rule: LarsRule): PinnedRule = {
       case Box => "b"
       case a: At => f"at_${a.time}"
     }
-    val atomName = window.atom.predicate.toString
-    f"${windowFunction}_${operator}_${atomName}"
+    val atomName = window.atom match {
+      case p: PinnedAtom => p.atom.predicate
+      case _ => window.atom.predicate
+    }
+    f"${windowFunction}_${operator}_${atomName.toString}"
   }
 
   def derivation(extendedAtom: ExtendedAtom): Set[PinnedRule] = extendedAtom match {
