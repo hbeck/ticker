@@ -1,7 +1,9 @@
 package clingo.reactive
 
 
+import core.lars.{Diamond, LarsProgram, SlidingTimeWindow, WindowAtom}
 import core.{Atom, Predicate, Variable}
+import engine.asp.PlainLarsToAsp
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -65,5 +67,20 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
 
     assert(s.program.contains("at_b(t)"))
     assert(s.program.contains("a :- b"))
+  }
+
+
+  "The program a :- wˆ2 d b" should "be mapped correctly" in {
+    val p = LarsProgram.from(
+      Atom("a") <= WindowAtom(SlidingTimeWindow(2),Diamond,Atom("b"))
+    )
+    val mapper = PlainLarsToAsp()
+
+    val mappedProgram= mapper.apply(p)
+
+    val clingoProgram = ReactiveClingoProgram.fromMapped(mappedProgram)
+
+    assert(clingoProgram.signals.size == 1)
+
   }
 }

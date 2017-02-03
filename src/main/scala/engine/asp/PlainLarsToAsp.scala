@@ -244,6 +244,8 @@ case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], stat
   }) ++ staticRules
 
   override val larsRules = larsRulesAsAspRules map (_.larsRule)
+
+  val incrementalRules = larsRulesAsAspRules flatMap (_.incrementalRule)
 }
 
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
@@ -252,6 +254,8 @@ trait IncrementalRule {
   val range: Long
 
   val rule: NormalRule
+
+  val rules: Seq[NormalRule]
 
   def ruleFor(tick: IntValue): IncrementalRules
 }
@@ -264,6 +268,7 @@ case class TimeDiamond(range: Long, atom: Atom, windowAtom: Atom) extends Increm
   val N = TimeVariableWithOffset("N")
 
   val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](now(N), PinnedAtom(atom, T)))
+  val rules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](now(N), PinnedAtom(atom, T - i))))
 
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(T -> i, N -> i)))
@@ -276,11 +281,12 @@ case class TimeDiamond(range: Long, atom: Atom, windowAtom: Atom) extends Increm
 case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
   val N = TimeVariableWithOffset("N")
 
-  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(T), PinnedAtom(atom, T)))
+  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T)))
+  val rules = (0 to range.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T - i))))
 
   override def ruleFor(i: IntValue): IncrementalRules = {
-    val added = rule.assign(Assignment(Map(T -> i)))
-    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt))))
+    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
+    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
 
     IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
   }
@@ -291,6 +297,8 @@ case class TupleDiamond(range: Long, atom: Atom, windowAtom: Atom) extends Incre
   val D = Variable("D")
 
   val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D)))
+  val rules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D), Sum(C, IntValue(i.toInt), D))))
+
 
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(D -> i, C -> i)))

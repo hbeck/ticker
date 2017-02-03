@@ -1,7 +1,9 @@
 package clingo.reactive
 
-import clingo.{ClingoAtom, ClingoExpression}
+import clingo.{ClingoAtom, ClingoConversion, ClingoExpression}
 import core._
+import core.asp.NormalRule
+import engine.asp.TransformedLarsProgram
 
 /**
   * Created by fm on 25/01/2017.
@@ -26,8 +28,8 @@ object ClingoSignalAtom {
 }
 
 case class ClingoSignalAtom(atom: Predicate, arguments: Seq[Argument] = Seq()) {
-  val atName: ClingoAtom = f"at_$atom"
-  val cntName: ClingoAtom = f"cnt_$atom"
+  val atName: ClingoAtom = f"${atom}_at"
+  val cntName: ClingoAtom = f"${atom}_cnt"
   val functionName = f"signals_${atom}_${arguments.size}"
   val parameters: Seq[TickParameter] = arguments collect {
     case t: TickParameter => t
@@ -49,6 +51,21 @@ case class TickParameter private[clingo](name: String) extends Variable {
 
 case class TickConstraint(predicate: Predicate, parameter: TickParameter) {
   override def toString: ClingoExpression = f"$predicate($parameter)"
+}
+
+object ReactiveClingoProgram {
+  def fromMapped(program: TransformedLarsProgram) = {
+    val rules: Set[NormalRule] = program.rules.toSet ++ program.incrementalRules.flatMap(_.rules.toSet)
+
+    val volatileRules = rules map(x=> ClingoConversion.apply(x))
+
+    val signalAtoms = program.windowAtoms.
+      map(_.atom).
+      map(ClingoSignalAtom.fromAtom).
+      toSet
+
+    ReactiveClingoProgram(volatileRules, signalAtoms)
+  }
 }
 
 case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignalAtom]) {
