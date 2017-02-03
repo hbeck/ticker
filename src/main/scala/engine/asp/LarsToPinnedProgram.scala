@@ -170,7 +170,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 
   def head(atom: WindowAtom): AtomWithArgument = atomFor(atom)(T)
 
-  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[PinnedAtom] = {
+  def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[PinnedTimeAtom] = {
     val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculateTime(referenceTime, _)) map (atom(_))
     (generateAtoms :+ atom(referenceTime)).toSet
   }

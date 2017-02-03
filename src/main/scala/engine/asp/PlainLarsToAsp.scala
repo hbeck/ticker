@@ -3,6 +3,7 @@ package engine.asp
 import core._
 import core.asp.{AspRule, NormalProgram, NormalRule}
 import core.lars._
+import engine.asp.tms.Pin
 
 import scala.concurrent.duration._
 
@@ -20,12 +21,12 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     case a: WindowAtom => this.windowAtom(a)
   }
 
-  def apply(rule: LarsRule): Set[NormalRule] = {
+  def apply(rule: LarsRule): MappedLarsRule = {
     val transformedRule = this.transformRule(rule)
 
-    val derivedBodyRules = (rule.pos ++ rule.neg) flatMap derivation
+    val derivedBodyRules = (rule.pos ++ rule.neg) flatMap derivation_
 
-    Set(transformedRule) ++ derivedBodyRules
+    MappedLarsRule(rule, Set(transformedRule), derivedBodyRules)
   }
 
   def apply(program: LarsProgram): TransformedLarsProgram = {
@@ -43,7 +44,7 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
 
     val static = staticAtoms ++ staticWindowAtom
 
-    val rules = program.rules map (r => (r, this.apply(r)))
+    val rules = program.rules map (r => this.apply(r))
 
     TransformedLarsProgram(rules, static, engineTick)
   }
@@ -79,7 +80,7 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
       case p: PinnedAtom => p.atom.predicate
       case _ => atom.predicate
     }
-    Predicate(f"${windowFunction}_${operator}_${atomName.toString}")
+    Predicate(f"${window}_${operator}_${atomName.toString}")
   }
 
   def derivation(extendedAtom: ExtendedAtom): Set[NormalRule] = extendedAtom match {
@@ -87,6 +88,25 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
     case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
     case _ => Set()
+  }
+
+  def derivation_(extendedAtom: ExtendedAtom): Option[IncrementalRule] = extendedAtom match {
+    case WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => Some(slidingTime_(k, temporalModality, atom))
+    //    case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
+    //    case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
+    case _ => None
+  }
+
+  def slidingTime_(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): IncrementalRule = {
+    val size = window.windowSize.ticks(engineTick).toInt
+    val head = headFor(window, temporalModality, atom)
+    temporalModality match {
+      case a: At => {
+        val incremental = TimeAt(size, atom, head)
+        incremental
+      }
+      case Diamond => TimeDiamond(size, atom, head)
+    }
   }
 
   def slidingTime(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
@@ -189,62 +209,6 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     head
   }
 
-  //  def bodiesForDiamond(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-  //
-  //    val atoms = generateAtomsOfT(start, atom, variable)
-  //
-  //    val bodies = atoms map (Set(constrainAtom(variable), _))
-  //
-  //    bodies
-  //  }
-  //
-  //  def bodiesForBox(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-  //
-  //    val atoms = generateAtomsOfT(start, atom, variable)
-  //
-  //    val body = Set(constrainAtom(variable)) ++ atoms
-  //
-  //    // we only have a single rule
-  //    Set(body)
-  //  }
-
-  //  def bodiesForAt(atom: Atom, constrainAtom: Atom, start: Long, variable: Variable): Set[Set[Atom]] = {
-  //
-  //    val atoms = generateAtomsOfT(start, atom, variable)
-  //
-  //    val bodies = atoms map (Set(constrainAtom(variable), _))
-  //
-  //    bodies
-  //  }
-
-
-  //  def rulesForAt(at: At, atom: Atom, time: Time, constraintAtom: Atom, size: Int): Set[NormalRule] = at.time match {
-  //    case t: TimePoint => rulesForAtTimePoint(headFor(), atom, constraintAtom, size, t)
-  //    case v: TimeVariableWithOffset => rulesForAtTimeVariable(windowAtom, v)
-  //  }
-
-  //  def rulesForAtTimePoint(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timePoint: TimePoint): Set[NormalRule] = {
-  //    val atomAtTime = atom(timePoint)
-  //
-  //    val rules = (0 to size.toInt) map (n => AspRule[Atom, Atom](head(n), Set(atomAtTime, constraintAtom(n))))
-  //
-  //    rules.toSet
-  //  }
-  //
-  //  def rulesForAtTimeVariable(head: Atom, atom: Atom, constraintAtom: Atom, size: Long, timeVariable: TimeVariableWithOffset): Set[NormalRule] = {
-  //
-  //    val generatedRules = (0 to size.toInt) map { t =>
-  //      AspRule(
-  //        head(timeVariable - t).asInstanceOf[Atom],
-  //        Set[Atom](
-  //          atom(timeVariable - t),
-  //          constraintAtom(T)
-  //        )
-  //      )
-  //    }
-  //    generatedRules.toSet
-  //  }
-
   private def atomFor(windowAtom: WindowAtom) = {
     val atom = PredicateAtom(predicateFor(windowAtom))
     val previousArguments = windowAtom.atom match {
@@ -273,17 +237,65 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
   //  }
 }
 
-case class TransformedLarsProgram(larsRulesAsAspRules: Seq[LarsRuleAsAspRules], staticRules: Seq[NormalRule], tickSize: EngineTick) extends NormalProgram with LarsBasedProgram {
+case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], staticRules: Seq[NormalRule], tickSize: EngineTick) extends NormalProgram with LarsBasedProgram {
 
-  override val rules = (larsRulesAsAspRules flatMap { case (_, pinned) => pinned }) ++ staticRules
+  override val rules = (larsRulesAsAspRules flatMap {
+    _.mappedRules
+  }) ++ staticRules
 
-  override val larsRules = larsRulesAsAspRules map { case (lars, _) => lars }
+  override val larsRules = larsRulesAsAspRules map (_.larsRule)
 }
+
+case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
 
 trait IncrementalRule {
+  val range: Long
 
+  val rule: NormalRule
+
+  def ruleFor(tick: IntValue): IncrementalRules
 }
 
-case class MappedLarsRule(larsRule: LarsRule, mappedRule: NormalRule, incrementalRule: IncrementalRule) {
+case class MappedLarsRule(larsRule: LarsRule, mappedRules: Set[NormalRule], incrementalRule: Set[IncrementalRule]) {
+  //  val rules = mappedRules ++ incrementalRule.rule
+}
 
+case class TimeDiamond(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+  val N = TimeVariableWithOffset("N")
+
+  val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](now(N), PinnedAtom(atom, T)))
+
+  override def ruleFor(i: IntValue): IncrementalRules = {
+    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
+    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
+
+    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
+  }
+}
+
+case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+  val N = TimeVariableWithOffset("N")
+
+  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(T), PinnedAtom(atom, T)))
+
+  override def ruleFor(i: IntValue): IncrementalRules = {
+    val added = rule.assign(Assignment(Map(T -> i)))
+    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt))))
+
+    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
+  }
+}
+
+case class TupleDiamond(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+  val C = TimeVariableWithOffset("C")
+  val D = Variable("D")
+
+  val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D)))
+
+  override def ruleFor(i: IntValue): IncrementalRules = {
+    val added = rule.assign(Assignment(Map(D -> i, C -> i)))
+    val removed = rule.assign(Assignment(Map(D -> IntValue(i.int - range.toInt), C -> i)))
+
+    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
+  }
 }

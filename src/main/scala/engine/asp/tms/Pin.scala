@@ -38,11 +38,11 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
   }
 
   def apply(aa: AtomWithArgument): AtomWithArgument = aa match {
-    case pa: PinnedAtom => apply(pa)
+    case pa: PinnedTimeAtom => apply(pa)
     case _ => aa
   }
 
-  def apply(pinnedAtom: PinnedAtom): PinnedAtom = {
+  def apply(pinnedAtom: PinnedTimeAtom): PinnedAtom = {
 
     val groundedBaseAtom = pinnedAtom.atom match {
       case pa: PinnedAtom => apply(pa) //TODO hb: infinite circle? if all methods are called apply, it is difficult to understand what's happening

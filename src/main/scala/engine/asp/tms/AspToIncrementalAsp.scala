@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core.asp.{AspProgram, _}
 import core.lars._
-import core.{Atom, AtomWithArgument, PinnedAtom, Variable}
+import core._
 import engine.asp.{PinnedProgramWithLars, PinnedRule, now}
 
 /**
@@ -13,11 +13,11 @@ import engine.asp.{PinnedProgramWithLars, PinnedRule, now}
 object PinnedAspToIncrementalAsp {
 
   def unpin(atom: AtomWithArgument): Atom = atom match {
-    case p: PinnedAtom => unpin(p)
+    case p: PinnedAtAtom => unpin(p)
     case _ => atom
   }
 
-  def unpin(pinned: PinnedAtom): Atom = pinned.atom match {
+  def unpin(pinned: PinnedTimeAtom): Atom = pinned.atom match {
     case p: PinnedAtom => p
     case _ => pinned.arguments match {
       case pinned.time :: Nil => pinned.time match {
@@ -40,7 +40,7 @@ object PinnedAspToIncrementalAsp {
       unpin(rule.head),
       (rule.pos filterNot (_.atom == now) map unpinIfNeeded) ++
         // @ with a concrete Timepoint (e.g. @_10 a)requires a now(t) => therefore we need to keep now when t is a concrete Timepoint
-        (rule.pos collect { case p: PinnedAtom if p.atom == now && p.time.isInstanceOf[TimePoint] => p }),
+        (rule.pos collect { case p: PinnedTimeAtom if p.atom == now && p.time.isInstanceOf[TimePoint] => p }),
       rule.neg map unpinIfNeeded
     )
   }
@@ -58,7 +58,7 @@ object PinnedAspToIncrementalAsp {
     // get pinned window atoms (that is matching predicates and arguments, except the last argument which is the Time-Variable)
     val pinnedTimestampedAtoms = p.atoms filter (a => timestampedAtoms.contains((a.predicate, a.arguments.init)))
     val atomAtT: Set[AtomWithArgument] = pinnedTimestampedAtoms collect {
-      case pinned: PinnedAtom if pinned.time == core.lars.T => pinned
+      case pinned: PinnedTimeAtom if pinned.time == core.lars.T => pinned
     }
 
     val atPredicates = atAtoms map (a => a.predicate)

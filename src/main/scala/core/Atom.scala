@@ -128,8 +128,7 @@ object GroundAtom {
 
 trait PinnedAtom extends AtomWithArgument {
 
-  val time: Time
-  val tick: Argument
+  //  val tick: Argument
 
   override def positionOf(argument: Argument): Int = argument match {
     case v: Variable => arguments.
@@ -137,12 +136,19 @@ trait PinnedAtom extends AtomWithArgument {
     case _ => super.positionOf(argument)
   }
 
-  lazy val pinnedArguments: Seq[Argument] = Seq(time, tick)
+  val pinnedArguments: Seq[Argument]
 
-  val arguments: Seq[Argument] = atom match {
+  lazy val arguments: Seq[Argument] = atom match {
     case aa: AtomWithArgument => aa.arguments ++ pinnedArguments
     case _ => pinnedArguments
   }
+}
+
+trait PinnedTimeAtom extends PinnedAtom {
+
+  val time: Time
+
+  val pinnedArguments: Seq[Argument] = Seq(time)
 
   def assignmentForTime(assignment: Assignment): Time = time match {
     case t: TimePoint => t
@@ -155,23 +161,39 @@ trait PinnedAtom extends AtomWithArgument {
       }
     }
   }
-
 }
 
-trait PinnedAtAtom extends PinnedAtom {
-  override val tick: Argument = time
+trait PinnedCountAtom extends PinnedAtom {
+  val count: Argument
+  //  override val tick: Argument = count
+  override val pinnedArguments: Seq[Argument] = Seq(count)
 
-  override lazy val pinnedArguments: Seq[Argument] = Seq(time)
-
-  override val predicate = Predicate(atom.predicate.caption + "_at")
+  override val predicate = Predicate(atom.predicate.caption + "_cnt")
 }
 
-trait PinnedTimeTickAtom extends PinnedAtom {
+trait PinnedTickAtom extends PinnedAtom {
+  val tick: Argument
+
+
   override val predicate = Predicate(atom.predicate.caption + "_")
 }
 
+trait PinnedAtAtom extends PinnedTimeAtom {
+
+
+  //  override lazy val pinnedArguments: Seq[Argument] = Seq(time)
+  //
+  override val predicate = Predicate(atom.predicate.caption + "_at")
+}
+
+trait PinnedTimeTickAtom extends PinnedAtAtom with PinnedTickAtom {
+
+  override val pinnedArguments = Seq(time, tick)
+
+}
+
 object PinnedAtom {
-  def apply(atom: Atom, time: Time): PinnedAtom = time match {
+  def apply(atom: Atom, time: Time): PinnedAtAtom = time match {
     case t: TimePoint => ConcretePinnedAtAtom(atom, t)
     case v: TimeVariableWithOffset => VariablePinnedAtAtom(atom, v)
   }
@@ -180,6 +202,10 @@ object PinnedAtom {
     case (t: TimePoint, tv: Value) => ConcreteTimeTickAtom(atom, t, tv)
     case _ => VariableTimeTickAtom(atom, time, tick)
   }
+
+  def asCount(atom: Atom, count: Variable): PinnedCountAtom = VariableCountAtom(atom, count)
+
+  def asCount(atom: Atom, count: Value): PinnedCountAtom = ConcreteCountAtom(atom, count)
 }
 
 case class ConcreteTimeTickAtom(override val atom: Atom, time: TimePoint, tick: Value) extends PinnedTimeTickAtom with GroundAtom
@@ -194,6 +220,19 @@ case class VariablePinnedAtAtom(override val atom: Atom, time: TimeVariableWithO
   override def assign(assignment: Assignment): ExtendedAtom = {
     val assignedTime = assignmentForTime(assignment)
     PinnedAtom(atom, assignedTime)
+  }
+}
+
+case class ConcreteCountAtom(override val atom: Atom, count: Value) extends PinnedCountAtom with GroundAtom
+
+case class VariableCountAtom(override val atom: Atom, count: Variable) extends PinnedCountAtom with NonGroundAtom {
+
+  override def isGround(): Boolean = false
+
+  //assume pinned atoms may have variables only in its special time argument
+  override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(count) match {
+    case Some(v) => PinnedAtom.asCount(atom, v)
+    case None => this
   }
 }
 

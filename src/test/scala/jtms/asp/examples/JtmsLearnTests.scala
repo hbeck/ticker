@@ -1,7 +1,7 @@
 package jtms.asp.examples
 
 import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
-import core.{Atom, PinnedAtom}
+import core.{Atom, PinnedAtom, PinnedTimeAtom}
 import fixtures.AtomTestFixture
 import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
@@ -610,7 +610,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   //TODO: i want to have an access pinnedAtom.time.asInt
   def getTime(maybeAtom: Option[Atom]): Option[Int] = {
     maybeAtom match {
-      case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedAtom].time.toString))
+      case Some(atom) => Some(Integer.parseInt(atom.asInstanceOf[PinnedTimeAtom].time.toString))
       case None => None
     }
   }

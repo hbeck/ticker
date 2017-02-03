@@ -2,8 +2,7 @@ package engine.evaluation
 
 import clingo.ClingoProgramWithLars
 import core.NonGroundAtom
-import engine.asp.{PinnedModelToLarsModel, now}
-
+import engine.asp.{PinnedModel, PinnedModelToLarsModel, now}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -32,7 +31,7 @@ class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "A model containing a(1), now(0) and a(2)" should "be empty at t0" in {
-    val model = Set(a(t1), now(t0), a(t2))
+    val model: PinnedModel = Set(a(t1), now(t0), a(t2))
     PinnedModelToLarsModel(t0, model) should have size 0
   }
 }
