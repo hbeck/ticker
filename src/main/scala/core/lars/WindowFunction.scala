@@ -23,7 +23,7 @@ case class SlidingTupleWindow(windowSize: TupleCount) extends SlidingWindow
 case class SlidingSpecificTupleWindow(windowSize: TupleCount) extends SlidingWindow
 
 case class TimeWindowSize(size: Long, unit: TimeUnit = TimeUnit.SECONDS) {
-  def ticks(tickSize: EngineTick) = Duration(unit.toMillis(size) / tickSize.toMillis, tickSize.unit).length
+  def ticks(tickSize: EngineTickUnit) = Duration(unit.toMillis(size) / tickSize.toMillis, tickSize.unit).length
 }
 
 

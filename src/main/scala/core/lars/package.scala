@@ -9,7 +9,7 @@ package object lars {
   type TupleCount = Long
   type Duration = Long
 
-  type EngineTick = scala.concurrent.duration.Duration
+  type EngineTickUnit = scala.concurrent.duration.Duration
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
   val T = TimeVariableWithOffset(Variable("T"))

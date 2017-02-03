@@ -6,11 +6,9 @@ import java.nio.charset.StandardCharsets
 import clingo._
 import core._
 import core.lars._
-import engine.asp.PlainLarsToAsp
+import engine.asp.PlainLarsToAspMapper
 import engine.asp.incremental.ReactiveEvaluationEngine
 import org.scalatest.FlatSpec
-
-import scala.io.Source
 
 /**
   * Created by fm on 22/01/2017.
@@ -153,9 +151,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     val p = LarsProgram.from(
       Atom("a") <= WindowAtom(SlidingTimeWindow(2), Diamond, Atom("b"))
     )
-    val mapper = PlainLarsToAsp()
+    val mapper = PlainLarsToAspMapper()
 
-    val mappedProgram = mapper.apply(p)
+    val mappedProgram = mapper(p)
 
     val engine = ReactiveEvaluationEngine(mappedProgram)
 

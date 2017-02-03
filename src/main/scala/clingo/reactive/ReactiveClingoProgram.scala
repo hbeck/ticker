@@ -55,7 +55,7 @@ case class TickConstraint(predicate: Predicate, parameter: TickParameter) {
 
 object ReactiveClingoProgram {
   def fromMapped(program: TransformedLarsProgram) = {
-    val rules: Set[NormalRule] = program.rules.toSet ++ program.incrementalRules.flatMap(_.rules.toSet)
+    val rules: Set[NormalRule] = program.rules.toSet ++ program.incrementalRules.flatMap(_.allRules.toSet)
 
     val volatileRules = rules map(x=> ClingoConversion.apply(x))
 

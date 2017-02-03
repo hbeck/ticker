@@ -10,7 +10,7 @@ import scala.concurrent.duration._
   * Created by FM on 05.05.16.
   */
 
-case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
+case class LarsToPinnedProgram(engineTick: EngineTickUnit = 1 second) {
   //TODO hb: maybe better called "toAspAtom"
   def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
     case AtAtom(t, a) => a(t)
@@ -179,7 +179,7 @@ case class LarsToPinnedProgram(engineTick: EngineTick = 1 second) {
 /*
  * we keep the original lars rule for potential later optimizations
  */
-case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules], tickSize: EngineTick) extends PinnedProgram with LarsBasedProgram {
+case class PinnedProgramWithLars(larsRulesAsPinnedRules: Seq[LarsRuleAsPinnedRules], tickSize: EngineTickUnit) extends PinnedProgram with LarsBasedProgram {
 
   override val rules = larsRulesAsPinnedRules flatMap { case (_, pinned) => pinned }
 

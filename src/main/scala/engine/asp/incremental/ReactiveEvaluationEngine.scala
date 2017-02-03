@@ -1,14 +1,12 @@
 package engine.asp.incremental
 
+import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, Tick}
 import clingo.{ClingoEvaluation, ClingoWrapper}
-import clingo.reactive.{ReactiveClingo, ReactiveClingoClient, ReactiveClingoProgram, Tick}
 import core._
 import core.asp.{AspFact, NormalRule}
-import core.lars.{GroundRule, LarsProgramInspection, TimePoint}
+import core.lars.TimePoint
 import engine.asp._
-import engine.asp.oneshot.StreamingClingoInterpreter
-import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
+import engine.{EvaluationEngine, Result}
 
 /**
   * Created by FM on 18.05.16.
@@ -36,13 +34,13 @@ case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapp
     //    discardOutdatedAuxiliaryAtoms(time)
 
 
-    val groundAtoms = atoms.zipWithIndex map (a => (
-      GroundAtom(a._1.predicate),
+    val groundAtoms = atoms.zipWithIndex map {a => (
+      GroundAtom(a._1.predicate), //TODO hb? arguments
       Seq(
         Tick(clingoProgram.timeConstraint.parameter, time.value),
-        Tick(clingoProgram.countConstraint.parameter, tuplePositions.size + a._2)
+        Tick(clingoProgram.countConstraint.parameter, tuplePositions.size + a._2 + 1)
       )
-    ))
+    )}
 
     trackAuxiliaryAtoms(time, atoms)
     runningReactiveClingo.signal(groundAtoms)

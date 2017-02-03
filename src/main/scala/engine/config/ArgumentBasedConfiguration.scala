@@ -1,6 +1,6 @@
 package engine.config
 
-import core.lars.{EngineTick, LarsProgram}
+import core.lars.{EngineTickUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.EvaluationModifier.EvaluationModifier
@@ -25,7 +25,7 @@ object EvaluationModifier extends Enumeration {
 }
 
 
-case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTick) {
+case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTickUnit) {
 
   def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 

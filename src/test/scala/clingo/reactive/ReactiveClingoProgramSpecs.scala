@@ -3,7 +3,7 @@ package clingo.reactive
 
 import core.lars.{Diamond, LarsProgram, SlidingTimeWindow, WindowAtom}
 import core.{Atom, Predicate, Variable}
-import engine.asp.PlainLarsToAsp
+import engine.asp.PlainLarsToAspMapper
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -74,7 +74,7 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
     val p = LarsProgram.from(
       Atom("a") <= WindowAtom(SlidingTimeWindow(2),Diamond,Atom("b"))
     )
-    val mapper = PlainLarsToAsp()
+    val mapper = PlainLarsToAspMapper()
 
     val mappedProgram= mapper.apply(p)
 

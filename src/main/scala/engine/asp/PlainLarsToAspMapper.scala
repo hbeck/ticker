@@ -3,7 +3,6 @@ package engine.asp
 import core._
 import core.asp.{AspRule, NormalProgram, NormalRule}
 import core.lars._
-import engine.asp.tms.Pin
 
 import scala.concurrent.duration._
 
@@ -13,7 +12,7 @@ import scala.concurrent.duration._
 /**
   * Created by fm on 20/01/2017.
   */
-case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
+case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
 
   def apply(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
     case AtAtom(t, a) => PinnedAtom(a, t)
@@ -90,14 +89,14 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
     case _ => Set()
   }
 
-  def derivation_(extendedAtom: ExtendedAtom): Option[IncrementalRule] = extendedAtom match {
+  def derivation_(extendedAtom: ExtendedAtom): Option[DerivationRule] = extendedAtom match {
     case WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => Some(slidingTime_(k, temporalModality, atom))
     //    case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
     //    case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
     case _ => None
   }
 
-  def slidingTime_(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): IncrementalRule = {
+  def slidingTime_(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): DerivationRule = {
     val size = window.windowSize.ticks(engineTick).toInt
     val head = headFor(window, temporalModality, atom)
     temporalModality match {
@@ -237,7 +236,7 @@ case class PlainLarsToAsp(engineTick: EngineTick = 1 second) {
   //  }
 }
 
-case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], staticRules: Seq[NormalRule], tickSize: EngineTick) extends NormalProgram with LarsBasedProgram {
+case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], staticRules: Seq[NormalRule], tickSize: EngineTickUnit) extends NormalProgram with LarsBasedProgram {
 
   override val rules = (larsRulesAsAspRules flatMap {
     _.mappedRules
@@ -245,31 +244,41 @@ case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], stat
 
   override val larsRules = larsRulesAsAspRules map (_.larsRule)
 
-  val incrementalRules = larsRulesAsAspRules flatMap (_.incrementalRule)
+  val incrementalRules = larsRulesAsAspRules flatMap (_.derivationRules)
 }
 
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
 
-trait IncrementalRule {
+trait DerivationRule {
   val range: Long
 
   val rule: NormalRule
 
-  val rules: Seq[NormalRule]
+  val allRules: Seq[NormalRule] //one-shot solving: e.g. for window^3 diamond all 4 rules
 
   def ruleFor(tick: IntValue): IncrementalRules
 }
 
-case class MappedLarsRule(larsRule: LarsRule, mappedRules: Set[NormalRule], incrementalRule: Set[IncrementalRule]) {
+case class MappedLarsRule(larsRule: LarsRule, mappedRules: Set[NormalRule], derivationRules: Set[DerivationRule]) {
   //  val rules = mappedRules ++ incrementalRule.rule
 }
 
-case class TimeDiamond(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+/* EXAMPLE.
+   b <- \window^range \Diamond a.
+   ==>
+   b <- w_{range-d-a}
+   w_{range-d-a} <- now(N), a_at(T), T=N-0 //...range
+
+   atom: Atom ... a
+   windowAtomEncoding: w_{range-d-a}
+ */
+case class TimeDiamond(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
   val N = TimeVariableWithOffset("N")
 
-  val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](now(N), PinnedAtom(atom, T)))
-  val rules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](now(N), PinnedAtom(atom, T - i))))
+  val rule: NormalRule = AspRule.apply(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
+  val allRules = (0 to range.toInt) map (i => AspRule.apply(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T - i))))
 
+  //TODO hb prepared for later use
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(T -> i, N -> i)))
     val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
@@ -278,11 +287,11 @@ case class TimeDiamond(range: Long, atom: Atom, windowAtom: Atom) extends Increm
   }
 }
 
-case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends DerivationRule {
   val N = TimeVariableWithOffset("N")
 
   val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T)))
-  val rules = (0 to range.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T - i))))
+  val allRules = (0 to range.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T - i))))
 
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(T -> i, N -> i)))
@@ -292,12 +301,12 @@ case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends Incremental
   }
 }
 
-case class TupleDiamond(range: Long, atom: Atom, windowAtom: Atom) extends IncrementalRule {
+case class TupleDiamond(range: Long, atom: Atom, windowAtom: Atom) extends DerivationRule {
   val C = TimeVariableWithOffset("C")
   val D = Variable("D")
 
   val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D)))
-  val rules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D), Sum(C, IntValue(i.toInt), D))))
+  val allRules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D), Sum(C, IntValue(i.toInt), D))))
 
 
   override def ruleFor(i: IntValue): IncrementalRules = {

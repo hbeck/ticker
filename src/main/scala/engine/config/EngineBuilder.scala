@@ -1,7 +1,7 @@
 package engine.config
 
 import clingo.{ClingoConversion, ClingoProgramWithLars}
-import core.lars.{EngineTick, LarsProgram}
+import core.lars.{EngineTickUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
@@ -23,7 +23,7 @@ object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTick = 1 second) {
+case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTickUnit = 1 second) {
 
   def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
 
@@ -31,7 +31,7 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
   //is no longer "pinned" (in the sense that only some atoms get an additional time argument)
   def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
 
-  def withTickSize(tickSize: EngineTick) = EngineEvaluationConfiguration(larsProgram, tickSize)
+  def withTickSize(tickSize: EngineTickUnit) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
 //TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv

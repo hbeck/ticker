@@ -3,7 +3,7 @@ package lars.plain
 import core.Atom
 import core.asp.NormalRule
 import core.lars._
-import engine.asp.PlainLarsToAsp
+import engine.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
 
 /**
@@ -11,7 +11,7 @@ import lars.transform.TransformLarsSpec
   */
 class ProgramContainingSlidingWindows extends TransformLarsSpec {
 
-  val converter = PlainLarsToAsp()
+  val converter = PlainLarsToAspMapper()
 
   val program = LarsProgram.from(
     a <= WindowAtom(SlidingTimeWindow(2), Diamond, b)

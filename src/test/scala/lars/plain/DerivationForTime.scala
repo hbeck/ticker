@@ -2,7 +2,7 @@ package lars.plain
 
 import core.PinnedAtom
 import core.lars._
-import engine.asp.PlainLarsToAsp
+import engine.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
 
 /**
@@ -10,7 +10,7 @@ import lars.transform.TransformLarsSpec
   */
 class DerivationForTime extends TransformLarsSpec {
 
-  val convert = PlainLarsToAsp()
+  val convert = PlainLarsToAspMapper()
 
   val atWindow = WindowAtom(SlidingTimeWindow(2), At(U), a)
 
