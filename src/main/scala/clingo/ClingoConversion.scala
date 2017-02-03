@@ -61,7 +61,10 @@ object ClingoConversion {
     if (!(atomName matches "^[a-zA-Z0-9_]*$"))
       throw new IllegalArgumentException("Constants in ASP cannot contain illegal characters!. You provided " + atom)
 
-    atomName + argumentNames
+    if (argumentNames.size > 2)
+      atomName + argumentNames
+    else
+      atomName
   }
 
   def apply(argument: Argument): String = argument match {
