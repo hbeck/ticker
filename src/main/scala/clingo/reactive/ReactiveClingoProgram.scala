@@ -8,13 +8,12 @@ import engine.asp.TransformedLarsProgram
 /**
   * Created by fm on 25/01/2017.
   */
+object ClingoSignal {
 
-object ClingoSignalAtom {
-
-  def fromAtom(atom: Atom): ClingoSignalAtom = atom match {
-    case GroundAtomWithArguments(p, args) => ClingoSignalAtom(p, args)
-    case NonGroundAtomWithArguments(p, args) => ClingoSignalAtom(p, convert(p, args))
-    case _ => ClingoSignalAtom(atom.predicate, Seq())
+  def fromAtom(atom: Atom): ClingoSignal = atom match {
+    case GroundAtomWithArguments(p, args) => ClingoSignal(p, args)
+    case NonGroundAtomWithArguments(p, args) => ClingoSignal(p, convert(p, args))
+    case _ => ClingoSignal(atom.predicate, Seq())
   }
 
   def convert(predicate: Predicate, arguments: Seq[Argument]): Seq[Argument] = arguments collect {
@@ -27,11 +26,12 @@ object ClingoSignalAtom {
   private def lowerCasedPredicate(predicate: Predicate) = predicate.caption.head.toLower + predicate.caption.tail
 }
 
-case class ClingoSignalAtom(atom: Predicate, arguments: Seq[Argument] = Seq()) {
-  val atName: ClingoAtom = f"${atom}_at"
-  val cntName: ClingoAtom = f"${atom}_cnt"
-  val functionName = f"signals_${atom}_${arguments.size}"
-  val parameters: Seq[TickParameter] = arguments collect {
+case class ClingoSignal(predicate: Predicate, arguments: Seq[Argument] = Seq()) {
+  val atPredicate: ClingoAtom = f"${predicate}_at" //format: a(X,t) //TODO hb review: why is the type ClingoAtom, not ClingoPredicate, or simply Predicate?
+  val cntPredicate: ClingoAtom =f"${predicate}_cnt" //format: a(X,c)
+  val cntPinPredicate: ClingoAtom = f"${predicate}_cnt" //TODO hb review rename here and in python! --> "_pin" //format: a(X,t,c)
+  val programPart = f"signals_${predicate}_${arguments.size}" //#program ...
+  val parameters: Seq[TickParameter] = arguments collect { //TODO hb filter?o
     case t: TickParameter => t
   }
 }
@@ -49,7 +49,7 @@ case class TickParameter private[clingo](name: String) extends Variable {
   override def toString: ClingoExpression = name
 }
 
-case class TickConstraint(predicate: Predicate, parameter: TickParameter) {
+case class TickDimension(predicate: Predicate, parameter: TickParameter) {
   override def toString: ClingoExpression = f"$predicate($parameter)"
 }
 
@@ -57,39 +57,40 @@ object ReactiveClingoProgram {
   def fromMapped(program: TransformedLarsProgram) = {
     val rules: Set[NormalRule] = program.rules.toSet ++ program.incrementalRules.flatMap(_.allRules.toSet)
 
-    val volatileRules = rules map(x=> ClingoConversion.apply(x))
+    val volatileRules = rules map (ClingoConversion(_))
 
     val signalAtoms = program.windowAtoms.
       map(_.atom).
-      map(ClingoSignalAtom.fromAtom).
+      map(ClingoSignal.fromAtom).
       toSet
 
     ReactiveClingoProgram(volatileRules, signalAtoms)
   }
 }
 
-case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignalAtom]) {
+case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: Set[ClingoSignal]) {
 
-  val timeConstraint: TickConstraint = TickConstraint(Predicate("now"), TickParameter("t"))
-  val countConstraint: TickConstraint = TickConstraint(Predicate("cnt"), TickParameter("c"))
+  val timeDimension: TickDimension = TickDimension(Predicate("now"), TickParameter("t"))
+  val countDimension: TickDimension = TickDimension(Predicate("cnt"), TickParameter("c"))
 
-  val constraints = Seq(timeConstraint, countConstraint)
-  val tickParameters: Seq[TickParameter] = constraints map (_.parameter)
+  val tickDimensions = Seq(timeDimension, countDimension)
+  val tickParameters: Seq[TickParameter] = tickDimensions map (_.parameter)
 
-  def external(constraint: TickConstraint): String = external(constraint.predicate.toString, Seq(constraint.parameter))
+  def externalKeyword(tickDimension: TickDimension): String = externalKeyword(tickDimension.predicate.toString, Seq(tickDimension.parameter))
 
-  def external(atom: ClingoAtom, arguments: Seq[Argument]): String = f"#external $atom(${argumentList(arguments)})."
+  def externalKeyword(atom: ClingoAtom, arguments: Seq[Argument]): String = f"#external $atom(${argumentList(arguments)})."
 
-  val externalConstraints: Seq[ClingoExpression] = constraints map external
+  val externalDimensions: Seq[ClingoExpression] = tickDimensions map externalKeyword
 
-  val signalPrograms: Set[ClingoExpression] = signals map (signal =>
-    f"""#program ${signal.functionName}(${argumentList(tickParameters ++ signal.parameters)}).
+  //TODO hb later cnt should be added only if tuple-window is used
+  val signalPrograms: Set[ClingoExpression] = signals map { signal => //TODO hb review argumentList order swap
+    f"""#program ${signal.programPart}(${argumentList(tickParameters ++ signal.parameters)}).
        |
-       |${external(signal.atName, signal.arguments :+ timeConstraint.parameter)}
-       |${external(signal.cntName, signal.arguments ++ constraints.map(_.parameter))}
+       |${externalKeyword(signal.atPredicate, signal.arguments :+ timeDimension.parameter)}
+       |${externalKeyword(signal.cntPinPredicate, signal.arguments ++ tickDimensions.map(_.parameter))}
        |
-     """.stripMargin)
-
+     """.stripMargin
+  }
 
   private val newLine = System.lineSeparator()
   val program: ClingoExpression =
@@ -97,7 +98,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |
        |#program volatile(${tickParameters.mkString(", ")}).
 
-       |${externalConstraints.mkString(newLine)}
+       |${externalDimensions.mkString(newLine)}
        |
        |${volatileRules.mkString(newLine)}
        |

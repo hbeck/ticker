@@ -37,20 +37,20 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
   }
 
   "A program with a signal" should "have one external entry" in {
-    val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom(Predicate("b"))))
+    val s = ReactiveClingoProgram(Set(), Set(ClingoSignal(Predicate("b"))))
 
     assert(s.program.contains("#external b_at(t)."))
     assert(s.program.contains("#external b_cnt(c)."))
   }
   it should "have a program named signals_b" in {
-    val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom(Predicate("b"))))
+    val s = ReactiveClingoProgram(Set(), Set(ClingoSignal(Predicate("b"))))
 
     assert(s.program.contains("#program signals_b_0"))
   }
 
   "A program with a signal with arity 1" should "have a program with additional parameters" in {
     val atom = Atom(Predicate("b"), Seq(Variable("arg")))
-    val s = ReactiveClingoProgram(Set(), Set(ClingoSignalAtom.fromAtom(atom)))
+    val s = ReactiveClingoProgram(Set(), Set(ClingoSignal.fromAtom(atom)))
 
     assert(s.program.contains("#program signals_b_1"))
     assert(s.program.contains(", b_arg)"))
@@ -63,7 +63,7 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
   }
 
   "A program with a rule and a signal" should "have both entries" in {
-    val s = ReactiveClingoProgram(Set("a :- b."), Set(ClingoSignalAtom.fromAtom(Atom("b"))))
+    val s = ReactiveClingoProgram(Set("a :- b."), Set(ClingoSignal.fromAtom(Atom("b"))))
 
     assert(s.program.contains("at_b(t)"))
     assert(s.program.contains("a :- b"))

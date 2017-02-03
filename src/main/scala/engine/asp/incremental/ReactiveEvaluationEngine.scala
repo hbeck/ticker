@@ -37,8 +37,8 @@ case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapp
     val groundAtoms = atoms.zipWithIndex map {a => (
       GroundAtom(a._1.predicate), //TODO hb? arguments
       Seq(
-        Tick(clingoProgram.timeConstraint.parameter, time.value),
-        Tick(clingoProgram.countConstraint.parameter, tuplePositions.size + a._2 + 1)
+        Tick(clingoProgram.timeDimension.parameter, time.value),
+        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1)
       )
     )}
 
@@ -107,8 +107,8 @@ case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapp
   override def evaluate(time: TimePoint): Result = {
 
    val model =  runningReactiveClingo.evaluate( Seq(
-      Tick(clingoProgram.timeConstraint.parameter, time.value),
-      Tick(clingoProgram.countConstraint.parameter, tuplePositions.size )
+      Tick(clingoProgram.timeDimension.parameter, time.value),
+      Tick(clingoProgram.countDimension.parameter, tuplePositions.size )
     ))
 val mapped = model.get.map(m => m.map(ClingoEvaluation.convert))
 

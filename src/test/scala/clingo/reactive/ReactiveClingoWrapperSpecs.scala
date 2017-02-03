@@ -110,7 +110,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
       "wd_b(X,t) :- at_b(X,t),now(t).",
       "wd_b(X,t) :- at_b(X,t-1),now(t)."
     )
-    val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignalAtom.fromAtom(b)))
+    val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignal.fromAtom(b)))
     val runner = reactiveClingo.executeProgram(reactiveProgram)
 
     try {
