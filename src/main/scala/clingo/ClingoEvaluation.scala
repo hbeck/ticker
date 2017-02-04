@@ -17,6 +17,7 @@ object ClingoEvaluation {
 
   def apply() = new ClingoEvaluation(ClingoWrapper())
 
+  //string to Atom
   def convert(result: ClingoAtom): Atom = {
     if (!result.contains('('))
       return Atom(result)
@@ -25,18 +26,7 @@ object ClingoEvaluation {
     val predicate = Predicate(nameParts.head)
     val arguments = nameParts.tail.head.replace("(", "").replace(")", "").split(',')
 
-    // TODO convert arguments into correct type
-
-    //    val regex = """^(\w+)(\((\w+)(,)?+\))?""".r("atom", "arguments")
-
-    //    var matches = regex.findAllMatchIn(result)
-    //    var matche = regex.findFirstMatchIn(result)
-    //
-    //    var name = matche.get.group("atom")
-    //    var arguments = matche.get.group("arguments")
-
-    // TODO do we have always ground results?
-    NonGroundAtom(predicate, arguments map Argument.convertToArgument)
+    GroundAtom(predicate, (arguments map (Value(_))) :_*)
   }
 }
 

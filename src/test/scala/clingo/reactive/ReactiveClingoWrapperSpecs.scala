@@ -161,9 +161,24 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
       engine.append(TimePoint(1))(Atom("b"))
 
-      val model = engine.evaluate(TimePoint(1))
+      val model = engine.evaluate(TimePoint(3))
 
-      assert(model.get contains (Atom("a_at")))
+      /*
+          a <- \window^2 \Diamond b
+
+          Stream: 1 -> b
+          t=3
+
+          1 -> b        <-- answer stream
+          3 -> a
+
+          b_at(1)       <-- encoding of answer stream
+          a_at(3) a
+
+          a             <-- output stream (model)
+       */
+
+      assert(model.get contains (Atom("a")))
     }
     finally {
       engine.terminate

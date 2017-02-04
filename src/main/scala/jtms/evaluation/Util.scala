@@ -74,7 +74,7 @@ object Util {
   def ground(p: LarsProgram) = Grounder(p).groundProgram
 
 
-  def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTickUnit): NormalProgram = {
+  def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTimeUnit): NormalProgram = {
 
     val aspProgramWithVariables = LarsToPinnedProgram(tickSize)(groundLarsProgram)
 

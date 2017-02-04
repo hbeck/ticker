@@ -15,14 +15,14 @@ class DerivationForTime extends TransformLarsSpec {
   val atWindow = WindowAtom(SlidingTimeWindow(2), At(U), a)
 
   def convertedRule(windowAtom: WindowAtom) = {
-    convert.derivation_(windowAtom).get
+    convert.windowAtomEncoder(windowAtom)
   }
 
   "A w^2 @_U a" should "generate one rule" in {
-    val result = convert.derivation_(atWindow)
+    val result = convert.windowAtomEncoder(atWindow)
 
     assert(result.isDefined)
-    assert(result.get.range == 2)
+    assert(result.get.length == 2)
   }
 
   it should "have head w_te_2_at_U_a(U)" in {
@@ -68,7 +68,7 @@ class DerivationForTime extends TransformLarsSpec {
   val boxWindow = WindowAtom(SlidingTimeWindow(2), Box, a)
 
   "A w^2 B a" should "generate one rule" in {
-    val result = convert.derivation_(boxWindow)
+    val result = convert.windowAtomEncoder(boxWindow)
 
     assert(result.size == 1)
   }

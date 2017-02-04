@@ -144,6 +144,7 @@ trait PinnedAtom extends AtomWithArgument {
   }
 }
 
+//generic class for tick-based view; not used as such due to equivalence with specific @-atom representation
 trait PinnedTimeAtom extends PinnedAtom {
 
   val time: Time
@@ -163,52 +164,48 @@ trait PinnedTimeAtom extends PinnedAtom {
   }
 }
 
-trait PinnedCountAtom extends PinnedAtom {
-  val count: Argument
+// a(\vec{X}) --> a_cnt(\vec{X},C)
+trait PinnedCntAtom extends PinnedAtom {
+  val cnt: Argument
   //  override val tick: Argument = count
-  override val pinnedArguments: Seq[Argument] = Seq(count)
+  override val pinnedArguments: Seq[Argument] = Seq(cnt)
 
   override val predicate = Predicate(atom.predicate.caption + "_cnt")
 }
 
-trait PinnedTickAtom extends PinnedAtom {
-  val tick: Argument
-
-
-  override val predicate = Predicate(atom.predicate.caption + "_")
-}
-
+// a(\vec{X}) --> a_at(\vec{X},T)
 trait PinnedAtAtom extends PinnedTimeAtom {
-
 
   //  override lazy val pinnedArguments: Seq[Argument] = Seq(time)
   //
   override val predicate = Predicate(atom.predicate.caption + "_at")
 }
 
-trait PinnedTimeTickAtom extends PinnedAtAtom with PinnedTickAtom {
+trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom {
 
-  override val pinnedArguments = Seq(time, tick)
+  override val predicate = Predicate(atom.predicate.caption + "_at_cnt")
+  override val pinnedArguments = Seq(time, cnt)
 
 }
 
 object PinnedAtom {
+
   def apply(atom: Atom, time: Time): PinnedAtAtom = time match {
     case t: TimePoint => ConcretePinnedAtAtom(atom, t)
     case v: TimeVariableWithOffset => VariablePinnedAtAtom(atom, v)
   }
 
   def apply(atom: Atom, time: Time, tick: Argument): PinnedAtom = (time, tick) match {
-    case (t: TimePoint, tv: Value) => ConcreteTimeTickAtom(atom, t, tv)
-    case _ => VariableTimeTickAtom(atom, time, tick)
+    case (t: TimePoint, tv: Value) => ConcreteAtCntAtom(atom, t, tv)
+    case _ => VariableTimeCntAtom(atom, time, tick)
   }
 
-  def asCount(atom: Atom, count: Variable): PinnedCountAtom = VariableCountAtom(atom, count)
+  def asCount(atom: Atom, count: Variable): PinnedCntAtom = VariableCountAtom(atom, count)
 
-  def asCount(atom: Atom, count: Value): PinnedCountAtom = ConcreteCountAtom(atom, count)
+  def asCount(atom: Atom, count: Value): PinnedCntAtom = ConcreteCountAtom(atom, count)
 }
 
-case class ConcreteTimeTickAtom(override val atom: Atom, time: TimePoint, tick: Value) extends PinnedTimeTickAtom with GroundAtom
+case class ConcreteAtCntAtom(override val atom: Atom, time: TimePoint, cnt: Value) extends PinnedTimeCntAtom with GroundAtom
 
 case class ConcretePinnedAtAtom(override val atom: Atom, time: TimePoint) extends PinnedAtAtom with GroundAtom
 
@@ -223,31 +220,31 @@ case class VariablePinnedAtAtom(override val atom: Atom, time: TimeVariableWithO
   }
 }
 
-case class ConcreteCountAtom(override val atom: Atom, count: Value) extends PinnedCountAtom with GroundAtom
+case class ConcreteCountAtom(override val atom: Atom, cnt: Value) extends PinnedCntAtom with GroundAtom
 
-case class VariableCountAtom(override val atom: Atom, count: Variable) extends PinnedCountAtom with NonGroundAtom {
+case class VariableCountAtom(override val atom: Atom, cnt: Variable) extends PinnedCntAtom with NonGroundAtom {
 
   override def isGround(): Boolean = false
 
   //assume pinned atoms may have variables only in its special time argument
-  override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(count) match {
+  override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(cnt) match {
     case Some(v) => PinnedAtom.asCount(atom, v)
     case None => this
   }
 }
 
-case class VariableTimeTickAtom(override val atom: Atom, override val time: Time, override val tick: Argument) extends PinnedTimeTickAtom with NonGroundAtom {
+case class VariableTimeCntAtom(override val atom: Atom, override val time: Time, override val cnt: Argument) extends PinnedTimeCntAtom with NonGroundAtom {
 
   override def isGround(): Boolean = false
 
   //assume pinned atoms may have variables only in its special time argument
   override def assign(assignment: Assignment): ExtendedAtom = {
     val timeAssign = assignmentForTime(assignment)
-    val tickAssign = assignment.apply(tick)
+    val tickAssign = assignment.apply(cnt)
 
     tickAssign match {
       case Some(t) => PinnedAtom(atom, timeAssign, t)
-      case None => PinnedAtom(atom, timeAssign, tick)
+      case None => PinnedAtom(atom, timeAssign, cnt)
     }
   }
 }

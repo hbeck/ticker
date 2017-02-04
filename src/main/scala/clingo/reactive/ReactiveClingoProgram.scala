@@ -3,12 +3,12 @@ package clingo.reactive
 import clingo.{ClingoAtom, ClingoConversion, ClingoExpression}
 import core._
 import core.asp.NormalRule
-import engine.asp.TransformedLarsProgram
+import engine.asp.LarsProgramEncoding
 
 /**
   * Created by fm on 25/01/2017.
   *
-  * TODO hb review: what is a ClingoSignal? e.g. why do all variables have to be lower case?
+  * Representation for Clingo Output
   */
 object ClingoSignal {
 
@@ -56,8 +56,8 @@ case class TickDimension(predicate: Predicate, parameter: TickParameter) {
 }
 
 object ReactiveClingoProgram {
-  def fromMapped(program: TransformedLarsProgram) = {
-    val rules: Set[NormalRule] = program.rules.toSet ++ program.incrementalRules.flatMap(_.allRules.toSet)
+  def fromMapped(program: LarsProgramEncoding) = {
+    val rules: Set[NormalRule] = program.rules.toSet ++ program.windowAtomEncoders.flatMap(_.allWindowRules.toSet)
 
     val volatileRules = rules map (ClingoConversion(_))
 

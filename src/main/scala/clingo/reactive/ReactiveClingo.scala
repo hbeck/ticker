@@ -19,13 +19,12 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
 
   class RunningReactiveClingo(private val clingoProcess: scala.sys.process.Process, client: ReactiveClingoClient) {
 
-
     def terminate = {
       client.terminate()
       clingoProcess.destroy()
     }
 
-    // TODO: pinned atom as argument?
+    // TODO: pinned atom as argument? TODO hb review
     def signal(signals: Seq[(GroundAtom, Seq[Tick])]) = {
       client.sendSignal(convertToSignalArgument(signals))
     }

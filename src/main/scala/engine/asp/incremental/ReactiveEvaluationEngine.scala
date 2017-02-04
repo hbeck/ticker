@@ -11,7 +11,7 @@ import engine.{EvaluationEngine, Result}
 /**
   * Created by FM on 18.05.16.
   */
-case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapper: ClingoWrapper = ClingoWrapper()) extends EvaluationEngine {
+case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper: ClingoWrapper = ClingoWrapper()) extends EvaluationEngine {
 
   val clingoProgram = ReactiveClingoProgram.fromMapped(program)
   val reactiveClingo = new ReactiveClingo(clingoWrapper)
@@ -33,17 +33,16 @@ case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapp
     //    cachedResults(time) = prepare(time, atoms.toSet)
     //    discardOutdatedAuxiliaryAtoms(time)
 
-
-    val groundAtoms = atoms.zipWithIndex map {a => (
+    val groundAtoms = atoms.zipWithIndex map { a => (
       GroundAtom(a._1.predicate), //TODO hb? arguments
       Seq(
         Tick(clingoProgram.timeDimension.parameter, time.value),
-        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1)
+        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1
       )
     )}
 
-    trackAuxiliaryAtoms(time, atoms)
-    runningReactiveClingo.signal(groundAtoms)
+    trackAuxiliaryAtoms(time, atoms) //TODO hb review
+    runningReactiveClingo.signal(groundAtoms) //TODO hb review
 
   }
 
@@ -106,18 +105,20 @@ case class ReactiveEvaluationEngine(program: TransformedLarsProgram, clingoWrapp
 
   override def evaluate(time: TimePoint): Result = {
 
-   val model =  runningReactiveClingo.evaluate( Seq(
+   val clingoModel = runningReactiveClingo.evaluate( Seq(
       Tick(clingoProgram.timeDimension.parameter, time.value),
       Tick(clingoProgram.countDimension.parameter, tuplePositions.size )
     ))
-val mapped = model.get.map(m => m.map(ClingoEvaluation.convert))
 
-    Result.apply(Some(mapped.head))
+    //TODO add filtering for such that clingoModel contains only output stream
+    val models: Set[Model] = clingoModel.get.map (_.map(ClingoEvaluation.convert))
+
+    Result(Some(models.head)) //pick first
   }
 
   def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map { v => v._1.asTupleReference(v._2) }.
-    map(x => AspFact[Atom](x))
+    map ( v => v._1.asTupleReference(v._2) ).
+    map ( x => AspFact[Atom](x) )
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtAtom => p
@@ -136,6 +137,7 @@ val mapped = model.get.map(m => m.map(ClingoEvaluation.convert))
     //    atomsToRemove foreach { case (timePoint, signals) => tmsPolicy.remove(timePoint)(signals toSeq) }
   }
 
+  //TODO hb review what does this do?
   private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
     tuplePositions = atoms.toList ++ tuplePositions
     fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))

@@ -3,15 +3,13 @@ package core.lars
 
 import core.Atom
 
-import scala.concurrent.duration._
-
 /**
   * Created by FM on 01.05.16.
   */
 object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
-    case SlidingTimeWindow(windowSize) => f"⊞^${windowSize.ticks(1 second)}"
+    //case SlidingTimeWindow(windowSize) => f"⊞^${windowSize.ticks(1 second)}" TODO current
     case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
     case FluentWindow => f"⊞^f"
   }

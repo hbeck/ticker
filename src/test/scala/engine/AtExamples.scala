@@ -38,7 +38,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
 
     // TODO: discuss if we should use lookahead for concrete timepoints???
     val program = LarsProgram.from(
-      temp <= WindowAtom(STW(3), At(t37), busG)
+      temp <= WindowAtom(TimeW(3), At(t37), busG)
     )
 
     val engine = defaultEngine(program)
@@ -59,7 +59,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
     val U = TimeVariableWithOffset("U")
 
     val program = LarsProgram.from(
-      AtAtom(U + 3, expBusM) <= WindowAtom(STW(3), At(U), busG)
+      AtAtom(U + 3, expBusM) <= WindowAtom(TimeW(3), At(U), busG)
     )
 
     val engine = defaultEngine(program)
@@ -77,8 +77,8 @@ class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngi
     val U = TimeVariableWithOffset("U")
 
     val program = LarsProgram.from(
-      AtAtom(U - 1, b) <= WindowAtom(STW(3), At(U), a),
-      c <= WindowAtom(STW(2), Diamond, b)
+      AtAtom(U - 1, b) <= WindowAtom(TimeW(3), At(U), a),
+      c <= WindowAtom(TimeW(2), Diamond, b)
     )
 
     val engine = defaultEngine(program)

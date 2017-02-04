@@ -108,8 +108,8 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   }
 
   def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map { v => v._1.asTupleReference(v._2) }.
-    map(x => AspFact[Atom](x))
+    map (v => v._1.asTupleReference(v._2) ).
+    map (x => AspFact[Atom](x))
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtAtom => p
@@ -119,7 +119,9 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
+    //TODO current !!!
+    //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
+    val maxWindowTicks = 0 //TODO
     tuplePositions = tuplePositions.take(pinnedAspProgram.maximumTupleWindowSize.toInt)
 
     val atomsToRemove = signalStream filterKeys (t => t.value < time.value - maxWindowTicks)
