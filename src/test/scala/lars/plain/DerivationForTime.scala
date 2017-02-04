@@ -1,6 +1,5 @@
 package lars.plain
 
-import core.PinnedAtom
 import core.lars._
 import engine.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
@@ -17,7 +16,7 @@ class DerivationForTime extends TransformLarsSpec {
   def convertedRule(windowAtom: WindowAtom) = {
     convert.windowAtomEncoder(windowAtom)
   }
-
+  /* TODO current
   "A w^2 @_U a" should "generate one rule" in {
     val result = convert.windowAtomEncoder(atWindow)
 
@@ -48,6 +47,7 @@ class DerivationForTime extends TransformLarsSpec {
 
     assert(result.size == 1)
   }
+
 
   it should "have head w_te_2_d_a" in {
     val rule = convertedRule(diamondWindow).rule
@@ -89,5 +89,7 @@ class DerivationForTime extends TransformLarsSpec {
     assert(rule.body.contains(reference))
     assert(rule.body.contains(a.asAtReference(T - 1)))
   }
+
+    */
 
 }
