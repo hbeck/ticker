@@ -26,7 +26,7 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 }
 
 object StreamingClingoInterpreter {
-  def asPinnedAtom(model: Model, timePoint: TimePoint) = model map {
+  def asPinnedAtom(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case aa: AtomWithArgument => convertToPinnedAtom(aa, timePoint)
     case a: Atom => throw new IllegalArgumentException(f"Cannot convert '$a' into a PinnedAtom")
   }

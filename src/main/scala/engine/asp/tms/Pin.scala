@@ -58,18 +58,18 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
       case t: TimePoint => t
     }
 
-    groundedBaseAtom(groundedTimePoint)
+    PinnedAtom(groundedBaseAtom, groundedTimePoint)
   }
 
   def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {
       val g = this.apply(p)
-//      ground(g) //TODO hb: why is this commented?
+      //      ground(g) //TODO hb: why is this commented?
       g
     }
     case a: GroundAtom => a
     case _ => atom
-//    case _ => throw new RuntimeException("cannot ground " + atom)
+    //    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
   def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))
@@ -82,9 +82,9 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
     )
   }
 
-//  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
-//    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
-//  }
+  //  def ground(pinnedAtom: PinnedAtom): GroundAtom = {
+  //    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
+  //  }
 
   def ground(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 

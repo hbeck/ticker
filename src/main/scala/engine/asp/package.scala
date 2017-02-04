@@ -16,7 +16,7 @@ package object asp {
   type PinnedFact = AspFact[AtomWithArgument]
   type PinnedProgram = AspProgram[AtomWithArgument, PinnedRule]
 
-  type PinnedModel = Set[PinnedAtom]
+  type PinnedModel = Set[AtomWithArgument]
   type PinnedStream = Set[PinnedFact]
 
   //keep original lars rule from which a pinned rule stems

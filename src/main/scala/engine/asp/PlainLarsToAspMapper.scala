@@ -33,10 +33,12 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
   def apply(program: LarsProgram): LarsProgramEncoding = {
 
     val nowAndAtNowIdentityRules = program.atoms.
-      flatMap { a => Seq(
-        AspRule[Atom,Atom](a, Set(now(T), PinnedAtom(a,T))),
-        AspRule[Atom,Atom](PinnedAtom(a,T), Set(now(T), a))
-      )}.toSeq
+      flatMap { a =>
+        Seq(
+          AspRule[Atom, Atom](a, Set(now.apply(T), PinnedAtom(a, T))),
+          AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T), a))
+        )
+      }.toSeq
 
     val rulesEncodings = program.rules map encodeRule
 
@@ -59,7 +61,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
 
   def predicateFor(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) = {
     val window = windowFunction match {
-      case SlidingTimeWindow(size) => f"w_te_${timePoints(size.unit,size.length)}"
+      case SlidingTimeWindow(size) => f"w_te_${timePoints(size.unit, size.length)}"
       case SlidingTupleWindow(size) => f"w_tu_$size"
       case FluentWindow => f"w_fl"
     }
@@ -75,12 +77,12 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
     Predicate(f"${window}_${operator}_${atomName.toString}")
   }
 
-//  def derivation(extendedAtom: ExtendedAtom): Set[NormalRule] = extendedAtom match {
-//    case WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => slidingTime(k, temporalModality, atom)
-//    case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
-//    case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
-//    case _ => Set()
-//  }
+  //  def derivation(extendedAtom: ExtendedAtom): Set[NormalRule] = extendedAtom match {
+  //    case WindowAtom(k: SlidingTimeWindow, temporalModality, atom) => slidingTime(k, temporalModality, atom)
+  //    case WindowAtom(n: SlidingTupleWindow, temporalModality, atom) => slidingTuple(n, temporalModality, atom)
+  //    case WindowAtom(n: SlidingSpecificTupleWindow, temporalModality, atom) => slidingSpecificTuple(n, temporalModality, atom)
+  //    case _ => Set()
+  //  }
 
   def windowAtomEncoder(windowAtom: WindowAtom): WindowAtomEncoder = windowAtom match {
     case WindowAtom(window: SlidingTimeWindow, temporalModality, atom) => slidingTime(window, temporalModality, atom)
@@ -93,7 +95,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
   // head: w_{bla}(X,T)
   def slidingTime(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): WindowAtomEncoder = {
     val length = timePoints(window.windowSize.unit, window.windowSize.length)
-    val head = encodedWindowAtom(WindowAtom(window,temporalModality,atom)) //TODO beautify
+    val head = encodedWindowAtom(WindowAtom(window, temporalModality, atom)) //TODO beautify
     temporalModality match {
       case a: At => TimeAtEncoder(length, atom, head) //TODO where is T of @_T
       case Diamond => TimeDiamondEncoder(length, atom, head)
@@ -199,10 +201,10 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
   }
   */
 
-//  private def headFor(window: WindowFunction, temporalModality: TemporalModality, atom: Atom): Atom = {
-//    val predicate = predicateFor(window, temporalModality, atom)
-//    AtomWithArgument(predicate, Atom.unapply(atom).getOrElse(Seq()))
-//  }
+  //  private def headFor(window: WindowFunction, temporalModality: TemporalModality, atom: Atom): Atom = {
+  //    val predicate = predicateFor(window, temporalModality, atom)
+  //    AtomWithArgument(predicate, Atom.unapply(atom).getOrElse(Seq()))
+  //  }
 
   private def encodedWindowAtom(windowAtom: WindowAtom) = {
     val predicate = predicateFor(windowAtom)
@@ -210,15 +212,15 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
       case aa: AtomWithArgument => aa.arguments
       case a: Atom => Seq()
     }
-//    val filteredAtomArguments = windowAtom.windowFunction match {
-//      case FluentWindow => previousArguments take 1
-//      case _ => previousArguments
-//    }
-//    val atomsWithArguments = atom(filteredAtomArguments: _*)
+    //    val filteredAtomArguments = windowAtom.windowFunction match {
+    //      case FluentWindow => previousArguments take 1
+    //      case _ => previousArguments
+    //    }
+    //    val atomsWithArguments = atom(filteredAtomArguments: _*)
 
     windowAtom.temporalModality match {
-      case At(v: Time) => Atom(predicate,previousArguments :+ v)
-      case _ => Atom(predicate,previousArguments)
+      case At(v: Time) => Atom(predicate, previousArguments :+ v)
+      case _ => Atom(predicate, previousArguments)
     }
   }
 
@@ -295,7 +297,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ext
    windowAtomEncoding: w_{range-d-a}
  */
 case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
-  val N = TimeVariableWithOffset("N")
+  val N: Variable = TimeVariableWithOffset("N")
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T - i))))
@@ -332,7 +334,8 @@ case class TupleAt(range: Long, atom: Atom, windowAtomEncoding: Atom) extends De
 */
 
 case class TupleDiamond(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
-  val C = TimeVariableWithOffset("C") //TODO hb review why time variable?
+  val C = TimeVariableWithOffset("C")
+  //TODO hb review why time variable?
   val D = Variable("D") //TODO ... and then why this not?
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))

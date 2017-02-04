@@ -541,7 +541,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
            AspRule(a, waux_d),
            AspRule(b, waux_e)))
 
-    var lastD: Atom = d(0)
+    var lastD: Atom = d.apply(0)
     var lastE: Atom = e(-1)
 
     for (t <- 0 to 1000) {

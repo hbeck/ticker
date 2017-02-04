@@ -49,7 +49,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
     val rules = LarsToPinnedProgram(a <= W(1, At(U), b))
 
     val converted = rules.map(PinnedAspToIncrementalAsp.apply(_, Set()))
-    forExactly(2, converted)(r => r.head.variables should contain(T.variable))
+    forExactly(2, converted)(r => r.head.variables should contain(T))
   }
   it should "contain now(t) for an @_t atom" in {
     val rules = LarsToPinnedProgram(a <= W(1, At(t1), b))

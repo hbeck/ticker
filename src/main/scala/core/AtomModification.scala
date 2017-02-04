@@ -1,5 +1,6 @@
 package core
 
+import engine.asp.{cnt, now, pin}
 import core.lars.Time
 
 /**
@@ -11,17 +12,29 @@ import core.lars.Time
   */
 case class AtomModification(atom: Atom) {
 
-  def apply(time: Time) = PinnedAtom(atom, time)
+  def apply(time: Time): AtomWithArgument = {
+    val timeAsArgument: Argument = time
 
-  def apply(arguments: List[Argument]): Atom = {
+    // TODO: for these special atoms we don't want them to be mapped as PinnedAtoms
+    // because this would create predicate names like 'now_at'
+    atom match {
+      case `cnt` => this (timeAsArgument)
+      case `now` => this (timeAsArgument)
+      case `pin` => this (timeAsArgument)
+      case _ => PinnedAtom(atom, time)
+    }
+  }
+
+  def apply(arguments: List[Argument]): AtomWithArgument = {
     val (pred, atomArgs): (Predicate, Seq[Argument]) = atom match {
       case aa: AtomWithArgument => (aa.predicate, aa.arguments)
       case _ => (atom.predicate, Seq())
     }
-    Atom(pred, atomArgs ++ arguments)
+    // TODO: is this cast needed?
+    Atom(pred, atomArgs ++ arguments).asInstanceOf[AtomWithArgument]
   }
 
-  def apply(arguments: Argument*): Atom = this.apply(arguments.toList)
+  def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
 
   def asTupleReference(position: Long) = {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))

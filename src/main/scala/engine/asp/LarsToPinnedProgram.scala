@@ -13,10 +13,10 @@ import scala.concurrent.duration._
 case class LarsToPinnedProgram(engineTick: EngineTimeUnit = 1 second) {
   //TODO hb: maybe better called "toAspAtom"
   def apply(extendedAtom: ExtendedAtom): AtomWithArgument = extendedAtom match {
-    case AtAtom(t, a) => a(t)
+    case AtAtom(t, a) => PinnedAtom(a, t)
     // TODO: discuss if this approach is correct: can an head-atom be already pinned?
-    case VariablePinnedAtAtom(a, v: TimeVariableWithOffset) => a(v)
-    case a: Atom => a(T)
+    case VariablePinnedAtAtom(a, v: TimeVariableWithOffset) => PinnedAtom(a, v)
+    case a: Atom => PinnedAtom(a, T)
     case a: WindowAtom => this.apply(a)
   }
 
@@ -35,14 +35,14 @@ case class LarsToPinnedProgram(engineTick: EngineTimeUnit = 1 second) {
   def apply(windowAtom: WindowAtom): PinnedAtom = {
     val basicAtom = atomFor(windowAtom)
 
-    basicAtom(T)
+    PinnedAtom(basicAtom,T)
   }
 
   //TODO hb: maybe better called "toAspRule"
   def transformRule(rule: LarsRule): PinnedRule = {
     AspRule(
       this.apply(rule.head),
-      (rule.pos map this.apply) + now(T),
+      (rule.pos map this.apply) + now.apply(T),
       rule.neg map this.apply
     )
   }
@@ -134,17 +134,17 @@ case class LarsToPinnedProgram(engineTick: EngineTimeUnit = 1 second) {
     val h = Atom(predicateFor(windowAtom))
 
     //TODO hb review deprecated
-//    val generatedRules = windowAtom.windowFunction match {
-//      case SlidingTimeWindow(size) => (0 to size.ticks(engineTick).toInt) map { t =>
-//        AspRule(
-//          h(T - t)(T).asInstanceOf[AtomWithArgument],
-//          Set[AtomWithArgument](
-//            windowAtom.atom(T - t),
-//            now(T)
-//          )
-//        )
-//      }
-//    }
+    //    val generatedRules = windowAtom.windowFunction match {
+    //      case SlidingTimeWindow(size) => (0 to size.ticks(engineTick).toInt) map { t =>
+    //        AspRule(
+    //          h(T - t)(T).asInstanceOf[AtomWithArgument],
+    //          Set[AtomWithArgument](
+    //            windowAtom.atom(T - t),
+    //            now(T)
+    //          )
+    //        )
+    //      }
+    //    }
 
     //generatedRules.toSet
     Set()
@@ -175,8 +175,8 @@ case class LarsToPinnedProgram(engineTick: EngineTimeUnit = 1 second) {
   def generateAtomsOfT(windowSize: TimeWindowSize, atom: Atom, referenceTime: Time, calculateTime: (Time, Int) => Time = (t, i) => t - i): Set[PinnedTimeAtom] = {
     Set()
     //TODO hb review deprecated
-//    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculateTime(referenceTime, _)) map (atom(_))
-//    (generateAtoms :+ atom(referenceTime)).toSet
+    //    val generateAtoms = (1 to windowSize.ticks(engineTick).toInt) map (calculateTime(referenceTime, _)) map (atom(_))
+    //    (generateAtoms :+ atom(referenceTime)).toSet
   }
 }
 

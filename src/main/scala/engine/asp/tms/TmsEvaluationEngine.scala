@@ -108,14 +108,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   }
 
   def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map (v => v._1.asTupleReference(v._2) ).
-    map (x => AspFact[Atom](x))
+    map(v => v._1.asTupleReference(v._2)).
+    map(x => AspFact[Atom](x))
 
-  def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
+  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case p: PinnedAtAtom => p
     case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => ConcretePinnedAtAtom(GroundAtom(p), t)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => a(timePoint)
+    case a: Atom => PinnedAtom(a, timePoint)
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
