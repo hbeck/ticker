@@ -32,6 +32,7 @@ trait Variable extends Argument {
 
 }
 
+//TODO hb review why offset?
 case class StringVariable(name: String, offset: Offset = 0) extends Variable {
   override def toString = name
 

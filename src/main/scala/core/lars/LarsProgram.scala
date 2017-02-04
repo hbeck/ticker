@@ -25,7 +25,6 @@ trait LarsBasedProgram {
   lazy val slidingTupleWindowsAtoms: Seq[SlidingTupleWindow] = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
   }
-  //TODO fluent window
 
   lazy val maximumWindowSize: TimeWindowSize = slidingTimeWindowsAtoms.isEmpty match {
     case true => TimeWindowSize(0)

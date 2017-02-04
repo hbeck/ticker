@@ -8,7 +8,7 @@ import core._
   * Created by FM on 13.05.16.
   */
 package object asp {
-  val now = Atom("now")
+  val now = Atom("now") //TODO hb review placing something specific at very generic place
   val cnt = Atom("cnt")
 
   type PinnedRule = AspRule[AtomWithArgument]

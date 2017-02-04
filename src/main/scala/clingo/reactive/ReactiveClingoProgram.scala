@@ -7,6 +7,8 @@ import engine.asp.TransformedLarsProgram
 
 /**
   * Created by fm on 25/01/2017.
+  *
+  * TODO hb review: what is a ClingoSignal? e.g. why do all variables have to be lower case?
   */
 object ClingoSignal {
 

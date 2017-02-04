@@ -43,7 +43,7 @@ case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
 
     val static = staticAtoms ++ staticWindowAtom
 
-    val rules = program.rules map (r => this.apply(r))
+    val rules = program.rules map (r => this(r))
 
     TransformedLarsProgram(rules, static, engineTick)
   }
@@ -56,7 +56,7 @@ case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
 
   def transformRule(rule: LarsRule): NormalRule = {
     AspRule(
-      this.apply(rule.head),
+      this(rule.head),
       rule.pos map this.apply,
       rule.neg map this.apply
     )
@@ -100,14 +100,13 @@ case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
     val size = window.windowSize.ticks(engineTick).toInt
     val head = headFor(window, temporalModality, atom)
     temporalModality match {
-      case a: At => {
-        val incremental = TimeAt(size, atom, head)
-        incremental
-      }
+      case a: At => TimeAt(size, atom, head)
       case Diamond => TimeDiamond(size, atom, head)
+      case Box => TimeBox(size, atom, head)
     }
   }
 
+  //TODO hb review this method or the one above?
   def slidingTime(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): Set[NormalRule] = {
     val size = window.windowSize.ticks(engineTick).toInt
     val head = headFor(window, temporalModality, atom)
@@ -218,7 +217,7 @@ case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
       case FluentWindow => previousArguments take 1
       case _ => previousArguments
     }
-    val atomsWithArguments = atom.apply(filteredAtomArguments: _*)
+    val atomsWithArguments = atom(filteredAtomArguments: _*)
 
     windowAtom.temporalModality match {
       case At(v: TimeVariableWithOffset) => atomsWithArguments(v)
@@ -236,11 +235,10 @@ case class PlainLarsToAspMapper(engineTick: EngineTickUnit = 1 second) {
   //  }
 }
 
-case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], staticRules: Seq[NormalRule], tickSize: EngineTickUnit) extends NormalProgram with LarsBasedProgram {
+//TODO hb review documentation larsRulesAsAspRules vs staticRules
+case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], staticRules: Seq[NormalRule], tickUnit: EngineTickUnit) extends NormalProgram with LarsBasedProgram {
 
-  override val rules = (larsRulesAsAspRules flatMap {
-    _.mappedRules
-  }) ++ staticRules
+  override val rules = (larsRulesAsAspRules flatMap (_.mappedRules)) ++ staticRules
 
   override val larsRules = larsRulesAsAspRules map (_.larsRule)
 
@@ -249,6 +247,7 @@ case class TransformedLarsProgram(larsRulesAsAspRules: Seq[MappedLarsRule], stat
 
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
 
+//rule to derive window atom encoding
 trait DerivationRule {
   val range: Long
 
@@ -259,8 +258,26 @@ trait DerivationRule {
   def ruleFor(tick: IntValue): IncrementalRules
 }
 
+//TODO hb review naming
 case class MappedLarsRule(larsRule: LarsRule, mappedRules: Set[NormalRule], derivationRules: Set[DerivationRule]) {
   //  val rules = mappedRules ++ incrementalRule.rule
+}
+
+//TODO hb review why is there no AtAtom?
+case class TimeAt(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
+  val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
+  //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
+  //allows the use of an offset).
+
+  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, T), Set[Atom](now(N), PinnedAtom(atom, T)))
+  val allRules = (0 to range.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, T), Set[Atom](now(N), PinnedAtom(atom, T - i))))
+
+  override def ruleFor(i: IntValue): IncrementalRules = {
+    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
+    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
+
+    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
+  }
 }
 
 /* EXAMPLE.
@@ -275,44 +292,58 @@ case class MappedLarsRule(larsRule: LarsRule, mappedRules: Set[NormalRule], deri
 case class TimeDiamond(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
   val N = TimeVariableWithOffset("N")
 
-  val rule: NormalRule = AspRule.apply(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
-  val allRules = (0 to range.toInt) map (i => AspRule.apply(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T - i))))
+  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
+  val allRules = (0 to range.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T - i))))
 
   //TODO hb prepared for later use
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(T -> i, N -> i)))
     val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
 
-    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
+    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
 }
 
-case class TimeAt(range: Long, atom: Atom, windowAtom: Atom) extends DerivationRule {
-  val N = TimeVariableWithOffset("N")
+case class TimeBox(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
 
-  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T)))
-  val allRules = (0 to range.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(windowAtom, T), Set[Atom](now(N), PinnedAtom(atom, T - i))))
+  //TODO hb
 
-  override def ruleFor(i: IntValue): IncrementalRules = {
-    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
-    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - range.toInt), N -> i)))
+  override val rule: NormalRule = _
+  override val allRules: Seq[NormalRule] = _
 
-    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
-  }
+  override def ruleFor(tick: IntValue): IncrementalRules = ???
 }
 
-case class TupleDiamond(range: Long, atom: Atom, windowAtom: Atom) extends DerivationRule {
-  val C = TimeVariableWithOffset("C")
-  val D = Variable("D")
+case class TupleAt(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
 
-  val rule: NormalRule = AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D)))
-  val allRules = (0 to range.toInt) map (i => AspRule.apply(windowAtom, Set[Atom](cnt(C), PinnedAtom(atom, D), Sum(C, IntValue(i.toInt), D))))
+  //TODO hb
+
+  override val rule: NormalRule = _
+  override val allRules: Seq[NormalRule] = _
+
+  override def ruleFor(tick: IntValue): IncrementalRules = ???
+}
+
+case class TupleDiamond(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
+  val C = TimeVariableWithOffset("C") //TODO hb review why time variable?
+  val D = Variable("D") //TODO ... and then why this not?
+
+  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
+  val allRules = (0 to range.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D), Sum(C, IntValue(i.toInt), D))))
 
 
   override def ruleFor(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(D -> i, C -> i)))
     val removed = rule.assign(Assignment(Map(D -> IntValue(i.int - range.toInt), C -> i)))
 
-    IncrementalRules(Seq(AspRule.apply(added.head, added.pos)), Seq(AspRule.apply(removed.head, removed.pos)))
+    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
+}
+
+case class TupleBox(range: Long, atom: Atom, windowAtomEncoding: Atom) extends DerivationRule {
+  //TODO hb
+  override val rule: NormalRule = _
+  override val allRules: Seq[NormalRule] = _
+
+  override def ruleFor(tick: IntValue): IncrementalRules = ???
 }
