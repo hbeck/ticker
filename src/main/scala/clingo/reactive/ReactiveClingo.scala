@@ -12,6 +12,8 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
 
     val reactiveClingoProcess = wrapper.runReactive(program.program)
 
+    Thread.sleep(100)
+
     val client = ReactiveClingoClient.connect(port)
 
     new RunningReactiveClingo(reactiveClingoProcess, client)

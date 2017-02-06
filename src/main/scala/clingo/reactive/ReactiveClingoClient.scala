@@ -78,6 +78,7 @@ class ReactiveClingoClient(socket: Socket) {
     val signalEncoding = signals.
       map(concatParts).
       map(_.mkString(":"))
+
     signalEncoding
   }
 

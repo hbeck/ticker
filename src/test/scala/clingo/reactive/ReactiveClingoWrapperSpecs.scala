@@ -178,6 +178,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
           a             <-- output stream (model)
        */
 
+      print(model.get)
       assert(model.get.get contains (Atom("a")))
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
