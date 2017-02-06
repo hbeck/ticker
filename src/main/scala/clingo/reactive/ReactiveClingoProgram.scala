@@ -29,11 +29,16 @@ object ClingoSignal {
 }
 
 case class ClingoSignal(predicate: Predicate, arguments: Seq[Argument] = Seq()) {
-  val atPredicate: ClingoAtom = f"${predicate}_at" //format: a(X,t) //TODO hb review: why is the type ClingoAtom, not ClingoPredicate, or simply Predicate?
-  val cntPredicate: ClingoAtom =f"${predicate}_cnt" //format: a(X,c)
-  val cntPinPredicate: ClingoAtom = f"${predicate}_cnt" //TODO hb review rename here and in python! --> "_pin" //format: a(X,t,c)
-  val programPart = f"signals_${predicate}_${arguments.size}" //#program ...
-  val parameters: Seq[TickParameter] = arguments collect { //TODO hb filter?o
+  val atPredicate: ClingoAtom = f"${predicate}_at"
+  //format: a(X,t) //TODO hb review: why is the type ClingoAtom, not ClingoPredicate, or simply Predicate?
+  val cntPredicate: ClingoAtom = f"${predicate}_cnt"
+  //format: a(X,c)
+  val cntPinPredicate: ClingoAtom = f"${predicate}_at_cnt"
+  //TODO hb review rename here and in python! --> "_pin" //format: a(X,t,c)
+  val programPart = f"signals_${predicate}_${arguments.size}"
+  //#program ...
+  val parameters: Seq[TickParameter] = arguments collect {
+    //TODO hb filter?o
     case t: TickParameter => t
   }
 }
@@ -89,6 +94,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
     f"""#program ${signal.programPart}(${argumentList(tickParameters ++ signal.parameters)}).
        |
        |${externalKeyword(signal.atPredicate, signal.arguments :+ timeDimension.parameter)}
+       |${externalKeyword(signal.cntPredicate, signal.arguments :+ countDimension.parameter)}
        |${externalKeyword(signal.cntPinPredicate, signal.arguments ++ tickDimensions.map(_.parameter))}
        |
      """.stripMargin

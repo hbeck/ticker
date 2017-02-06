@@ -34,6 +34,7 @@ object ClingoConversion {
   }
 
   def apply(relationAtom: RelationAtom): ClingoAtom = relationAtom match {
+    case Eq(l, r) => f"$l = $r"
     case Neq(l, r) => f"$l != $r"
     case Leq(l, r) => f"$l <= $r"
     case Geq(l, r) => f"$l >= $r"
@@ -46,9 +47,9 @@ object ClingoConversion {
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
+      case r: RelationAtom => return this.apply(r)
       case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case x: GroundAtom => (x.predicate.caption, "")
-      case r: RelationAtom => (this.apply(r), "")
       case _ => (atom.toString, "")
     }
 

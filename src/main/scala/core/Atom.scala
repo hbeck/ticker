@@ -346,6 +346,10 @@ abstract class TernaryNumericRelationAtom(x: Argument, y: Argument, z: Argument)
   //  def holds(i: Int, j: Int, k: Int): Boolean
 }
 
+case class Eq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
+  override val predicate: Predicate = Predicate("eq")
+}
+
 case class Neq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("neq")
   //  override def holds(): Boolean = {

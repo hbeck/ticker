@@ -38,6 +38,9 @@ class ReactiveClingoClient(socket: Socket) {
     out.flush()
     out.close()
 
+    // give clingo the possibility to send answers
+    Thread.sleep(100)
+
     in.close()
 
     socket.close()

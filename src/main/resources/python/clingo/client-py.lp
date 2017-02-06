@@ -58,7 +58,7 @@ class States:
 
 def printModel(model):
     # print "Model ", dir(model)
-    print "Atoms ", model.symbols(True, True)
+    print "Atoms ", model.symbols(True, True, True, True)
 
 
 def asNumber(value):
@@ -191,6 +191,7 @@ def main(prg):
 
                     addExternal(atom("" + predicate + "_at", atomParameters + [t]))
                     addExternal(atom("" + predicate + "_cnt", atomParameters + [c]))
+                    addExternal(atom("" + predicate + "_at_cnt", atomParameters + [t, c]))
 
                     state = States.IDLE
             elif msg.startswith("expire "):
@@ -202,6 +203,7 @@ def main(prg):
 
                     removeExternal(atom("" + predicate + "_at", atomParameters + [t]))
                     removeExternal(atom("" + predicate + "_cnt", atomParameters + [c]))
+                    removeExternal(atom("" + predicate + "_at_cnt", atomParameters + [t, c]))
 
                     state = States.IDLE
 
