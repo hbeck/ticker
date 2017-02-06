@@ -147,7 +147,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     }
   }
 
-  "With engine" should "work" in {
+  "With reactive engine" should "have running a :- w^2 D b" in {
     val p = LarsProgram.from(
       Atom("a") <= WindowAtom(SlidingTimeWindow(2), Diamond, Atom("b"))
     )
@@ -161,7 +161,48 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
       engine.append(TimePoint(1))(Atom("b"))
 
-      val model = engine.evaluate(TimePoint(3))
+      val model = engine.evaluate(TimePoint(2))
+
+      /*
+          a <- \window^2 \Diamond b
+
+          Stream: 1 -> b
+          t=3
+
+          1 -> b        <-- answer stream
+          3 -> a
+
+          b_at(1)       <-- encoding of answer stream
+          a_at(3) a
+
+          a             <-- output stream (model)
+       */
+
+      assert(model.get.get contains (Atom("a")))
+      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+    }
+    finally {
+      engine.terminate
+    }
+
+  }
+
+
+  "With reactive engine" should "have running a :- w#^2 D b" in {
+    val p = LarsProgram.from(
+      Atom("a") <= WindowAtom(SlidingTupleWindow(2), Diamond, Atom("b"))
+    )
+    val mapper = PlainLarsToAspMapper()
+
+    val mappedProgram = mapper(p)
+
+    val engine = ReactiveEvaluationEngine(mappedProgram)
+
+    try {
+
+      engine.append(TimePoint(1))(Atom("b"))
+
+      val model = engine.evaluate(TimePoint(1))
 
       /*
           a <- \window^2 \Diamond b
@@ -179,6 +220,89 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
        */
 
       print(model.get)
+      assert(model.get.get contains (Atom("a")))
+      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+    }
+    finally {
+      engine.terminate
+    }
+
+  }
+
+  "With reactive engine" should "have running a :- w^2 B b" in {
+    val p = LarsProgram.from(
+      Atom("a") <= WindowAtom(SlidingTimeWindow(2), Box, Atom("b"))
+    )
+    val mapper = PlainLarsToAspMapper()
+
+    val mappedProgram = mapper(p)
+
+    val engine = ReactiveEvaluationEngine(mappedProgram)
+
+    try {
+
+      engine.append(TimePoint(1))(Atom("b"))
+      engine.append(TimePoint(2))(Atom("b"))
+      engine.append(TimePoint(3))(Atom("b"))
+
+      val model = engine.evaluate(TimePoint(3))
+
+
+      assert(model.get.get contains (Atom("a")))
+
+    }
+    finally {
+      engine.terminate
+    }
+
+  }
+
+  "With reactive engine" should "have running a :- w#^2 B b" in {
+    val p = LarsProgram.from(
+      Atom("a") <= WindowAtom(SlidingTupleWindow(2), Box, Atom("b"))
+    )
+    val mapper = PlainLarsToAspMapper()
+
+    val mappedProgram = mapper(p)
+
+    val engine = ReactiveEvaluationEngine(mappedProgram)
+
+    try {
+
+      engine.append(TimePoint(1))(Atom("b"))
+      engine.append(TimePoint(2))(Atom("b"))
+
+      val model = engine.evaluate(TimePoint(3))
+
+
+      assert(model.get.get contains (Atom("a")))
+      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+    }
+    finally {
+      engine.terminate
+    }
+
+  }
+
+
+  "With reactive engine" should "have running a :- w#^2 @_T b" in {
+    val p = LarsProgram.from(
+      AtAtom(U, Atom("a")) <= WindowAtom(SlidingTupleWindow(2), At(U), Atom("b"))
+    )
+    val mapper = PlainLarsToAspMapper()
+
+    val mappedProgram = mapper(p)
+
+    val engine = ReactiveEvaluationEngine(mappedProgram)
+
+    try {
+
+      engine.append(TimePoint(1))(Atom("b"))
+      engine.append(TimePoint(2))(Atom("b"))
+
+      val model = engine.evaluate(TimePoint(3))
+
+
       assert(model.get.get contains (Atom("a")))
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
