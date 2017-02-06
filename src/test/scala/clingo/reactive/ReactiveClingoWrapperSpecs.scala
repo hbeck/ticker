@@ -202,7 +202,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
       engine.append(TimePoint(1))(Atom("b"))
 
-      val model = engine.evaluate(TimePoint(1))
+      val model = engine.evaluate(TimePoint(1)).get.get
 
       /*
           a <- \window^2 \Diamond b
@@ -219,9 +219,12 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
           a             <-- output stream (model)
        */
 
-      print(model.get)
-      assert(model.get.get contains (Atom("a")))
-      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+
+      print(model)
+      assert(model contains Atom("a"))
+      assert(model contains Atom("a_at(1)"))
+      assert(model contains Atom("b"))
+      assert(model contains Atom("b_at(1)"))
     }
     finally {
       engine.terminate
