@@ -1,8 +1,9 @@
 package clingo
 
 
-import core._
+import core.{Value, _}
 import core.asp.NormalProgram
+import core.lars.TimePoint
 
 /**
   * Created by FM on 25.02.16.
@@ -17,16 +18,35 @@ object ClingoEvaluation {
 
   def apply() = new ClingoEvaluation(ClingoWrapper())
 
+
+  private val TimeAtomPattern = "(.+)_at".r
+  private val CntAtomPattern = "(.+)_cnt".r
+  private val TimeCntAtomPattern = "(.+)_at_cnt".r
+
   //string to Atom
   def convert(result: ClingoAtom): Atom = {
     if (!result.contains('('))
       return Atom(result)
 
-    val nameParts = result.split('(')
-    val predicate = Predicate(nameParts.head)
-    val arguments = nameParts.tail.head.replace("(", "").replace(")", "").split(',')
 
-    GroundAtom(predicate, (arguments map (Value(_))) :_*)
+    val nameParts = result.split('(')
+
+    val predicateName = nameParts.head
+    val arguments = nameParts.tail.head.
+      replace("(", "").
+      replace(")", "").
+      split(',').
+      map(Value(_)).
+      toSeq
+
+    val atom = (predicateName, arguments) match {
+      case (TimeCntAtomPattern(predicate), Seq(IntValue(t), tick: IntValue)) => PinnedAtom(Atom(predicate), TimePoint(t), tick)
+      case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asCount(Atom(predicate), i)
+      case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom(Atom(predicate), TimePoint(t))
+      case _ => GroundAtom(Predicate(predicateName), arguments: _*)
+    }
+
+    atom
   }
 }
 
