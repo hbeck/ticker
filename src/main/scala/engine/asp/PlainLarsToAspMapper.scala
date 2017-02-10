@@ -303,7 +303,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
   val N: Variable = TimeVariableWithOffset("N")
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
-  val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T - i))))
+  val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(T), PinnedAtom(atom, T - i))))
 
   //TODO hb prepared for later use
   override def incrementalRulesAt(i: IntValue): IncrementalRules = {
@@ -346,7 +346,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
 
-  val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, D), Sum(C, IntValue(i.toInt), D))))
+  val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, D), Sum(C, IntValue(-i), D))))
 
 
   override def incrementalRulesAt(i: IntValue): IncrementalRules = {

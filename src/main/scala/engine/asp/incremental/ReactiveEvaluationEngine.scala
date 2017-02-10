@@ -33,98 +33,43 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
     //    cachedResults(time) = prepare(time, atoms.toSet)
     //    discardOutdatedAuxiliaryAtoms(time)
 
-    val groundAtoms = atoms.zipWithIndex map { a => (
-      GroundAtom(a._1.predicate), //TODO hb? arguments
-      Seq(
-        Tick(clingoProgram.timeDimension.parameter, time.value),
-        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1
+    val groundAtoms = atoms.zipWithIndex map { a =>
+      (
+        GroundAtom(a._1.predicate), //TODO hb? arguments
+        Seq(
+          Tick(clingoProgram.timeDimension.parameter, time.value),
+          Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1
+        )
       )
-    )}
+    }
 
     trackAuxiliaryAtoms(time, atoms) //TODO hb review
     runningReactiveClingo.signal(groundAtoms) //TODO hb review
 
   }
 
-  def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
-    Result(None)
-    //    val pin = Pin(time)
-    //
-    //    val pinnedSignals = pin.ground(signalAtoms map pin.apply)
-    //
-    //    // TODO: this bookkeeping should be done in trackAux
-    //    signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
-    //
-    //    // TODO hb: seems crazy to always create the entire sequency from scratch instead of updating a data structure
-    //    // (we have three iterations over all values instead of a single addition of the new atoms;
-    //    //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
-    //    val allHistoricalSignals: Seq[NormalRule] = signalStream.values flatMap (_.toSeq) toSeq
-    //
-    //    // performs simple pinning-calculations (eg. T + 1)
-    //    val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
-    //
-    //    val grounder = new GroundRule[NormalRule, Atom, Atom]()
-    //    val inspectWithAllSignals = LarsProgramInspection.from(groundTimeVariableCalculations ++ allHistoricalSignals)
-    //    val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals)
-    //
-    //    // TODO discuss if we want this
-    //    val signalsHoldingNow = signalAtoms map (AspFact(_)) toSeq
-    //
-    //    val orderedTuples = deriveOrderedTuples()
-    //    val fluentTuples = fluentAtoms.values.map(pin.apply)
-    //
-    //    val nowAtom = pin.ground(Set(pin(engine.asp.now))) toSeq
-    //
-    //    val add = tmsPolicy.add(time) _
-    //
-    //    // separating the calls ensures maximum on support for rules
-    //    // facts first
-    //    add(nowAtom)
-    //    add(signalsHoldingNow)
-    //    add(pinnedSignals.toSeq)
-    //    add(orderedTuples)
-    //    //        add(fluentTuples)
-    //    // then rules
-    //    add(grounded)
-    //
-    //    val model = tmsPolicy.getModel(time)
-    //
-    //    val remove = tmsPolicy.remove(time) _
-    //
-    //    // rules first
-    //    remove(grounded)
-    //    // then facts
-    //    // we never remove extensional atoms explicitly (the policy might do it)
-    //    remove(orderedTuples)
-    //    //    remove(fluentTuples)
-    //    remove(signalsHoldingNow)
-    //    remove(nowAtom)
-    //
-    //    model
-  }
-
   override def evaluate(time: TimePoint): Result = {
 
-   val clingoModel = runningReactiveClingo.evaluate( Seq(
+    val clingoModel = runningReactiveClingo.evaluate(Seq(
       Tick(clingoProgram.timeDimension.parameter, time.value),
-      Tick(clingoProgram.countDimension.parameter, tuplePositions.size )
+      Tick(clingoProgram.countDimension.parameter, tuplePositions.size)
     ))
 
     //TODO add filtering for such that clingoModel contains only output stream
-    val models: Set[Model] = clingoModel.get.map (_.map(ClingoEvaluation.convert))
+    val models: Set[Model] = clingoModel.get.map(_.map(ClingoEvaluation.convert))
 
     Result(Some(models.head)) //pick first
   }
 
   def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map ( v => v._1.asTupleReference(v._2) ).
-    map ( x => AspFact[Atom](x) )
+    map(v => v._1.asTupleReference(v._2)).
+    map(x => AspFact[Atom](x))
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtAtom => p
     case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => ConcretePinnedAtAtom(GroundAtom(p), t)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => PinnedAtom(a,timePoint)
+    case a: Atom => PinnedAtom(a, timePoint)
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {

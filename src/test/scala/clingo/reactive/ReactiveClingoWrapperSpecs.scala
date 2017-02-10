@@ -8,20 +8,21 @@ import core._
 import core.lars._
 import engine.asp.PlainLarsToAspMapper
 import engine.asp.incremental.ReactiveEvaluationEngine
+import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
 /**
   * Created by fm on 22/01/2017.
   */
-class ReactiveClingoWrapperSpecs extends FlatSpec {
+class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
   val wrapper = ClingoWrapper()
 
   val program =
     """#program signals_b_0(t,c).
 
-      |#external at_b(t).
-      |#external cnt_b(c).
+      |#external b_at(t).
+      |#external b_cnt(c).
 
 
       |#program volatile(t,c).
@@ -30,8 +31,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
       |a(t) :- wd_b(t).
 
-      |wd_b(t) :- at_b(t), now(t).
-      |wd_b(t) :- at_b(t-1), now(t).
+      |wd_b(t) :- b_at(t), now(t).
+      |wd_b(t) :- b_at(t-1), now(t).
 
     """.stripMargin
 
@@ -107,8 +108,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     val p = Set(
       "a(t) :- wd_b(X,t).",
-      "wd_b(X,t) :- at_b(X,t),now(t).",
-      "wd_b(X,t) :- at_b(X,t-1),now(t)."
+      "wd_b(X,t) :- b_at(X,t),now(t).",
+      "wd_b(X,t) :- b_at(X,t-1),now(t)."
     )
     val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignal.fromAtom(b)))
     val runner = reactiveClingo.executeProgram(reactiveProgram)
@@ -149,7 +150,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   "With reactive engine" should "have running a :- w^2 D b" in {
     val p = LarsProgram.from(
-      Atom("a") <= WindowAtom(SlidingTimeWindow(2), Diamond, Atom("b"))
+      a <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
     val mapper = PlainLarsToAspMapper()
 
@@ -159,9 +160,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      engine.append(TimePoint(1))(Atom("b"))
+      engine.append(TimePoint(1))(b)
 
-      val model = engine.evaluate(TimePoint(2))
+      val model = engine.evaluate(TimePoint(1))
 
       /*
           a <- \window^2 \Diamond b
@@ -178,7 +179,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
           a             <-- output stream (model)
        */
 
-      assert(model.get.get contains (Atom("a")))
+      assert(model.get.get contains (a))
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
     finally {
@@ -190,7 +191,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   "With reactive engine" should "have running a :- w#^2 D b" in {
     val p = LarsProgram.from(
-      Atom("a") <= WindowAtom(SlidingTupleWindow(2), Diamond, Atom("b"))
+      a <= WindowAtom(SlidingTupleWindow(2), Diamond,b)
     )
     val mapper = PlainLarsToAspMapper()
 
@@ -200,31 +201,15 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      engine.append(TimePoint(1))(Atom("b"))
+      engine.append(TimePoint(1))(b)
 
       val model = engine.evaluate(TimePoint(1)).get.get
 
-      /*
-          a <- \window^2 \Diamond b
-
-          Stream: 1 -> b
-          t=3
-
-          1 -> b        <-- answer stream
-          3 -> a
-
-          b_at(1)       <-- encoding of answer stream
-          a_at(3) a
-
-          a             <-- output stream (model)
-       */
-
-
       print(model)
-      assert(model contains Atom("a"))
-      assert(model contains Atom("a_at(1)"))
-      assert(model contains Atom("b"))
-      assert(model contains Atom("b_at(1)"))
+      assert(model contains a)
+      assert(model contains PinnedAtom(a, TimePoint(1)))
+      assert(model contains b)
+      assert(model contains PinnedAtom(b, TimePoint(1)))
     }
     finally {
       engine.terminate
@@ -234,7 +219,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   "With reactive engine" should "have running a :- w^2 B b" in {
     val p = LarsProgram.from(
-      Atom("a") <= WindowAtom(SlidingTimeWindow(2), Box, Atom("b"))
+      a <= WindowAtom(SlidingTimeWindow(2), Box,b)
     )
     val mapper = PlainLarsToAspMapper()
 
@@ -244,14 +229,14 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      engine.append(TimePoint(1))(Atom("b"))
-      engine.append(TimePoint(2))(Atom("b"))
-      engine.append(TimePoint(3))(Atom("b"))
+      engine.append(TimePoint(1))(b)
+      engine.append(TimePoint(2))(b)
+      engine.append(TimePoint(3))(b)
 
       val model = engine.evaluate(TimePoint(3))
 
 
-      assert(model.get.get contains (Atom("a")))
+      assert(model.get.get contains a)
 
     }
     finally {
@@ -262,7 +247,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   "With reactive engine" should "have running a :- w#^2 B b" in {
     val p = LarsProgram.from(
-      Atom("a") <= WindowAtom(SlidingTupleWindow(2), Box, Atom("b"))
+      a <= WindowAtom(SlidingTupleWindow(2), Box, b)
     )
     val mapper = PlainLarsToAspMapper()
 
@@ -272,13 +257,13 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      engine.append(TimePoint(1))(Atom("b"))
-      engine.append(TimePoint(2))(Atom("b"))
+      engine.append(TimePoint(1))(b)
+      engine.append(TimePoint(2))(b)
 
       val model = engine.evaluate(TimePoint(3))
 
 
-      assert(model.get.get contains (Atom("a")))
+      assert(model.get.get contains a)
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
     finally {
@@ -290,7 +275,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
   "With reactive engine" should "have running a :- w#^2 @_T b" in {
     val p = LarsProgram.from(
-      AtAtom(U, Atom("a")) <= WindowAtom(SlidingTupleWindow(2), At(U), Atom("b"))
+      AtAtom(U, a) <= WindowAtom(SlidingTupleWindow(2), At(U), b)
     )
     val mapper = PlainLarsToAspMapper()
 
@@ -300,13 +285,13 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
 
     try {
 
-      engine.append(TimePoint(1))(Atom("b"))
-      engine.append(TimePoint(2))(Atom("b"))
+      engine.append(TimePoint(1))(b)
+      engine.append(TimePoint(2))(b)
 
       val model = engine.evaluate(TimePoint(3))
 
 
-      assert(model.get.get contains (Atom("a")))
+      assert(model.get.get contains a)
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
     finally {

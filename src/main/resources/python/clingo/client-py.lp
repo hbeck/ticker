@@ -31,6 +31,7 @@ class Receiver:
         self.data = self.data[pos + 1:]
         return msg
 
+
 def tryConnect(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -57,8 +58,9 @@ class States:
 
 
 def printModel(model):
-    # print "Model ", dir(model)
-    print "Atoms ", model.symbols(True, True, True, True)
+    print "Model ", model
+    print "Complement", model.symbols(atoms=True,complement = True)
+    print "Atoms ", model.symbols(atoms = True)
 
 
 def asNumber(value):
@@ -75,7 +77,7 @@ def atom(predicate, arguments):
 
 
 def atomFromTick(predicate, *args):
-    return atom(str(predicate), map(asNumber,args))
+    return atom(str(predicate), map(asNumber, args))
 
 
 def atomFromItem(item):
@@ -214,7 +216,7 @@ def main(prg):
                 removeExternal(nowAtom(ticks))
                 removeExternal(cntAtom(ticks))
 
-                prg.cleanup()
+                # prg.cleanup()
 
                 ticks = parseTicks(msg)
 
