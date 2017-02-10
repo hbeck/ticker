@@ -152,11 +152,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
     val p = LarsProgram.from(
       a <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
-    val mapper = PlainLarsToAspMapper()
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
 
-    val mappedProgram = mapper(p)
-
-    val engine = ReactiveEvaluationEngine(mappedProgram)
 
     try {
 
@@ -191,16 +188,11 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
   "With reactive engine" should "have running a :- w#^2 D b" in {
     val p = LarsProgram.from(
-      a <= WindowAtom(SlidingTupleWindow(2), Diamond,b)
+      a <= WindowAtom(SlidingTupleWindow(2), Diamond, b)
     )
-    val mapper = PlainLarsToAspMapper()
-
-    val mappedProgram = mapper(p)
-
-    val engine = ReactiveEvaluationEngine(mappedProgram)
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
 
     try {
-
       engine.append(TimePoint(1))(b)
 
       val model = engine.evaluate(TimePoint(1)).get.get
@@ -219,13 +211,10 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
   "With reactive engine" should "have running a :- w^2 B b" in {
     val p = LarsProgram.from(
-      a <= WindowAtom(SlidingTimeWindow(2), Box,b)
+      a <= WindowAtom(SlidingTimeWindow(2), Box, b)
     )
-    val mapper = PlainLarsToAspMapper()
 
-    val mappedProgram = mapper(p)
-
-    val engine = ReactiveEvaluationEngine(mappedProgram)
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
 
     try {
 
@@ -249,11 +238,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
     val p = LarsProgram.from(
       a <= WindowAtom(SlidingTupleWindow(2), Box, b)
     )
-    val mapper = PlainLarsToAspMapper()
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
 
-    val mappedProgram = mapper(p)
-
-    val engine = ReactiveEvaluationEngine(mappedProgram)
 
     try {
 
@@ -273,30 +259,38 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
   }
 
 
-  "With reactive engine" should "have running a :- w#^2 @_T b" in {
+  "With reactive engine" should "have running a_{T+1} :- w#^2 @_T b" in {
+
+    val U = TimeVariableWithOffset("U")
+
     val p = LarsProgram.from(
-      AtAtom(U, a) <= WindowAtom(SlidingTupleWindow(2), At(U), b)
+      AtAtom(U + 1, a) <= WindowAtom(SlidingTupleWindow(2), At(U), b)
     )
-    val mapper = PlainLarsToAspMapper()
 
-    val mappedProgram = mapper(p)
-
-    val engine = ReactiveEvaluationEngine(mappedProgram)
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
 
     try {
 
       engine.append(TimePoint(1))(b)
-      engine.append(TimePoint(2))(b)
 
-      val model = engine.evaluate(TimePoint(3))
-
+      val model = engine.evaluate(TimePoint(2))
 
       assert(model.get.get contains a)
-      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+      assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
+      assert(model.get.get contains PinnedAtom(b, TimePoint(1)))
     }
     finally {
       engine.terminate
     }
 
+  }
+
+  private def buildEngine(p: LarsProgram) = {
+    val mapper = PlainLarsToAspMapper()
+
+    val mappedProgram = mapper(p)
+
+    val engine = ReactiveEvaluationEngine(mappedProgram)
+    engine
   }
 }

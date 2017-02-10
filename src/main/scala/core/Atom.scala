@@ -118,11 +118,24 @@ case class GroundAtomWithArguments(override val predicate: Predicate, arguments:
 }
 
 object GroundAtom {
-  def apply(predicate: Predicate, arguments: Value*): GroundAtom = {
+  def apply(predicate: Predicate, arguments: Seq[Value]): GroundAtom = {
     if (arguments.isEmpty)
       PredicateAtom(predicate)
     else
       GroundAtomWithArguments(predicate, arguments.toList)
+  }
+
+  def fromArguments(predicate: Predicate, arguments: Value*): GroundAtom = apply(predicate, arguments)
+
+  def assertGround(atom: Atom): GroundAtom = {
+    if (!atom.isGround())
+      throw new RuntimeException("Atom is not ground!")
+
+    atom match {
+      case ground: GroundAtom => ground
+      // some atoms could be ground but not constructed as such ==> do an explicit conversion
+      case _ => GroundAtom(atom.predicate, Atom.unapply(atom).getOrElse(Seq()).map(_.asInstanceOf[Value]))
+    }
   }
 }
 
@@ -258,8 +271,10 @@ object Atom {
 
   def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
 
+  def apply(predicate: Predicate) = PredicateAtom(predicate)
+
   def apply(predicate: Predicate, arguments: Seq[Argument]) = arguments.forall(_.isInstanceOf[Value]) match {
-    case true => GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]).toList: _*)
+    case true => GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]))
     case false => NonGroundAtom(predicate, arguments)
   }
 

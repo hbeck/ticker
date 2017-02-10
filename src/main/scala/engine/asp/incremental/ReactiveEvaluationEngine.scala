@@ -33,12 +33,12 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
     //    cachedResults(time) = prepare(time, atoms.toSet)
     //    discardOutdatedAuxiliaryAtoms(time)
 
-    val groundAtoms = atoms.zipWithIndex map { a =>
+    val groundAtoms = atoms.zipWithIndex map { case (atom, position) =>
       (
-        GroundAtom(a._1.predicate), //TODO hb? arguments
+        GroundAtom.assertGround(atom),
         Seq(
           Tick(clingoProgram.timeDimension.parameter, time.value),
-          Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1
+          Tick(clingoProgram.countDimension.parameter, tuplePositions.size + position + 1) //zip begins with 0, hence + 1
         )
       )
     }
@@ -67,7 +67,6 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
     case p: PinnedAtAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => ConcretePinnedAtAtom(GroundAtom(p), t)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
     case a: Atom => PinnedAtom(a, timePoint)
   }

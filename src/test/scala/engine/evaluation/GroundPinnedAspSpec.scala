@@ -15,7 +15,7 @@ class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
     val r: AspRule[AtomWithArgument] = AspRule(a(T), Set(b(T + 1)))
 
-    Pin(t0)(r) should be(AspRule(GroundAtom(a.predicate, t0), Set(GroundAtom(b.predicate, t1))))
+    Pin(t0)(r) should be(AspRule(GroundAtom.fromArguments(a.predicate, t0), Set(GroundAtom.fromArguments(b.predicate, t1))))
   }
 
   "An atom a(T) at t1" should "be grounded to a(t1)" in {
