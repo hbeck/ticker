@@ -7,7 +7,7 @@ import clingo._
 import core._
 import core.lars._
 import engine.asp.PlainLarsToAspMapper
-import engine.asp.incremental.ReactiveEvaluationEngine
+import engine.asp.reactive.ReactiveEvaluationEngine
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 

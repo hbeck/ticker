@@ -1,4 +1,4 @@
-package engine.asp.incremental
+package engine.asp.reactive
 
 import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, Tick}
 import clingo.{ClingoEvaluation, ClingoWrapper}
