@@ -18,42 +18,30 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
   val runningReactiveClingo = reactiveClingo.executeProgram(clingoProgram)
 
-  //  val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
-
-
   //book keeping for auxiliary atoms to handle window logic
-  var tuplePositions: List[Atom] = List() //TODO we do not want to keep entire history!
-  var signalStream: Map[TimePoint, Set[NormalRule]] = Map()
-  var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
+  var tuplePositions: List[TrackedAtom] = List()
+  var signalStream: Map[TimePoint, Seq[TrackedAtom]] = Map()
 
   def terminate = runningReactiveClingo.terminate
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
 
-    //    cachedResults(time) = prepare(time, atoms.toSet)
-    //    discardOutdatedAuxiliaryAtoms(time)
+    val groundAtoms = trackAtoms(time, atoms)
 
-    val groundAtoms = atoms.zipWithIndex map { case (atom, position) =>
-      (
-        GroundAtom.assertGround(atom),
-        Seq(
-          Tick(clingoProgram.timeDimension.parameter, time.value),
-          Tick(clingoProgram.countDimension.parameter, tuplePositions.size + position + 1) //zip begins with 0, hence + 1
-        )
-      )
-    }
-
-    trackAuxiliaryAtoms(time, atoms) //TODO hb review
-    runningReactiveClingo.signal(groundAtoms) //TODO hb review
+    runningReactiveClingo.signal(groundAtoms map (_.clingoArgument))
 
   }
 
   override def evaluate(time: TimePoint): Result = {
 
-    val clingoModel = runningReactiveClingo.evaluate(Seq(
+    val parameters = Seq(
       Tick(clingoProgram.timeDimension.parameter, time.value),
       Tick(clingoProgram.countDimension.parameter, tuplePositions.size)
-    ))
+    )
+
+    val clingoModel = runningReactiveClingo.evaluate(parameters)
+
+    discardOutdatedAtoms(time)
 
     clingoModel match {
       case Some(model) => {
@@ -66,39 +54,46 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
     }
   }
 
-  def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map(v => v._1.asTupleReference(v._2)).
-    map(x => AspFact[Atom](x))
 
-  def asPinnedAtoms(model: Model, timePoint: TimePoint): Set[PinnedAtom] = model map {
-    case p: PinnedAtAtom => p
-    // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => PinnedAtom(a, timePoint)
+  private def discardOutdatedAtoms(time: TimePoint) = {
+    // TODO: this is not correct (includes all kind of windows, not only time)
+    val maxWindowTicks = program.larsRuleEncodings.
+      flatMap(_.windowAtomEncoders).
+      map(_.length).
+      max
+
+    tuplePositions = tuplePositions.take(program.maximumTupleWindowSize.toInt)
+
+    val atomsToRemove = signalStream filterKeys (t => t.value < time.value - maxWindowTicks)
+    signalStream = signalStream -- atomsToRemove.keySet
+
+
+    // TODO: explicit expire also for tuple-positions?
+    atomsToRemove foreach {
+      case (_, signals) => runningReactiveClingo.expire(signals.map(_.clingoArgument))
+    }
   }
 
-  def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    //    val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
-    //    tuplePositions = tuplePositions.take(pinnedAspProgram.maximumTupleWindowSize.toInt)
-    //
-    //    val atomsToRemove = signalStream filterKeys (t => t.value < time.value - maxWindowTicks)
-    //    signalStream = signalStream -- atomsToRemove.keySet
-    //
-    //    atomsToRemove foreach { case (timePoint, signals) => tmsPolicy.remove(timePoint)(signals toSeq) }
-  }
+  private def trackAtoms(time: TimePoint, atoms: Seq[Atom]) = {
 
-  //TODO hb review what does this do?
-  private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
-    tuplePositions = atoms.toList ++ tuplePositions
-    //fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
-    //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
-  }
+    val trackedAtoms = atoms.zipWithIndex map { case (atom, position) =>
+      TrackedAtom(
+        GroundAtom.assertGround(atom),
+        Tick(clingoProgram.timeDimension.parameter, time.value),
+        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + position + 1) //zip begins with 0, hence + 1
 
-  def asFluentMap(atom: Atom) = {
-    val arguments = atom match {
-      case aa: AtomWithArgument => aa.arguments take 1
-      case _ => Seq()
+      )
     }
 
-    (atom.predicate, arguments)
+    tuplePositions = tuplePositions ++ trackedAtoms.toList
+    signalStream = signalStream.updated(time, trackedAtoms ++ signalStream.getOrElse(time, Seq()))
+
+    trackedAtoms
   }
+
+
+  case class TrackedAtom(groundAtom: GroundAtom, time: Tick, position: Tick) {
+    val clingoArgument = (groundAtom, Seq(time, position))
+  }
+
 }

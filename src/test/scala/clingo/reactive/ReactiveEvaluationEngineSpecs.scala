@@ -95,7 +95,6 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
 
       assert(model.get.get contains a)
-
     }
     finally {
       engine.terminate
