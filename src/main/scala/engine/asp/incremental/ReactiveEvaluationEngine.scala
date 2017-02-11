@@ -22,7 +22,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
 
   //book keeping for auxiliary atoms to handle window logic
-  var tuplePositions: List[Atom] = List()
+  var tuplePositions: List[Atom] = List() //TODO we do not want to keep entire history!
   var signalStream: Map[TimePoint, Set[NormalRule]] = Map()
   var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
@@ -37,7 +37,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
       GroundAtom(a._1.predicate), //TODO hb? arguments
       Seq(
         Tick(clingoProgram.timeDimension.parameter, time.value),
-        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1
+        Tick(clingoProgram.countDimension.parameter, tuplePositions.size + a._2 + 1) //zip begins with 0, hence + 1 TODO different eval method needed, we do not want to store entire history!
       )
     )}
 
@@ -140,7 +140,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   //TODO hb review what does this do?
   private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
     tuplePositions = atoms.toList ++ tuplePositions
-    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
+    //fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
     //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
   }
 

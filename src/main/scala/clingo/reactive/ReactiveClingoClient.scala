@@ -57,7 +57,7 @@ class ReactiveClingoClient(socket: Socket) {
   def terminate() = {
     sendCommand("exit")
 
-    // Clingo might send an answer - make sure everything is processed accordingly
+    // Clingo might send an answer - make sure everything is processed
     Thread.sleep(100)
 
     this.terminateConnection()
