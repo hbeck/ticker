@@ -6,7 +6,7 @@ import core._
 import core.asp.{AspFact, NormalRule}
 import core.lars.TimePoint
 import engine.asp._
-import engine.{EvaluationEngine, Result}
+import engine.{EvaluationEngine, NoResult, Result}
 
 /**
   * Created by FM on 18.05.16.
@@ -55,10 +55,15 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
       Tick(clingoProgram.countDimension.parameter, tuplePositions.size)
     ))
 
-    //TODO add filtering for such that clingoModel contains only output stream
-    val models: Set[Model] = clingoModel.get.map(_.map(ClingoEvaluation.convert))
+    clingoModel match {
+      case Some(model) => {
+        //TODO add filtering for such that clingoModel contains only output stream
+        val models: Set[Model] = model.map(_.map(ClingoEvaluation.convert))
 
-    Result(Some(models.head)) //pick first
+        Result(Some(models.head)) //pick first
+      }
+      case None => NoResult
+    }
   }
 
   def deriveOrderedTuples() = tuplePositions.zipWithIndex.

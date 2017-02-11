@@ -216,7 +216,7 @@ def main(prg):
                 removeExternal(nowAtom(ticks))
                 removeExternal(cntAtom(ticks))
 
-                # prg.cleanup()
+                prg.cleanup()
 
                 ticks = parseTicks(msg)
 

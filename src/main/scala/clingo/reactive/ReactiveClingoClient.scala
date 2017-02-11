@@ -52,7 +52,12 @@ class ReactiveClingoClient(socket: Socket) {
     out.println(command)
   }
 
-  private def fetchResult() = lines.next()
+  private def fetchResult() = {
+    if (lines.hasNext)
+      Some(lines.next())
+    else
+      None
+  }
 
   def terminate() = {
     sendCommand("exit")
@@ -91,13 +96,14 @@ class ReactiveClingoClient(socket: Socket) {
     send("solve", ticksAsString)
 
     val model = fetchResult()
-    if (model.startsWith("Answer:")) {
-      val finished = fetchResult()
+    model match {
+      case Some(m) if m.startsWith("Answer:") => {
+        val finished = fetchResult()
 
-      return parseResult(model, finished)
+        parseResult(m, finished.get)
+      }
+      case _ => None
     }
-
-    None
   }
 
   def parseResult(model: String, finished: String): Option[Set[ClingoModel]] = {
