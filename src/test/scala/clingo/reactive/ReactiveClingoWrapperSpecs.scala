@@ -249,12 +249,13 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
       engine.append(TimePoint(1))(b)
       engine.append(TimePoint(2))(b)
+      engine.append(TimePoint(3))(b)
 
       val model = engine.evaluate(TimePoint(3))
 
 
       assert(model.get.get contains a)
-      //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
+      assert(model.get.get contains PinnedAtom(a, TimePoint(3)))
     }
     finally {
       engine.terminate

@@ -370,14 +370,26 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
   val T2: Variable = TimeVariableWithOffset("T2")
 
   val C_diff: Variable = TimeVariableWithOffset("C_diff")
-  val T_plus1: Variable = TimeVariableWithOffset("C_diff")
-  val D_plus1: Variable = TimeVariableWithOffset("C_diff")
+  val T_plus1: Variable = TimeVariableWithOffset("T_plus1")
+  val D_plus1: Variable = TimeVariableWithOffset("D_plus1")
 
 
   val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
 
   val baseRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
-  val cntSpoilerRules_1: Seq[NormalRule] = (1 to length.toInt) map (i => AspRule(spoilerAtom, Set[Atom](atom, cnt(C), Sum(C, IntValue(-i + 1), D)), Set[Atom](PinnedAtom.asCount(atom, D))))
+  val cntSpoilerRules_1: Seq[NormalRule] = (1 to length.toInt) map { i =>
+    AspRule(
+      spoilerAtom,
+      Set[Atom](
+        atom,
+        cnt(C),
+        Sum(C, IntValue(-(i )), D)
+      ),
+      Set[Atom](
+        PinnedAtom.asCount(atom, D)
+      )
+    )
+  }
 
   val cntSpoilerRules_2: NormalRule = AspRule(
     spoilerAtom,
@@ -386,14 +398,13 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
       cnt(C),
       PinnedAtom(atom, T1, D1),
       PinnedAtom(atom, T2, D2),
-      Sum(C, IntValue(-length.toInt + 1), C_diff),
+      Sum(C, IntValue(-length.toInt ), C_diff),
       Geq(D1, C_diff),
       Sum(D1, IntValue(1), D_plus1),
       Eq(D_plus1, D2),
       Sum(T1, IntValue(1), T_plus1),
       Gt(T2, T_plus1)
-    ),
-    Set[Atom](PinnedAtom.asCount(atom, D))
+    )
   )
 
   val spoilerRules: Seq[NormalRule] = cntSpoilerRules_1 :+ cntSpoilerRules_2
