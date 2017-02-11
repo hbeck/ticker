@@ -84,7 +84,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
   val tickDimensions = Seq(timeDimension, countDimension)
   val tickParameters: Seq[TickParameter] = tickDimensions map (_.parameter)
 
-  val atExternalMappingRules = signals map (s => f"${s.atPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}) :- ${s.extAtPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}), now(T).")
+  val atExternalMappingRules = signals map (s => f"${s.atPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}) :- ${s.extAtPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}).")
 
   def externalKeyword(tickDimension: TickDimension): String = externalKeyword(tickDimension.predicate.toString, Seq(tickDimension.parameter))
 

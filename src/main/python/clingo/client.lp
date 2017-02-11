@@ -1,15 +1,13 @@
-#program base.
+#program volatile(t).
 
-#program signals(t, c).
+#external b_ext_at(t).
+%#external b_ext_at(t+1).
+%#external now(t).
 
-#external b(t).
+b :- b_ext_at(t).
+%b :- b_ext_at(t+1).
 
-#program volatile(t, c).
+%b :- now(T), b_at(T).
+%b :- now(T+1),b_at(T+1).
 
-#external now(t).
-#external cnt(c).
-
-a(t) :- wd_b(t).
-wd_b(t) :- b(t), now(t).
-wd_b(t) :- b(t-1), now(t).
-
+%b_at(t) :- now(t), b.

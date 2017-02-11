@@ -1,5 +1,4 @@
-
-#script (python) 
+#script (python)
 
 import socket
 import sys
@@ -32,7 +31,9 @@ class States:
 
 def printModel(model):
     # print "Model ", dir(model)
-    print "Atoms ", model.symbols(True)
+    print "Model", model
+    print "Complement", model.symbols(atoms=True, complement=True)
+    print "Atoms", model.symbols(True)
 
 def on_model(conn, model):
     printModel(model)
@@ -47,6 +48,7 @@ def main(prg):
 
     port = 5123
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(("", port))
     s.listen(1)
     conn, addr = s.accept()
@@ -54,10 +56,12 @@ def main(prg):
     print "connected..."
 
     def fin(ret):
-        finished(conn, ret, False)
+        interrupted = False
+        conn.sendall("finish:" + str(ret) + (":INTERRUPTED" if interrupted else "") + "\n")
 
     def model(model):
-        on_model(conn, model)
+        printModel(model)
+        conn.sendall("Answer: " + str(model) + "\n")
 
     try:
         recv  = Receiver(conn)
@@ -65,7 +69,7 @@ def main(prg):
         k     = 0
         tick = 0
 
-        prg.ground([("base",[]), ("volatile", [tick])])
+        prg.ground([("base",[]),("volatile", [tick])])
         prg.assign_external(clingo.Function("now", [tick]), True)
         while True:
             if state == States.SOLVE:
@@ -83,9 +87,12 @@ def main(prg):
             if msg == "interrupt":
                 state = States.IDLE
             elif msg == "exit":
+                conn.close()
                 return
             elif msg.startswith("tick "):
-                prg.release_external(clingo.Function("now", [tick]))
+                oldnow = clingo.Function("now", [tick])
+                print "Old now" ,oldnow
+                prg.release_external(oldnow)
 
                 prg.cleanup()
                 tick = int(msg.split(" ").pop())
@@ -93,25 +100,29 @@ def main(prg):
 
                 parts = []
                 parts.append(("volatile", [tick]))
-                parts.append(("signals", [tick]))
-                print parts
+                # parts.append(("signals", [tick]))
+                print "Grounding", parts
                 prg.ground(parts)
 
-                prg.assign_external(clingo.Function("now",[tick]), True)
+                newnow=clingo.Function("now",[tick])
+                print "new now", newnow
+                prg.assign_external(newnow, True)
                 state = States.IDLE
             elif msg.startswith("signal "):
-                tokens = msg.split(" ")
+                tokens = str(msg).split(" ")
                 inputSignals = tokens[1:]
                 print "Signals: " + str(inputSignals)
                 for s in inputSignals:
-                    atom = clingo.Function(str(s),[tick])
+                    atom = clingo.Function(s+"_ext_at",[tick])
                     print "Atom ", atom
                     prg.assign_external(atom, True)
                 state = States.IDLE
             elif msg == "solve":
-                state = States.SOLVE
+                # state = States.SOLVE
+                result = prg.solve(model)
+                print result
+                fin(result)
             else: raise(RuntimeError("unexpected message: " + msg))
     finally:
         conn.close()
 #end.
-
