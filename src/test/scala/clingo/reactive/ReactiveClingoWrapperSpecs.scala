@@ -8,30 +8,33 @@ import core._
 import core.lars._
 import engine.asp.PlainLarsToAspMapper
 import engine.asp.incremental.ReactiveEvaluationEngine
+import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
 
 /**
   * Created by fm on 22/01/2017.
   */
-class ReactiveClingoWrapperSpecs extends FlatSpec {
+class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
   val wrapper = ClingoWrapper()
 
   val program =
     """#program signals_b_0(t,c).
 
-      |#external at_b(t).
-      |#external cnt_b(c).
+      |#external b_ext_at(t).
+      |#external b_cnt(c).
 
 
       |#program volatile(t,c).
 
       |#external now(t).
 
+      |b_at(t) :- b_ext_at(t).
+
       |a(t) :- wd_b(t).
 
-      |wd_b(t) :- at_b(t), now(t).
-      |wd_b(t) :- at_b(t-1), now(t).
+      |wd_b(t) :- b_at(t), now(t).
+      |wd_b(t) :- b_at(t-1), now(t).
 
     """.stripMargin
 
@@ -106,9 +109,11 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     val b = Atom(Predicate("b"), Seq(X))
 
     val p = Set(
+      "b_at(X,t) :- b_ext_at(X,t).",
+
       "a(t) :- wd_b(X,t).",
-      "wd_b(X,t) :- at_b(X,t),now(t).",
-      "wd_b(X,t) :- at_b(X,t-1),now(t)."
+      "wd_b(X,t) :- b_at(X,t),now(t).",
+      "wd_b(X,t) :- b_at(X,t-1),now(t)."
     )
     val reactiveProgram = ReactiveClingoProgram(p, Set(ClingoSignal.fromAtom(b)))
     val runner = reactiveClingo.executeProgram(reactiveProgram)
@@ -188,7 +193,6 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     }
 
   }
-
 
   "With reactive engine" should "have running a :- w#^2 D b" in {
     val p = LarsProgram.from(
@@ -315,4 +319,5 @@ class ReactiveClingoWrapperSpecs extends FlatSpec {
     }
 
   }
+
 }

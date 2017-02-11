@@ -58,7 +58,7 @@ object Load {
     val arguments = token.tail map arg
 
     assert(arguments forall (_.isInstanceOf[Value]))
-    GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]): _*)
+    GroundAtom(predicate, arguments.map(_.asInstanceOf[Value]))
   }
 
 

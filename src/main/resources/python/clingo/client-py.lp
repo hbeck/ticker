@@ -31,6 +31,7 @@ class Receiver:
         self.data = self.data[pos + 1:]
         return msg
 
+
 def tryConnect(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -57,8 +58,9 @@ class States:
 
 
 def printModel(model):
-    # print "Model ", dir(model)
-    print "Atoms ", model.symbols(True, True, True, True)
+    print "Model ", model
+    print "Complement", model.symbols(atoms=True,complement = True)
+    print "Atoms ", model.symbols(atoms = True)
 
 
 def asNumber(value):
@@ -75,7 +77,7 @@ def atom(predicate, arguments):
 
 
 def atomFromTick(predicate, *args):
-    return atom(str(predicate), map(asNumber,args))
+    return atom(str(predicate), map(asNumber, args))
 
 
 def atomFromItem(item):
@@ -189,7 +191,7 @@ def main(prg):
                     functionName = "signals_" + predicate + "_" + str(len(atomParameters))
                     ground(functionName, [t, c] + atomParameters)
 
-                    addExternal(atom("" + predicate + "_at", atomParameters + [t]))
+                    addExternal(atom("" + predicate + "_ext_at", atomParameters + [t]))
                     addExternal(atom("" + predicate + "_cnt", atomParameters + [c]))
                     addExternal(atom("" + predicate + "_at_cnt", atomParameters + [t, c]))
 
@@ -201,7 +203,7 @@ def main(prg):
                     predicate, t, c, atomParameters = signalParameters(expire)
                     print "expiring signal", predicate, t, c, atomParameters
 
-                    removeExternal(atom("" + predicate + "_at", atomParameters + [t]))
+                    removeExternal(atom("" + predicate + "_ext_at", atomParameters + [t]))
                     removeExternal(atom("" + predicate + "_cnt", atomParameters + [c]))
                     removeExternal(atom("" + predicate + "_at_cnt", atomParameters + [t, c]))
 
