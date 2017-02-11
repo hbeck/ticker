@@ -21,13 +21,15 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
   val program =
     """#program signals_b_0(t,c).
 
-      |#external b_at(t).
+      |#external b_ext_at(t).
       |#external b_cnt(c).
 
 
       |#program volatile(t,c).
 
       |#external now(t).
+
+      |b_at(t) :- b_ext_at(t).
 
       |a(t) :- wd_b(t).
 
@@ -107,6 +109,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
     val b = Atom(Predicate("b"), Seq(X))
 
     val p = Set(
+      "b_at(X,t) :- b_ext_at(X,t).",
+
       "a(t) :- wd_b(X,t).",
       "wd_b(X,t) :- b_at(X,t),now(t).",
       "wd_b(X,t) :- b_at(X,t-1),now(t)."
@@ -157,9 +161,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
     try {
 
-      engine.append(TimePoint(1))(b)
+      engine.append(TimePoint(2))(b)
 
-      val model = engine.evaluate(TimePoint(1))
+      val model = engine.evaluate(TimePoint(2))
 
       /*
           a <- \window^2 \Diamond b
@@ -277,7 +281,6 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
       assert(model.get.get contains a)
       assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
-      assert(model.get.get contains PinnedAtom(b, TimePoint(1)))
     }
     finally {
       engine.terminate

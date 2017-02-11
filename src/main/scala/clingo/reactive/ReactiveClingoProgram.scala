@@ -29,6 +29,7 @@ object ClingoSignal {
 }
 
 case class ClingoSignal(predicate: Predicate, arguments: Seq[Argument] = Seq()) {
+  val extAtPredicate: ClingoAtom = f"${predicate}_ext_at"
   val atPredicate: ClingoAtom = f"${predicate}_at"
   //format: a(X,t) //TODO hb review: why is the type ClingoAtom, not ClingoPredicate, or simply Predicate?
   val cntPredicate: ClingoAtom = f"${predicate}_cnt"
@@ -83,6 +84,8 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
   val tickDimensions = Seq(timeDimension, countDimension)
   val tickParameters: Seq[TickParameter] = tickDimensions map (_.parameter)
 
+  val atExternalMappingRules = signals map (s => f"${s.atPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}) :- ${s.extAtPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}).")
+
   def externalKeyword(tickDimension: TickDimension): String = externalKeyword(tickDimension.predicate.toString, Seq(tickDimension.parameter))
 
   def externalKeyword(atom: ClingoAtom, arguments: Seq[Argument]): String = f"#external $atom(${argumentList(arguments)})."
@@ -93,7 +96,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
   val signalPrograms: Set[ClingoExpression] = signals map { signal => //TODO hb review argumentList order swap
     f"""#program ${signal.programPart}(${argumentList(tickParameters ++ signal.parameters)}).
        |
-       |${externalKeyword(signal.atPredicate, signal.arguments :+ timeDimension.parameter)}
+       |${externalKeyword(signal.extAtPredicate, signal.arguments :+ timeDimension.parameter)}
        |${externalKeyword(signal.cntPredicate, signal.arguments :+ countDimension.parameter)}
        |${externalKeyword(signal.cntPinPredicate, signal.arguments ++ tickDimensions.map(_.parameter))}
        |
@@ -107,6 +110,8 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |#program volatile(${tickParameters.mkString(", ")}).
 
        |${externalDimensions.mkString(newLine)}
+       |
+       |${atExternalMappingRules.mkString(newLine)}
        |
        |${volatileRules.mkString(newLine)}
        |
