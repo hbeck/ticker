@@ -6,6 +6,7 @@ import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
+import org.scalatest.BeforeAndAfterEach
 
 import scala.util.Random
 
@@ -46,6 +47,10 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().start()
 }
 
+trait ReactiveClingoEngine extends EvaluationEngineBuilder {
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withReactive().startable().start()
+}
+
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 
 
@@ -60,7 +65,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = JtmsGreedy(new OptimizedNetwork(),new Random(1))
+    val tms = JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
@@ -70,7 +75,7 @@ trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsLearn(new OptimizedNetwork(),new Random(1))
+    val tms = new JtmsLearn(new OptimizedNetwork(), new Random(1))
     tms.shuffle = false
     tms.doConsistencyCheck = false
 

@@ -126,6 +126,15 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   override val rules = baseRules ++ oneShotWindowRules
 
   override val larsRules = larsRuleEncodings map (_.larsRule)
+
+  val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
+    flatMap(_.windowAtomEncoders).
+    collect {
+      case t: TimeWindowEncoder => t.length
+    } match {
+    case Nil => 0
+    case x => x.max
+  }
 }
 
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
@@ -138,6 +147,11 @@ trait WindowAtomEncoder {
 
   def incrementalRulesAt(tick: IntValue): IncrementalRules
 }
+
+trait TimeWindowEncoder extends WindowAtomEncoder
+
+trait TupleWindowEncoder extends WindowAtomEncoder
+
 
 //TODO hb review naming
 /*
@@ -154,7 +168,7 @@ trait WindowAtomEncoder {
 case class LarsRuleEncoding(larsRule: LarsRule, ruleEncodings: Set[NormalRule], windowAtomEncoders: Set[WindowAtomEncoder]) {
 }
 
-case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = T) extends WindowAtomEncoder {
+case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = T) extends TimeWindowEncoder {
   val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
   //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
   //allows the use of an offset).
@@ -182,7 +196,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
    atom: Atom ... a
    windowAtomEncoding: w_{range-d-a}
  */
-case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
+case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
   val N: Variable = TimeVariableWithOffset("N")
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
@@ -198,7 +212,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
 }
 
 
-case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
+case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
 
   val N: Variable = TimeVariableWithOffset("N")
 
@@ -222,7 +236,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
   }
 }
 
-case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
+case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
   val C = TimeVariableWithOffset("C")
   //TODO hb review why time variable?
   val D = Variable("D") //TODO ... and then why this not?
@@ -241,7 +255,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 }
 
 
-case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends WindowAtomEncoder {
+case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
   val C: Variable = TimeVariableWithOffset("C")
   val D: Variable = TimeVariableWithOffset("D")
@@ -308,7 +322,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
 }
 
 
-case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends WindowAtomEncoder {
+case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder {
   val D = TimeVariableWithOffset("D")
   val C = TimeVariableWithOffset("C")
 

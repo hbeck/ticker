@@ -5,12 +5,12 @@ import core.lars._
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
-import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 
 /**
   * Created by FM on 11.12.16.
   */
-class AtExamples extends FlatSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullEngine {
   val busG = Atom("busG")
   val tramB = Atom("tramB")
   val t37 = TimePoint(37)

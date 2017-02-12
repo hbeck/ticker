@@ -3,6 +3,7 @@ package clingo.reactive
 import java.io.PrintStream
 
 import clingo.{ClingoAtom, ClingoModel}
+import common.Resource
 import core.Value
 
 import scala.io.BufferedSource
@@ -29,7 +30,7 @@ object ReactiveClingoClient {
   }
 }
 
-class ReactiveClingoClient(socket: Socket) {
+class ReactiveClingoClient(socket: Socket) extends  Resource{
   private val in = new BufferedSource(socket.inputStream())
   private val lines = in.getLines()
   private val out = new PrintStream(socket.outputStream())
@@ -59,7 +60,7 @@ class ReactiveClingoClient(socket: Socket) {
       None
   }
 
-  def terminate() = {
+  def close() = {
     sendCommand("exit")
 
     // Clingo might send an answer - make sure everything is processed

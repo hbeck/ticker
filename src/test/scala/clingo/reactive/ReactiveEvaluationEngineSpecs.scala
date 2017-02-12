@@ -49,7 +49,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 //      assertModel(TimePoint(4))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -73,7 +73,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       assert(model contains PinnedAtom(b, TimePoint(1)))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -97,7 +97,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       assert(model.get.get contains a)
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -122,7 +122,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       assert(model.get.get contains PinnedAtom(a, TimePoint(3)))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -148,7 +148,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -173,7 +173,7 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }

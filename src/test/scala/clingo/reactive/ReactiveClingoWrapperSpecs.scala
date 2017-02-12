@@ -93,7 +93,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       assert(result.isDefined)
       assert(result.get.flatten.contains("a(1)"))
 
-      server.terminate()
+      server.close()
 
     } finally {
 
@@ -148,7 +148,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       assert(!model.get.flatten.contains("a(4)"))
 
     } finally {
-      runner.terminate
+      runner.close
     }
   }
 
@@ -189,7 +189,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       assert(model contains Atom(Predicate("b_at"),Seq[Argument]("1")))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -232,7 +232,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       assert(model contains Atom(Predicate("b_at"),Seq[Argument]("1")))
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -260,7 +260,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -287,7 +287,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }
@@ -315,7 +315,7 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
       //Some(Set(b_at(1), now(3), cnt(1))) did not contain a
     }
     finally {
-      engine.terminate
+      engine.close
     }
 
   }

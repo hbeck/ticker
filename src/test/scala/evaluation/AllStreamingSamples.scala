@@ -24,6 +24,8 @@ class AspPullClingo extends AllStreamingSamples with ClingoPullEngine
 
 class AspPushClingo extends AllStreamingSamples with ClingoPushEngine
 
+class ReactiveClingo extends AllStreamingSamples with ReactiveClingoEngine
+
 class AspPushTms extends AllStreamingSamples with TmsDirectPolicyEngine
 
 class LazyRemoveTms extends AllStreamingSamples with JtmsGreedyLazyRemovePolicyEngine
@@ -33,6 +35,8 @@ class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec
   class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullEngine
 
   class SingleClingoPushTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPushEngine
+
+  class SingleReactiveClingoTest extends Suites(spec) with ConfigurableEvaluationSuite with ReactiveClingoEngine
 
   class SingleDirectTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with TmsDirectPolicyEngine
 

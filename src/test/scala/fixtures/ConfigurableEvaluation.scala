@@ -1,5 +1,6 @@
 package fixtures
 
+import common.Resource
 import core.lars.LarsProgram
 import engine.EvaluationEngine
 import fixtures.tags.NoTmsDirectPolicy
@@ -35,7 +36,14 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
     }
 
     info("Using engine " + evaluationType)
-    ConfigurableEvaluationSpec.super.withFixture(test)
+    try {
+      ConfigurableEvaluationSpec.super.withFixture(test)
+    } finally {
+      engineCache match {
+        case Some(x: Resource) => x.close()
+        case _ =>
+      }
+    }
   }
 
   protected def evaluationType = this.engineEvaluationType

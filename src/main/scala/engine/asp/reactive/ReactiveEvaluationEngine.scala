@@ -2,6 +2,7 @@ package engine.asp.reactive
 
 import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, Tick}
 import clingo.{ClingoEvaluation, ClingoWrapper}
+import common.Resource
 import core._
 import core.asp.{AspFact, NormalRule}
 import core.lars.TimePoint
@@ -11,7 +12,7 @@ import engine.{EvaluationEngine, NoResult, Result}
 /**
   * Created by FM on 18.05.16.
   */
-case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper: ClingoWrapper = ClingoWrapper()) extends EvaluationEngine {
+case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper: ClingoWrapper = ClingoWrapper()) extends EvaluationEngine with Resource {
 
   val clingoProgram: ReactiveClingoProgram = ReactiveClingoProgram.fromMapped(program)
   val reactiveClingo = new ReactiveClingo(clingoWrapper)
@@ -22,7 +23,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   var tuplePositions: List[TrackedAtom] = List()
   var signalStream: Map[TimePoint, Seq[TrackedAtom]] = Map()
 
-  def terminate = runningReactiveClingo.terminate
+  def close() = runningReactiveClingo.close
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
 
@@ -56,11 +57,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
 
   private def discardOutdatedAtoms(time: TimePoint) = {
-    // TODO: this is not correct (includes all kind of windows, not only time)
-    val maxWindowTicks = program.larsRuleEncodings.
-      flatMap(_.windowAtomEncoders).
-      map(_.length).
-      max
+    val maxWindowTicks = program.maximumTimeWindowSizeInTicks
 
     tuplePositions = tuplePositions.take(program.maximumTupleWindowSize.toInt)
 

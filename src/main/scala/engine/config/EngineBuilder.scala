@@ -1,10 +1,12 @@
 package engine.config
 
-import clingo.{ClingoConversion, ClingoProgramWithLars}
+import clingo.reactive.ReactiveClingoProgram
+import clingo.{ClingoConversion, ClingoProgramWithLars, ClingoWrapper}
 import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
+import engine.asp.reactive.ReactiveEvaluationEngine
 import engine.asp.tms.TmsEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
@@ -29,17 +31,22 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 
   //TODO hb: assuming correct understanding: due to the new mapping, we should simply have a "LarsToAsp" mapping, since the result
   //is no longer "pinned" (in the sense that only some atoms get an additional time argument)
-  def configure() = AspEngineEvaluationConfiguration(LarsToPinnedProgram(withTickSize)(larsProgram))
+  def configure() = AspEngineEvaluationConfiguration(PlainLarsToAspMapper(withTickSize)(larsProgram))
 
   def withTickSize(tickSize: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
 //TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
-case class AspEngineEvaluationConfiguration(pinnedProgram: PinnedProgramWithLars) {
+case class AspEngineEvaluationConfiguration(program: LarsProgramEncoding) {
 
-  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(pinnedProgram))
+  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(program))
 
-  def withTms() = TmsConfiguration(pinnedProgram)
+  def withReactive() = ReactiveClingoConfiguration(program)
+
+  def withTms(): TmsConfiguration = {
+    null
+    //    TmsConfiguration(pinnedProgram)
+  }
 
 }
 
@@ -77,6 +84,17 @@ case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
   def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))
 
 }
+
+case class ReactiveClingoConfiguration(program: LarsProgramEncoding, wrapper: ClingoWrapper = ClingoWrapper()) {
+  def withWrapper(wrapper: ClingoWrapper) = ReactiveClingoConfiguration(program, wrapper)
+
+  def startable() = StartableEngineConfiguration(ReactiveEvaluationEngine(program, wrapper))
+}
+
+object ReactiveClingoConfiguration {
+  implicit def toStartable(config: ReactiveClingoConfiguration): StartableEngineConfiguration = config.startable()
+}
+
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {
   def start() = evaluationEngine

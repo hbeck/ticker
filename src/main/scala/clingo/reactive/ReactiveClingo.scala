@@ -1,6 +1,7 @@
 package clingo.reactive
 
 import clingo._
+import common.Resource
 import core.{GroundAtom, GroundAtomWithArguments}
 
 /**
@@ -19,10 +20,10 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
     new RunningReactiveClingo(reactiveClingoProcess, client)
   }
 
-  class RunningReactiveClingo(private val clingoProcess: scala.sys.process.Process, client: ReactiveClingoClient) {
+  class RunningReactiveClingo(private val clingoProcess: scala.sys.process.Process, client: ReactiveClingoClient) extends Resource {
 
-    def terminate = {
-      client.terminate()
+    def close = {
+      client.close()
       clingoProcess.destroy()
     }
 
