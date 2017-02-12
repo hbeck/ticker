@@ -9,7 +9,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 12.08.16.
   */
-class ATupleWindowDiamondSample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine {
+class ATupleWindowDiamondSample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
 
   /**
     *
@@ -45,6 +45,7 @@ class ATupleWindowDiamondSample extends ConfigurableEvaluationSpec with TimeTest
     evaluationEngine.append(10)(f)
     evaluationEngine.append(11)(e)
 
+    // TODO: difference between TMS/Clingo with window-size
     forAll(11 to 14) { i =>
       evaluationEngine.evaluate(i).get.value shouldNot contain(a)
     }

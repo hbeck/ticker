@@ -13,6 +13,11 @@ package object engine {
   case class StreamEntry(time: TimePoint, atoms: Set[Atom])
 
   type Stream = Set[StreamEntry]
+
+  case class PinnedSignal(atom: Atom, time: TimePoint, position: Long)
+
+  type SignalStream = Set[PinnedSignal]
+
 }
 
 

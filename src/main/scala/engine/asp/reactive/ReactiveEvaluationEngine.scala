@@ -13,7 +13,7 @@ import engine.{EvaluationEngine, NoResult, Result}
   */
 case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper: ClingoWrapper = ClingoWrapper()) extends EvaluationEngine {
 
-  val clingoProgram = ReactiveClingoProgram.fromMapped(program)
+  val clingoProgram: ReactiveClingoProgram = ReactiveClingoProgram.fromMapped(program)
   val reactiveClingo = new ReactiveClingo(clingoWrapper)
 
   val runningReactiveClingo = reactiveClingo.executeProgram(clingoProgram)

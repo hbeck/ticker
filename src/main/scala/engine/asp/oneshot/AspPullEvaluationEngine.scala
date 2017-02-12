@@ -15,7 +15,7 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation(time, atomStream.evaluateUntil(time))
+    val result = aspEvaluation(time, atomStream.evaluateUntil_(time))
 
     cachedResults.put(time, result)
   }
@@ -28,7 +28,7 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    atomStream.append(time)(atoms.toSet)
+    atomStream.append(time, atoms)
     // TODO: implement invalidation of result
     // the remove is probably not enough (==> invalidate previous fetched results)
     cachedResults.remove(time)

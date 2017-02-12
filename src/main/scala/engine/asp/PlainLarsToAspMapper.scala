@@ -86,7 +86,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
     }
 
     windowAtom.temporalModality match {
-      case At(v: Time) => Atom(predicate, previousArguments :+ v)
+      case At(v: Time) => PinnedAtom(Atom(predicate, previousArguments), v)
       case _ => Atom(predicate, previousArguments)
     }
   }
@@ -116,11 +116,16 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
 
 case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundData: Set[Atom], tickUnit: EngineTimeUnit) extends NormalProgram with LarsBasedProgram {
 
-  override val rules = (larsRuleEncodings flatMap (_.ruleEncodings)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
-
-  override val larsRules = larsRuleEncodings map (_.larsRule)
+  val baseRules = (larsRuleEncodings flatMap (_.ruleEncodings)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
+
+  val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)
+
+  // full representation of Lars-Program as asp
+  override val rules = baseRules ++ oneShotWindowRules
+
+  override val larsRules = larsRuleEncodings map (_.larsRule)
 }
 
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
@@ -154,8 +159,11 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
   //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
   //allows the use of an offset).
 
+  // we need to unpack the windowAtomEndocding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
+  private val unpackedWindowAtom = windowAtomEncoding.atom
+
   val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, time), Set[Atom](now(N), PinnedAtom(atom, time)))
-  val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, time - i))))
+  val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(unpackedWindowAtom, time - i), Set[Atom](now(time), PinnedAtom(atom, time - i))))
 
   override def incrementalRulesAt(i: IntValue): IncrementalRules = {
     val added = rule.assign(Assignment(Map(T -> i, N -> i)))

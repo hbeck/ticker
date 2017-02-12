@@ -16,7 +16,7 @@ case class AspPushEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
 
   def prepare(time: TimePoint) = {
     // TODO: decide if we want to use evaluateUntil or the whole stream
-    val result = aspEvaluation(time, atomStream.evaluateUntil(time))
+    val result = aspEvaluation(time, atomStream.evaluateUntil_(time))
 
     cachedResults.put(time, result)
     result
@@ -27,7 +27,7 @@ case class AspPushEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    atomStream.append(time)(atoms.toSet)
+    atomStream.append(time, atoms)
 
     val keysToRemove = cachedResults.keySet filter (_.value >= time.value)
     keysToRemove foreach cachedResults.remove

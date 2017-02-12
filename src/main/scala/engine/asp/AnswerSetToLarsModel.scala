@@ -12,11 +12,11 @@ case class PinnedModelToLarsModel(program: LarsBasedProgram) {
 
     val filtered = model filter {
       case p: PinnedAtAtom if p.atom == now => false
-//      case ConcretePinnedAtom(atom, time) if !program.atAtoms.exists(_.atom == atom) => time == timePoint
-      case ConcretePinnedAtAtom(atom, time)  => time == timePoint
+      //      case ConcretePinnedAtom(atom, time) if !program.atAtoms.exists(_.atom == atom) => time == timePoint
+      case ConcretePinnedAtAtom(atom, time) => time == timePoint
       case _ => true
     }
-
-    filtered map PinnedAspToIncrementalAsp.unpin
+    filtered
+    //    filtered map PinnedAspToIncrementalAsp.unpin
   }
 }

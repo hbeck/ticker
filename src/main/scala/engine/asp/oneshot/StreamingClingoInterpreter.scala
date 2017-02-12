@@ -16,10 +16,10 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 
     val transformed = pinnedAtoms map (ClingoConversion(_))
 
-    val aspResult = clingoEvaluation(PlainClingoProgram(program.rules ++ transformed)).headOption
+    val aspResult: Option[Model] = clingoEvaluation(PlainClingoProgram(program.rules ++ transformed)).headOption
 
     aspResult match {
-      case Some(model) => Some(StreamingClingoInterpreter.asPinnedAtom(model, timePoint))
+      case Some(model) => Some(model)
       case None => None
     }
   }
@@ -27,6 +27,7 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 
 object StreamingClingoInterpreter {
   def asPinnedAtom(model: Model, timePoint: TimePoint): PinnedModel = model map {
+    case p: PinnedAtom => p
     case aa: AtomWithArgument => convertToPinnedAtom(aa, timePoint)
     case a: Atom => throw new IllegalArgumentException(f"Cannot convert '$a' into a PinnedAtom")
   }

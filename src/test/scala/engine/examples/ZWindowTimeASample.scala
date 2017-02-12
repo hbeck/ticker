@@ -12,7 +12,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
   val aspProgram =
     """
     z(X) :- w2ta(U,T), X = U + 1.
@@ -32,6 +32,14 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
 
   val w1d_a = Atom("w1d_a")
 
+  /**
+    *
+    * ******** 1  2  3
+    * ---------|--|--|--------------
+    * *input** a
+    * *output**** z
+    * *output**** i  i
+    */
   val program = LarsProgram.from(
     AtAtom(TimeVariableWithOffset(U) + 1, z) <= W(2, At(U), a),
     i <= W(1, Diamond, z)
@@ -49,7 +57,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     evaluationEngine.evaluate(t0).get shouldNot contain(z)
   }
 
-  it should "not lead to z at t1" in  {
+  it should "not lead to z at t1" in {
     preparedEngine.evaluate(t1).get.value shouldNot contain(z)
   }
 
@@ -57,14 +65,14 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     preparedEngine.evaluate(t2).get.value should contain allOf(z, i)
   }
 
-  it should "not lead to z but to i at t3" in  {
+  it should "not lead to z but to i at t3" in {
     val result = preparedEngine.evaluate(t3).get.value
 
     result should contain(i)
     result shouldNot contain(z)
   }
 
-  it should "not lead to z or i at t4" in  {
+  it should "not lead to z or i at t4" in {
     val result = preparedEngine.evaluate(t4).get.value
 
     result shouldNot contain allOf(i, z)

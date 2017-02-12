@@ -17,7 +17,7 @@ case class AnswerUpdateEvaluation(private val program: NormalProgram) extends Ev
   val answerUpdateNetwork = JtmsGreedy(program)
 
   def append(time: TimePoint)(atoms: Atom*): Unit = {
-    extensionalAtomStream.append(time)(atoms.toSet)
+    extensionalAtomStream.append(time, atoms)
   }
 
   def evaluate(time: TimePoint) = {

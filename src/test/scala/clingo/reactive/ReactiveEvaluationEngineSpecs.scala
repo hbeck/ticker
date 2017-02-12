@@ -153,6 +153,31 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
   }
 
+  "With reactive engine" should "have running a_{T+1} :- w^2 @_T b" in {
+
+    val U = TimeVariableWithOffset("U")
+
+    val p = LarsProgram.from(
+      AtAtom(U + 1, a) <= WindowAtom(SlidingTimeWindow(2), At(U), b)
+    )
+
+    val engine: ReactiveEvaluationEngine = buildEngine(p)
+
+    try {
+
+      engine.append(TimePoint(1))(b)
+
+      val model = engine.evaluate(TimePoint(2))
+
+      assert(model.get.get contains a)
+      assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
+    }
+    finally {
+      engine.terminate
+    }
+
+  }
+
   private def buildEngine(p: LarsProgram) = {
     val mapper = PlainLarsToAspMapper()
 

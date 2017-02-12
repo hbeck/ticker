@@ -23,7 +23,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "Appending atom a at t1" should "allow it to be queried at t1" in {
     val engine = stream
 
-    engine.append(t1)(Set(atom))
+    engine.append(t1, Seq(atom))
 
     assert(engine.evaluate(t1) == Set(atom))
   }
@@ -32,7 +32,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
     val engine = stream
 
 
-    engine.append(t1)(Set(atom))
+    engine.append(t1, Seq(atom))
 
     assert(engine.evaluate(t0) == Set())
   }
@@ -40,7 +40,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   it should "not be available at t2" in {
     val engine = stream
 
-    engine.append(t1)(Set(atom))
+    engine.append(t1, Seq(atom))
 
     assert(engine.evaluate(t2) == Set())
   }
@@ -48,24 +48,24 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "Adding to atoms after each other" should "result in only atom at t1" in {
     val engine = stream
 
-    engine.append(t0)(Set(atom))
+    engine.append(t0, Seq(atom))
 
     val atom2 = Atom("b")
 
-    engine.append(t1)(Set(atom2))
+    engine.append(t1, Seq(atom2))
 
     assert(engine.evaluate(t1) == Set(atom2))
   }
 
   "Adding two atoms at the same time point" should "allow both to be queried" in {
     val engine = stream
-    val atT1 = engine.append(t1) _
 
-    atT1(Set(atom))
+
+    engine.append(t1, Seq(atom))
 
     val atom2 = Atom("b")
 
-    atT1(Set(atom2))
+    engine.append(t1, Seq(atom2))
 
     assert(engine.evaluate(t1) == Set(atom, atom2))
   }
@@ -79,7 +79,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "A stream with one entry at t1" should "be returned as single result" in {
     val s = stream
 
-    s.append(t0)(Set(atom))
+    s.append(t0, Seq(atom))
 
     assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom))))
   }
@@ -87,10 +87,10 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "A stream with one entry at t0 and one t1" should "return both with their timestamps" in {
     val s = stream
 
-    s.append(t0)(Set(atom))
+    s.append(t0, Seq(atom))
 
     val b = Atom("b")
-    s.append(t1)(Set(b))
+    s.append(t1, Seq(b))
 
     assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom)), StreamEntry(t1, Set(b))))
   }

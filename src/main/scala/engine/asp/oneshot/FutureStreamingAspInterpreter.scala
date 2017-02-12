@@ -2,7 +2,7 @@ package engine.asp.oneshot
 
 import core.Atom
 import core.lars.TimePoint
-import engine.{Result, Stream}
+import engine.{Result, SignalStream, Stream}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -10,7 +10,7 @@ import scala.concurrent.{Await, Future}
 
 case class FutureStreamingAspInterpreter(private val aspEvaluation: OneShotEvaluation, waitingAtMost: Duration) extends OneShotEvaluation {
 
-  def apply(time: TimePoint, dataStream: Stream): Result = {
+  def apply(time: TimePoint, dataStream: SignalStream): Result = {
     val future = Future {
       aspEvaluation(time, dataStream)
     }

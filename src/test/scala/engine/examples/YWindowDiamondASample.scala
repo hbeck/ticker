@@ -15,7 +15,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine {
+class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
   val aspStringProgram =
     """y(T) :- w1d_a(T).
 

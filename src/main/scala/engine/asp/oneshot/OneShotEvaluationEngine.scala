@@ -12,28 +12,27 @@ import engine.{Result, _}
   * Created by FM on 13.05.16.
   */
 trait OneShotEvaluation {
-  def apply(timePoint: TimePoint, dataStream: Stream): Result
+  def apply(timePoint: TimePoint, dataStream: SignalStream): Result
 }
 
 case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
   val convertToPinned = PinnedModelToLarsModel(program)
 
-  def apply(time: TimePoint, dataStream: Stream): Result = {
-    val input = OneShotEvaluationEngine.pinnedInput(time, dataStream)
-    val tupleReferences = dataStream.
-      toSeq.
-      sortBy(_.time).
-      flatMap(_.atoms).
-      reverse
+  def apply(time: TimePoint, dataStream: SignalStream): Result = {
 
-    val tupleCount = tupleReferences.
-      zipWithIndex.
-      map { case (atom, index) => atom.asTupleReference(index) }.
-      map(AspFact[AtomWithArgument]).
-      take(program.maximumTupleWindowSize.toInt)
+    val nowFact = AspFact(now(time))
+    val cntFact = AspFact(cnt(dataStream.size))
 
-    val aspResult = interpreter(time, input ++ tupleCount)
+    val signals = dataStream flatMap { s =>
+      Seq(
+        AspFact[AtomWithArgument](PinnedAtom(s.atom, s.time)),
+        AspFact[AtomWithArgument](PinnedAtom.asCount(s.atom, Value(s.position.toInt)))
+      )
+    }
+
+
+    val aspResult = interpreter(time, signals ++ Seq(nowFact, cntFact))
 
     val result = aspResult match {
       case Some(model) => Some(convertToPinned(time, model))
