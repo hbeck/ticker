@@ -12,7 +12,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val aspProgram =
     """
     z(X) :- w2ta(U,T), X = U + 1.
@@ -45,6 +45,8 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     i <= W(1, Diamond, z)
   )
 
+  // TODO: these test cases fail with grounding
+  
   def preparedEngine = {
     info("Given 't1 -> a' ")
     evaluationEngine.append(t1)(a)

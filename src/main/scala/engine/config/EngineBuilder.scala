@@ -44,13 +44,12 @@ case class AspEngineEvaluationConfiguration(program: LarsProgramEncoding) {
   def withReactive() = ReactiveClingoConfiguration(program)
 
   def withTms(): TmsConfiguration = {
-    null
-    //    TmsConfiguration(pinnedProgram)
+    TmsConfiguration(program)
   }
 
 }
 
-case class TmsConfiguration(pinnedProgram: PinnedProgramWithLars, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(pinnedProgram: LarsProgramEncoding, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
   def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
 

@@ -207,7 +207,10 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   //("a" -> {a(x,y), a(z,w)})  ==>  ("a" -> (0 -> {x,z}, 1 -> {y,w}))
   def makeValueLookupMap(atomsPerPredicate: Map[Predicate, Set[GroundAtom]]): Map[Predicate, Map[Int, Set[Value]]] = {
     atomsPerPredicate mapValues { set =>
-      set.map(_.asInstanceOf[AtomWithArgument].arguments) //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
+      set.map {
+        case a: AtomWithArgument => a.arguments //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
+        case _ => Seq()
+      }
         .flatMap(_.zipWithIndex) // ==> {(x,0), (y,1), (z,0), (w,1)}
         .groupBy { case (v, idx) => idx } //Map(1 -> {(y,1), (w,1)}, 0 -> {(x,0), (z,0)})
         .mapValues(_ map { case (v, idx) => v.asInstanceOf[Value] }) //Map(1 -> {y,w}, 0 -> {x,z})

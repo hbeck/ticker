@@ -1,7 +1,7 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, NormalRule}
+import core.asp.{AspFact, NormalFact, NormalRule}
 import core.lars.{GroundRule, LarsProgramInspection, TimePoint}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
@@ -10,7 +10,7 @@ import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
 /**
   * Created by FM on 18.05.16.
   */
-case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
   val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
@@ -24,7 +24,6 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
   var signalStream: Map[TimePoint, Set[NormalRule]] = Map()
-  var fluentAtoms: Map[(Predicate, Seq[Argument]), AtomWithArgument] = Map()
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     trackAuxiliaryAtoms(time, atoms)
@@ -35,10 +34,12 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
     val pin = Pin(time)
 
-    val pinnedSignals = pin.ground(signalAtoms map pin.apply)
+    // TODO: Bookkeeping should be done differently
+    // TODO: cnt-Atoms are currently missing
+    val pinnedSignals: Set[NormalFact] = signalAtoms map (s => AspFact[Atom](PinnedAtom(s, time)))
 
     // TODO: this bookkeeping should be done in trackAux
-    signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
+        signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
 
     // TODO hb: seems crazy to always create the entire sequency from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
@@ -50,13 +51,8 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
 
     val grounder = new GroundRule[NormalRule, Atom, Atom]()
     val inspectWithAllSignals = LarsProgramInspection.from(groundTimeVariableCalculations ++ allHistoricalSignals)
+    // TODO: grounding fails here
     val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals)
-
-    // TODO discuss if we want this
-    val signalsHoldingNow = signalAtoms map (AspFact(_)) toSeq
-
-    val orderedTuples = deriveOrderedTuples()
-    val fluentTuples = fluentAtoms.values.map(pin.apply)
 
     val nowAtom = pin.ground(Set(pin(engine.asp.now))) toSeq
 
@@ -65,10 +61,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     // separating the calls ensures maximum on support for rules
     // facts first
     add(nowAtom)
-    add(signalsHoldingNow)
     add(pinnedSignals.toSeq)
-    add(orderedTuples)
-    //        add(fluentTuples)
     // then rules
     add(grounded)
 
@@ -80,9 +73,6 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     remove(grounded)
     // then facts
     // we never remove extensional atoms explicitly (the policy might do it)
-    remove(orderedTuples)
-    //    remove(fluentTuples)
-    remove(signalsHoldingNow)
     remove(nowAtom)
 
     model
@@ -102,14 +92,10 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     }
 
     resultingModel match {
-      case Some(m) => Result(Some(convertToPinned(time, asPinnedAtoms(m, time))))
+      case Some(m) => Result(Some(m))
       case None => NoResult
     }
   }
-
-  def deriveOrderedTuples() = tuplePositions.zipWithIndex.
-    map(v => v._1.asTupleReference(v._2)).
-    map(x => AspFact[Atom](x))
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case p: PinnedAtAtom => p
@@ -121,7 +107,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
     //TODO current !!!
     //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
-    val maxWindowTicks = 0 //TODO
+    val maxWindowTicks = 100 //TODO
     tuplePositions = tuplePositions.take(pinnedAspProgram.maximumTupleWindowSize.toInt)
 
     val atomsToRemove = signalStream filterKeys (t => t.value < time.value - maxWindowTicks)
@@ -134,14 +120,5 @@ case class TmsEvaluationEngine(pinnedAspProgram: PinnedProgramWithLars, tmsPolic
     tuplePositions = atoms.toList ++ tuplePositions
     fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
     //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
-  }
-
-  def asFluentMap(atom: Atom) = {
-    val arguments = atom match {
-      case aa: AtomWithArgument => aa.arguments take 1
-      case _ => Seq()
-    }
-
-    (atom.predicate, arguments)
   }
 }

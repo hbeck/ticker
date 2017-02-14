@@ -3,7 +3,7 @@ package engine.asp.tms
 import core.asp.{AspProgram, _}
 import core.lars._
 import core._
-import engine.asp.{PinnedProgramWithLars, PinnedRule, now}
+import engine.asp._
 
 /**
   * Created by FM on 08.06.16.
@@ -73,5 +73,21 @@ object PinnedAspToIncrementalAsp {
     val semiPinnedRules = p.rules map (r => apply(r, atomsToUnpin))
 
     AspProgram(semiPinnedRules.toList)
+  }
+
+
+  def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
+    val rulesWithoutNowCntPin = larsProgramEncoding.rules.
+      map { r =>
+        r.
+          from(
+            r.head,
+            r.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
+            r.neg
+          ).
+          asInstanceOf[NormalRule]
+      }
+
+    AspProgram(rulesWithoutNowCntPin.toList)
   }
 }

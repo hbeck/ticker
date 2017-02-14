@@ -6,7 +6,7 @@ import core.lars._
 import engine.EvaluationEngine
 import engine.asp.now
 import engine.config.BuildEngine
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures}
+import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -14,7 +14,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 22.04.16.
   */
-class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures with ClingoPullEngine {
+class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val aspStringProgram =
     """x(T) :- w1b_a(T).
 

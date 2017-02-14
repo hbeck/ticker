@@ -8,9 +8,14 @@ import core._
   * Created by FM on 13.05.16.
   */
 package object asp {
-  val now = Atom("now") //used in a@(\vec{X},T)
-  val cnt = Atom("cnt") //used in a#(\vec{X},C)
+  val now = Atom("now")
+  //used in a@(\vec{X},T)
+  val cnt = Atom("cnt")
+  //used in a#(\vec{X},C)
   val pin = Atom("pin") //used in a'(\vec{X},T,C) //pin = time + tick
+
+  val specialTickAtoms = Seq(now, cnt, pin)
+  val specialTickPredicates = specialTickAtoms.map(_.predicate)
 
   type PinnedRule = AspRule[AtomWithArgument]
   type PinnedFact = AspFact[AtomWithArgument]
