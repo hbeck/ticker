@@ -46,7 +46,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
   )
 
   // TODO: these test cases fail with grounding
-  
+
   def preparedEngine = {
     info("Given 't1 -> a' ")
     evaluationEngine.append(t1)(a)

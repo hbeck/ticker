@@ -118,7 +118,6 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
 
   private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
     tuplePositions = atoms.toList ++ tuplePositions
-    fluentAtoms = atoms.foldLeft(fluentAtoms)((m, a) => m updated(asFluentMap(a), a.asFluentReference()))
     //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
   }
 }

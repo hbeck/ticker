@@ -21,6 +21,8 @@ object BuilderCollection {
 
 case class not[TAtom <: ExtendedAtom](atom: TAtom)
 
+
 object not {
   def apply(w: WindowAtom) = not[ExtendedAtom](w)
+//  def apply(w: Atom) = not[ExtendedAtom](w)
 }

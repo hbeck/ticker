@@ -1,6 +1,6 @@
 package core.lars
 
-import core.{Atom, Fact}
+import core.{Atom, Fact, RelationAtom}
 
 /**
   * Created by FM on 01.05.16.
@@ -71,7 +71,11 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
   val larsRules: Seq[LarsRule] = rules
 
   lazy val extendedAtoms: Set[ExtendedAtom] = rules flatMap (r => r.body + r.head) toSet
-  lazy val atoms: Set[Atom] = extendedAtoms map (_.atom)
+  lazy val relationalAtoms: Set[RelationAtom] = extendedAtoms collect {
+    case r: RelationAtom => r
+  }
+
+  lazy val atoms: Set[Atom] = (extendedAtoms map (_.atom)) -- relationalAtoms
 
   override def toString(): String = {
     val sb = new StringBuilder
