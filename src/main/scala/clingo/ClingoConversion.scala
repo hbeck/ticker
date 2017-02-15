@@ -3,6 +3,7 @@ package clingo
 import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint, TimeVariableWithOffset}
+import engine.asp.LarsProgramEncoding
 
 /**
   * Created by FM on 22.02.16.
@@ -13,9 +14,9 @@ object ClingoConversion {
     PlainClingoProgram(program.rules.map(apply[TAtom]).toSet)
   }
 
-  def fromLars[TAtom <: Atom, TRule <: AspRule[TAtom]](program: AspProgram[TAtom, TRule] with LarsBasedProgram): ClingoProgramWithLars = {
-    val rules = program.rules.map(apply[TAtom]).toSet
-    ClingoProgramWithLars(rules, program.larsRules)
+  def fromLars(program: LarsProgramEncoding): ClingoProgramWithLars = {
+    val rules = program.rules.map(apply[Atom]).toSet
+    ClingoProgramWithLars(rules, program.larsRules, program.maximumTimeWindowSizeInTicks)
   }
 
   def apply[TAtom <: Atom](rule: AspRule[TAtom]): ClingoExpression = {
@@ -84,6 +85,6 @@ trait ClingoProgram {
 
 case class PlainClingoProgram(rules: Set[ClingoExpression]) extends ClingoProgram
 
-case class ClingoProgramWithLars(rules: Set[ClingoExpression], larsRules: Seq[LarsRule]) extends ClingoProgram with LarsBasedProgram {
+case class ClingoProgramWithLars(rules: Set[ClingoExpression], larsRules: Seq[LarsRule], maximumTimeWindowSizeInTicks: Long) extends ClingoProgram with LarsBasedProgram {
 
 }

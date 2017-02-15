@@ -14,7 +14,7 @@ import org.scalatest.Matchers._
 class StreamingAspToClingoSpec extends FlatSpec with TimeTestFixtures {
 
   "An empty set of ASP-Expressions" should "return an empty result" in {
-    val convert = StreamingClingoInterpreter(ClingoProgramWithLars(Set(), Seq()))
+    val convert = StreamingClingoInterpreter(ClingoProgramWithLars(Set(), Seq(), 0))
     convert(t0, Set()) should be(empty)
   }
 

@@ -62,10 +62,10 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
     atomTracker.trackAtoms(time, atoms)
   }
 
-  case class TrackedAtomWithClingo(groundAtom: GroundAtom, time: TimePoint, position: Long) extends TrackedAtom {
+  case class TrackedAtomWithClingo(atom: GroundAtom, time: TimePoint, position: Long) extends TrackedAtom {
     val timeDimension = Tick(clingoProgram.timeDimension.parameter, time.value)
     val cntDimension = Tick(clingoProgram.countDimension.parameter, position)
-    val clingoArgument = (groundAtom, Seq(timeDimension, cntDimension))
+    val clingoArgument = (atom, Seq(timeDimension, cntDimension))
   }
 
 }

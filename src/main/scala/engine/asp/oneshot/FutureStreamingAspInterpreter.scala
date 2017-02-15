@@ -1,5 +1,6 @@
 package engine.asp.oneshot
 
+import clingo.ClingoProgramWithLars
 import core.Atom
 import core.lars.TimePoint
 import engine.{Result, SignalStream, Stream}
@@ -17,6 +18,8 @@ case class FutureStreamingAspInterpreter(private val aspEvaluation: OneShotEvalu
 
     FutureResult(future, waitingAtMost)
   }
+
+  override val program: ClingoProgramWithLars = aspEvaluation.program
 }
 
 case class FutureResult(future: Future[Result], waitingAtMost: Duration = 1 second) extends Result {

@@ -3,7 +3,7 @@ package engine.asp.oneshot
 import clingo.ClingoProgramWithLars
 import core._
 import core.asp.AspFact
-import core.lars.TimePoint
+import core.lars.{LarsBasedProgram, LarsProgram, TimePoint}
 import engine.asp._
 import engine.asp.tms.Pin
 import engine.{Result, _}
@@ -12,6 +12,8 @@ import engine.{Result, _}
   * Created by FM on 13.05.16.
   */
 trait OneShotEvaluation {
+  val program: ClingoProgramWithLars
+
   def apply(timePoint: TimePoint, dataStream: SignalStream): Result
 }
 

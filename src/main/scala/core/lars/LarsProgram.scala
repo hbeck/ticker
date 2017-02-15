@@ -34,6 +34,7 @@ trait LarsBasedProgram {
     case true => 0
     case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
   }
+
 }
 
 object LarsRule {

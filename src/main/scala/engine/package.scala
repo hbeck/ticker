@@ -14,9 +14,7 @@ package object engine {
 
   type Stream = Set[StreamEntry]
 
-  case class PinnedSignal(atom: Atom, time: TimePoint, position: Long)
-
-  type SignalStream = Set[PinnedSignal]
+  type SignalStream = Set[TrackedAtom]
 
 }
 

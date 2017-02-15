@@ -12,86 +12,86 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   val atom = Atom("a")
 
   def stream = {
-    new OrderedAtomStream
+    new AtomTracking(100, 100, DefaultTrackedAtom.apply)
   }
 
   "An empty engine" should "not evaluate to a result at t0" in {
     val engine = stream
-    assert(engine.evaluate(t0) == Set())
+    assert(engine.allTimePoints(t0) == Set())
   }
 
   "Appending atom a at t1" should "allow it to be queried at t1" in {
     val engine = stream
 
-    engine.append(t1, Seq(atom))
+    engine.trackAtoms(t1, Seq(atom))
 
-    assert(engine.evaluate(t1) == Set(atom))
+    assert(engine.allTimePoints(t1) == Set(atom))
   }
 
   it should "not be queried at t0" in {
     val engine = stream
 
 
-    engine.append(t1, Seq(atom))
+    engine.trackAtoms(t1, Seq(atom))
 
-    assert(engine.evaluate(t0) == Set())
+    assert(engine.allTimePoints(t0) == Set())
   }
 
   it should "not be available at t2" in {
     val engine = stream
 
-    engine.append(t1, Seq(atom))
+    engine.trackAtoms(t1, Seq(atom))
 
-    assert(engine.evaluate(t2) == Set())
+    assert(engine.allTimePoints(t2) == Set())
   }
 
   "Adding to atoms after each other" should "result in only atom at t1" in {
     val engine = stream
 
-    engine.append(t0, Seq(atom))
+    engine.trackAtoms(t0, Seq(atom))
 
     val atom2 = Atom("b")
 
-    engine.append(t1, Seq(atom2))
+    engine.trackAtoms(t1, Seq(atom2))
 
-    assert(engine.evaluate(t1) == Set(atom2))
+    assert(engine.allTimePoints(t1) == Set(atom2))
   }
 
   "Adding two atoms at the same time point" should "allow both to be queried" in {
     val engine = stream
 
 
-    engine.append(t1, Seq(atom))
+    engine.trackAtoms(t1, Seq(atom))
 
     val atom2 = Atom("b")
 
-    engine.append(t1, Seq(atom2))
+    engine.trackAtoms(t1, Seq(atom2))
 
-    assert(engine.evaluate(t1) == Set(atom, atom2))
+    assert(engine.allTimePoints(t1) == Set(atom, atom2))
   }
 
   "On an empty stream, evaluateUntil at t1" should "return no results" in {
     val s = stream
 
-    assert(s.evaluateUntil(t1) == Set())
+    assert(s.allTimePoints(t1) == Set())
   }
 
   "A stream with one entry at t1" should "be returned as single result" in {
     val s = stream
 
-    s.append(t0, Seq(atom))
+    s.trackAtoms(t0, Seq(atom))
 
-    assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom))))
+    assert(s.allTimePoints(t1) == Set(StreamEntry(t0, Set(atom))))
   }
 
   "A stream with one entry at t0 and one t1" should "return both with their timestamps" in {
     val s = stream
 
-    s.append(t0, Seq(atom))
+    s.trackAtoms(t0, Seq(atom))
 
     val b = Atom("b")
-    s.append(t1, Seq(b))
+    s.trackAtoms(t1, Seq(b))
 
-    assert(s.evaluateUntil(t1) == Set(StreamEntry(t0, Set(atom)), StreamEntry(t1, Set(b))))
+    assert(s.allTimePoints(t1) == Set(StreamEntry(t0, Set(atom)), StreamEntry(t1, Set(b))))
   }
 }

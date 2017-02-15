@@ -10,12 +10,12 @@ import engine._
 
 case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation) extends EvaluationEngine {
 
-  val atomStream: OrderedAtomStream = new OrderedAtomStream
+  val atomStream = AtomTracking(aspEvaluation.program)
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation(time, atomStream.evaluateUntil_(time))
+    val result = aspEvaluation(time, atomStream.allTimePoints(time).toSet)
 
     cachedResults.put(time, result)
   }
@@ -24,11 +24,13 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
     if (!cachedResults.contains(time))
       prepare(time)
 
+    atomStream.discardOutdatedAtoms(time)
+
     cachedResults(time)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    atomStream.append(time, atoms)
+    atomStream.trackAtoms(time, atoms)
     // TODO: implement invalidation of result
     // the remove is probably not enough (==> invalidate previous fetched results)
     cachedResults.remove(time)
