@@ -2,6 +2,7 @@ package evaluation.reactive.sensor
 
 import core.{Model, PinnedAtom}
 import core.lars.TimePoint
+import engine.EvaluationEngine
 import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 
@@ -12,6 +13,8 @@ import scala.util.Random
   */
 class BaseSpecs extends FlatSpec with SensorScenario {
 
+  val defaultProgramRunner = runWithProgram(new Random(1), 1000) _
+
   "Sliding Time Window of length 1 and with all rules" should "have always the same yellows" in {
     val windowLength = 1
 
@@ -19,7 +22,23 @@ class BaseSpecs extends FlatSpec with SensorScenario {
 
     val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
 
-    val signals = continuousSignalStream(new Random(1))(1000)
+    defaultProgramRunner(windowLength, engine)
+  }
+
+  "Sliding Tuple Window of length 1 and with all rules" should "have always the same yellows" in {
+    val windowLength = 1
+
+    val program = tupleWindowProgram(windowLength)
+
+    val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
+
+    defaultProgramRunner(windowLength, engine)
+  }
+
+  def runWithProgram(random: Random, sampleSize: Int)(windowLength: Int, engineBuilder: => EvaluationEngine) = {
+    val engine = engineBuilder
+
+    val signals = continuousSignalStream(random)(sampleSize)
 
     val asserter = assertModel(windowLength) _
 

@@ -24,7 +24,8 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
   def apply(time: TimePoint, dataStream: SignalStream): Result = {
 
     val nowFact = AspFact(now(time))
-    val cntFact = AspFact(cnt(dataStream.size))
+    val cntFact = AspFact(cnt(IntValue(dataStream.map(_.position).max.toInt)))
+
 
     val signals = dataStream flatMap { s =>
       Seq(

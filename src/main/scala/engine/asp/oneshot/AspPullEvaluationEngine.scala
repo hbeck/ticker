@@ -1,8 +1,10 @@
 package engine.asp.oneshot
 
 import core.Atom
+import core.asp.AspFact
 import core.lars.TimePoint
 import engine._
+import engine.asp.{cnt, now}
 
 /**
   * Created by FM on 21.04.16.
@@ -10,12 +12,13 @@ import engine._
 
 case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation) extends EvaluationEngine {
 
-  val atomStream = AtomTracking(aspEvaluation.program)
+  val atomTracker = AtomTracking(aspEvaluation.program)
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation(time, atomStream.allTimePoints(time).toSet)
+
+    val result = aspEvaluation(time, atomTracker.allTimePoints(time).toSet)
 
     cachedResults.put(time, result)
   }
@@ -24,13 +27,13 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
     if (!cachedResults.contains(time))
       prepare(time)
 
-    atomStream.discardOutdatedAtoms(time)
+    atomTracker.discardOutdatedAtoms(time)
 
     cachedResults(time)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    atomStream.trackAtoms(time, atoms)
+    atomTracker.trackAtoms(time, atoms)
     // TODO: implement invalidation of result
     // the remove is probably not enough (==> invalidate previous fetched results)
     cachedResults.remove(time)
