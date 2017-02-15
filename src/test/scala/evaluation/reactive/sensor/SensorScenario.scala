@@ -51,26 +51,29 @@ trait SensorScenario {
   object UseYellow2 extends YellowRules
 
 
-  def buildProgram(window: (TemporalModality, Atom) => WindowAtom, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = {
+  def buildProgram(n: TimeWindowSize)(window: (TemporalModality, Atom) => WindowAtom, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = {
+
+    def slidingTime(temp: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(n), temp, atom)
 
     val at_low: LarsRule = AtAtom(U, low) <= window(At(U), s(V)) and Lt(V, lowThreshold)
     val at_high: LarsRule = AtAtom(U, high) <= window(At(U), s(V)) and Gt(V, highThreshold)
 
     val at_med_1: LarsRule = AtAtom(U, med_1) <= window(At(U), s(V)) and Geq(V, lowThreshold) and Leq(V, highThreshold)
     val at_med_2: LarsRule = AtAtom(U, med_2) <= window(At(U), s(V)) not AtAtom(U, low) not AtAtom(U, high)
-    val at_med__1: LarsRule = AtAtom(U, med) <= window(At(U), med_1)
-    val at_med__2: LarsRule = AtAtom(U, med) <= window(At(U), med_2)
 
-    val greenRule: LarsRule = green <= window(Box, high)
+    val at_med__1: LarsRule = AtAtom(U, med) <= slidingTime(At(U), med_1)
+    val at_med__2: LarsRule = AtAtom(U, med) <= slidingTime(At(U), med_2)
 
-    val at_y_1: LarsRule = AtAtom(U, y) <= window(At(U), high)
-    val at_y_2: LarsRule = AtAtom(U, y) <= window(At(U), med)
+    val greenRule: LarsRule = green <= slidingTime(Box, high)
 
-    val yellowRule_1: LarsRule = yellow_1 <= window(Box, y)
+    val at_y_1: LarsRule = AtAtom(U, y) <= slidingTime(At(U), high)
+    val at_y_2: LarsRule = AtAtom(U, y) <= slidingTime(At(U), med)
+
+    val yellowRule_1: LarsRule = yellow_1 <= slidingTime(Box, y)
     val yellowRule_2: LarsRule = yellow_2 <= not[ExtendedAtom](warn)
 
     val warnRule: LarsRule = warn <= window(Diamond, s(V)) and Lt(V, lowThreshold)
-    val chaosRule: LarsRule = chaos <= window(Diamond, low) and window(Diamond, med) and window(Diamond, high)
+    val chaosRule: LarsRule = chaos <= slidingTime(Diamond, low) and slidingTime(Diamond, med) and slidingTime(Diamond, high)
 
     val baseRules = Seq(
       at_low,
@@ -121,17 +124,18 @@ trait SensorScenario {
     LarsProgram(baseRules ++ medRules ++ yellowRules)
   }
 
-  def timeWindowProgram(windowSize: TimeWindowSize, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram((temp, atom) => WindowAtom(SlidingTimeWindow(windowSize), temp, atom), useMed, useYellow)
+  def timeWindowProgram(windowSize: TimeWindowSize, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram(windowSize)((temp, atom) => WindowAtom(SlidingTimeWindow(windowSize), temp, atom), useMed, useYellow)
 
-  def tupleWindowProgram(windowSize: TupleCount, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram((temp, atom) => WindowAtom(SlidingTupleWindow(windowSize), temp, atom), useMed, useYellow)
+  def tupleWindowProgram(windowSize: TupleCount, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram(TimeWindowSize(windowSize))((temp, atom) => WindowAtom(SlidingTupleWindow(windowSize), temp, atom), useMed, useYellow)
 
 
-  def continuousSignalStream(random: Random)(length: Int): Map[TimePoint, Atom] = (0 to length).
+  def continuousSignalStream(random: Random)(length: Int): Seq[(TimePoint, Atom)] = (0 to length).
     map((_, IntValue(random.nextInt(100)))).
     map {
       case (point, value) => (TimePoint(point), s(value))
-    }.
-    toMap
+    }
+
+  //    toMap
 
 
 }

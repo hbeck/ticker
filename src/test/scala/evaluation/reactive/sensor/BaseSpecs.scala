@@ -1,5 +1,7 @@
 package evaluation.reactive.sensor
 
+import core.{Model, PinnedAtom}
+import core.lars.TimePoint
 import engine.config.BuildEngine
 import org.scalatest.FlatSpec
 
@@ -11,11 +13,15 @@ import scala.util.Random
 class BaseSpecs extends FlatSpec with SensorScenario {
 
   "Sliding Time Window of length 1 and with all rules" should "have always the same yellows" in {
-    val program = timeWindowProgram(1)
+    val windowLength = 1
+
+    val program = timeWindowProgram(windowLength)
 
     val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
 
-    val signals = continuousSignalStream(new Random(1))(100000)
+    val signals = continuousSignalStream(new Random(1))(1000)
+
+    val asserter = assertModel(windowLength) _
 
     signals foreach {
       case (t, s) => {
@@ -23,18 +29,37 @@ class BaseSpecs extends FlatSpec with SensorScenario {
 
         val model = engine.evaluate(t)
 
+
         model.get match {
-          case Some(m) => {
-            if (m.contains(yellow_1))
-              assert(m contains yellow_2)
-            else
-              assert(!(m contains yellow_2))
+          // TODO
+          case Some(m) if t.value >= windowLength + 1 => {
+            asserter(t, m)
+
+            if (t.value % 100 == 0)
+              println(m)
           }
-          case None =>
+          case _ =>
         }
       }
+    }
+  }
+
+
+  def assertModel(windowLength: Int)(now: TimePoint, model: Model) = {
+    if (model.contains(yellow_1))
+      assert(model contains yellow_2)
+    else
+      assert(!(model contains yellow_2))
+
+    (0 to windowLength) map (now - _) foreach { time =>
+
+      if (model.contains(PinnedAtom(med_1, time)))
+        assert(model contains PinnedAtom(med_2, time))
+      else
+        assert(!(model contains PinnedAtom(med_2, time)))
 
     }
 
+    assert((model contains green) | (model contains yellow_1) | (model contains warn))
   }
 }

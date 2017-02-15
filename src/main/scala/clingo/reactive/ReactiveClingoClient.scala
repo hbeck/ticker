@@ -30,7 +30,7 @@ object ReactiveClingoClient {
   }
 }
 
-class ReactiveClingoClient(socket: Socket) extends  Resource{
+class ReactiveClingoClient(socket: Socket) extends Resource {
   private val in = new BufferedSource(socket.inputStream())
   private val lines = in.getLines()
   private val out = new PrintStream(socket.outputStream())
@@ -47,7 +47,10 @@ class ReactiveClingoClient(socket: Socket) extends  Resource{
     socket.close()
   }
 
-  private def send(command: String, arguments: Seq[String] = Seq()) = sendCommand(command + " " + arguments.mkString(" "))
+  private def send(command: String, arguments: Seq[String] = Seq()) = {
+    if (arguments.nonEmpty)
+      sendCommand(command + " " + arguments.mkString(" "))
+  }
 
   private def sendCommand(command: String) = {
     out.println(command)
