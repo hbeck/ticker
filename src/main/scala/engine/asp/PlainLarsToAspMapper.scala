@@ -53,32 +53,32 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
   }
 
   def windowAtomEncoder(windowAtom: WindowAtom): WindowAtomEncoder = windowAtom match {
-    case WindowAtom(window: SlidingTimeWindow, temporalModality, atom) => slidingTime(window, temporalModality, atom)
-    case WindowAtom(window: SlidingTupleWindow, temporalModality, atom) => slidingTuple(window, temporalModality, atom)
+    case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w)
+    case w@WindowAtom(window: SlidingTupleWindow, _, _) => slidingTuple(window, w)
   }
 
   // \window^1 @_T a(X)
   // head: w_{bla}(X,T)
-  def slidingTime(window: SlidingTimeWindow, temporalModality: TemporalModality, atom: Atom): WindowAtomEncoder = {
+  def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom): WindowAtomEncoder = {
     val length = timePoints(window.windowSize.unit, window.windowSize.length)
-    val head = encodedWindowAtom(WindowAtom(window, temporalModality, atom)) //TODO beautify
-    temporalModality match {
-      case a: At => TimeAtEncoder(length, atom, head, a.time)
-      case Diamond => TimeDiamondEncoder(length, atom, head)
-      case Box => TimeBoxEncoder(length, atom, head)
+    val head = encodedWindowAtom(windowAtom) //TODO beautify
+    windowAtom.temporalModality match {
+      case a: At => TimeAtEncoder(length, windowAtom.atom, head, a.time)
+      case Diamond => TimeDiamondEncoder(length, windowAtom.atom, head)
+      case Box => TimeBoxEncoder(length, windowAtom.atom, head)
     }
   }
 
-  def slidingTuple(window: SlidingTupleWindow, temporalModality: TemporalModality, atom: Atom): WindowAtomEncoder = {
-    val head = encodedWindowAtom(WindowAtom(window, temporalModality, atom)) //TODO beautify
-    temporalModality match {
-      case Diamond => TupleDiamondEncoder(window.windowSize, atom, head)
-      case Box => TupleBoxEncoder(window.windowSize, atom, head)
-      case a: At => TupleAtEncoder(window.windowSize, atom, head, a.time)
+  def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom): WindowAtomEncoder = {
+    val head = encodedWindowAtom(windowAtom) //TODO beautify
+    windowAtom.temporalModality match {
+      case Diamond => TupleDiamondEncoder(window.windowSize, windowAtom.atom, head)
+      case Box => TupleBoxEncoder(window.windowSize, windowAtom.atom, head)
+      case a: At => TupleAtEncoder(window.windowSize, windowAtom.atom, head, a.time)
     }
   }
 
-  private def encodedWindowAtom(windowAtom: WindowAtom) = {
+  def encodedWindowAtom(windowAtom: WindowAtom) = {
     val predicate = predicateFor(windowAtom)
     val previousArguments = windowAtom.atom match {
       case aa: AtomWithArgument => aa.arguments
@@ -93,7 +93,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
 
   private def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / engineTimeUnit.toMillis, engineTimeUnit.unit).length
 
-  private def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
+  def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
 
   private def predicateFor(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) = {
     val window = windowFunction match {

@@ -1,8 +1,8 @@
 package lars.transform
 
-import core.asp.AspRule
+import core.PinnedAtom
+import core.asp.{AspFact, AspRule}
 import core.lars.{AtAtom, LarsFact, UserDefinedLarsRule}
-import engine.asp.LarsToPinnedProgram
 import org.scalatest.Matchers._
 
 /**
@@ -13,21 +13,21 @@ class RuleOnlySpec extends TransformLarsSpec {
   "A fact" should "be translated in a fact with now(T) in the body" in {
     val f = LarsFact(a)
 
-    DefaultLarsToPinnedProgram.transformRule(f).body should contain(now(T))
+    DefaultLarsToPinnedProgram.encode(f).body should not contain (now(T))
   }
 
   it should "transform an at-atom in the head" in {
     val f = LarsFact(AtAtom(t1, a))
-    assert(DefaultLarsToPinnedProgram.transformRule(f) == AspRule(a(t1), Set(now(T))))
+    assert(DefaultLarsToPinnedProgram.encode(f) == AspFact(PinnedAtom(a, t1)))
   }
 
   "A rule containing only positive elements" should "have the same amount of items in its transformed pos. body and now(T)" in {
     val r = UserDefinedLarsRule(a, Set(b, c))
-    DefaultLarsToPinnedProgram.transformRule(r).pos should have size 3
+    DefaultLarsToPinnedProgram.encode(r).pos should have size 2
   }
   "A rule containing only negative elements" should "have the same amount of items in its transformed neg. body" in {
     val r = UserDefinedLarsRule(a, Set(), Set(b, c))
-    DefaultLarsToPinnedProgram.transformRule(r).neg should have size 2
+    DefaultLarsToPinnedProgram.encode(r).neg should have size 2
   }
 }
 

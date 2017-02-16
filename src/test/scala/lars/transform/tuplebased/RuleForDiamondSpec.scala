@@ -2,7 +2,6 @@ package lars.transform.tuplebased
 
 import core.Atom
 import core.lars.{Diamond, SlidingTimeWindow, SlidingTupleWindow, WindowAtom}
-import engine.asp.LarsToPinnedProgram
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -16,23 +15,24 @@ class RuleForDiamondSpec extends TransformLarsSpec {
   val w_tu_2_d_a = WindowAtom(SlidingTupleWindow(2), Diamond, a)
 
   "The rule for w^2 d a" should "return two rules" in {
-    DefaultLarsToPinnedProgram.rulesForDiamond(w_tu_2_d_a) should have size (2)
+    DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a).allWindowRules should have size (2)
   }
   it should "contain now(T) in all rules" in {
-    forAll(DefaultLarsToPinnedProgram.rulesForDiamond(w_tu_2_d_a)) { rule => rule.body should contain(now(T)) }
+    forAll(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a).allWindowRules) { rule => rule.body should contain(now(T)) }
   }
   it should "have head w_tu_1_b_a" in {
-    forAll(DefaultLarsToPinnedProgram.rulesForDiamond(w_tu_2_d_a)) { rule => rule.head.toString should include("w_tu_2_d_a") }
+    forAll(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a).allWindowRules) { rule => rule.head.toString should include("w_tu_2_d_a") }
   }
   it should "contain a_TUPLE(0) for one element" in {
-    forExactly(1, DefaultLarsToPinnedProgram.rulesForDiamond(w_tu_2_d_a)) { rule => rule.body should contain(a_TUPLE(0)) }
+    forExactly(1, DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a).allWindowRules) { rule => rule.body should contain(a_TUPLE(0)) }
   }
   it should "contain a_TUPLE(1)" in {
-    forExactly(1, DefaultLarsToPinnedProgram.rulesForDiamond(w_tu_2_d_a)) { rule => rule.body should contain(a_TUPLE(1)) }
+    forExactly(1, DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a).allWindowRules) { rule => rule.body should contain(a_TUPLE(1)) }
   }
 
   "The rule for w^3 d a" should "contain a_TUPLE(1), a_TUPLE(2),  a_TUPLE(0)" in {
-    DefaultLarsToPinnedProgram.rulesForDiamond(WindowAtom(SlidingTupleWindow(3), Diamond, a)).
+    DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(3), WindowAtom(SlidingTupleWindow(3), Diamond, a)).
+      allWindowRules.
       flatMap(_.body) should contain.
       allOf(a_TUPLE(0), a_TUPLE(1), a_TUPLE(2))
   }

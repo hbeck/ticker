@@ -2,7 +2,7 @@ package evaluation.alternatingSupport
 
 import core.lars.TimePoint
 import engine.Result
-import engine.asp.{GroundAspRule, LarsToPinnedProgram, PlainLarsToAspMapper}
+import engine.asp.{GroundAspRule, PlainLarsToAspMapper}
 import engine.asp.tms.{GroundRule, GroundedNormalRule, PinnedAspToIncrementalAsp, TmsEvaluationEngine}
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.{BuildEngine, EngineEvaluationConfiguration}

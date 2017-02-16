@@ -45,37 +45,6 @@ object PinnedAspToIncrementalAsp {
     )
   }
 
-  def apply(p: PinnedProgramWithLars): NormalProgram = {
-
-    val windowAtoms = p.windowAtoms map (_.atom)
-    val atAtoms = p.atAtoms map (_.atom)
-
-    val timestampedAtoms = (windowAtoms ++ atAtoms) collect {
-      case aa: AtomWithArgument => (aa.predicate, aa.arguments)
-      case a: Atom => (a.predicate, Seq())
-    }
-
-    // get pinned window atoms (that is matching predicates and arguments, except the last argument which is the Time-Variable)
-    val pinnedTimestampedAtoms = p.atoms filter (a => timestampedAtoms.contains((a.predicate, a.arguments.init)))
-    val atomAtT: Set[AtomWithArgument] = pinnedTimestampedAtoms collect {
-      case pinned: PinnedTimeAtom if pinned.time == core.lars.T => pinned
-    }
-
-    val atPredicates = atAtoms map (a => a.predicate)
-    // for @ atoms we want to keep the timestamp
-    val atomsAtTWithoutAt = atomAtT filterNot (a => atPredicates contains a.predicate)
-
-    val atomsToKeepPinned = pinnedTimestampedAtoms diff atomsAtTWithoutAt
-
-    // Unpin atoms which have a time-variable == T  and are not @-Atoms with time variables
-    val atomsToUnpin = (p.atoms diff atomsToKeepPinned).toSet[ExtendedAtom]
-
-    val semiPinnedRules = p.rules map (r => apply(r, atomsToUnpin))
-
-    AspProgram(semiPinnedRules.toList)
-  }
-
-
   def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
     val rulesWithoutNowCntPin = larsProgramEncoding.rules.
       map { r =>

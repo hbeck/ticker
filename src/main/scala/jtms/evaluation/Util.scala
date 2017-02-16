@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import core.lars._
-import engine.asp.LarsToPinnedProgram
+import engine.asp.{ PlainLarsToAspMapper}
 import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 
 import scala.concurrent.duration.Duration
@@ -76,7 +76,7 @@ object Util {
 
   def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTimeUnit): NormalProgram = {
 
-    val aspProgramWithVariables = LarsToPinnedProgram(tickSize)(groundLarsProgram)
+    val aspProgramWithVariables = PlainLarsToAspMapper(tickSize)(groundLarsProgram)
 
     val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
 
