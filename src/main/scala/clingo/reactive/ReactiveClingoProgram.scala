@@ -18,12 +18,12 @@ object ClingoSignal {
     case _ => ClingoSignal(atom.predicate, Seq())
   }
 
-  def convert(predicate: Predicate, arguments: Seq[Argument]): Seq[Argument] = arguments collect {
-    case v: Value => v
-    case v: Variable => TickParameter(deriveCaption(predicate, v))
+  def convert(predicate: Predicate, arguments: Seq[Argument]): Seq[Argument] = arguments.zipWithIndex.collect {
+    case (v: Value, _) => v
+    case (_: Variable, index) => TickParameter(deriveCaption(predicate, index))
   }
 
-  private def deriveCaption(predicate: Predicate, variable: Variable) = lowerCasedPredicate(predicate) + "_" + variable.name
+  private def deriveCaption(predicate: Predicate, index: Int) = lowerCasedPredicate(predicate) + "_" + index
 
   private def lowerCasedPredicate(predicate: Predicate) = predicate.caption.head.toLower + predicate.caption.tail
 }

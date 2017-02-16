@@ -72,15 +72,24 @@ class ReactiveClingoProgramSpecs extends FlatSpec {
 
   "The program a :- wˆ2 d b" should "be mapped correctly" in {
     val p = LarsProgram.from(
-      Atom("a") <= WindowAtom(SlidingTimeWindow(2),Diamond,Atom("b"))
+      Atom("a") <= WindowAtom(SlidingTimeWindow(2), Diamond, Atom("b"))
     )
     val mapper = PlainLarsToAspMapper()
 
-    val mappedProgram= mapper.apply(p)
+    val mappedProgram = mapper.apply(p)
 
     val clingoProgram = ReactiveClingoProgram.fromMapped(mappedProgram)
 
     assert(clingoProgram.signals.size == 1)
+  }
 
+  "Clingo Signals from Atoms with one different variable argument" should "be constructed by index position and be the same" in {
+    val a = Atom("a")
+    val v = Variable("v")
+    val w = Variable("w")
+    val signal_v = ClingoSignal.fromAtom(a(v))
+    val signal_w = ClingoSignal.fromAtom(a(w))
+
+    assert(signal_v == signal_w)
   }
 }
