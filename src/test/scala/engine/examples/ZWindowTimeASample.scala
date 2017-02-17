@@ -40,9 +40,11 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     * *output**** z
     * *output**** i  i
     */
+    //TODO obs hb: shouldn't make a difference in pinninger whether T or U is used (but is!)
   val program = LarsProgram.from(
-    AtAtom(TimeVariableWithOffset(U) + 1, z) <= W(2, At(U), a),
-    i <= W(1, Diamond, z)
+    AtAtom(TimeVariableWithOffset(U)+1, z) <= W(2, At(U), a), //@_{U+1}z :- w2 @_U a
+    //AtAtom(TimeVariableWithOffset(T,1), z) <= W(2, At(T), a), //TODO hb: must also work! (T vs U)
+    i <= W(1, Diamond, z) //i :- w1 D z
   )
 
   // TODO: these test cases fail with grounding

@@ -163,7 +163,7 @@ object LarsProgramInspection {
 
 case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
 
-  //ignore AtAtoms throughout
+  //ignore AtAtoms throughout TODO
 
   val ruleCores: Set[TRule] = rules collect { case r if r.head.isInstanceOf[Atom] => reduceToCore(r) } toSet
 

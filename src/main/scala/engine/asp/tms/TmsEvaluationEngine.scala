@@ -34,14 +34,14 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
   def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
     val pin = Pin(time)
 
-    // TODO: Bookkeeping should be done differently
+    // TODO: Book keeping should be done differently
     // TODO: cnt-Atoms are currently missing
     val pinnedSignals: Set[NormalFact] = signalAtoms map (s => AspFact[Atom](PinnedAtom(s, time)))
 
     // TODO: this bookkeeping should be done in trackAux
         signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
 
-    // TODO hb: seems crazy to always create the entire sequency from scratch instead of updating a data structure
+    // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
     //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
     val allHistoricalSignals: Seq[NormalRule] = signalStream.values flatMap (_.toSeq) toSeq

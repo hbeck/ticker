@@ -53,8 +53,8 @@ case class Pin(timePoint: TimePoint, timeVariableWithOffset: TimeVariableWithOff
 
     val groundedTimePoint = pinnedAtom.time match {
       case v@TimeVariableWithOffset(`timeVariable`, _) => v.ground(timePoint)
-      // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).)
-      case v: TimeVariableWithOffset => v
+      // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).) ...
+      case v: TimeVariableWithOffset => v  //... probably later, i.e., in the actual grounding. this is pinning.
       case t: TimePoint => t
     }
 
