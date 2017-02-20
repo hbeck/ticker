@@ -7,7 +7,7 @@ import core.lars._
 /**
   * Created by fm on 20/02/2017.
   */
-trait   LarsToAspMapper {
+trait LarsToAspMapper {
 
   def windowAtomEncoder(windowAtom: WindowAtom): WindowAtomEncoder = windowAtom match {
     case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w)

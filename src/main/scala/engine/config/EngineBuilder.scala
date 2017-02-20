@@ -31,20 +31,23 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 
   //TODO hb: assuming correct understanding: due to the new mapping, we should simply have a "LarsToAsp" mapping, since the result
   //is no longer "pinned" (in the sense that only some atoms get an additional time argument)
-  def configure() = AspEngineEvaluationConfiguration(PlainLarsToAspMapper(withTickSize)(larsProgram))
+  def configure() = AspEngineEvaluationConfiguration(larsProgram, withTickSize)
 
   def withTickSize(tickSize: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
 //TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
-case class AspEngineEvaluationConfiguration(program: LarsProgramEncoding) {
+case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
 
-  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(program))
+  private val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
+  private val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
 
-  def withReactive() = ReactiveClingoConfiguration(program)
+  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
+
+  def withReactive() = ReactiveClingoConfiguration(reactiveMapped)
 
   def withTms(): TmsConfiguration = {
-    TmsConfiguration(program)
+    TmsConfiguration(aspMapped)
   }
 
 }

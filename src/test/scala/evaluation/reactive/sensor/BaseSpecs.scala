@@ -20,7 +20,8 @@ class BaseSpecs extends FlatSpec with SensorScenario {
 
     val program = timeWindowProgram(windowLength)
 
-    val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
+    //    val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
+    val engine = BuildEngine.withProgram(program).configure().withReactive().start()
 
     defaultProgramRunner(windowLength, engine)
   }

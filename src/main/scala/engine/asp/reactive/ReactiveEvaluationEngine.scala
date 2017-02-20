@@ -46,7 +46,10 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
         //TODO add filtering for such that clingoModel contains only output stream
         val models: Set[Model] = model.map(_.map(ClingoEvaluation.convert))
 
-        Result(Some(models.head)) //pick first
+
+        Result(Some(models.head.collect {
+          case p: PinnedAtAtom if p.time == time => p.atom
+        })) //pick first
       }
       case None => NoResult
     }

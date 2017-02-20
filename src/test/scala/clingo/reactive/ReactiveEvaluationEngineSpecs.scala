@@ -2,7 +2,7 @@ package clingo.reactive
 
 import core.PinnedAtom
 import core.lars._
-import engine.asp.PlainLarsToAspMapper
+import engine.asp.{PlainLarsToAspMapper, PlainLarsToReactiveMapper}
 import engine.asp.reactive.ReactiveEvaluationEngine
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
@@ -46,10 +46,10 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
       assertModel(TimePoint(2))
       assertModel(TimePoint(3))
-//      assertModel(TimePoint(4))
+      assertModel(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
@@ -68,12 +68,13 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
       print(model)
       assert(model contains a)
-      assert(model contains PinnedAtom(a, TimePoint(1)))
       assert(model contains b)
-      assert(model contains PinnedAtom(b, TimePoint(1)))
+
+      engine.evaluate(TimePoint(3))
+      engine.evaluate(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
@@ -95,9 +96,11 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
 
       assert(model.get.get contains a)
+
+      engine.evaluate(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
@@ -119,10 +122,11 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
 
 
       assert(model.get.get contains a)
-      assert(model.get.get contains PinnedAtom(a, TimePoint(3)))
+
+      engine.evaluate(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
@@ -145,10 +149,13 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       val model = engine.evaluate(TimePoint(2))
 
       assert(model.get.get contains a)
-      assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
+
+
+      engine.evaluate(TimePoint(3))
+      engine.evaluate(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
@@ -170,16 +177,18 @@ class ReactiveEvaluationEngineSpecs extends FlatSpec with AtomTestFixture{
       val model = engine.evaluate(TimePoint(2))
 
       assert(model.get.get contains a)
-      assert(model.get.get contains PinnedAtom(a, TimePoint(2)))
+
+      engine.evaluate(TimePoint(3))
+      engine.evaluate(TimePoint(4))
     }
     finally {
-      engine.close
+      engine.close()
     }
 
   }
 
   private def buildEngine(p: LarsProgram) = {
-    val mapper = PlainLarsToAspMapper()
+    val mapper = PlainLarsToReactiveMapper()
 
     val mappedProgram = mapper(p)
 

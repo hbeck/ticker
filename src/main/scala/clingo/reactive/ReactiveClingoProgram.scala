@@ -84,7 +84,11 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
   val tickDimensions = Seq(timeDimension, countDimension)
   val tickParameters: Seq[TickParameter] = tickDimensions map (_.parameter)
 
-  val atExternalMappingRules = signals map (s => f"${s.atPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}) :- ${s.extAtPredicate}(${argumentList(s.arguments :+ TickParameter("T"))}).")
+  val atExternalMappingRules = signals map (s => atExternalRule(s))
+
+  private def atExternalRule(s: ClingoSignal) = {
+    f"${s.atPredicate}(${argumentList(s.arguments :+ TickParameter("t"))}) :- ${s.extAtPredicate}(${argumentList(s.arguments :+ TickParameter("t"))})."
+  }
 
   def externalKeyword(tickDimension: TickDimension): String = externalKeyword(tickDimension.predicate.toString, Seq(tickDimension.parameter))
 
@@ -100,9 +104,11 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |${externalKeyword(signal.cntPredicate, signal.arguments :+ countDimension.parameter)}
        |${externalKeyword(signal.cntPinPredicate, signal.arguments ++ tickDimensions.map(_.parameter))}
        |
+       |${atExternalRule(signal)}
+       |
      """.stripMargin
   }
-
+//  ${atExternalMappingRules.mkString(newLine)}
   private val newLine = System.lineSeparator()
   val program: ClingoExpression =
     f"""${signalPrograms.mkString(newLine)}
@@ -111,7 +117,6 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
 
        |${externalDimensions.mkString(newLine)}
        |
-       |${atExternalMappingRules.mkString(newLine)}
        |
        |${volatileRules.mkString(newLine)}
        |
