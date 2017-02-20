@@ -6,55 +6,24 @@ import core.lars._
 
 import scala.concurrent.duration._
 
+
+
 /**
   * Created by fm on 20/01/2017.
   */
-case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
+case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) extends LarsToAspMapper {
+
+  def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
+    Seq(
+      AspRule[Atom, Atom](a, Set(now.apply(T), PinnedAtom(a, T))),
+      AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T), a))
+    )
+  }
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
     case AtAtom(t, a) => PinnedAtom(a, t)
     case a: Atom => a
     case a: WindowAtom => this.encodedWindowAtom(a)
-  }
-
-  def encodeRule(rule: LarsRule): LarsRuleEncoding = {
-    val encodedRule = this.encode(rule)
-
-    val windowAtomEncoders = (rule.pos ++ rule.neg) collect {
-      case wa: WindowAtom => windowAtomEncoder(wa)
-    }
-
-    LarsRuleEncoding(rule, Set(encodedRule), windowAtomEncoders)
-  }
-
-  def apply(program: LarsProgram): LarsProgramEncoding = {
-
-    val nowAndAtNowIdentityRules = program.atoms.
-      flatMap { a =>
-        Seq(
-          AspRule[Atom, Atom](a, Set(now.apply(T), PinnedAtom(a, T))),
-          AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T), a))
-        )
-      }.toSeq
-
-    val rulesEncodings = program.rules map encodeRule
-
-    val backgroundData = Set[Atom]() //TODO
-
-    LarsProgramEncoding(rulesEncodings, nowAndAtNowIdentityRules, backgroundData, engineTimeUnit)
-  }
-
-  def encode(rule: LarsRule): NormalRule = {
-    AspRule(
-      encodingAtom(rule.head),
-      rule.pos map this.encodingAtom,
-      rule.neg map this.encodingAtom
-    )
-  }
-
-  def windowAtomEncoder(windowAtom: WindowAtom): WindowAtomEncoder = windowAtom match {
-    case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w)
-    case w@WindowAtom(window: SlidingTupleWindow, _, _) => slidingTuple(window, w)
   }
 
   // \window^1 @_T a(X)
@@ -91,67 +60,9 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) {
     }
   }
 
-  private def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / engineTimeUnit.toMillis, engineTimeUnit.unit).length
+  def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / engineTimeUnit.toMillis, engineTimeUnit.unit).length
 
-  def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
-
-  private def predicateFor(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) = {
-    val window = windowFunction match {
-      case SlidingTimeWindow(size) => f"w_te_${timePoints(size.unit, size.length)}"
-      case SlidingTupleWindow(size) => f"w_tu_$size"
-      case FluentWindow => f"w_fl"
-    }
-    val operator = temporalModality match {
-      case Diamond => "d"
-      case Box => "b"
-      case a: At => f"at_${a.time}"
-    }
-    val atomName = atom match {
-      case p: PinnedAtom => p.atom.predicate
-      case _ => atom.predicate
-    }
-    Predicate(f"${window}_${operator}_${atomName.toString}")
-  }
 }
-
-case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundData: Set[Atom], tickUnit: EngineTimeUnit) extends NormalProgram with LarsBasedProgram {
-
-  val baseRules = (larsRuleEncodings flatMap (_.ruleEncodings)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
-
-  val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
-
-  val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)
-
-  // full representation of Lars-Program as asp
-  override val rules = baseRules ++ oneShotWindowRules
-
-  override val larsRules = larsRuleEncodings map (_.larsRule)
-
-  val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
-    flatMap(_.windowAtomEncoders).
-    collect {
-      case t: TimeWindowEncoder => t.length
-    } match {
-    case Nil => 0
-    case x => x.max
-  }
-}
-
-case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
-
-//to derive window atom encoding
-trait WindowAtomEncoder {
-  val length: Long
-
-  val allWindowRules: Seq[NormalRule] //one-shot/reactive clingo solving: e.g. for window^3 diamond all 4 rules
-
-  def incrementalRulesAt(tick: IntValue): IncrementalRules
-}
-
-trait TimeWindowEncoder extends WindowAtomEncoder
-
-trait TupleWindowEncoder extends WindowAtomEncoder
-
 
 //TODO hb review naming
 /*
@@ -165,8 +76,6 @@ trait TupleWindowEncoder extends WindowAtomEncoder
    w <- a(t-1)      <-- these rules are contained in allWindowRules, since they have a window atom representation in their head
    w <- a(0)
  */
-case class LarsRuleEncoding(larsRule: LarsRule, ruleEncodings: Set[NormalRule], windowAtomEncoders: Set[WindowAtomEncoder]) {
-}
 
 case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = T) extends TimeWindowEncoder {
   val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
@@ -314,7 +223,6 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
 
   override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
 
-
   val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(C)), Set[Atom](PinnedAtom(atom, T)))
 
   override def incrementalRulesAt(tick: IntValue): IncrementalRules = {
@@ -326,7 +234,6 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     null
   }
 }
-
 
 case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder {
   val D = TimeVariableWithOffset("D")
