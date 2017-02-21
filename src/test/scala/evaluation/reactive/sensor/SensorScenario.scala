@@ -2,6 +2,7 @@ package evaluation.reactive.sensor
 
 import core._
 import core.lars._
+import engine.StreamEntry
 
 import scala.util.Random
 
@@ -124,15 +125,15 @@ trait SensorScenario {
     LarsProgram(baseRules ++ medRules ++ yellowRules)
   }
 
-  def timeWindowProgram(windowSize: TimeWindowSize, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram(windowSize)((temp, atom) => WindowAtom(SlidingTimeWindow(windowSize), temp, atom), useMed, useYellow)
+  def timeWindowProgram(useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows)(windowSize: TimeWindowSize): LarsProgram = buildProgram(windowSize)((temp, atom) => WindowAtom(SlidingTimeWindow(windowSize), temp, atom), useMed, useYellow)
 
-  def tupleWindowProgram(windowSize: TupleCount, useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows): LarsProgram = buildProgram(TimeWindowSize(windowSize))((temp, atom) => WindowAtom(SlidingTupleWindow(windowSize), temp, atom), useMed, useYellow)
+  def tupleWindowProgram(useMed: MedRules = UseBothMeds, useYellow: YellowRules = UseBothYellows)(windowSize: TupleCount): LarsProgram = buildProgram(TimeWindowSize(windowSize))((temp, atom) => WindowAtom(SlidingTupleWindow(windowSize), temp, atom), useMed, useYellow)
 
 
-  def continuousSignalStream(random: Random)(length: Int): Seq[(TimePoint, Atom)] = (0 to length).
+  def continuousSignalStream(random: Random)(length: Int): Seq[StreamEntry] = (0 to length).
     map((_, IntValue(random.nextInt(100)))).
     map {
-      case (point, value) => (TimePoint(point), s(value))
+      case (point, value) => StreamEntry(TimePoint(point), Set(s(value)))
     }
 
   //    toMap

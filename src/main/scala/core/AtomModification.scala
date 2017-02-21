@@ -36,6 +36,8 @@ case class AtomModification(atom: Atom) {
 
   def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
 
+  def appendTimeAsNormalArgument(time: Time): AtomWithArgument = this.apply(time.asInstanceOf[Argument])
+
   def asTupleReference(position: Long) = {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
