@@ -11,9 +11,9 @@ import scala.concurrent.{Await, Future}
 
 case class FutureStreamingAspInterpreter(private val aspEvaluation: OneShotEvaluation, waitingAtMost: Duration) extends OneShotEvaluation {
 
-  def apply(time: TimePoint, dataStream: SignalStream): Result = {
+  def apply(time: TimePoint, count: Long, dataStream: SignalStream): Result = {
     val future = Future {
-      aspEvaluation(time, dataStream)
+      aspEvaluation(time, count, dataStream)
     }
 
     FutureResult(future, waitingAtMost)

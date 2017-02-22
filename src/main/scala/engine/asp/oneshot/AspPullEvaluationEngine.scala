@@ -18,7 +18,7 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
 
   def prepare(time: TimePoint) = {
 
-    val result = aspEvaluation(time, atomTracker.allTimePoints(time).toSet)
+    val result = aspEvaluation(time, atomTracker.tupleCount, atomTracker.allTimePoints(time).toSet)
 
     cachedResults.put(time, result)
   }

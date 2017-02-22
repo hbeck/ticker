@@ -60,13 +60,15 @@ case class AtomTracking[TAtom <: TrackedAtom](maxTimeWindowSizeInTicks: Long, ma
 
   def discardOutdatedAtoms(time: TimePoint): Seq[TAtom] = {
 
-    val atomsToRemove = signalStream filterKeys (t => t.value < time.value - maxTimeWindowSizeInTicks)
+    // TODO: currently we keep more atoms than needed (tuple-bases window!)
+    val atomsToRemove = signalStream.filterKeys(t => t.value < time.value - maxTimeWindowSizeInTicks).
+      filter(_._2.forall(_.position < tupleCount - maxTupleWindowSize))
+
     signalStream = signalStream -- atomsToRemove.keySet
 
-    // TODO: explicit expire also for tuple-positions?
+
     atomsToRemove.
       flatMap(_._2).
-      filter(_.position < tupleCount - maxTupleWindowSize).
       toSeq
   }
 

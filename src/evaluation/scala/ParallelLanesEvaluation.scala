@@ -1,3 +1,4 @@
+import core.Atom
 import core.lars._
 import engine.StreamEntry
 import evaluation._
@@ -72,7 +73,7 @@ object ParallelLanesEvaluation {
 
     val evaluator = PrepareEvaluator.fromArguments(args, instance, program)
 
-    val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet.subsets().toList
+    val obstacles = pl.generatedNodes.map(pl.obstacle(_)).toSet[Atom].subsets().toList
     val inputs: Seq[StreamEntry] = obstacles zip (Stream from 1) map {
       case (atoms, timePoint) => StreamEntry(TimePoint(timePoint), atoms)
     }

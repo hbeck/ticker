@@ -21,7 +21,7 @@ object EvaluationTypes extends Enumeration {
 
 object EvaluationModifier extends Enumeration {
   type EvaluationModifier = Value
-  val Greedy, Doyle, Learn, Push, Pull = Value
+  val Greedy, Doyle, Learn, Push, Pull, Reactive = Value
 }
 
 

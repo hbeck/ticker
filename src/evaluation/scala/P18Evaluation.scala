@@ -23,16 +23,16 @@ object P18Evaluation extends P18Program {
 
   def timings(args: Array[String]): Unit = {
     // evaluate everything one time as pre-pre-warmup
-    evaluateTimings(Seq("tms", "greedy") toArray)
+    evaluateTimings(Seq("Tms", "Greedy") toArray)
 
     val dump = DumpData("Configuration", "Programs")
     val dumpToCsv = dump.printResults("p18-output.csv") _
 
     if (args.length == 0) {
       val allOptions = Seq(
-        Seq("tms", "greedy"),
-        Seq("tms", "doyle"),
-        Seq("tms", "learn")
+        Seq("Tms", "Greedy"),
+        Seq("Tms", "Doyle"),
+        Seq("Tms", "Learn")
         //        Seq("clingo", "push")
       )
 
@@ -85,9 +85,9 @@ object P18Evaluation extends P18Program {
 
     if (args.length == 0) {
       val allOptions = Seq(
-        Seq("tms", "greedy"),
+        Seq("Tms", "Greedy"),
         //        Seq("tms", "doyle"),
-        Seq("tms", "learn")
+        Seq("Tms", "Learn")
         //        Seq("clingo", "push")
       )
 

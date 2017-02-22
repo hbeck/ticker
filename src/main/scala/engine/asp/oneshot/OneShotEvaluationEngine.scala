@@ -14,18 +14,17 @@ import engine.{Result, _}
 trait OneShotEvaluation {
   val program: ClingoProgramWithLars
 
-  def apply(timePoint: TimePoint, dataStream: SignalStream): Result
+  def apply(timePoint: TimePoint, count: Long, dataStream: SignalStream): Result
 }
 
 case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
   val convertToPinned = PinnedModelToLarsModel(program)
 
-  def apply(time: TimePoint, dataStream: SignalStream): Result = {
+  def apply(time: TimePoint, count: Long, dataStream: SignalStream): Result = {
 
     val nowFact = AspFact(now(time))
-    // TODO: imperformant
-    val cntFact = AspFact(cnt(IntValue(dataStream.map(_.position).max.toInt)))
+    val cntFact = AspFact(cnt(IntValue(count.toInt)))
 
 
     val signals = dataStream flatMap { s =>
@@ -33,7 +32,7 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
         AspFact[AtomWithArgument](PinnedAtom(s.atom, s.time)),
         AspFact[AtomWithArgument](PinnedAtom.asCount(s.atom, Value(s.position.toInt))),
         AspFact[AtomWithArgument](PinnedAtom(s.atom, s.time, Value(s.position.toInt)))
-        )
+      )
     }
 
 

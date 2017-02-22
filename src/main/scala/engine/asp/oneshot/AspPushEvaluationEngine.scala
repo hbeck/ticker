@@ -15,7 +15,7 @@ case class AspPushEvaluationEngine(val aspEvaluation: OneShotEvaluation) extends
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation(time, atomTracker.allTimePoints(time).toSet)
+    val result = aspEvaluation(time, atomTracker.tupleCount, atomTracker.allTimePoints(time).toSet)
 
     cachedResults.put(time, result)
     result

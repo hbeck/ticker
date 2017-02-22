@@ -28,23 +28,23 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
   override def encode(rule: LarsRule): NormalRule = {
     AspRule(
       encodeHeadAtom(rule.head),
-      (rule.pos map this.encodingAtom) + now(t),
+      (rule.pos map this.encodingAtom) + now(t) + cnt(c),
       rule.neg map this.encodingAtom
     )
   }
 
   def encodeHeadAtom(headAtom: HeadAtom): Atom = headAtom match {
-//    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
-        case AtAtom(_T, a) => PinnedAtom(a,_T)
-//    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
+    //    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
+    case AtAtom(_T, a) => PinnedAtom(a, _T)
+    //    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
     case a: Atom => PinnedAtom(a, t)
   }
 
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-//    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
-//    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
-    case AtAtom(_T, a) => PinnedAtom(a,_T)
+    //    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
+    //    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
+    case AtAtom(_T, a) => PinnedAtom(a, _T)
     case a: WindowAtom => this.encodedWindowAtom(a)
     case a: Atom => PinnedAtom(a, t)
   }

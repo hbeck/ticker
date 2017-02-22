@@ -5,7 +5,7 @@ import core.asp.{AspFact, NormalFact, NormalRule}
 import core.lars.{GroundRule, LarsProgramInspection, TimePoint}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine.{EvaluationEngine, NoResult, Result, UnknownResult}
+import engine._
 
 /**
   * Created by FM on 18.05.16.
@@ -25,21 +25,25 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
   var tuplePositions: List[Atom] = List()
   var signalStream: Map[TimePoint, Set[NormalRule]] = Map()
 
+  val tracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     trackAuxiliaryAtoms(time, atoms)
-    cachedResults(time) = prepare(time, atoms.toSet)
+    cachedResults(time) = prepare(time, atoms)
     discardOutdatedAuxiliaryAtoms(time)
   }
 
-  def prepare(time: TimePoint, signalAtoms: Set[Atom]): Result = {
+  def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
     val pin = Pin(time)
 
+    val tracked = tracker.trackAtoms(time, signalAtoms)
+    val pinnedSignals = tracked.flatMap(t => Seq(t.timePinned, t.countPinned)).map(AspFact[Atom](_))
     // TODO: Book keeping should be done differently
     // TODO: cnt-Atoms are currently missing
-    val pinnedSignals: Set[NormalFact] = signalAtoms map (s => AspFact[Atom](PinnedAtom(s, time)))
+    //    val pinnedSignals: Set[NormalFact] = signalAtoms map (s => AspFact[Atom](PinnedAtom(s, time))).toSet
 
-    // TODO: this bookkeeping should be done in trackAux
-        signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
+    //    // TODO: this bookkeeping should be done in trackAux
+    //    signalStream = signalStream updated(time, pinnedSignals ++ signalStream.getOrElse(time, Set()))
 
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
@@ -61,7 +65,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     // separating the calls ensures maximum on support for rules
     // facts first
     add(nowAtom)
-    add(pinnedSignals.toSeq)
+    add(pinnedSignals)
     // then rules
     add(grounded)
 
@@ -86,7 +90,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
         if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
           return UnknownResult
         } else {
-          prepare(time, Set()).get
+          prepare(time, Seq()).get
         }
       }
     }
