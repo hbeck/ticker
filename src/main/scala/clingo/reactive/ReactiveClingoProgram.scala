@@ -1,6 +1,7 @@
 package clingo.reactive
 
 import clingo.{ClingoAtom, ClingoConversion, ClingoExpression}
+import core.Argument.Offset
 import core._
 import core.asp.NormalRule
 import engine.asp.LarsProgramEncoding
@@ -55,6 +56,10 @@ object TickParameter {
 
 case class TickParameter private[clingo](name: String) extends Variable {
   override def toString: ClingoExpression = name
+
+  override def -(offset: Offset): Argument = this
+
+  override def +(offset: Offset): Argument = this
 }
 
 case class TickDimension(predicate: Predicate, parameter: TickParameter) {
@@ -108,7 +113,7 @@ case class ReactiveClingoProgram(volatileRules: Set[ClingoExpression], signals: 
        |
      """.stripMargin
   }
-//  ${atExternalMappingRules.mkString(newLine)}
+  //  ${atExternalMappingRules.mkString(newLine)}
   private val newLine = System.lineSeparator()
   val program: ClingoExpression =
     f"""${signalPrograms.mkString(newLine)}

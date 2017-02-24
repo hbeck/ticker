@@ -14,6 +14,7 @@ object P18Evaluation extends P18Program {
   val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
   val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
   val all_025 = HashMap(x_1 -> 0.25, x_2 -> 0.25, x_3 -> 0.25, x_4 -> 0.25, y_1 -> 0.25, y_2 -> 0.25)
+  val all_1 = HashMap(x_1 -> 1.0, x_2 -> 1.0, x_3 -> 1.0, x_4 -> 1.0, y_1 -> 1.0, y_2 -> 1.0)
 
 
   def main(args: Array[String]): Unit = {
@@ -110,7 +111,8 @@ object P18Evaluation extends P18Program {
 
     val evaluationOptions = HashMap(
       //      ("P4: 0.01", all_001) -> Seq(P_4),
-      ("P4: 0.25", all_025) -> Seq(P_4)
+//      ("P4: 0.25", all_025) -> Seq(P_4)
+      ("P4: 1", all_1) -> Seq(P_4)
     )
 
     val evaluationCombination = evaluationOptions map { case (instance, programs) =>

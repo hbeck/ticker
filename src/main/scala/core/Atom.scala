@@ -169,8 +169,8 @@ trait PinnedTimeAtom extends PinnedAtom {
     case v: TimeVariableWithOffset => {
       val timeAssign = assignment.apply(time)
       timeAssign.get match {
-        case i: IntValue => v.ground(TimePoint(i.int))
-        case t: TimePoint => v.ground(t)
+        case i: IntValue => v.calculate(TimePoint(i.int))
+        case t: TimePoint => v.calculate(t)
         case _ => v
       }
     }
@@ -208,9 +208,14 @@ object PinnedAtom {
     case v: TimeVariableWithOffset => VariablePinnedAtAtom(atom, v)
   }
 
-  def apply(atom: Atom, time: Time, tick: Argument): PinnedAtom = (time, tick) match {
+  def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = (time, tick) match {
     case (t: TimePoint, tv: Value) => ConcreteAtCntAtom(atom, t, tv)
     case _ => VariableTimeCntAtom(atom, time, tick)
+  }
+
+  def asCount(atom: Atom, count: Argument): PinnedCntAtom = count match {
+    case v: Variable => asCount(atom, v)
+    case v: Value => asCount(atom, v)
   }
 
   def asCount(atom: Atom, count: Variable): PinnedCntAtom = VariableCountAtom(atom, count)

@@ -48,11 +48,3 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     }
   }
 }
-
-object OneShotEvaluationEngine {
-
-  def pinnedInput(time: TimePoint, dataStream: Stream) = pin(dataStream) + Pin(time)(now)
-
-  def pin(dataStream: Stream): PinnedStream = dataStream flatMap (x => x.atoms map Pin(x.time).apply)
-
-}

@@ -1,27 +1,25 @@
 package core.lars
 
-import core.{Argument, Value, Variable}
+import core.Argument.Offset
+import core.{Argument, ArgumentWithOffset, Value, Variable}
 
 /**
   * Created by FM on 05.04.16.
   */
-sealed trait Time extends Argument {
-  def -(duration: Duration): Time
-
-  def +(duration: Duration): Time
-}
+sealed trait Time extends Argument
 
 object Time {
   implicit def convertToTimePoint(timePoint: Long): Time = TimePoint(timePoint)
 
   implicit def convertToTimePoint(timePoint: Int): Time = TimePoint(timePoint)
+
   implicit def convertToTimeVariable(variable: Variable): Time = TimeVariableWithOffset(variable)
 }
 
 case class TimePoint(value: Long) extends Time with Value {
-  def -(duration: Duration) = TimePoint(value - duration)
+  def -(duration: Offset) = TimePoint(value - duration)
 
-  def +(duration: Duration) = TimePoint(value + duration)
+  def +(duration: Offset) = TimePoint(value + duration)
 
   override def toString = {
     value.toString
@@ -36,26 +34,17 @@ object TimePoint {
   implicit def convertToTimePoint(timePoint: Int): TimePoint = TimePoint(timePoint)
 }
 
-case class TimeVariableWithOffset(variable: TimeVariable, offset: Duration = 0) extends Time with Variable {
-  override val name: String = variable.name
+case class TimeVariableWithOffset(variable: TimeVariable, offset: Offset = 0) extends Time with Variable with ArgumentWithOffset {
 
-  def ground(timePoint: TimePoint) = TimePoint(timePoint.value + offset)
-
-  override def +(duration: Long) = TimeVariableWithOffset(variable, duration)
-
-  override def -(duration: Long) = TimeVariableWithOffset(variable, -duration)
-
-  override def toString: String = {
-    val name = variable.name
-    if (offset < 0)
-      return f"$name - ${math.abs(offset)}"
-    if (offset > 0)
-      return f"$name + ${math.abs(offset)}"
-
-    name
+  override def calculate(baseValue: Value): TimePoint = baseValue match {
+    case TimePoint(t) => TimePoint(t + offset)
   }
+
+  override def +(duration: Offset) = TimeVariableWithOffset(variable, duration)
+
+  override def -(duration: Offset) = TimeVariableWithOffset(variable, -duration)
 }
 
-object TimeVariableWithOffset{
+object TimeVariableWithOffset {
   implicit def convertToTimeVariable(variable: Variable): TimeVariableWithOffset = TimeVariableWithOffset(variable)
 }

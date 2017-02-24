@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import core.lars._
-import engine.asp.{ PlainLarsToAspMapper}
+import engine.asp.{PlainLarsToAspMapper}
 import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
 
 import scala.concurrent.duration.Duration
@@ -63,7 +63,8 @@ object Util {
   }
 
   def asAspRule(larsRule: LarsRule): NormalRule = {
-    val head = larsRule.head.atom //we are not using @ here
+    val head = larsRule.head.atom
+    //we are not using @ here
     val pos = larsRule.pos map (_.asInstanceOf[Atom])
     val neg = larsRule.neg map (_.asInstanceOf[Atom])
     UserDefinedAspRule(head, pos, neg)
@@ -82,7 +83,7 @@ object Util {
 
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
-    val pin = Pin(time)
+    val pin = Pin(Assignment(Map(T -> TimePoint(time))))
     val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground
 
     AspProgram((groundRules ++ pinnedRules).toList)

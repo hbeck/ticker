@@ -8,21 +8,21 @@ import core.{Atom, Fact, RelationAtom}
 trait LarsBasedProgram {
   val larsRules: Seq[LarsRule]
 
-  lazy val windowAtoms: Seq[WindowAtom] = larsRules flatMap {
+  lazy val windowAtoms: Set[WindowAtom] = larsRules flatMap {
     _.body collect { case w: WindowAtom => w }
-  }
+  } toSet
 
-  lazy val atAtoms: Seq[HeadAtom] = larsRules flatMap {
+  lazy val atAtoms: Set[HeadAtom] = larsRules flatMap {
     _.atoms collect {
       case a: AtAtom => a
       case WindowAtom(_, At(_), a) => a
     }
-  }
+  } toSet
 
-  lazy val slidingTimeWindowsAtoms: Seq[SlidingTimeWindow] = windowAtoms collect {
+  lazy val slidingTimeWindowsAtoms: Set[SlidingTimeWindow] = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
   }
-  lazy val slidingTupleWindowsAtoms: Seq[SlidingTupleWindow] = windowAtoms collect {
+  lazy val slidingTupleWindowsAtoms: Set[SlidingTupleWindow] = windowAtoms collect {
     case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
   }
 

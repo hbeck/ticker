@@ -7,7 +7,6 @@ import core.lars._
 import scala.concurrent.duration._
 
 
-
 /**
   * Created by fm on 20/01/2017.
   */
@@ -152,13 +151,13 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 }
 
 case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
-  val C = TimeVariableWithOffset("C")
+  val C = Variable("C")
   //TODO hb review why time variable?
   val D = Variable("D") //TODO ... and then why this not?
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
 
-  val allWindowRules = 0 until length.toInt map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, D), Sum(C, IntValue(-i), D))))
+  val allWindowRules = 0 until length.toInt map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, C - i))))
 
 
   override def incrementalRulesAt(i: IntValue): IncrementalRules = {
@@ -172,18 +171,18 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 
 case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
-  val C: Variable = TimeVariableWithOffset("C")
-  val D: Variable = TimeVariableWithOffset("D")
+  val C: Variable = Variable("C")
+  val D: Variable = Variable("D")
 
-  val D1: Variable = TimeVariableWithOffset("D1")
-  val D2: Variable = TimeVariableWithOffset("D2")
+  val D1: Variable = Variable("D1")
+  val D2: Variable = Variable("D2")
 
-  val T1: Variable = TimeVariableWithOffset("T1")
-  val T2: Variable = TimeVariableWithOffset("T2")
+  val T1: Variable = Variable("T1")
+  val T2: Variable = Variable("T2")
 
-  val C_diff: Variable = TimeVariableWithOffset("C_diff")
-  val T_plus1: Variable = TimeVariableWithOffset("T_plus1")
-  val D_plus1: Variable = TimeVariableWithOffset("D_plus1")
+  val C_diff: Variable = Variable("C_diff")
+  val T_plus1: Variable = Variable("T_plus1")
+  val D_plus1: Variable = Variable("D_plus1")
 
 
   val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
@@ -194,11 +193,10 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
       spoilerAtom,
       Set[Atom](
         atom,
-        cnt(C),
-        Sum(C, IntValue(-(i)), D)
+        cnt(C)
       ),
       Set[Atom](
-        PinnedAtom.asCount(atom, D)
+        PinnedAtom.asCount(atom, C - i)
       )
     )
   }
@@ -210,12 +208,9 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
       cnt(C),
       PinnedAtom(atom, T1, D1),
       PinnedAtom(atom, T2, D2),
-      Sum(C, IntValue(-length.toInt), C_diff),
-      Geq(D1, C_diff),
-      Sum(D1, IntValue(1), D_plus1),
-      Eq(D_plus1, D2),
-      Sum(T1, IntValue(1), T_plus1),
-      Gt(T2, T_plus1)
+      Geq(D1, C - length.toInt),
+      Eq(D1 + 1, D2),
+      Gt(T2, T1 + 1)
     )
   )
 
@@ -236,8 +231,8 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
 }
 
 case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder {
-  val D = TimeVariableWithOffset("D")
-  val C = TimeVariableWithOffset("C")
+  val D = Variable("D")
+  val C = Variable("C")
 
   val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, T), Set[Atom](now(C), PinnedAtom(atom, timeVariable)))
 

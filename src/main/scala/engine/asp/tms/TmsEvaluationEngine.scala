@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, NormalFact, NormalRule}
-import core.lars.{GroundRule, LarsProgramInspection, TimePoint}
+import core.lars.{Assignment, GroundRule, LarsProgramInspection, TimePoint}
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
 import engine._
@@ -15,11 +15,11 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
   val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
   val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
 
-  val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
+  val (groundRules, nonGroundRules) = incrementalProgram.rules.toSet.partition(_.isGround)
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
-  tmsPolicy.initialize(groundRules)
+  tmsPolicy.initialize(groundRules.toSeq)
 
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
@@ -33,11 +33,13 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     discardOutdatedAuxiliaryAtoms(time)
   }
 
+  private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
-    val pin = Pin(time)
+
 
     val tracked = tracker.trackAtoms(time, signalAtoms)
-    val pinnedSignals = tracked.flatMap(t => Seq(t.timePinned, t.countPinned)).map(AspFact[Atom](_))
+    val pinnedSignals = tracked.flatMap(asFact)
     // TODO: Book keeping should be done differently
     // TODO: cnt-Atoms are currently missing
     //    val pinnedSignals: Set[NormalFact] = signalAtoms map (s => AspFact[Atom](PinnedAtom(s, time))).toSet
@@ -48,23 +50,27 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
     //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
-    val allHistoricalSignals: Seq[NormalRule] = signalStream.values flatMap (_.toSeq) toSeq
+    val allHistoricalSignals: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFact).toSet
+    val pin = Pin(Assignment(Map(core.lars.T -> time, core.lars.C -> IntValue(tracker.tupleCount.toInt))))
 
     // performs simple pinning-calculations (eg. T + 1)
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
     val grounder = new GroundRule[NormalRule, Atom, Atom]()
-    val inspectWithAllSignals = LarsProgramInspection.from(groundTimeVariableCalculations ++ allHistoricalSignals)
+    val inspectWithAllSignals = LarsProgramInspection.from((groundTimeVariableCalculations ++ allHistoricalSignals).toSeq)
     // TODO: grounding fails here
-    val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals)
+    val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals) toSeq
 
-    val nowAtom = pin.ground(Set(pin(engine.asp.now))) toSeq
+    val nowAtom = AspFact[Atom](now(time))
+    val cntAtom = AspFact[Atom](cnt(tracker.tupleCount))
+
+    val tickAtoms = Seq(nowAtom, cntAtom)
 
     val add = tmsPolicy.add(time) _
 
     // separating the calls ensures maximum on support for rules
     // facts first
-    add(nowAtom)
+    add(tickAtoms)
     add(pinnedSignals)
     // then rules
     add(grounded)
@@ -77,7 +83,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     remove(grounded)
     // then facts
     // we never remove extensional atoms explicitly (the policy might do it)
-    remove(nowAtom)
+    remove(tickAtoms)
 
     model
   }

@@ -19,18 +19,19 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   lazy val isGround: Boolean = atoms forall (_.isGround)
 
-  def assign(assignment: Assignment): Rule[THead,TBody] = {
+  def assign(assignment: Assignment): Rule[THead, TBody] = {
     val assignedHead: THead = head.assign(assignment).asInstanceOf[THead]
     val assignedPosBody = pos map (x => x.assign(assignment).asInstanceOf[TBody])
     val assignedNegBody = neg map (x => x.assign(assignment).asInstanceOf[TBody])
-    from(assignedHead,assignedPosBody,assignedNegBody)
+    from(assignedHead, assignedPosBody, assignedNegBody)
   }
 
   lazy val variables: Set[Variable] = {
     atoms flatMap {
       case a: AtomWithArgument => a.arguments collect {
-        case t:TimeVariableWithOffset=>t.variable
-        case v:Variable => v
+        case t: TimeVariableWithOffset => t.variable
+        case vv: VariableWithOffset => vv.variable
+        case v: Variable => v
       }
       case _ => Set()
     }
@@ -49,14 +50,15 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
   override def equals(other: Any): Boolean = other match {
     case r: Rule[THead, TBody] => this == r
     case _ => {
-      println("this:  "+this.getClass)
-      println("other: "+other.getClass)
+      println("this:  " + this.getClass)
+      println("other: " + other.getClass)
       false
     }
   }
 
   override def toString(): String = {
     val sb = new StringBuilder
+
     def result: String = sb.toString
 
     sb.append(head)
@@ -80,7 +82,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
       sb.append(", not ")
     }
 
-  //neg
+    //neg
     if (neg.size == 1) {
       sb.append(neg.head)
     } else if (neg.size > 1) {

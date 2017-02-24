@@ -73,6 +73,7 @@ object Grounder {
   def isRelationAtom(x: ExtendedAtom): Boolean = x match {
     case a: Atom => a.predicate.caption match {
       case "neq" => true
+      case "eq" => true
       case "leq" => true
       case "lt" => true
       case "geq" => true

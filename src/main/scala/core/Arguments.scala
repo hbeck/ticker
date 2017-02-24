@@ -1,14 +1,21 @@
 package core
 
-import core.Variable.Offset
+import core.Argument.Offset
 import core.lars.TimePoint
 
 /**
   * Created by FM on 15.06.16.
   */
-trait Argument
+trait Argument {
+  def -(offset: Offset): Argument
+
+  def +(offset: Offset): Argument
+}
+
 
 object Argument {
+  type Offset = Int
+
   implicit def convertToArgument(nameOrValue: String): Argument = {
     if (nameOrValue.head.isUpper)
       StringVariable(nameOrValue)
@@ -20,29 +27,51 @@ object Argument {
 }
 
 trait Variable extends Argument {
-
   val name: String
+}
 
-//  val offset: Offset
-//
-//
-//  def -(offset: Offset): Variable
-//
-//  def +(offset: Offset): Variable
+trait ArgumentWithOffset extends Argument {
+  val variable: Variable
+  val offset: Offset
 
+  val name: String = variable.name
+
+  override def toString = offset match {
+    case o if o < 0 => f"$name - ${math.abs(offset)}"
+    case o if o > 0 => f"$name + ${math.abs(offset)}"
+    case o if o == 0 => name
+  }
+
+  def calculate(baseValue: Value): Value
 }
 
 //TODO hb review why offset?
-case class StringVariable(name: String, offset: Offset = 0) extends Variable {
-  override def toString = name
+case class StringVariable(name: String) extends Variable {
+  override def toString: String = name
 
-//  override def -(offset: Offset): Variable = StringVariable(name, this.offset - offset)
-//
-//  override def +(offset: Offset): Variable = StringVariable(name, this.offset + offset)
+  override def -(offset: Offset): Argument = toVariableWithOffset(-offset)
+
+  override def +(offset: Offset): Argument = toVariableWithOffset(offset)
+
+  private def toVariableWithOffset(initialOffset: Offset) = if (initialOffset == 0) {
+    this
+  } else {
+    VariableWithOffset(this, initialOffset)
+  }
+}
+
+case class VariableWithOffset(variable: Variable, offset: Offset = 0) extends Variable with ArgumentWithOffset {
+
+  override def -(offset: Offset): Argument = VariableWithOffset(variable, this.offset - offset)
+
+  override def +(offset: Offset): Argument = VariableWithOffset(variable, this.offset + offset)
+
+  def calculate(baseValue: Value): Value = baseValue match {
+    case IntValue(v) => IntValue(v + offset)
+  }
 }
 
 object Variable {
-  type Offset = Int
 
   def apply(name: String): Variable = StringVariable(name)
 
@@ -58,10 +87,19 @@ trait Value extends Argument
 
 case class StringValue(value: String) extends Value {
   override def toString = value
+
+  override def -(offset: Offset): Argument = this
+
+  override def +(offset: Offset): Argument = this
+
 }
 
 case class IntValue(int: Int) extends Value {
   override def toString = "" + int
+
+  override def -(offset: Offset): Argument = IntValue(int - offset)
+
+  override def +(offset: Offset): Argument = IntValue(int + offset)
 }
 
 object IntValue {

@@ -1,6 +1,7 @@
 package engine.evaluation
 
 import core.asp._
+import core.lars.{Assignment, TimePoint}
 import core.{AtomWithArgument, GroundAtom, PinnedAtom}
 import engine.asp.tms.Pin
 import fixtures.TimeTestFixtures
@@ -11,6 +12,8 @@ import org.scalatest.Matchers._
   * Created by FM on 16.05.16.
   */
 class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
+
+  def Pin(time: TimePoint): Pin = engine.asp.tms.Pin(Assignment(Map(T -> time)))
 
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
     val r: AspRule[AtomWithArgument] = AspRule(a(T), Set(b(T + 1)))

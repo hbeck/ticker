@@ -43,6 +43,7 @@ trait TrackedAtom {
 
   lazy val timePinned: PinnedAtAtom = PinnedAtom(atom, time)
   lazy val countPinned: PinnedCntAtom = PinnedAtom.asCount(atom, IntValue(position.toInt))
+  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom(atom, time, IntValue(position.toInt))
 }
 
 case class DefaultTrackedAtom(atom: GroundAtom, time: TimePoint, position: Long) extends TrackedAtom

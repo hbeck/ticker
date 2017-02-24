@@ -4,13 +4,15 @@ import core.{Model, PinnedAtom}
 import core.lars.{LarsProgram, TimePoint}
 import engine.{EvaluationEngine, StreamEntry}
 import engine.config.BuildEngine
+import org.scalatest.{FlatSpec, FlatSpecLike}
 
 import scala.util.Random
+
 
 /**
   * Created by fm on 21/02/2017.
   */
-trait ExecuteHelper extends SensorScenario {
+trait ExecuteHelper extends SensorScenario with FlatSpecLike {
 
   type EngineExecutor = (Long, => EvaluationEngine) => Unit
 
