@@ -33,5 +33,9 @@ class BaseSpecs extends FlatSpec with ExecuteHelper {
     runClingoOneShot(defaultProgramRunner)(1, tupleWindowProgram())
   }
 
+  "Sliding Time Window of length 1 and with all rules" should "have always the same yellows for tms" in {
+    runTms(defaultProgramRunner)(1, w => timeWindowProgram()(TimeWindowSize(w)))
+  }
+
 
 }

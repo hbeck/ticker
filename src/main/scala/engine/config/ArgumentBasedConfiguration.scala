@@ -21,13 +21,14 @@ object EvaluationTypes extends Enumeration {
 
 object EvaluationModifier extends Enumeration {
   type EvaluationModifier = Value
-  val Greedy, Doyle, Learn, Push, Pull, Reactive = Value
+  val Greedy, Doyle, Learn, Incremental, Push, Pull, Reactive = Value
 }
 
 
 case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTimeUnit) {
 
   def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
+
 
   def buildEngine(evaluationType: EvaluationTypes,
                   evaluationModifier: EvaluationModifier,
@@ -46,6 +47,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
         return Some(doyleTms(config, jtms, random))
       } else if (evaluationModifier == EvaluationModifier.Learn) {
         return Some(learnTms(config, new OptimizedNetwork(), random))
+      } else if (evaluationModifier == EvaluationModifier.Incremental) {
+        return Some(incrementalTms(config, jtms, random))
       }
     } else if (evaluationType == EvaluationTypes.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
@@ -85,6 +88,15 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
 
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
+
+  def incrementalTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork, random: Random) = {
+    val tms = JtmsDoyle(jtms, random)
+    tms.recordStatusSeq = false
+    tms.recordChoiceSeq = false
+
+    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).withIncremental().start()
+  }
+
 
   def clingoPush(config: EngineEvaluationConfiguration) = {
     config.configure().withClingo().use().usePush().start()

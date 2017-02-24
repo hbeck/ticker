@@ -47,16 +47,18 @@ object PinnedAspToIncrementalAsp {
 
   def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
     val rulesWithoutNowCntPin = larsProgramEncoding.rules.
-      map { r =>
-        r.
-          from(
-            r.head,
-            r.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
-            r.neg
-          ).
-          asInstanceOf[NormalRule]
-      }
+      map(stripTickAtoms)
 
     AspProgram(rulesWithoutNowCntPin.toList)
+  }
+
+  def stripTickAtoms(r: NormalRule): NormalRule = {
+    r.
+      from(
+        r.head,
+        r.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
+        r.neg
+      ).
+      asInstanceOf[NormalRule]
   }
 }

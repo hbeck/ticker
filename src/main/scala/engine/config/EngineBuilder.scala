@@ -7,8 +7,8 @@ import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.reactive.ReactiveEvaluationEngine
-import engine.asp.tms.TmsEvaluationEngine
-import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, TmsPolicy}
+import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
+import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsUpdateAlgorithm
@@ -52,13 +52,15 @@ case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: 
 
 }
 
-case class TmsConfiguration(pinnedProgram: LarsProgramEncoding, policy: TmsPolicy = ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(pinnedProgram: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
   def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
 
   def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
 
   def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
+
+  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(pinnedProgram, policy))
 
 }
 

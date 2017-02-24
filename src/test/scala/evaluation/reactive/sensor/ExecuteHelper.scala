@@ -32,6 +32,14 @@ trait ExecuteHelper extends SensorScenario with FlatSpecLike {
     defaultProgramRunner(windowLength, engine)
   }
 
+  def runTms(defaultProgramRunner: EngineExecutor)(windowLength: Long, buildProgram: (Long) => LarsProgram) {
+    val program = buildProgram(windowLength)
+
+    val engine = BuildEngine.withProgram(program).configure().withTms().start()
+
+    defaultProgramRunner(windowLength, engine)
+  }
+
 
   def runWithProgram(random: Random, sampleSize: Int)(windowLength: Long, engineBuilder: => EvaluationEngine) = {
     val engine = engineBuilder

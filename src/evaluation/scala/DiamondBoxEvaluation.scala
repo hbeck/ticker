@@ -19,14 +19,14 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
   def timings(args: Array[String]): Unit = {
     // evaluate everything one time as pre-pre-warmup
-    evaluateTimings(Seq("Tms", "Doyle") toArray)
+    evaluateTimings(Seq("Tms", "Incremental") toArray)
 
     val dump = DumpData("Configuration", "Programs")
     val dumpToCsv = dump.printResults("diamond-box-output.csv") _
 
     if (args.length == 0) {
       val allOptions = Seq(
-        Seq("Tms", "Doyle"),
+        Seq("Tms", "Incremental"),
         Seq("Clingo", "Push")
       )
 
@@ -49,9 +49,9 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
     val evaluationOptions = HashMap(
       ("k/n=100, i/j=2: P: 0.2", all_02) -> buildProgram(100, 100, 2, 2),
-      ("k/n=1000, i/j=2: P: 0.2", all_02) -> buildProgram(1000, 1000, 2, 2),
-      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
-      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
+      ("k/n=1000, i/j=2: P: 0.2", all_02) -> buildProgram(1000, 1000, 2, 2)
+//      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
+//      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
     )
 
     val evaluationCombination = evaluationOptions map {

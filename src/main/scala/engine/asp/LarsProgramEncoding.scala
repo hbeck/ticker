@@ -2,7 +2,7 @@ package engine.asp
 
 import core.{Atom, IntValue}
 import core.asp.{AspFact, NormalProgram, NormalRule}
-import core.lars.{EngineTimeUnit, LarsBasedProgram, LarsRule}
+import core.lars.{EngineTimeUnit, LarsBasedProgram, LarsRule, TimePoint}
 
 /**
   * Created by fm on 20/02/2017.
@@ -13,8 +13,10 @@ trait WindowAtomEncoder {
 
   val allWindowRules: Seq[NormalRule] //one-shot/reactive clingo solving: e.g. for window^3 diamond all 4 rules
 
-  def incrementalRulesAt(tick: IntValue): IncrementalRules
+  def incrementalRulesAt(tick: CurrentPosition): IncrementalRules
 }
+
+case class CurrentPosition(time: TimePoint, count: Long)
 
 
 trait TimeWindowEncoder extends WindowAtomEncoder

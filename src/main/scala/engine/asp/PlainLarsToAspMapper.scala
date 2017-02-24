@@ -6,7 +6,6 @@ import core.lars._
 
 import scala.concurrent.duration._
 
-
 /**
   * Created by fm on 20/01/2017.
   */
@@ -60,7 +59,15 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
   }
 
   def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / engineTimeUnit.toMillis, engineTimeUnit.unit).length
+}
 
+
+object PlainLarsToAspMapper {
+  def asNormalRule(rule: Rule[Atom, Atom]): NormalRule = AspRule(rule.head, rule.pos, rule.neg)
+
+  def asNormalRules(rule: Rule[Atom, Atom]): Seq[NormalRule] = Seq(asNormalRule(rule))
+
+  def asNormalRules(rules: Seq[Rule[Atom, Atom]]): Seq[NormalRule] = rules.map(asNormalRule)
 }
 
 //TODO hb review naming
@@ -90,14 +97,17 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
   // we need to unpack the windowAtomEndocding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
   private val unpackedWindowAtom = windowAtomEncoding.atom
 
-  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, time), Set[Atom](now(N), PinnedAtom(atom, time)))
+
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(unpackedWindowAtom, parameter - i), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i))))
 
-  override def incrementalRulesAt(i: IntValue): IncrementalRules = {
-    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
-    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - length.toInt), N -> i)))
+  val incrementalRule: NormalRule = AspRule[Atom, Atom](PinnedAtom(unpackedWindowAtom, T), Set[Atom](PinnedAtom(atom, T)))
 
-    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    val i = currentPosition.time
+    val added = incrementalRule.assign(Assignment(Map(T -> i, N -> i)))
+    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - length.toInt), N -> i)))
+
+    IncrementalRules(PlainLarsToAspMapper.asNormalRules(added), PlainLarsToAspMapper.asNormalRules(removed))
   }
 }
 
@@ -113,13 +123,15 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
 case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
   val N: Variable = TimeVariableWithOffset("N")
 
-  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, T)))
+
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(T), PinnedAtom(atom, T - i))))
 
-  //TODO hb prepared for later use
-  override def incrementalRulesAt(i: IntValue): IncrementalRules = {
-    val added = rule.assign(Assignment(Map(T -> i, N -> i)))
-    val removed = rule.assign(Assignment(Map(T -> IntValue(i.int - length.toInt), N -> i)))
+  val incrementalRule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](PinnedAtom(atom, T)))
+
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    val i = currentPosition.time
+    val added = incrementalRule.assign(Assignment(Map(T -> i, N -> i)))
+    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - length.toInt), N -> i)))
 
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
@@ -133,20 +145,21 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
   val spoilerAtom = Atom(Predicate(f"spoil_ti_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
 
   val baseRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
+
   val spoilerRules: Seq[NormalRule] = (1 to length.toInt) map (i => AspRule(spoilerAtom, Set[Atom](atom, now(T)), Set[Atom](PinnedAtom(atom, T - i))))
 
   override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
 
 
-  val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(N)), Set[Atom](PinnedAtom(atom, T)))
+  val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom), Set[Atom](PinnedAtom(atom, T)))
 
-  override def incrementalRulesAt(tick: IntValue): IncrementalRules = {
-    val added = incrementalRule.assign(Assignment(Map(N -> tick, T -> tick)))
-    val removed = incrementalRule.assign(Assignment(Map(N -> tick, T -> IntValue(tick.int - length.toInt))))
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    val time = currentPosition.time
+    val added = incrementalRule.assign(Assignment(Map(N -> time, T -> time)))
+    val removed = incrementalRule.assign(Assignment(Map(N -> time, T -> IntValue(time.value.toInt - length.toInt))))
 
     // TODO: base rule is added every time - shouldn't matter because of set-semantics...
-    //    IncrementalRules(added + baseRule, removed)
-    null
+    IncrementalRules(PlainLarsToAspMapper.asNormalRules(added) :+ baseRule, PlainLarsToAspMapper.asNormalRules(removed))
   }
 }
 
@@ -155,14 +168,16 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
   //TODO hb review why time variable?
   val D = Variable("D") //TODO ... and then why this not?
 
-  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
 
   val allWindowRules = 0 until length.toInt map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, C - i))))
 
+  val incrementalRule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](PinnedAtom.asCount(atom, D)))
 
-  override def incrementalRulesAt(i: IntValue): IncrementalRules = {
-    val added = rule.assign(Assignment(Map(D -> i, C -> i)))
-    val removed = rule.assign(Assignment(Map(D -> IntValue(i.int - length.toInt), C -> i)))
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    val i = IntValue(currentPosition.count.toInt)
+
+    val added = incrementalRule.assign(Assignment(Map(D -> i, C -> i)))
+    val removed = incrementalRule.assign(Assignment(Map(D -> IntValue(i.int - length.toInt), C -> i)))
 
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
@@ -218,15 +233,36 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
 
   override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
 
-  val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(C)), Set[Atom](PinnedAtom(atom, T)))
+  val incrementalSpoilerRule: NormalRule = AspRule(
+    spoilerAtom,
+    Set[Atom](
+      atom
+    ),
+    Set[Atom](
+      PinnedAtom.asCount(atom, D)
+    )
+  )
+  val incrementalSpoilerRule2: NormalRule = AspRule(
+    spoilerAtom,
+    Set[Atom](
+      atom,
+      PinnedAtom(atom, T1, D1),
+      PinnedAtom(atom, T2, D2),
+      Geq(D1, C - length.toInt),
+      Eq(D1 + 1, D2),
+      Gt(T2, T1 + 1)
+    )
+  )
 
-  override def incrementalRulesAt(tick: IntValue): IncrementalRules = {
-    val added = incrementalRule.assign(Assignment(Map(C -> tick, T -> tick)))
-    val removed = incrementalRule.assign(Assignment(Map(C -> tick, T -> IntValue(tick.int - length.toInt))))
+  val incrementalRules = Seq(incrementalSpoilerRule, incrementalSpoilerRule2)
 
-    // TODO: base rule is added every time - shouldn't matter because of set-semantics...
-    //    IncrementalRules(added + baseRule, removed)
-    null
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    val tick = IntValue(currentPosition.count.toInt)
+    val added = incrementalRules.map(_.assign(Assignment(Map(C -> tick, D -> tick))))
+    val removed = incrementalRules.map(_.assign(Assignment(Map(C -> tick, D -> IntValue(tick.int - length.toInt)))))
+
+
+    IncrementalRules(PlainLarsToAspMapper.asNormalRules(added) :+ baseRule, PlainLarsToAspMapper.asNormalRules(removed))
   }
 }
 
@@ -234,12 +270,15 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, ti
   val D = Variable("D")
   val C = Variable("C")
 
-  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, T), Set[Atom](now(C), PinnedAtom(atom, timeVariable)))
 
   // at atoms got their parameter already encoded
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, timeVariable, D), Sum(D, IntValue(-i), D))))
 
-  override def incrementalRulesAt(i: IntValue): IncrementalRules = {
+
+  val incrementalRule: NormalRule = AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](PinnedAtom(atom, timeVariable)))
+
+
+  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
     null
   }
 }
