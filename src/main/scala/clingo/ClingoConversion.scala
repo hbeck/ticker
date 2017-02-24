@@ -73,8 +73,8 @@ object ClingoConversion {
     case StringValue(v) => v
     case IntValue(v) => v.toString
     case TimePoint(t) => t.toString
+    case v: VariableWithOffset => v.toString
     case v: TimeVariableWithOffset => v.toString
-
     case v: Variable => v.name
   }
 }
