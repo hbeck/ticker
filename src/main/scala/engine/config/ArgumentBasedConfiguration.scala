@@ -2,10 +2,10 @@ package engine.config
 
 import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
-import engine.asp.tms.policies.LazyRemovePolicy
+import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
-import jtms.{TruthMaintenanceNetwork}
+import jtms.TruthMaintenanceNetwork
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
 
@@ -93,8 +93,9 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
-
-    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).withIncremental().start()
+    tms.doSelfSupportCheck = true
+    tms.doConsistencyCheck = true
+    config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
   }
 
 

@@ -130,8 +130,8 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
 
   override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
     val i = currentPosition.time
-    val added = incrementalRule.assign(Assignment(Map(T -> i, N -> i)))
-    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - length.toInt), N -> i)))
+    val added = incrementalRule.assign(Assignment(Map(T -> i)))
+    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - (length.toInt + 1)))))
 
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
@@ -142,7 +142,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 
   val N: Variable = TimeVariableWithOffset("N")
 
-  val spoilerAtom = Atom(Predicate(f"spoil_ti_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
+  val spoilerAtom = Atom(Predicate(f"spoil_te_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
 
   val baseRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
 
@@ -155,8 +155,8 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 
   override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
     val time = currentPosition.time
-    val added = incrementalRule.assign(Assignment(Map(N -> time, T -> time)))
-    val removed = incrementalRule.assign(Assignment(Map(N -> time, T -> IntValue(time.value.toInt - length.toInt))))
+    val added = incrementalRule.assign(Assignment(Map(N -> time, T -> IntValue(time.value.toInt - 1))))
+    val removed = incrementalRule.assign(Assignment(Map(N -> time, T -> IntValue(time.value.toInt - (length.toInt + 1)))))
 
     // TODO: base rule is added every time - shouldn't matter because of set-semantics...
     IncrementalRules(PlainLarsToAspMapper.asNormalRules(added) :+ baseRule, PlainLarsToAspMapper.asNormalRules(removed))

@@ -38,6 +38,8 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
+    val previousTupleCount = tracker.tupleCount
+
     val tracked = tracker.trackAtoms(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)
 
@@ -46,12 +48,31 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
     //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
     val allHistoricalSignals: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFact).toSet
 
-    val pin = Pin(Assignment(Map(core.lars.T -> time, core.lars.C -> IntValue(tracker.tupleCount.toInt))))
+    val pin = Pin(
+      Assignment(
+        Map(
+          core.lars.T -> time,
+          core.lars.C -> IntValue(tracker.tupleCount.toInt)
+        )
+      )
+    )
 
     // performs simple pinning-calculations (eg. T + 1)
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
-    val incrementalRules = pinnedAspProgram.windowAtomEncoders.map(_.incrementalRulesAt(CurrentPosition(time, tracker.tupleCount)))
+    val countsToIterate = if (tracker.tupleCount == previousTupleCount)
+      Seq(tracker.tupleCount)
+    else
+      (previousTupleCount + 1) to tracker.tupleCount
+
+    val incrementalRules = pinnedAspProgram.windowAtomEncoders.flatMap {
+      encoder => countsToIterate map (c => encoder.incrementalRulesAt(CurrentPosition(time, c)))
+    }
+
+
+    // 1 -> {a,b,c}
+    // incrementalRulesAt(1, 1), incrementalRulesAt(1,2), incrementalRulesAt(1,3)
+    // d :-  w #2 d a
 
     val (incrementalAdd, incrementalRemove) = incrementalRules.foldLeft((Set[NormalRule](), Set[NormalRule]()))((v, r) => (v._1 ++ r.toAdd, v._2 ++ r.toRemove))
 
@@ -63,18 +84,23 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
     val grounded = (groundTimeVariableCalculations ++ incrementalAdd) flatMap grounder.ground(inspectWithAllSignals)
 
     val add = tmsPolicy.add(time) _
+    val remove = tmsPolicy.remove(time) _
 
     // separating the calls ensures maximum on support for rules
     // facts first
     add(pinnedSignals)
     add(grounded toSeq)
 
+
+    remove(incrementalRemove.filter(_.isGround).toSeq)
+
     val model = tmsPolicy.getModel(time)
 
-    val remove = tmsPolicy.remove(time) _
+    // grounded contains also the incremental-Rules (because they might need grounding too)
+    // we don't want to remove grounded incremental-Rules, because they are removed later anyway
+    val rulesToRemove = grounded -- incrementalAdd
 
-    remove((grounded -- incrementalAdd) toSeq)
-    remove(incrementalRemove.filter(_.isGround).toSeq)
+    remove(rulesToRemove toSeq)
 
     model
   }

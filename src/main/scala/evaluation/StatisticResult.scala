@@ -2,6 +2,8 @@ package evaluation
 
 import java.util.concurrent.TimeUnit
 
+import core.Model
+
 import scala.concurrent.duration.Duration
 
 /**
@@ -54,5 +56,9 @@ trait ConfigurationResult {
 case class TimingsConfigurationResult(instanceCaption: String, appendResult: StatisticResult, evaluateResult: StatisticResult) extends ConfigurationResult
 
 case class SuccessConfigurationResult(instanceCaption: String, successFailures: Seq[(Int, Boolean)]) extends ConfigurationResult
+
+case class ModelsResult(instanceCaption: String, models: Seq[(Int, Option[Model])]) extends ConfigurationResult
+
+case class UnequalResult(instanceCaption: String, unequalModels: Seq[(Int, Option[Model], Option[Model])]) extends ConfigurationResult
 
 case class AlgorithmResult[TResult <: ConfigurationResult](caption: String, runs: Seq[TResult])

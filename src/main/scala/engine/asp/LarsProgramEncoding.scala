@@ -48,5 +48,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   }
 }
 
-case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule])
+case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule]) {
+  def ++(other: IncrementalRules) = IncrementalRules(toAdd ++ other.toAdd, toRemove ++ other.toRemove)
+}
 

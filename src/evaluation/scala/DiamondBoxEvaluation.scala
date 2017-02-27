@@ -1,6 +1,6 @@
-import core.Atom
+import core.{Atom, Model}
 import core.lars._
-import evaluation.{AlgorithmResult, DumpData, PrepareEvaluator}
+import evaluation._
 
 import scala.collection.immutable.HashMap
 import scala.util.Random
@@ -11,8 +11,20 @@ import scala.util.Random
 object DiamondBoxEvaluation extends DiamondBoxSpec {
 
   val all_02 = HashMap(x -> 0.2, y -> 0.2, z -> 0.2)
+  val all_08 = HashMap(x -> 0.8, y -> 0.8, z -> 0.8)
+
+  private def generateEvaluationOptions = {
+    HashMap(
+      ("k/n=10, i/j=2: P: 0.2", all_08) -> buildProgram(10, 10, 2, 2),
+      ("k/n=100, i/j=2: P: 0.2", all_08) -> buildProgram(100, 100, 2, 2)
+      //      ("k/n=1000, i/j=2: P: 0.2", all_02) -> buildProgram(1000, 1000, 2, 2)
+      //      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
+      //      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
+    )
+  }
 
   def main(args: Array[String]): Unit = {
+    //    semantics()
     timings(args)
 
   }
@@ -43,16 +55,62 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
     }
   }
 
+  def semantics(timePoints: Long = 1000): Unit = {
+    val random = new Random(1)
+
+    val evaluationOptions = generateEvaluationOptions
+
+    val evaluationCombination = evaluationOptions map {
+      case (instance, program) => {
+        val signals = PrepareEvaluator.generateSignals(instance._2, random, 0, timePoints)
+
+        (
+          PrepareEvaluator.fromArguments(Array("Tms", "Incremental"), instance._1, program),
+          PrepareEvaluator.fromArguments(Array("Clingo", "Push"), instance._1, program),
+          signals
+        )
+      }
+    }
+
+    //    val option = args.mkString(" ")
+
+    //    Console.out.println("Algorithm: " + option)
+
+    val results = evaluationCombination map {
+      case (incremental, clingo, signals) => {
+        val incrementalModels = incremental.models(signals)
+        val clingoModels = clingo.models(signals)
+
+        val zipped = incrementalModels.models.zip(clingoModels.models)
+        val unequal = zipped collect {
+          case (left, right) if left._1 > 10 & unequalModel(left._2, right._2) => (left._1, left._2, right._2)
+        }
+
+        UnequalResult(incremental.instance, unequal)
+      }
+    }
+
+    AlgorithmResult("semantics", results toList)
+  }
+
+  def unequalModel(left: Option[Model], right: Option[Model]): Boolean = {
+    if (left.isDefined & right.isEmpty | right.isDefined & left.isEmpty)
+      return true
+
+    val leftModel = left.get
+    val rightModel = right.get
+
+    def check(atom: Atom) = leftModel.contains(atom) != rightModel.contains(atom)
+
+    check(some) | check(xdom) | check(ydom) | check(both) | check(dz) | check(bz) | check(imperfz)
+  }
+
+
   def evaluateTimings(args: Array[String], timePoints: Long = 500) = {
 
     val random = new Random(1)
 
-    val evaluationOptions = HashMap(
-      ("k/n=100, i/j=2: P: 0.2", all_02) -> buildProgram(100, 100, 2, 2),
-      ("k/n=1000, i/j=2: P: 0.2", all_02) -> buildProgram(1000, 1000, 2, 2)
-//      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
-//      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
-    )
+    val evaluationOptions = generateEvaluationOptions
 
     val evaluationCombination = evaluationOptions map {
       case (instance, program) => {
@@ -67,7 +125,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
     Console.out.println("Algorithm: " + option)
 
     val results = evaluationCombination map {
-      case (evaluator, signals) => evaluator.streamAsFastAsPossible(1, 2)(signals)
+      case (evaluator, signals) => evaluator.streamAsFastAsPossible(1, 5)(signals)
     }
 
     AlgorithmResult(option, results toList)

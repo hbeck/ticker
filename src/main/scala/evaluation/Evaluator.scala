@@ -57,4 +57,21 @@ case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
 
     SuccessConfigurationResult(instance, modelDefined)
   }
+
+  def models(inputs: Seq[StreamEntry]): ModelsResult = {
+    val engine = engineProvider()
+
+    val modelDefined = inputs.zipWithIndex.map {
+      case (entry, i) => {
+
+        engine.append(entry.time)(entry.atoms.toSeq: _*)
+
+        val model = engine.evaluate(entry.time)
+
+        (i, model.get)
+      }
+    }
+
+    ModelsResult(instance, modelDefined)
+  }
 }

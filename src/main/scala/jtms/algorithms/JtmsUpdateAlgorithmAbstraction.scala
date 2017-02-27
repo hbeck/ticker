@@ -78,8 +78,17 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: TruthMaintenanceNetwork, ran
     } else {
       if (jtms.status(rule.head) == in) {
         if (jtms.valid(rule)) {
+          // TODO: this could create self-support!
+          // Scenario:
+          // dz is in, support is: dz :- some, w_te_2_d_z.
+          // new rule is added: dz :- dz_at(18).
+          // is already valid, creates self-support :-/
+
+          // TODO: do a benchmark here
+          val foundations = rule.body flatMap jtms.foundations
+          if (!foundations.contains(rule.head))
           //difference to original; optimization for sliding time-based window (support always by latest)
-          setIn(rule)
+            setIn(rule)
         }
         return
       }
@@ -102,7 +111,8 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: TruthMaintenanceNetwork, ran
       if (!(jtms.allAtoms contains rule.head)) return
       if (jtms.status(rule.head) == out) return
       //this should save some time!:
-      if (jtms.suppRule(rule.head).isDefined && jtms.suppRule(rule.head).get != rule) return //.isDefined needed if previous state was inconsistent
+      if (jtms.suppRule(rule.head).isDefined && jtms.suppRule(rule.head).get != rule) return
+      //.isDefined needed if previous state was inconsistent
       val atoms = jtms.repercussions(rule.head) + rule.head
       update(atoms)
     }
