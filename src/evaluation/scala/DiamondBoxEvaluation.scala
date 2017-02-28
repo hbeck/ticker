@@ -109,7 +109,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
   }
 
 
-  def evaluateTimings(args: Array[String], timePoints: Long = 10000) = {
+  def evaluateTimings(args: Array[String], timePoints: Long = 1000) = {
 
     val random = new Random(1)
 

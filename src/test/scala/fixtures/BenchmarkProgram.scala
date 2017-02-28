@@ -1,6 +1,6 @@
 package fixtures
 
-import org.scalatest.{ Outcome, Suite}
+import org.scalatest.{Outcome, Suite}
 
 /**
   * Created by FM on 28.05.16.

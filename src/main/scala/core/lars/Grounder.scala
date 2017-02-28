@@ -33,13 +33,13 @@ class GroundRule[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: Extend
   }
 
   def relationsHold(rule: TRule): Boolean = {
-    (rule.pos map (_.atom) filter isRelationAtom forall (a => holds(a))) &&
-      (rule.neg map (_.atom) filter isRelationAtom forall (a => !holds(a)))
+    (rule.pos map (_.atom) filter isRelationAtom forall (holds(_))) &&
+      (rule.neg map (_.atom) filter isRelationAtom forall (!holds(_)))
   }
 
   def deleteAuxiliaryAtoms(rule: TRule): TRule = {
-    val corePosAtoms: Set[TBody] = rule.pos filter (x => !isRelationAtom(x))
-    val coreNegAtoms: Set[TBody] = rule.neg filter (x => !isRelationAtom(x))
+    val corePosAtoms: Set[TBody] = rule.pos filter (!isRelationAtom(_))
+    val coreNegAtoms: Set[TBody] = rule.neg filter (!isRelationAtom(_))
     rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
   }
 
@@ -62,7 +62,6 @@ class GroundRule[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: Extend
 }
 
 object Grounder {
-
 
   //note: creating new traits and case classes for 'RelationAtoms' would complicate things too much
   //i) we would have mixes of {GroundAtom,NonGroundAtom} with {RelationAtom, normal atoms}
