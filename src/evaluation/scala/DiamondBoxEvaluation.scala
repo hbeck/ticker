@@ -16,8 +16,8 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
   private def generateEvaluationOptions = {
     HashMap(
       //("k/n=10, i/j=2: P: 0.8", all_08) -> buildProgram(10, 10, 2, 2) //,
-      //("k/n=100, i/j=2: P: 0.2", all_02) -> buildProgram(100, 100, 2, 2)
-            ("k/n=10, i/j=5: P: 0.8", all_08) -> buildProgram(10, 10, 5, 5)
+      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5)
+      //      ("k/n=10, i/j=5: P: 0.8", all_08) -> buildProgram(10, 10, 5, 5)
       //      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
       //      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
     )
@@ -41,8 +41,8 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
         //Seq("Tms", "DoyleLazyRemove"),
         //Seq("Tms", "DoyleIncremental"),
         Seq("Tms", "GreedyIncremental"),
-        //Seq("Clingo", "Push"), //TODO push vs pull!
-        Seq("Clingo", "Pull")
+        Seq("Clingo", "Push") //TODO push vs pull!
+        //Seq("Clingo", "Pull")
       )
 
       val allResults = allOptions map (o => evaluateTimings(o.toArray))
@@ -109,7 +109,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
   }
 
 
-  def evaluateTimings(args: Array[String], timePoints: Long = 500) = {
+  def evaluateTimings(args: Array[String], timePoints: Long = 10000) = {
 
     val random = new Random(1)
 

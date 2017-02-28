@@ -21,8 +21,8 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   def assign(assignment: Assignment): Rule[THead, TBody] = {
     val assignedHead: THead = head.assign(assignment).asInstanceOf[THead]
-    val assignedPosBody = pos map (x => x.assign(assignment).asInstanceOf[TBody])
-    val assignedNegBody = neg map (x => x.assign(assignment).asInstanceOf[TBody])
+    val assignedPosBody = pos map (_.assign(assignment).asInstanceOf[TBody])
+    val assignedNegBody = neg map (_.assign(assignment).asInstanceOf[TBody])
     from(assignedHead, assignedPosBody, assignedNegBody)
   }
 

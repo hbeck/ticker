@@ -3,14 +3,13 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp._
-import jtms.evaluation.Util
-import runner.Load._
-import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
+import jtms.evaluation.Util._
 import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 import runner.Load
-import Util._
+import runner.Load._
+
 import scala.collection.immutable.HashMap
 
 /**
@@ -1128,6 +1127,8 @@ class GrounderTests extends FunSuite {
 
   test("bit 1") {
 
+    pending
+
     val useGrounding = false //false = save time
 
     val asp = if (useGrounding) {
@@ -1423,9 +1424,10 @@ class GrounderTests extends FunSuite {
 
   }
 
-
-
   test("bit 3") {
+
+    pending
+
     //object eval extends BitProgram
     //val program = printTime("grounding time"){ eval.groundLarsProgram() }
     //println("#rules: "+program.rules.size)
