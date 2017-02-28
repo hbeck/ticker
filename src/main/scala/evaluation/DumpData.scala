@@ -13,7 +13,7 @@ import com.quantifind.charts.repl.HighchartsStyles
 case class DumpData(configCaption: String, instanceSizeCaption: String) {
 
   def printResults(filePath: String)(results: Seq[AlgorithmResult[TimingsConfigurationResult]]) {
-    printToFile(new File(filePath)) { printer =>
+    printToFile(new File(filePath)) { printer => //TODO abstraction needed for comparison (clingo pull needs evaluate; others need append)
       val captions = Seq(
         configCaption,
         instanceSizeCaption,
@@ -72,7 +72,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
   }
 
   def plot(results: Seq[AlgorithmResult[TimingsConfigurationResult]]): Unit = {
-    val series = results map dataSeries
+    val series = results map dataSeriesAppendMedian //TODO generalize
 
     val xAxis = Axis(
       categories = Some(results.head.runs.map(_.instanceCaption).toArray),
@@ -88,7 +88,7 @@ case class DumpData(configCaption: String, instanceSizeCaption: String) {
     plot(c)
   }
 
-  def dataSeries(result: AlgorithmResult[TimingsConfigurationResult]) = {
+  def dataSeriesAppendMedian(result: AlgorithmResult[TimingsConfigurationResult]) = {
     val data = result.runs.zipWithIndex.map {
       case (r, i) => Data(i, r.appendResult.median.toUnit(TimeUnit.MILLISECONDS), name = r.instanceCaption)
     }

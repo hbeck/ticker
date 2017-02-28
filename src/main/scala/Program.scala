@@ -148,7 +148,7 @@ object Program {
   }
 
   case class Config(evaluationType: EvaluationTypes = EvaluationTypes.Tms,
-                    evaluationModifier: EvaluationModifier = EvaluationModifier.Greedy,
+                    evaluationModifier: EvaluationModifier = EvaluationModifier.GreedyLazyRemove,
                     programFile: File,
                     inputSpeed: Duration = 100 milliseconds,
                     outputSpeed: Duration = 1 second,

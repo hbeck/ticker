@@ -15,9 +15,9 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
   private def generateEvaluationOptions = {
     HashMap(
-      ("k/n=10, i/j=2: P: 0.2", all_08) -> buildProgram(10, 10, 2, 2),
-      ("k/n=100, i/j=2: P: 0.2", all_08) -> buildProgram(100, 100, 2, 2)
-      //      ("k/n=1000, i/j=2: P: 0.2", all_02) -> buildProgram(1000, 1000, 2, 2)
+      //("k/n=10, i/j=2: P: 0.8", all_08) -> buildProgram(10, 10, 2, 2) //,
+      //("k/n=100, i/j=2: P: 0.2", all_02) -> buildProgram(100, 100, 2, 2)
+            ("k/n=10, i/j=5: P: 0.8", all_08) -> buildProgram(10, 10, 5, 5)
       //      ("k/n=100, i/j=5: P: 0.2", all_02) -> buildProgram(100, 100, 5, 5),
       //      ("k/n=1000, i/j=5: P: 0.2", all_02) -> buildProgram(1000, 1000, 5, 5)
     )
@@ -31,15 +31,18 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
   def timings(args: Array[String]): Unit = {
     // evaluate everything one time as pre-pre-warmup
-    evaluateTimings(Seq("Tms", "Incremental") toArray)
+    //evaluateTimings(Seq("Tms", "Incremental") toArray) //pre-warmup
 
     val dump = DumpData("Configuration", "Programs")
     val dumpToCsv = dump.printResults("diamond-box-output.csv") _
 
     if (args.length == 0) {
-      val allOptions = Seq(
-        Seq("Tms", "Incremental"),
-        Seq("Clingo", "Push")
+      val allOptions = Seq( //use name of enumeration
+        //Seq("Tms", "DoyleLazyRemove"),
+        //Seq("Tms", "DoyleIncremental"),
+        Seq("Tms", "GreedyIncremental"),
+        //Seq("Clingo", "Push"), //TODO push vs pull!
+        Seq("Clingo", "Pull")
       )
 
       val allResults = allOptions map (o => evaluateTimings(o.toArray))
@@ -55,7 +58,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
     }
   }
 
-  def semantics(timePoints: Long = 1000): Unit = {
+  def semantics(timePoints: Long = 5000): Unit = {
     val random = new Random(1)
 
     val evaluationOptions = generateEvaluationOptions
@@ -66,7 +69,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
         (
           PrepareEvaluator.fromArguments(Array("Tms", "Incremental"), instance._1, program),
-          PrepareEvaluator.fromArguments(Array("Clingo", "Push"), instance._1, program),
+          PrepareEvaluator.fromArguments(Array("Clingo", "Push"), instance._1, program), //TODO push vs pull!
           signals
         )
       }
@@ -114,7 +117,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
     val evaluationCombination = evaluationOptions map {
       case (instance, program) => {
-        val signals = PrepareEvaluator.generateSignals(instance._2, random, 0, timePoints)
+        val signals = PrepareEvaluator.generateSignals(instance._2, random, 0, timePoints) //TODO use different random numbers, same for each 'parallel' sample
 
         (PrepareEvaluator.fromArguments(args, instance._1, program), signals)
       }
@@ -125,7 +128,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
     Console.out.println("Algorithm: " + option)
 
     val results = evaluationCombination map {
-      case (evaluator, signals) => evaluator.streamAsFastAsPossible(1, 5)(signals)
+      case (evaluator, signals) => evaluator.streamAsFastAsPossible(1, 2)(signals)
     }
 
     AlgorithmResult(option, results toList)
@@ -149,7 +152,6 @@ trait DiamondBoxSpec {
     def slidingTime(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temp, atom)
 
     def slidingTuple(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(SlidingTupleWindow(windowSize), temp, atom)
-
 
     LarsProgram.from(
       some <= slidingTime(k, Diamond, x) and slidingTuple(n, Diamond, y),

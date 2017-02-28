@@ -6,7 +6,7 @@ import core.lars.TimePoint
 /**
   * Created by FM on 15.06.16.
   */
-trait Argument {
+trait Argument { //TODO offset at too generic position ~> IntVariable etc
   def -(offset: Offset): Argument
 
   def +(offset: Offset): Argument

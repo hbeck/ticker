@@ -94,7 +94,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
     case _ => T // we want T as parameter so pinning is easy later on
   }
 
-  // we need to unpack the windowAtomEndocding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
+  // we need to unpack the windowAtomEncoding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
   private val unpackedWindowAtom = windowAtomEncoding.atom
 
 
@@ -105,7 +105,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
   override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
     val i = currentPosition.time
     val added = incrementalRule.assign(Assignment(Map(T -> i, N -> i)))
-    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - length.toInt), N -> i)))
+    val removed = incrementalRule.assign(Assignment(Map(T -> IntValue(i.value.toInt - length.toInt), N -> i))) //TODO hb use map to outdate
 
     IncrementalRules(PlainLarsToAspMapper.asNormalRules(added), PlainLarsToAspMapper.asNormalRules(removed))
   }

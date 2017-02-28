@@ -21,7 +21,7 @@ object EvaluationTypes extends Enumeration {
 
 object EvaluationModifier extends Enumeration {
   type EvaluationModifier = Value
-  val Greedy, Doyle, Learn, Incremental, Push, Pull, Reactive = Value
+  val GreedyLazyRemove, GreedyIncremental, DoyleLazyRemove, Learn, DoyleIncremental, Push, Pull, Reactive = Value
 }
 
 
@@ -39,15 +39,16 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     //shouldn't this (EngineEvaluationConfiguration) config replace the program: LarsProgram argument of this case class?
     val config = BuildEngine.withProgram(program).withTickSize(tickSize)
 
-    //TODO hb: pattern matching instead of nested ifs?
     if (evaluationType == EvaluationTypes.Tms) {
-      if (evaluationModifier == EvaluationModifier.Greedy) {
+      if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
         return Some(greedyTms(config, jtms, random))
-      } else if (evaluationModifier == EvaluationModifier.Doyle) {
+      } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
+        return Some(greedyTmsIncremental(config, jtms, random)) //TODO
+      } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
         return Some(doyleTms(config, jtms, random))
       } else if (evaluationModifier == EvaluationModifier.Learn) {
         return Some(learnTms(config, new OptimizedNetwork(), random))
-      } else if (evaluationModifier == EvaluationModifier.Incremental) {
+      } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
         return Some(incrementalTms(config, jtms, random))
       }
     } else if (evaluationType == EvaluationTypes.Clingo) {
@@ -69,6 +70,16 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     tms.recordChoiceSeq = false
 
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
+  }
+
+  def greedyTmsIncremental(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
+    val tms = JtmsGreedy(jtms, random)
+    tms.doConsistencyCheck = false
+    tms.doJtmsSemanticsCheck = false
+    tms.recordStatusSeq = false
+    tms.recordChoiceSeq = false
+
+    config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
   }
 
   def doyleTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
@@ -93,8 +104,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     val tms = JtmsDoyle(jtms, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
-    tms.doSelfSupportCheck = true
-    tms.doConsistencyCheck = true
+    tms.doSelfSupportCheck = false
+    tms.doConsistencyCheck = false
     config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
   }
 
