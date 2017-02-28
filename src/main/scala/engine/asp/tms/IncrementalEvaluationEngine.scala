@@ -12,8 +12,6 @@ import engine.asp.tms.policies.TmsPolicy
   */
 case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
-
   val (groundRules, nonGroundRules) = pinnedAspProgram.baseRules.
     toSet.
     map(PinnedAspToIncrementalAsp.stripTickAtoms).
@@ -23,13 +21,9 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
 
   tmsPolicy.initialize(groundRules.toSeq)
 
-  //book keeping for auxiliary atoms to handle window logic
-  var tuplePositions: List[Atom] = List()
-
-  val tracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+  val atomTracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    trackAuxiliaryAtoms(time, atoms)
     cachedResults(time) = prepare(time, atoms)
     discardOutdatedAuxiliaryAtoms(time)
   }
@@ -38,21 +32,21 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
-    val previousTupleCount = tracker.tupleCount
+    val previousTupleCount = atomTracker.tupleCount
 
-    val tracked = tracker.trackAtoms(time, signalAtoms)
+    val tracked = atomTracker.trackAtoms(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)
 
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
     //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
-    val allHistoricalSignals: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFact).toSet
+    val allHistoricalSignals: Set[NormalRule] = atomTracker.allTimePoints(time).flatMap(asFact).toSet
 
     val pin = Pin(
       Assignment(
         Map(
           core.lars.T -> time,
-          core.lars.C -> IntValue(tracker.tupleCount.toInt)
+          core.lars.C -> IntValue(atomTracker.tupleCount.toInt)
         )
       )
     )
@@ -60,22 +54,25 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
     // performs simple pinning-calculations (eg. T + 1)
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
-    val countsToIterate = if (tracker.tupleCount == previousTupleCount)
-      Seq(tracker.tupleCount)
+    // we need to call incremental rules at least one time (if no atoms stream in we use the current tuple-count)
+    val countsToIterate = if (atomTracker.tupleCount == previousTupleCount)
+      Seq(atomTracker.tupleCount)
     else
-      (previousTupleCount + 1) to tracker.tupleCount
+      (previousTupleCount + 1) to atomTracker.tupleCount
 
-    val incrementalRules = pinnedAspProgram.windowAtomEncoders.flatMap {
+    val incrementalRules = pinnedAspProgram.incrementalEncoders.flatMap {
       encoder => countsToIterate map (c => encoder.incrementalRulesAt(CurrentPosition(time, c)))
     }
 
 
+    // TODO: there might be some optimization: for small tuple-based windows and multiple atoms at a single timepoint
     // 1 -> {a,b,c}
     // incrementalRulesAt(1, 1), incrementalRulesAt(1,2), incrementalRulesAt(1,3)
     // d :-  w #2 d a
 
     val (incrementalAdd, incrementalRemove) = incrementalRules.foldLeft((Set[NormalRule](), Set[NormalRule]()))((v, r) => (v._1 ++ r.toAdd, v._2 ++ r.toRemove))
 
+    // TODO: this hack is needed for grounding @
     val incrementalFacts = incrementalAdd.filter(_.isGround).map(f => AspFact(f.head))
 
     val grounder = new GroundRule[NormalRule, Atom, Atom]()
@@ -96,6 +93,7 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
 
     val model = tmsPolicy.getModel(time)
 
+    // TODO: this needs to be fixed
     // grounded contains also the incremental-Rules (because they might need grounding too)
     // we don't want to remove grounded incremental-Rules, because they are removed later anyway
     val rulesToRemove = grounded -- incrementalAdd
@@ -118,31 +116,16 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
       }
     }
 
+    // TODO: model-cleaning is still needed (remote e.g a_at(t), filter only for current timepoint, ..)
     resultingModel match {
       case Some(m) => Result(Some(m))
       case None => NoResult
     }
   }
 
-  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
-    case p: PinnedAtAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => ConcretePinnedAtAtom(Atom(p), t)
-    // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => PinnedAtom(a, timePoint)
-  }
-
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    //TODO current !!!
-    //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
-    val maxWindowTicks = 100
-    //TODO
-    val atomsToRemove = tracker.discardOutdatedAtoms(time)
+    val atomsToRemove = atomTracker.discardOutdatedAtoms(time)
 
     atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
-  }
-
-  private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
-    tuplePositions = atoms.toList ++ tuplePositions
-    //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
   }
 }

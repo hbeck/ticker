@@ -61,8 +61,10 @@ class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixt
   }
 
   it should "not contain y at t3" in {
-    engineWithStream.evaluate(t2)
-    engineWithStream.evaluate(t3).get.value shouldNot contain(y)
+    val initializedEngine = engineWithStream
+    // TODO this fails with Jtms-Incremental because of incorrect remove of grounded-at-atoms
+    initializedEngine.evaluate(t2)
+    initializedEngine.evaluate(t3).get.value shouldNot contain(y)
   }
 
 }

@@ -4,7 +4,7 @@ package engine
 import core.asp.AspRule
 import core.lars._
 import core.{not => _, _}
-import engine.asp.{ PlainLarsToAspMapper, now}
+import engine.asp.{AllRulesAtomEncoder, PlainLarsToAspMapper, now}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
 import engine.asp.tms.PinnedAspToIncrementalAsp
@@ -72,7 +72,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
 
     val converted = PinnedAspToIncrementalAsp(mappedProgram)
 
-    forAll(converted.rules)(r => r.body should not contain (LarsToPinnedProgram.windowAtomEncoder(windowAtom).allWindowRules))
+    forAll(converted.rules)(r => r.body should not contain (LarsToPinnedProgram.windowAtomEncoder(windowAtom).asInstanceOf[AllRulesAtomEncoder].allWindowRules))
   }
 
   "A rule where an atom is part of the head of another rule" should "be unpinned" in {

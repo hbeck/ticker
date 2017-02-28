@@ -83,7 +83,7 @@ object PlainLarsToAspMapper {
    w <- a(0)
  */
 
-case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = T) extends TimeWindowEncoder {
+case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = T) extends TimeWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
 
   val parameter = time match {
     case tp: TimePoint => tp
@@ -92,7 +92,6 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
 
   // we need to unpack the windowAtomEncoding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
   private val unpackedWindowAtom = windowAtomEncoding.atom
-
 
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](PinnedAtom(unpackedWindowAtom, parameter - i), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i))))
 
@@ -116,7 +115,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
    atom: Atom ... a
    windowAtomEncoding: w_{range-d-a}
  */
-case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
+case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
 
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(T), PinnedAtom(atom, T - i))))
 
@@ -132,7 +131,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
 }
 
 
-case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
+case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
 
   val spoilerAtom = Atom(Predicate(f"spoil_te_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
 
@@ -154,7 +153,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
   }
 }
 
-case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
   val C = Variable("C")
 
   val allWindowRules = 0 until length.toInt map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, C - i))))
@@ -164,14 +163,14 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
   override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
     val i = IntValue(currentPosition.count.toInt)
 
-    val added = incrementalRule.assign(Assignment(Map( C -> i)))
+    val added = incrementalRule.assign(Assignment(Map(C -> i)))
     val removed = incrementalRule.assign(Assignment(Map(C -> IntValue(i.int - length.toInt))))
 
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
 }
 
-case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
 
   val C: Variable = Variable("C")
   val D: Variable = Variable("D")
@@ -247,7 +246,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
   }
 }
 
-case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder {
+case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder with AllRulesAtomEncoder with IncrementalAtomEncoder {
   val D = Variable("D")
   val C = Variable("C")
 
@@ -257,6 +256,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, ti
   val incrementalRule: NormalRule = AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](PinnedAtom(atom, timeVariable)))
 
   override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
+    // TODO: implement me :)
     null
   }
 }

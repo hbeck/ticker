@@ -10,9 +10,13 @@ import core.lars.{EngineTimeUnit, LarsBasedProgram, LarsRule, TimePoint}
 //to derive window atom encoding
 trait WindowAtomEncoder {
   val length: Long
+}
 
+trait AllRulesAtomEncoder extends WindowAtomEncoder {
   val allWindowRules: Seq[NormalRule] //one-shot/reactive clingo solving: e.g. for window^3 diamond all 4 rules
+}
 
+trait IncrementalAtomEncoder extends WindowAtomEncoder {
   def incrementalRulesAt(tick: CurrentPosition): IncrementalRules
 }
 
@@ -31,7 +35,15 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
 
-  val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)
+  val incrementalEncoders: Seq[IncrementalAtomEncoder] = windowAtomEncoders.collect {
+    case inc: IncrementalAtomEncoder => inc
+  }
+
+  val oneShotWindowRules: Seq[NormalRule] = windowAtomEncoders.
+    collect {
+      case oneShot: AllRulesAtomEncoder => oneShot.allWindowRules
+    }.
+    flatten
 
   // full representation of Lars-Program as asp
   override val rules = baseRules ++ oneShotWindowRules
