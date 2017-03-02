@@ -6,7 +6,6 @@ import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
-import org.scalatest.BeforeAndAfterEach
 
 import scala.util.Random
 
@@ -86,9 +85,9 @@ trait JtmsIncrementalEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
-    tms.shuffle = false
+    tms.shuffle = true
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).withIncremental().start()
+    BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
   }
 }

@@ -13,7 +13,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
 
   def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(
-      AspRule[Atom, Atom](a, Set(now.apply(T), PinnedAtom(a, T))),
+      AspRule[Atom, Atom](a, Set(now(T), PinnedAtom(a, T))),
       AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T), a))
     )
   }

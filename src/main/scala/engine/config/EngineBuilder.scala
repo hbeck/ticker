@@ -1,14 +1,13 @@
 package engine.config
 
-import clingo.reactive.ReactiveClingoProgram
 import clingo.{ClingoConversion, ClingoProgramWithLars, ClingoWrapper}
 import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.reactive.ReactiveEvaluationEngine
-import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
+import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsUpdateAlgorithm
@@ -39,8 +38,8 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 //TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
 case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
 
-  private val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
-  private val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
+  private lazy val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
+  private lazy val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
 
@@ -101,5 +100,5 @@ object ReactiveClingoConfiguration {
 
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {
-  def start() = evaluationEngine
+  def start() = evaluationEngine //TODO hb? why is called start?
 }

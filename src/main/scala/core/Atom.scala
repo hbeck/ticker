@@ -177,38 +177,48 @@ trait PinnedTimeAtom extends PinnedAtom {
   }
 }
 
+// a(\vec{X}) --> a_at(\vec{X},T)
+trait PinnedAtAtom extends PinnedTimeAtom {
+}
+
 // a(\vec{X}) --> a_cnt(\vec{X},C)
 trait PinnedCntAtom extends PinnedAtom {
   val cnt: Argument
   //  override val tick: Argument = count
   override val pinnedArguments: Seq[Argument] = Seq(cnt)
 
-  override val predicate = Predicate(atom.predicate.caption + "_cnt")
+  override val predicate = Predicate(atom.predicate.caption + "_cnt") //TODO hb!
 }
 
-// a(\vec{X}) --> a_at(\vec{X},T)
-trait PinnedAtAtom extends PinnedTimeAtom {
+trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom { //TODO hb: to me, PinnedAtAtom is something specific (i.e., something with_at), not a trait
 
-  //  override lazy val pinnedArguments: Seq[Argument] = Seq(time)
-  //
-  override val predicate = Predicate(atom.predicate.caption + "_at")
-}
-
-trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom {
-
-  override val predicate = Predicate(atom.predicate.caption + "_at_cnt")
+  override val predicate = Predicate(atom.predicate.caption + "_at_cnt") //TODO hb!
   override val pinnedArguments = Seq(time, cnt)
 
 }
 
 object PinnedAtom {
 
-  def apply(atom: Atom, time: Time): PinnedAtAtom = time match {
-    case t: TimePoint if atom.isGround() => ConcretePinnedAtAtom(atom, t)
-    case t: TimePoint => VariablePinnedAtAtom(atom, t)
-    case v: TimeVariableWithOffset => VariablePinnedAtAtom(atom, v)
+  def appendToPredicateCaption(atom:Atom, postFix:String):Atom = {
+    val newPredicate = Predicate(atom.predicate.caption+postFix)
+    atom match {
+      case PredicateAtom(p) => PredicateAtom(newPredicate)
+      case GroundAtomWithArguments(p,args) => GroundAtomWithArguments(newPredicate,args)
+      case NonGroundAtomWithArguments(p,args) => NonGroundAtomWithArguments(newPredicate,args)
+      case _ => throw new RuntimeException("bad use")
+    }
   }
 
+  def apply(atom: Atom, time: Time): PinnedAtAtom = {
+    val newAtom = appendToPredicateCaption(atom,"_at")
+    time match {
+      case t: TimePoint if atom.isGround() => ConcretePinnedAtAtom(newAtom, t)
+      case t: TimePoint => VariablePinnedAtAtom(newAtom, t)
+      case v: TimeVariableWithOffset => VariablePinnedAtAtom(newAtom, v)
+    }
+  }
+
+  //TODO as with PinnedAtAtom
   def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = (time, tick) match {
     case (t: TimePoint, tv: Value) => ConcreteAtCntAtom(atom, t, tv)
     case _ => VariableTimeCntAtom(atom, time, tick)
@@ -416,5 +426,5 @@ case class Sum(x: Argument, y: Argument, z: Argument) extends TernaryNumericRela
 
 case class Product(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   //  override def holds(i: Int, j: Int, k: Int): Boolean = i * j == k
-  override val predicate: Predicate = Predicate("product")
+  override val predicate: Predicate = Predicate("prod")
 }

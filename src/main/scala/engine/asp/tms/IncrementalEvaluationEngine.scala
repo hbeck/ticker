@@ -1,7 +1,7 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, AspRule, NormalRule}
+import core.asp.{AspFact, NormalRule}
 import core.lars.{Assignment, GroundRule, LarsProgramInspection, TimePoint}
 import engine._
 import engine.asp._
@@ -92,7 +92,7 @@ case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tm
     add(grounded toSeq)
 
 
-    remove(incrementalRemove.filter(_.isGround).toSeq)
+    remove(incrementalRemove.filter(_.isGround).toSeq) //TODO hb? why _.isGround filter?
 
     val model = tmsPolicy.getModel(time)
 

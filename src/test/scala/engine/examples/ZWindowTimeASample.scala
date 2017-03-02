@@ -2,10 +2,7 @@ package engine.examples
 
 import core.Atom
 import core.lars._
-import engine._
-import engine.config.BuildEngine
 import fixtures._
-import org.scalatest.{BeforeAndAfter, FlatSpec}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
@@ -40,7 +37,7 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     * *output**** z
     * *output**** i  i
     */
-    //TODO obs hb: shouldn't make a difference in pinninger whether T or U is used (but is!)
+    //TODO obs hb: shouldn't make a difference in pinning whether T or U is used (but is!)
   val program = LarsProgram.from(
     AtAtom(TimeVariableWithOffset(U)+1, z) <= W(2, At(U), a), //@_{U+1}z :- w2 @_U a
     //AtAtom(TimeVariableWithOffset(T,1), z) <= W(2, At(T), a), //TODO hb: must also work! (T vs U)
