@@ -16,18 +16,18 @@ case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
     def test = {
       val engine = TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
 
-      inputs.foreach(i => {
+      inputs.foreach { i => {
         engine.append(i.time)(i.atoms.toSeq: _*)
 
         engine.evaluate(i.time)
-      })
+      }}
     }
 
     // warm up - we need to clear execution times afterwards
-    (1 to warmUps) foreach (i => {
+    (1 to warmUps) foreach { i => {
       test
       Console.println("Warm-up " + i)
-    })
+    }}
 
     appendExecutionTimes.clear()
     evaluateExecutionTimes.clear()

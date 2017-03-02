@@ -44,14 +44,15 @@ class GroundRule[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: Extend
   }
 
   def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]]): Set[TRule] = {
-    val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
     val relationAtoms: Set[AtomWithArgument] = rule.atoms collect { case a: AtomWithArgument if isRelationAtom(a) => a }
-
     def holdsPartially = allGroundedRelationsHold(relationAtoms) _
+
+    val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
 
     val preparedAssignments: Set[Set[(Variable, Value)]] = {
       pairSingletonsPerVariable.reduce((s1, s2) => cross(s1, s2) filter holdsPartially) //filter
     }
+
     val groundRules: Set[TRule] = assign(rule, preparedAssignments) //assign
     groundRules map deleteAuxiliaryAtoms //cut
   }
@@ -186,14 +187,13 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
   val groundIntensionalPredicates = groundIntensionalAtoms map (_.predicate)
 
-  //val groundFactAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundFactAtoms groupBy (_.predicate)
-  //val groundIntensionalAtomsPerPredicate: Map[Predicate, Set[GroundAtom]] = groundIntensionalAtoms groupBy (_.predicate)
+  val groundFactAtomValuesLookup: Map[Predicate, Map[Int, Set[Value]]] = makeValueLookupMap(groundFactAtoms)
+  val groundIntensionalValuesLookup: Map[Predicate, Map[Int, Set[Value]]] = makeValueLookupMap(groundIntensionalAtoms)
 
-  val groundFactAtomValuesLookup: Map[Predicate, Map[Int, Set[Value]]] = makeValueLookupMap(groundFactAtoms groupBy (_.predicate))
-  val groundIntensionalValuesLookup: Map[Predicate, Map[Int, Set[Value]]] = makeValueLookupMap(groundIntensionalAtoms groupBy (_.predicate))
-
-  //("a" -> {a(x,y), a(z,w)})  ==>  ("a" -> (0 -> {x,z}, 1 -> {y,w}))
-  def makeValueLookupMap(atomsPerPredicate: Map[Predicate, Set[GroundAtom]]): Map[Predicate, Map[Int, Set[Value]]] = {
+  //{a(x,y),a(z,w)} ==>  ("a" -> (0 -> {x,z}, 1 -> {y,w}))
+  def makeValueLookupMap(atoms: Set[GroundAtom]): Map[Predicate, Map[Int, Set[Value]]] = {
+    //{a(x,y),a(z,w)} ==> ("a" -> {a(x,y), a(z,w)})
+    val atomsPerPredicate: Map[Predicate, Set[GroundAtom]] = atoms groupBy (_.predicate)
     atomsPerPredicate mapValues { set =>
       set.map {
         case a: AtomWithArgument => a.arguments //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
@@ -259,9 +259,9 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
 
     //pick random, better use the one with minimal number of values
     if (nonGroundFactAtoms.nonEmpty) {
-      val fact = nonGroundFactAtoms.head
-      val idx = fact.positionOf(variable)
-      return groundFactAtomValuesLookup(fact.predicate)(idx)
+      val factAtom = nonGroundFactAtoms.head
+      val idx = factAtom.positionOf(variable)
+      return groundFactAtomValuesLookup(factAtom.predicate)(idx)
     }
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable, Set())
@@ -327,6 +327,8 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
       return groundIntensional
     }
 
+    // must find further values via potential derivations
+
     val justifications: Set[TRule] = justificationsOfNonGroundIntensionalHeadPredicate(predicate)
 
     //first consider head atoms where the given argument appears ground
@@ -347,7 +349,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
     val variableSources: Set[(Predicate, Int)] = justificationsWithVariable flatMap { rule =>
       val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
       val allSources: Set[(Predicate, Int)] = rule.pos collect {
-        //neg ignored!
+        //neg deliberately ignored!
         case x: NonGroundAtom if x.positionOf(variable) >= 0 => (x.predicate, x.positionOf(variable))
       }
       val groundFactAtomSources: Set[(Predicate, Int)] = allSources filter { case (p, i) => groundFactAtomPredicates.contains(p) }
