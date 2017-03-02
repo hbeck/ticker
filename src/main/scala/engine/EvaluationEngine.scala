@@ -16,6 +16,7 @@ trait EvaluationEngine {
 
 trait Result {
   def get: Option[Model]
+  def model: Model = get.get
 }
 
 object EmptyResult extends Result {

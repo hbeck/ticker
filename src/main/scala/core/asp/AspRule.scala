@@ -64,6 +64,8 @@ case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: 
   override def hashCode(): Int = precomputedHash
 
   //    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
+
+
 }
 
 case class AspRuleFromBacktracking(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends NormalRule {

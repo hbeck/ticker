@@ -21,25 +21,25 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     val engine = defaultEngine(program)
 
-    var model = engine.evaluate(TimePoint(0)).get
+    var model = engine.evaluate(TimePoint(0)).model
     assert(model.isEmpty)
 
     val signal = Atom(Predicate("b"),Seq(StringValue("y")))
 
     engine.append(TimePoint(0))(signal)
 
-    model = engine.evaluate(TimePoint(0)).get
+    model = engine.evaluate(TimePoint(0)).model
     assert(model contains signal)
 
     val inference = Atom(Predicate("h"),Seq(StringValue("y")))
 
     for (t <- 0 to 3) {
-      print("evaluate "+t)
-      model = engine.evaluate(TimePoint(t)).get
+      println("evaluate "+t)
+      model = engine.evaluate(TimePoint(t)).model
       assert(model contains inference)
     }
 
-    model = engine.evaluate(TimePoint(4)).get
+    model = engine.evaluate(TimePoint(4)).model
     assert(model.isEmpty)
 
   }

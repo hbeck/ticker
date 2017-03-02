@@ -1,8 +1,8 @@
 package engine.asp.tms
 
-import core.asp._
-import core.lars.{Assignment, T, TimePoint, TimeVariableWithOffset}
 import core._
+import core.asp._
+import core.lars.Assignment
 import engine.asp._
 
 /**
@@ -33,6 +33,12 @@ import engine.asp._
   */
 case class Pin(assignment: Assignment) {
 
+  def apply(aa: AtomWithArgument):Atom = {
+    aa.assign(assignment).asInstanceOf[Atom]
+  }
+
+ /*
+  //TODO why do we have to make a case distinction instead of uniformly calling assign on the AtomWithArgument?
   def apply(aa: AtomWithArgument): AtomWithArgument = aa match {
     case tca: PinnedTimeCntAtom => apply(tca)
     case pa: PinnedTimeAtom => apply(pa)
@@ -48,18 +54,20 @@ case class Pin(assignment: Assignment) {
   def apply(pinnedAtom: PinnedTimeAtom): PinnedAtom = {
 
     val groundedBaseAtom = pinnedAtom.atom match {
-      case pa: PinnedAtom => apply(pa) //TODO hb: infinite circle? if all methods are called apply, it is difficult to understand what's happening
+      case pa: PinnedAtom => apply(pa) //TODO
       case a: Atom => a
     }
 
-    val timeVariables = assignment.binding.collect {
+    val timeVariables = assignment.binding collect {
       case (t: TimeVariableWithOffset, time: TimePoint) => (t.variable, time)
     }
 
     val groundedTimePoint = pinnedAtom.time match {
-      case v: TimeVariableWithOffset if timeVariables.contains(v.variable) => v.calculate(timeVariables(v.variable))
-      // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).) ...
-      case v: TimeVariableWithOffset => v //... probably later, i.e., in the actual grounding. this is pinning.
+      case v: TimeVariableWithOffset => {
+        // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).) ...
+        if (timeVariables.contains(v.variable)) v.calculate(timeVariables(v.variable))
+        else v  //... probably later, i.e., in the actual grounding. this is pinning.
+      }
       case t: TimePoint => t
     }
 
@@ -113,6 +121,7 @@ case class Pin(assignment: Assignment) {
 
     PinnedAtom.asCount(groundedBaseAtom, groundedCount)
   }
+  */
 
   def ground(atom: Atom): Atom = atom match {
     case p: PinnedAtom => {

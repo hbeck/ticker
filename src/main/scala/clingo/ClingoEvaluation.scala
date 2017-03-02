@@ -18,7 +18,6 @@ object ClingoEvaluation {
 
   def apply() = new ClingoEvaluation(ClingoWrapper())
 
-
   private val TimeAtomPattern = "(.+)_at".r
   private val CntAtomPattern = "(.+)_cnt".r
   private val TimeCntAtomPattern = "(.+)_at_cnt".r

@@ -27,6 +27,11 @@ case class Predicate(caption: String) {
   })
 }
 
+trait AtomWrapper {
+  val atom: Atom
+  val predicate = atom.predicate
+}
+
 trait GroundAtom extends Atom {
   override def isGround(): Boolean = true
 
@@ -184,15 +189,10 @@ trait PinnedAtAtom extends PinnedTimeAtom {
 // a(\vec{X}) --> a_cnt(\vec{X},C)
 trait PinnedCntAtom extends PinnedAtom {
   val cnt: Argument
-  //  override val tick: Argument = count
   override val pinnedArguments: Seq[Argument] = Seq(cnt)
-
-  override val predicate = Predicate(atom.predicate.caption + "_cnt") //TODO hb!
 }
 
-trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom { //TODO hb: to me, PinnedAtAtom is something specific (i.e., something with_at), not a trait
-
-  override val predicate = Predicate(atom.predicate.caption + "_at_cnt") //TODO hb!
+trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom {
   override val pinnedArguments = Seq(time, cnt)
 
 }
@@ -212,61 +212,69 @@ object PinnedAtom {
   def apply(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
     time match {
-      case t: TimePoint if atom.isGround() => ConcretePinnedAtAtom(newAtom, t)
-      case t: TimePoint => VariablePinnedAtAtom(newAtom, t)
-      case v: TimeVariableWithOffset => VariablePinnedAtAtom(newAtom, v)
+      case t: TimePoint if atom.isGround() => GroundPinnedAtAtom(newAtom, t)
+      case t: TimePoint => NonGroundPinnedAtAtom(newAtom, t)
+      case v: TimeVariableWithOffset => NonGroundPinnedAtAtom(newAtom, v)
     }
   }
 
-  //TODO as with PinnedAtAtom
-  def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = (time, tick) match {
-    case (t: TimePoint, tv: Value) => ConcreteAtCntAtom(atom, t, tv)
-    case _ => VariableTimeCntAtom(atom, time, tick)
+  def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = {
+    val newAtom = appendToPredicateCaption(atom,"_at_cnt")
+    (time, tick) match {
+      case (t: TimePoint, tv: Value) => GroundAtCntAtom(newAtom, t, tv)
+      case _ => VariableTimeCntAtom(newAtom, time, tick)
+    }
   }
 
-  def asCount(atom: Atom, count: Argument): PinnedCntAtom = count match {
-    case v: Variable => asCount(atom, v)
-    case v: Value => asCount(atom, v)
+  def asCount(atom: Atom, count: Argument): PinnedCntAtom = {
+    val newAtom = appendToPredicateCaption(atom,"_cnt")
+    count match {
+      case v: Variable => NonGroundCountAtom(newAtom, count)
+      case v: Value => if (atom.isGround()) {
+        GroundCountAtom(newAtom, v)
+      } else {
+        NonGroundCountAtom(newAtom, v)
+      }
+    }
   }
 
-  def asCount(atom: Atom, count: Variable): PinnedCntAtom = VariableCountAtom(atom, count)
-
-  def asCount(atom: Atom, count: Value): PinnedCntAtom = if (atom.isGround()) {
-    ConcreteCountAtom(atom, count)
-  } else {
-    VariableCountAtom(atom, count)
-  }
 }
 
-case class ConcreteAtCntAtom(override val atom: Atom, time: TimePoint, cnt: Value) extends PinnedTimeCntAtom with GroundAtom
+case class GroundAtCntAtom(override val atom: Atom, time: TimePoint, cnt: Value) extends PinnedTimeCntAtom with GroundAtom with AtomWrapper
 
-case class ConcretePinnedAtAtom(override val atom: Atom, time: TimePoint) extends PinnedAtAtom with GroundAtom
+case class GroundPinnedAtAtom(override val atom: Atom, time: TimePoint) extends PinnedAtAtom with GroundAtom with AtomWrapper
 
-case class VariablePinnedAtAtom(override val atom: Atom, time: Time) extends PinnedAtAtom with NonGroundAtom {
+//do not distinguish classes for non-ground time variable and non-ground normal variable
+case class NonGroundPinnedAtAtom(override val atom: Atom, time: Time) extends PinnedAtAtom with NonGroundAtom with AtomWrapper {
 
   override def isGround(): Boolean = false
 
-  //assume pinned atoms may have variables only in its special time argument
+  //assume pinned atoms may have variables only in its special time argument TODO hb?
   override def assign(assignment: Assignment): ExtendedAtom = {
     val assignedTime = assignmentForTime(assignment)
-    PinnedAtom(atom.assign(assignment).asInstanceOf[Atom], assignedTime)
+    val assignedAtom = atom.assign(assignment).asInstanceOf[Atom]
+    if (assignedAtom.isGround()) {
+      GroundPinnedAtAtom(assignedAtom, assignedTime.asInstanceOf[TimePoint])
+    } else {
+      NonGroundPinnedAtAtom(assignedAtom, assignedTime)
+    }
   }
 }
 
-case class ConcreteCountAtom(override val atom: Atom, cnt: Value) extends PinnedCntAtom with GroundAtom
+case class GroundCountAtom(override val atom: Atom, cnt: Value) extends PinnedCntAtom with GroundAtom with AtomWrapper
 
-case class VariableCountAtom(override val atom: Atom, cnt: Argument) extends PinnedCntAtom with NonGroundAtom {
+case class NonGroundCountAtom(override val atom: Atom, cnt: Argument) extends PinnedCntAtom with NonGroundAtom with AtomWrapper {
 
   override def isGround(): Boolean = false
 
-  //assume pinned atoms may have variables only in its special time argument
+  //assume pinned atoms may have variables only in its special time argument TODO
   override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(cnt) match {
     case Some(v) => PinnedAtom.asCount(atom.assign(assignment).asInstanceOf[Atom], v)
     case None => this
   }
 }
 
-case class VariableTimeCntAtom(override val atom: Atom, override val time: Time, override val cnt: Argument) extends PinnedTimeCntAtom with NonGroundAtom {
+case class VariableTimeCntAtom(override val atom: Atom, override val time: Time, override val cnt: Argument) extends PinnedTimeCntAtom with NonGroundAtom with AtomWrapper {
 
   override def isGround(): Boolean = false
 

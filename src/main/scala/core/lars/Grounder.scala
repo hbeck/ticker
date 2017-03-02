@@ -282,6 +282,8 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
 
   var valuesForPredicateArg: Map[Predicate, Map[Int, Set[Value]]] = HashMap[Predicate, Map[Int, Set[Value]]]()
 
+  var triedSources: Map[Predicate,Set[Predicate]] = HashMap[Predicate,Set[Predicate]]()
+
   def lookupOrFindValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
 
     var cacheForPredicate: Option[Map[Int, Set[Value]]] = valuesForPredicateArg.get(predicate)
@@ -361,8 +363,10 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
     }
 
     val nonGroundIntensional: Set[Value] = variableSources collect {
-      //escaping infinite loops by pred!=predicate
-      case (pred, idx) if (pred != predicate) => lookupOrFindValuesForPredicateArg(pred, idx)
+      case (pred, idx) if (!triedSources.getOrElse(predicate,Set()).contains(pred)) => {
+        triedSources = triedSources + (predicate -> (triedSources.getOrElse(predicate,Set()) + pred))
+        lookupOrFindValuesForPredicateArg(pred, idx)
+      }
     } flatten
 
     groundIntensional ++ semiGroundIntensional ++ nonGroundIntensional
