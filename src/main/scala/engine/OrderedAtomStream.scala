@@ -35,62 +35,77 @@ import scala.collection.SortedMap
 //
 //}
 
-trait TrackedAtom {
-  val atom: GroundAtom
+trait TrackedSignal {
+  val signal: GroundAtom
   val time: TimePoint
   val position: Long
-
-  lazy val timePinned: PinnedAtAtom = PinnedAtom(atom, time)
-  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(atom, IntValue(position.toInt))
-  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom(atom, time, IntValue(position.toInt))
 }
 
-case class DefaultTrackedAtom(atom: GroundAtom, time: TimePoint, position: Long) extends TrackedAtom
-
-object AtomTracking {
-  def apply(program: ClingoProgramWithLars): AtomTracking[DefaultTrackedAtom] = AtomTracking(program.maximumTimeWindowSizeInTicks, program.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+case class DefaultTrackedSignal(signal: GroundAtom, time: TimePoint, position: Long) extends TrackedSignal {
+  lazy val timePinned: PinnedAtAtom = PinnedAtom(signal, time)
+  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(signal, IntValue(position.toInt))
+  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom(signal, time, IntValue(position.toInt))
 }
 
-case class AtomTracking[TAtom <: TrackedAtom](maxTimeWindowSizeInTicks: Long, maxTupleWindowSize: Long, trackBuilder: (GroundAtom, TimePoint, Long) => TAtom) {
+object SignalTracker {
+  def apply(program: ClingoProgramWithLars): SignalTracker[DefaultTrackedSignal] = SignalTracker(program.maximumTimeWindowSizeInTicks, program.maximumTupleWindowSize, DefaultTrackedSignal.apply)
+}
+
+case class SignalTracker[TTrackedSignal <: TrackedSignal](maxTimeWindowSizeInTicks: Long, maxTupleWindowSize: Long, trackBuilder: (GroundAtom, TimePoint, Long) => TTrackedSignal) {
 
   var tupleCount: Long = 0
-  var signalStream: SortedMap[TimePoint, Seq[TAtom]] = SortedMap.empty[TimePoint, Seq[TAtom]](
+  var signalStream: SortedMap[TimePoint, Seq[TTrackedSignal]] = SortedMap.empty[TimePoint, Seq[TTrackedSignal]](
     Ordering.fromLessThan((l, r) => l.value < r.value)
   )
 
-  def discardOutdatedAtoms(time: TimePoint): Seq[TAtom] = {
+  def discardOutdatedSignals(time: TimePoint): Seq[TTrackedSignal] = {
 
     // TODO: currently we keep more atoms than needed (tuple-bases window!)
-    val atomsToRemove = signalStream.filterKeys(t => t.value < time.value - maxTimeWindowSizeInTicks).
+    val signalsToRemove = signalStream.filterKeys(t => t.value < time.value - maxTimeWindowSizeInTicks).
       filter(_._2.forall(_.position < tupleCount - maxTupleWindowSize))
 
-    signalStream = signalStream -- atomsToRemove.keySet
+    signalStream = signalStream -- signalsToRemove.keySet
 
-    atomsToRemove.
+    signalsToRemove.
       flatMap(_._2).
       toSeq
   }
 
-  def trackAtoms(time: TimePoint, atoms: Seq[Atom]): Seq[TAtom] = {
+  def trackSignals(time: TimePoint, signals: Seq[Atom]): Seq[TTrackedSignal] = {
 
-    val trackedAtoms = atoms.zipWithIndex map { case (atom, position) =>
+    val trackedSignals = signals.zipWithIndex map { case (signal, position) =>
       trackBuilder(
-        GroundAtom.assertGround(atom),
+        GroundAtom.assertGround(signal),
         time.value,
         tupleCount + position + 1 //zip begins with 0, hence + 1
-
       )
     }
 
-    tupleCount = tupleCount + trackedAtoms.size
-    signalStream = signalStream.updated(time, trackedAtoms ++ signalStream.getOrElse(time, Seq()))
+    tupleCount = tupleCount + trackedSignals.size
+    signalStream = signalStream.updated(time, signalStream.getOrElse(time, Seq()) ++ trackedSignals)
 
-    trackedAtoms
+    trackedSignals
   }
 
-  def allTimePoints(time: TimePoint): Seq[TAtom] = signalStream.range(0, time + 1).
-    flatMap(_._2).
-    toSeq
+  def trackSignal(time: TimePoint, signal: Atom): TTrackedSignal = {
+    tupleCount = tupleCount + 1
+
+    val trackedSignal = trackBuilder(
+      GroundAtom.assertGround(signal),
+      time.value,
+      tupleCount
+    )
+
+    signalStream = signalStream.updated(time, signalStream.getOrElse(time, Seq()) :+ trackedSignal)
+
+    trackedSignal
+  }
+
+  def allTimePoints(time: TimePoint): Seq[TTrackedSignal] = {
+    signalStream.range(0, time + 1).
+      flatMap(_._2).
+      toSeq
+  }
 
 
 }

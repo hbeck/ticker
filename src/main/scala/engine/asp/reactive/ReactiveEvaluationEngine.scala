@@ -4,10 +4,9 @@ import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, Tick}
 import clingo.{ClingoEvaluation, ClingoWrapper}
 import common.Resource
 import core._
-import core.asp.{AspFact, NormalRule}
 import core.lars.TimePoint
-import engine.asp._
 import engine._
+import engine.asp._
 
 /**
   * Created by FM on 18.05.16.
@@ -19,7 +18,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
   val runningReactiveClingo = reactiveClingo.executeProgram(clingoProgram)
 
-  val atomTracker = AtomTracking(program.maximumTimeWindowSizeInTicks, program.maximumTupleWindowSize, (g, t, p) => TrackedAtomWithClingo(g, t, p))
+  val signalTracker = SignalTracker(program.maximumTimeWindowSizeInTicks, program.maximumTupleWindowSize, (g, t, p) => TrackedSignalForClingo(g, t, p))
 
   def close() = runningReactiveClingo.close
 
@@ -27,14 +26,15 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
     val groundAtoms = trackAtoms(time, atoms)
 
-    runningReactiveClingo.signal(groundAtoms map (_.clingoArgument))
+    //TODO hb: I commented this to save time
+    //runningReactiveClingo.signal(groundAtoms map (_.clingoArgument))
   }
 
   override def evaluate(time: TimePoint): Result = {
 
     val parameters = Seq(
       Tick(clingoProgram.timeDimension.parameter, time.value),
-      Tick(clingoProgram.countDimension.parameter, atomTracker.tupleCount)
+      Tick(clingoProgram.countDimension.parameter, signalTracker.tupleCount)
     )
 
     val clingoModel = runningReactiveClingo.evaluate(parameters)
@@ -56,19 +56,20 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   }
 
   private def discardOutdatedAtoms(time: TimePoint) = {
-    val atomsToRemove = atomTracker.discardOutdatedAtoms(time)
-
-    runningReactiveClingo.expire(atomsToRemove.map(_.clingoArgument))
+    val signalsToRemove = signalTracker.discardOutdatedSignals(time)
+    //TODO hb I commented this to save time
+    //runningReactiveClingo.expire(signalsToRemove.map(_.clingoArgument))
   }
 
-  private def trackAtoms(time: TimePoint, atoms: Seq[Atom]) = {
-    atomTracker.trackAtoms(time, atoms)
+  private def trackAtoms(time: TimePoint, atoms: Seq[Atom]): Seq[TrackedSignal] = {
+    signalTracker.trackSignals(time, atoms)
   }
 
-  case class TrackedAtomWithClingo(atom: GroundAtom, time: TimePoint, position: Long) extends TrackedAtom {
+  //TODO naming: clingo or reactive clingo?
+  case class TrackedSignalForClingo(signal: GroundAtom, time: TimePoint, position: Long) extends TrackedSignal {
     val timeDimension = Tick(clingoProgram.timeDimension.parameter, time.value)
     val cntDimension = Tick(clingoProgram.countDimension.parameter, position)
-    val clingoArgument = (atom, Seq(timeDimension, cntDimension))
+    val clingoArgument = (signal, Seq(timeDimension, cntDimension))
   }
 
 }

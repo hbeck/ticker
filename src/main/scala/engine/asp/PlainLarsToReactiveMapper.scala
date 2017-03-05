@@ -104,7 +104,7 @@ case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: A
     case _ => t // we want T as parameter so pinning is easy later on
   }
 
-  // we need to unpack the windowAtomEndocding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
+  // we need to unpack the windowAtomEncoding (from the PinnedAtom) in order to create a PinnedAtom(atom, T-k)
   //  private val unpackedWindowAtom = windowAtomEncoding.atom
   private val windowAtomArguments = Atom.unapply(windowAtomEncoding).getOrElse(Seq())
   private val unpackedWindowAtom = Atom(windowAtomEncoding.predicate, windowAtomArguments.dropRight(2))

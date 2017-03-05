@@ -18,7 +18,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   //time of the truth maintenance network due to previous append and result calls
   var networkTime: TimePoint = TimePoint(-1)
-  var signalCount: Long = -1
+  var signalCount: Long = 0
 
   override def append(time: TimePoint)(atoms: Atom*) {
     if (time.value < networkTime.value) {
@@ -40,10 +40,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   //
   //
 
-  //book keeping for auxiliary atoms to handle window logic
-  var tuplePositions: List[Atom] = List()
-
-  val tracker = new AtomTracking(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+  val tracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
 
   var rulesExpiringAtTime: Map[Int,Set[NormalRule]] = HashMap[Int,Set[NormalRule]]()
   var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
@@ -78,20 +75,27 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   }
 
-  private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  //
+  //
+  //
+
+  //book keeping for auxiliary atoms to handle window logic
+  var tuplePositions: List[Atom] = List()
+
+  private def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
     val previousTupleCount = tracker.tupleCount
-    val trackedAtoms = tracker.trackAtoms(time, signalAtoms)
+    val trackedSignals = tracker.trackSignals(time, signalAtoms)
     val currentTupleCount = tracker.tupleCount
 
-    val pinnedSignals = trackedAtoms flatMap asFact
+    val pinnedSignals = trackedSignals flatMap asFacts
 
     // TODO hb: updating instead of recomputing
     // (we have three iterations over all values instead of a single addition of the new atoms;
     //  maybe we should use a data structure that maintains signalStream and entireStreamAsFacts?)
-    val entireStreamAsFacts: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFact).toSet
+    val entireStreamAsFacts: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFacts).toSet
 
     val prevPosition = TickPosition(time,previousTupleCount) //TODO do we have to include time?
     val currPosition = TickPosition(time,currentTupleCount)
@@ -112,14 +116,12 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     add(groundedRulesToAdd)
 
     val outdatedRules = Set[NormalRule]()
-    remove(rulesToRemove)
+    //remove(rulesToRemove)
 
     //TODO update managing structure
 
     tmsPolicy.getModel(time)
   }
-
-
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case p: PinnedAtAtom => p
@@ -132,9 +134,9 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
     val maxWindowTicks = 100
     //TODO
-    val atomsToRemove = tracker.discardOutdatedAtoms(time)
+    val signalsToRemove = tracker.discardOutdatedSignals(time)
 
-    atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
+    signalsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFacts(atom)) }
   }
 
   private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {

@@ -25,7 +25,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
 
-  val tracker = new AtomTracking(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+  val tracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     trackAuxiliaryAtoms(time, atoms)
@@ -33,12 +33,12 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     discardOutdatedAuxiliaryAtoms(time)
   }
 
-  private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
 
-    val tracked = tracker.trackAtoms(time, signalAtoms)
+    val tracked = tracker.trackSignals(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)
 
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
@@ -89,7 +89,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
       case Some(result) => result.get
       case None => {
         if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
-          return UnknownResult
+          return UnknownResult()
         } else {
           prepare(time, Seq()).get
         }
@@ -114,7 +114,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     //val maxWindowTicks = aspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
     val maxWindowTicks = 100
     //TODO
-    val atomsToRemove = tracker.discardOutdatedAtoms(time)
+    val atomsToRemove = tracker.discardOutdatedSignals(time)
 
     atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
   }

@@ -23,15 +23,13 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     val nowFact = AspFact(now(time))
     val cntFact = AspFact(cnt(IntValue(count.toInt)))
 
-
     val signals = dataStream flatMap { s =>
       Seq[AspFact[AtomWithArgument]](
-        AspFact(PinnedAtom(s.atom, s.time)),
-        AspFact(PinnedAtom.asPinnedCntAtom(s.atom, Value(s.position.toInt))),
-        AspFact(PinnedAtom(s.atom, s.time, Value(s.position.toInt)))
+        AspFact(PinnedAtom(s.signal, s.time)),
+        AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.position.toInt))),
+        AspFact(PinnedAtom(s.signal, s.time, Value(s.position.toInt)))
       )
     }
-
 
     val aspResult = interpreter(time, signals ++ Seq(nowFact, cntFact))
 

@@ -3,7 +3,7 @@ package engine.asp
 import core.Atom
 import core.asp.{AspFact, NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint}
-import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
+import engine.asp.tms.TickBasedAspToIncrementalAsp
 
 /**
   * Created by fm on 20/02/2017.
@@ -17,7 +17,7 @@ trait WindowAtomEncoder {
   @deprecated
   def incrementalRulesAt(tick: TickPosition): IncrementalRules
 
-  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule]
+  //def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule]
 }
 
 case class TickPosition(time: TimePoint, count: Long)
@@ -40,19 +40,22 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
    * incremental stuff
    */
 
-  private val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
+  val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
 
-  private val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings flatMap (_.ruleEncodings)) partition (_.isGround)
+  val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings flatMap (_.ruleEncodings)) partition (_.isGround)
 
   val groundRules = Seq[NormalRule]() ++ (backgroundData map (AspFact(_))) ++ groundRuleEncodings
 
+  @deprecated
   def rulesToGround(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
-    val pin = Pin(currPosition.time)
-    val atNewEq: Seq[NormalRule] = nowAndAtNowIdentityRules map (pin.ground(_))
-    val incrementalRules = windowAtomEncoders.flatMap {
-      e => e.pinnedIncrementalRules(prevPosition,currPosition)
-    }
-    atNewEq ++ nonGroundRuleEncodings ++ incrementalRules
+//    val pin = Pin(currPosition.time)
+//    val atNewEq: Seq[NormalRule] = nowAndAtNowIdentityRules map (pin.ground(_))
+//    val incrementalRules = windowAtomEncoders.flatMap {
+//      e => e.pinnedIncrementalRules(prevPosition,currPosition)
+//    }
+//    atNewEq ++ nonGroundRuleEncodings ++ incrementalRules
+    //TODO
+    Seq()
   }
 
   /*

@@ -102,7 +102,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
 
   val incrementalRule: NormalRule = AspRule[Atom, Atom](PinnedAtom(unpackedWindowAtom, T), Set[Atom](PinnedAtom(atom, T)))
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     Seq() //TODO
   }
 
@@ -132,7 +132,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
 
   val incrementalRule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](PinnedAtom(atom, T)))
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     val rules: Seq[Rule[Atom,Atom]] = for (i <- ((prevPosition.time.value + 1) to (currPosition.time.value))) yield {
       incrementalRule.assign(Assignment(Map(T -> TimePoint(i))))
     }
@@ -164,7 +164,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 
   val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom), Set[Atom](PinnedAtom(atom, T)))
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     Seq() //TODO
   }
 
@@ -188,7 +188,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 
   val incrementalRule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](PinnedAtom.asPinnedCntAtom(atom, D)))
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     Seq() //TODO
   }
 
@@ -275,7 +275,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
 
   val incrementalRules = Seq(incrementalSpoilerRule, incrementalSpoilerRule2)
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     Seq() //TODO
   }
 
@@ -298,7 +298,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, ti
 
   val incrementalRule: NormalRule = AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](PinnedAtom(atom, timeVariable)))
 
-  override def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
+  def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
     Seq() //TODO
   }
 
