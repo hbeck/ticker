@@ -14,12 +14,15 @@ trait WindowAtomEncoder {
 
   val allWindowRules: Seq[NormalRule] //one-shot/reactive clingo solving: e.g. for window^3 diamond all 4 rules
 
+  def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration
+
   @deprecated
   def incrementalRulesAt(tick: TickPosition): IncrementalRules
 
   //def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule]
 }
 
+@deprecated
 case class TickPosition(time: TimePoint, count: Long)
 
 
@@ -32,7 +35,14 @@ trait TupleWindowEncoder extends WindowAtomEncoder
    ==>    c(X) :- w_2_d_a(X), w_3_b_b(X)   //ruleEncoding
           atoms w_2_d_a(X)  and  w_3_b_b(X) are called windowAtomEncodings and get their WindowAtomEncoder objects
  */
-case class LarsRuleEncoding(larsRule: LarsRule, ruleEncodings: Set[NormalRule], windowAtomEncoders: Set[WindowAtomEncoder])
+case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomEncoders: Set[WindowAtomEncoder]) {
+  /*
+   * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
+   * in contrast to window rules, we may keep them longer
+   */
+  def ticksUntilExpiration(): TickPair = windowAtomEncoders map (_.ticksUntilIncrementalRulesExpire) reduce ((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
+
+}
 
 case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundData: Set[Atom]) extends NormalProgram with LarsBasedProgram {
 
@@ -42,7 +52,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
 
-  val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings flatMap (_.ruleEncodings)) partition (_.isGround)
+  val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings map (_.aspRule)) partition (_.isGround)
 
   val groundRules = Seq[NormalRule]() ++ (backgroundData map (AspFact(_))) ++ groundRuleEncodings
 
@@ -63,7 +73,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
    */
 
   //note that baseRules do not include the rules to derive the windowAtomEncodings
-  val baseRules = (larsRuleEncodings flatMap (_.ruleEncodings)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
+  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
 
   val (groundBaseRules, nonGroundBaseRules) = baseRules.
     map(TickBasedAspToIncrementalAsp.stripTickAtoms).

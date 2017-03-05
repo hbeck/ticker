@@ -94,6 +94,9 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
 
 
 case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = t) extends TimeWindowEncoder {
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+
   val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
   //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
   //allows the use of an offset).
@@ -110,7 +113,9 @@ case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: A
   private val unpackedWindowAtom = Atom(windowAtomEncoding.predicate, windowAtomArguments.dropRight(2))
 
   val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, time), Set[Atom](now(N), PinnedAtom(atom, time)))
-  val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](unpackedWindowAtom.apply(parameter - i, parameter), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i))))
+  val allWindowRules = (0 to length.toInt) map { i =>
+    AspRule[Atom, Atom](unpackedWindowAtom.apply(parameter - i, parameter), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i)))
+  }
 
   override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = rule.assign(Assignment(Map(t -> i, N -> i)))
@@ -144,10 +149,14 @@ case class ReactiveTimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncodi
 //    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
     null
   }
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
 }
 
 
 case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
 
   val N: Variable = TimeVariableWithOffset("N")
   val spoilerPredicate = Predicate(f"spoil_ti_${length}_${atom.predicate.caption}")
@@ -173,6 +182,9 @@ case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: 
 }
 
 case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+
   val C = TimeVariableWithOffset("C")
   //TODO hb review why time variable?
   val D = Variable("D") //TODO ... and then why this not?
@@ -193,6 +205,8 @@ case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncod
 
 
 case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
 
   val C: Variable = TimeVariableWithOffset("C")
   val D: Variable = TimeVariableWithOffset("D")
@@ -258,6 +272,9 @@ case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding:
 }
 
 case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = t) extends TupleWindowEncoder {
+
+  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+
   val D = TimeVariableWithOffset("D")
   val C = TimeVariableWithOffset("C")
 

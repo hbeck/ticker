@@ -1,8 +1,8 @@
 package lars.transform
 
-import core.{Atom, PinnedAtom, Predicate}
 import core.asp.AspRule
 import core.lars._
+import core.{Atom, PinnedAtom}
 import org.scalatest.Matchers._
 
 /**
@@ -12,13 +12,13 @@ class RuleSpec extends TransformLarsSpec {
   "A fact" should "be transformed into two rules" in {
     val f = LarsFact(a)
 
-    DefaultLarsToPinnedProgram.encodeRule(f).ruleEncodings should have size (1)
+    Set(DefaultLarsToPinnedProgram.encodeRule(f).aspRule) should have size (1)
   }
 
   it should "contain the fact a(T)." in {
     val f = LarsFact(a)
 
-    DefaultLarsToPinnedProgram.encodeRule(f).ruleEncodings should contain(AspRule[Atom,Atom](PinnedAtom(a, T), Set(now(T))))
+    Set(DefaultLarsToPinnedProgram.encodeRule(f).aspRule) should contain(AspRule[Atom,Atom](PinnedAtom(a, T), Set(now(T))))
   }
 
   "A rule containing a window atom wˆ1 b a" should "be transformed into 2 rules" in {

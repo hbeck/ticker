@@ -21,7 +21,7 @@ trait LarsToAspMapper {
       case wa: WindowAtom => windowAtomEncoder(wa)
     }
 
-    LarsRuleEncoding(rule, Set(encodedRule), windowAtomEncoders)
+    LarsRuleEncoding(rule, encodedRule, windowAtomEncoders)
   }
 
   def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)

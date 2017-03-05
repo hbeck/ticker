@@ -12,6 +12,10 @@ package object asp {
   val cnt = Atom("cnt") //used in a_cnt(\vec{X},C)
   val pin = Atom("pin") //used in a_at_cnt(\vec{X},T,C) //pin = time + tick
 
+  //use -1 for infinity
+  type Expiration = TickPair //time, count
+  type TicksUntilExpiration = TickPair
+
   val specialTickAtoms = Seq(now, cnt, pin)
   val specialTickPredicates = specialTickAtoms.map(_.predicate)
 
