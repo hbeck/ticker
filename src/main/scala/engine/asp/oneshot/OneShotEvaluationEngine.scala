@@ -36,7 +36,7 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     val aspResult = interpreter(time, signals ++ Seq(nowFact, cntFact))
 
     val result = aspResult match {
-      case Some(model) => Some(PinnedModelToLarsModel(time, model))
+      case Some(model) => Some(AspModelToLarsModel(time, model))
       case None => None
     }
 

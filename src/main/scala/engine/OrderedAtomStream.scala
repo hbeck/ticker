@@ -66,7 +66,6 @@ case class AtomTracking[TAtom <: TrackedAtom](maxTimeWindowSizeInTicks: Long, ma
 
     signalStream = signalStream -- atomsToRemove.keySet
 
-
     atomsToRemove.
       flatMap(_._2).
       toSeq

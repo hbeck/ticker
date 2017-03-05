@@ -51,20 +51,20 @@ case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: 
 
 }
 
-case class TmsConfiguration(pinnedProgram: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
 
-  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
-  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
+  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
 
-  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(pinnedProgram, policy))
+  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(larsProgramEncoding, policy))
 
 }
 
 object TmsConfiguration {
-  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.pinnedProgram, config.policy))
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.larsProgramEncoding, config.policy))
 }
 
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {

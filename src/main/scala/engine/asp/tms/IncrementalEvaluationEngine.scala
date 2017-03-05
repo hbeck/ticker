@@ -10,36 +10,72 @@ import engine.asp.tms.policies.TmsPolicy
 import scala.collection.immutable.HashMap
 
 /**
-  * Created by FM on 18.05.16.
+  * Created by FM, HB on Feb/Mar 2017.
   */
 case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  //TODO curr
-  /*
-     create special incremental semantic class that wraps larsProgramEncoding.
-     this class is responsible for delivering the new rules for grounding,
-     and the old ones based on the ticks passed
-
-     - to we ensure by the policy etc that prepare is called for each time point?
-       otherwise, we have to explicitly take care of the sequence
-   */
-
-  val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
-
   tmsPolicy.initialize(larsProgramEncoding.groundBaseRules)
+
+  //time of the truth maintenance network due to previous append and result calls
+  var networkTime: TimePoint = TimePoint(-1)
+  var signalCount: Long = -1
+
+  override def append(time: TimePoint)(atoms: Atom*) {
+    if (time.value < networkTime.value) {
+      throw new RuntimeException("out-of-order events are not allowed. new signals for t=" + time + ", system time already at t'=" + networkTime)
+    }
+    updateTime(time)
+    atoms foreach addSignal
+  }
+
+  override def evaluate(time: TimePoint): Result = {
+    if (time.value < networkTime.value) {
+      return new UnknownResult("cannot evaluate previous time t=" + time + ", system time already at t'=" + networkTime)
+    }
+    updateTime(time)
+    tmsPolicy.getModel(time)
+  }
+
+  //
+  //
+  //
 
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
 
   val tracker = new AtomTracking(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedAtom.apply)
 
-  var rulesOutdatedAtTime: Map[Int,Set[NormalRule]] = HashMap[Int,Set[NormalRule]]()
-  var rulesOutdatedAtCnt: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
+  var rulesExpiringAtTime: Map[Int,Set[NormalRule]] = HashMap[Int,Set[NormalRule]]()
+  var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
 
-  override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    trackAuxiliaryAtoms(time, atoms)
-    cachedResults(time) = prepare(time, atoms)
-    discardOutdatedAuxiliaryAtoms(time)
+  def updateTime(time: TimePoint) {
+    if (time.value > networkTime.value) {
+      for (t <- (networkTime.value + 1) to (time.value - 1)) {
+        increaseTimeTo(t,false)
+      }
+      increaseTimeTo(networkTime.value,true)
+    }
+
+    //
+    //trackAuxiliaryAtoms(time, atoms)
+    //cachedResults(time) = prepare(time, atoms)
+    //discardOutdatedAuxiliaryAtoms(time)
+  }
+
+  //the option not to include those rules which expire immediately in a sequence of updates is an immediately available optimization
+  //a more enhanced version would calculate the 'holes', i.e., the sequence of intermediate rules that will not be used (per window atom)
+  //this is a more involved optimization going beyond a pure incremental approach (left for future work)
+  def increaseTimeTo(time: Long, includeImmediatelyExpiringRules: Boolean) {
+
+    //TODO
+
+    networkTime = TimePoint(time)
+  }
+
+  def addSignal(atom: Atom) {
+    //TODO
+
+
   }
 
   private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
@@ -83,24 +119,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     tmsPolicy.getModel(time)
   }
 
-  override def evaluate(time: TimePoint): Result = {
 
-    val resultingModel = cachedResults.get(time) match {
-      case Some(result) => result.get
-      case None => {
-        if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
-          return UnknownResult
-        } else {
-          prepare(time, Seq()).get
-        }
-      }
-    }
-
-    resultingModel match {
-      case Some(m) => Result(Some(m))
-      case None => NoResult
-    }
-  }
 
   def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case p: PinnedAtAtom => p
@@ -110,7 +129,6 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    //TODO current !!!
     //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
     val maxWindowTicks = 100
     //TODO

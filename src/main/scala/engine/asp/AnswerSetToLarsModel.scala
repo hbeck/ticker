@@ -6,7 +6,7 @@ import core.lars.TimePoint
 /**
   * Created by FM on 20.06.16.
   */
-object PinnedModelToLarsModel {
+object AspModelToLarsModel {
   def apply(timePoint: TimePoint, model: PinnedModel): Model = {
 
     val filtered = model filter {
@@ -16,6 +16,5 @@ object PinnedModelToLarsModel {
       case _ => true
     }
     filtered
-    //    filtered map PinnedAspToIncrementalAsp.unpin
   }
 }

@@ -9,10 +9,12 @@ import engine.asp.tms.policies.TmsPolicy
 
 /**
   * Created by FM on 18.05.16.
+  *
+  * //TODO hb: deprecated?
   */
-case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val incrementalProgram = TickBasedAspToIncrementalAsp(pinnedAspProgram)
+  val incrementalProgram = TickBasedAspToIncrementalAsp(larsProgramEncoding)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules.toSet.partition(_.isGround)
 
@@ -23,7 +25,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
   //book keeping for auxiliary atoms to handle window logic
   var tuplePositions: List[Atom] = List()
 
-  val tracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+  val tracker = new AtomTracking(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedAtom.apply)
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     trackAuxiliaryAtoms(time, atoms)
@@ -109,7 +111,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
     //TODO current !!!
-    //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
+    //val maxWindowTicks = aspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
     val maxWindowTicks = 100
     //TODO
     val atomsToRemove = tracker.discardOutdatedAtoms(time)
