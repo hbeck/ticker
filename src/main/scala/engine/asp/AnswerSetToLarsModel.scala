@@ -1,13 +1,12 @@
 package engine.asp
 
-import core.{PinnedAtom, _}
-import core.lars.{LarsBasedProgram, TimePoint}
-import engine.asp.tms.PinnedAspToIncrementalAsp
+import core._
+import core.lars.TimePoint
 
 /**
   * Created by FM on 20.06.16.
   */
-case class PinnedModelToLarsModel(program: LarsBasedProgram) {
+object PinnedModelToLarsModel {
   def apply(timePoint: TimePoint, model: PinnedModel): Model = {
 
     val filtered = model filter {

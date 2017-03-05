@@ -3,9 +3,8 @@ package engine.asp.oneshot
 import clingo.ClingoProgramWithLars
 import core._
 import core.asp.AspFact
-import core.lars.{LarsBasedProgram, LarsProgram, TimePoint}
+import core.lars.TimePoint
 import engine.asp._
-import engine.asp.tms.Pin
 import engine.{Result, _}
 
 /**
@@ -19,8 +18,6 @@ trait OneShotEvaluation {
 
 case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
-  val convertToPinned = PinnedModelToLarsModel(program)
-
   def apply(time: TimePoint, count: Long, dataStream: SignalStream): Result = {
 
     val nowFact = AspFact(now(time))
@@ -28,10 +25,10 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
 
 
     val signals = dataStream flatMap { s =>
-      Seq(
-        AspFact[AtomWithArgument](PinnedAtom(s.atom, s.time)),
-        AspFact[AtomWithArgument](PinnedAtom.asCount(s.atom, Value(s.position.toInt))),
-        AspFact[AtomWithArgument](PinnedAtom(s.atom, s.time, Value(s.position.toInt)))
+      Seq[AspFact[AtomWithArgument]](
+        AspFact(PinnedAtom(s.atom, s.time)),
+        AspFact(PinnedAtom.asPinnedCntAtom(s.atom, Value(s.position.toInt))),
+        AspFact(PinnedAtom(s.atom, s.time, Value(s.position.toInt)))
       )
     }
 
@@ -39,7 +36,7 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     val aspResult = interpreter(time, signals ++ Seq(nowFact, cntFact))
 
     val result = aspResult match {
-      case Some(model) => Some(convertToPinned(time, model))
+      case Some(model) => Some(PinnedModelToLarsModel(time, model))
       case None => None
     }
 

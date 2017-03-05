@@ -40,7 +40,7 @@ object ClingoEvaluation {
 
     val atom = (predicateName, arguments) match {
       case (TimeCntAtomPattern(predicate), Seq(IntValue(t), tick: IntValue)) => PinnedAtom(Atom(predicate), TimePoint(t), tick)
-      case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asCount(Atom(predicate), i)
+      case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asPinnedCntAtom(Atom(predicate), i)
       case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom(Atom(predicate), TimePoint(t))
       case _ => GroundAtom(Predicate(predicateName), arguments)
     }

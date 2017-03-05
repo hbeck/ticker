@@ -1,7 +1,5 @@
 package engine.evaluation
 
-import clingo.ClingoProgramWithLars
-import core.NonGroundAtom
 import engine.asp.{PinnedModel, PinnedModelToLarsModel, now}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
@@ -11,7 +9,7 @@ import org.scalatest.Matchers._
   * Created by FM on 16.05.16.
   */
 class AspEvaluationEngineSpec extends FlatSpec with TimeTestFixtures {
-  val PinnedModelToLarsModel = engine.asp.PinnedModelToLarsModel(ClingoProgramWithLars(Set(), Seq(), 0))
+  //val PinnedModelToLarsModel = engine.asp.PinnedModelToLarsModel(ClingoProgramWithLars(Set(), Seq(), 0))
   "An empty model" should "be empty afterwards" in {
     PinnedModelToLarsModel(t1, Set()) should have size 0
   }

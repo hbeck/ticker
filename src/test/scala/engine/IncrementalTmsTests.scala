@@ -16,7 +16,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     val h = Atom(Predicate("h"),Seq(StringVariable("X")))
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(3), Diamond, b)
+      h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
 
     val engine = defaultEngine(program)
@@ -33,13 +33,19 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     val inference = Atom(Predicate("h"),Seq(StringValue("y")))
 
-    for (t <- 0 to 3) {
-      println("evaluate "+t)
-      model = engine.evaluate(TimePoint(t)).model
-      assert(model contains inference)
-    }
+    println("evaluate 0")
+    model = engine.evaluate(TimePoint(0)).model
+    assert(model contains inference)
 
-    model = engine.evaluate(TimePoint(4)).model
+    println("evaluate 1")
+    model = engine.evaluate(TimePoint(1)).model
+    assert(model contains inference)
+
+    println("evaluate 2")
+    model = engine.evaluate(TimePoint(2)).model
+    assert(model contains inference)
+
+    model = engine.evaluate(TimePoint(3)).model
     assert(model.isEmpty)
 
   }

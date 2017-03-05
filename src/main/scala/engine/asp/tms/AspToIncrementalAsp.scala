@@ -8,9 +8,9 @@ import engine.asp._
 /**
   * Created by FM on 08.06.16.
   *
-  * Remove temporal information (the pinned part, so to speak) from intensional atoms.
+  * methods to remove tick-based information from mapped program (now, cnt stuff)
   */
-object PinnedAspToIncrementalAsp {
+object TickBasedAspToIncrementalAsp {
 
   def unpin(atom: AtomWithArgument): Atom = atom match {
     case p: PinnedAtAtom => unpin(p)
@@ -46,18 +46,16 @@ object PinnedAspToIncrementalAsp {
   }
 
   def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
-    val rulesWithoutNowCntPin = larsProgramEncoding.rules.
-      map(stripTickAtoms)
-
+    val rulesWithoutNowCntPin = larsProgramEncoding.rules map stripTickAtoms
     AspProgram(rulesWithoutNowCntPin.toList)
   }
 
-  def stripTickAtoms(r: NormalRule): NormalRule = {
-    r.
+  def stripTickAtoms(rule: NormalRule): NormalRule = {
+    rule.
       from(
-        r.head,
-        r.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
-        r.neg
+        rule.head,
+        rule.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
+        rule.neg
       ).
       asInstanceOf[NormalRule]
   }

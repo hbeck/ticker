@@ -2,8 +2,7 @@ package engine
 
 import clingo.ClingoProgramWithLars
 import core._
-import core.lars.{LarsBasedProgram, TimePoint}
-import engine.asp.LarsProgramEncoding
+import core.lars.TimePoint
 
 import scala.collection.SortedMap
 
@@ -42,7 +41,7 @@ trait TrackedAtom {
   val position: Long
 
   lazy val timePinned: PinnedAtAtom = PinnedAtom(atom, time)
-  lazy val countPinned: PinnedCntAtom = PinnedAtom.asCount(atom, IntValue(position.toInt))
+  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(atom, IntValue(position.toInt))
   lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom(atom, time, IntValue(position.toInt))
 }
 

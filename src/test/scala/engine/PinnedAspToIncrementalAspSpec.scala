@@ -7,7 +7,7 @@ import core.{not => _, _}
 import engine.asp.{ PlainLarsToAspMapper, now}
 import core.asp.{AspFact, AspRule}
 import core.lars.{Diamond, LarsProgram, UserDefinedLarsRule, W}
-import engine.asp.tms.PinnedAspToIncrementalAsp
+import engine.asp.tms.TickBasedAspToIncrementalAsp
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
@@ -24,19 +24,19 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   "A rule containing a normal Atom" should "not be modified" in {
     val rule: AspRule[AtomWithArgument] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
 
-    PinnedAspToIncrementalAsp(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
+    TickBasedAspToIncrementalAsp(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
   }
 
   "now(T)" should "be removed from a normal rule" in {
     val r: AspRule[AtomWithArgument] = AspRule[AtomWithArgument, AtomWithArgument](PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(T)))
 
-    PinnedAspToIncrementalAsp(r, Set()).body should not contain (now(T))
+    TickBasedAspToIncrementalAsp(r, Set()).body should not contain (now(T))
   }
 
   "The head of a transformed rule" should "not be pinned" in {
     val r: AspRule[AtomWithArgument] = AspRule[AtomWithArgument, AtomWithArgument](PinnedAtom(a, t0), Set(PinnedAtom(b, t0), now(t0)))
 
-    PinnedAspToIncrementalAsp(r, Set()).head shouldBe an[PredicateAtom]
+    TickBasedAspToIncrementalAsp(r, Set()).head shouldBe an[PredicateAtom]
   }
 
   "Window-Atoms" should "have no pinned head" in {
@@ -70,7 +70,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
     val p = LarsProgram.from(a <= windowAtom)
     val mappedProgram = LarsToPinnedProgram(p)
 
-    val converted = PinnedAspToIncrementalAsp(mappedProgram)
+    val converted = TickBasedAspToIncrementalAsp(mappedProgram)
 
     forAll(converted.rules)(r => r.body should not contain (LarsToPinnedProgram.windowAtomEncoder(windowAtom).allWindowRules))
   }
@@ -83,7 +83,7 @@ class PinnedAspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
 
     val mappedProgram = LarsToPinnedProgram(p)
 
-    val converted = PinnedAspToIncrementalAsp(mappedProgram)
+    val converted = TickBasedAspToIncrementalAsp(mappedProgram)
 
     forAll(converted.rules)(r => r.body should not contain LarsToPinnedProgram.encodingAtom(a))
 

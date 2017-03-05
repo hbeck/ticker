@@ -14,12 +14,13 @@ import scala.collection.immutable.HashMap
 case class Grounder(program: LarsProgram) {
 
   val inspect = LarsProgramInspection(program)
-  val groundRules = program.rules flatMap new GroundRule[LarsRule, HeadAtom, ExtendedAtom].ground(inspect)
+  val preparedRuleGrounder = new RuleGrounder[LarsRule, HeadAtom, ExtendedAtom]().ground(inspect) _
+  val groundRules = program.rules flatMap preparedRuleGrounder
   val groundProgram = LarsProgram(groundRules)
 
 }
 
-class GroundRule[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom] {
+class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   import Grounder._
 
@@ -162,6 +163,7 @@ object LarsProgramInspection {
   def from(rules: Seq[NormalRule]): LarsProgramInspection[NormalRule, Atom, Atom] = LarsProgramInspection[NormalRule, Atom, Atom](rules)
 }
 
+//TODO Lars?
 case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
 
   //ignore AtAtoms throughout TODO

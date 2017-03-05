@@ -209,6 +209,7 @@ object PinnedAtom {
     }
   }
 
+  //TODO better rename to asPinnedAtAtom
   def apply(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
     time match {
@@ -218,6 +219,7 @@ object PinnedAtom {
     }
   }
 
+  //TODO better rename to asPinnedTimeCntAtom
   def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at_cnt")
     (time, tick) match {
@@ -226,7 +228,7 @@ object PinnedAtom {
     }
   }
 
-  def asCount(atom: Atom, count: Argument): PinnedCntAtom = {
+  def asPinnedCntAtom(atom: Atom, count: Argument): PinnedCntAtom = {
     val newAtom = appendToPredicateCaption(atom,"_cnt")
     count match {
       case v: Variable => NonGroundCountAtom(newAtom, count)
@@ -269,7 +271,7 @@ case class NonGroundCountAtom(override val atom: Atom, cnt: Argument) extends Pi
 
   //assume pinned atoms may have variables only in its special time argument TODO
   override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(cnt) match {
-    case Some(v) => PinnedAtom.asCount(atom.assign(assignment).asInstanceOf[Atom], v)
+    case Some(v) => PinnedAtom.asPinnedCntAtom(atom.assign(assignment).asInstanceOf[Atom], v)
     case None => this
   }
 }

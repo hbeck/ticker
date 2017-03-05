@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp._
-import core.lars.Assignment
+import core.lars.{Assignment, TimePoint}
 import engine.asp._
 
 /**
@@ -163,6 +163,40 @@ case class Pin(assignment: Assignment) {
       ground(this.apply(pinnedAspRule.head)),
       pinnedAspRule.pos map this.apply map this.ground,
       pinnedAspRule.neg map this.apply map this.ground
+    )
+  }
+}
+
+object Pin {
+
+  def apply(time: TimePoint):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.T -> time
+        )
+      )
+    )
+  }
+
+  def apply(count: Long):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.C -> IntValue(count.toInt)
+        )
+      )
+    )
+  }
+
+  def apply(time: TimePoint, count: Long):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.T -> time,
+          core.lars.C -> IntValue(count.toInt)
+        )
+      )
     )
   }
 }

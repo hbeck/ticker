@@ -129,7 +129,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(jtms: TruthMaintenanceNetwork, ran
     Some(atoms)
   }
 
-
   override def set(model: collection.immutable.Set[Atom]): Boolean = {
     invalidateModel()
     //model foreach (status(_) = in)

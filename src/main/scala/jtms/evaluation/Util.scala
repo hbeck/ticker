@@ -6,7 +6,7 @@ import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import core.lars._
 import engine.asp.{PlainLarsToAspMapper}
-import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
+import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 
 import scala.concurrent.duration.Duration
 import scala.io.{BufferedSource, Source}
@@ -79,7 +79,7 @@ object Util {
 
     val aspProgramWithVariables = PlainLarsToAspMapper(tickSize)(groundLarsProgram)
 
-    val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
+    val incrementalProgram = TickBasedAspToIncrementalAsp(aspProgramWithVariables)
 
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 

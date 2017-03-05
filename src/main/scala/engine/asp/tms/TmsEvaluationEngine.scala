@@ -1,19 +1,18 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, NormalFact, NormalRule}
-import core.lars.{Assignment, GroundRule, LarsProgramInspection, TimePoint}
+import core.asp.{AspFact, NormalRule}
+import core.lars.{Assignment, LarsProgramInspection, RuleGrounder, TimePoint}
+import engine._
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine._
 
 /**
   * Created by FM on 18.05.16.
   */
 case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
-  val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
+  val incrementalProgram = TickBasedAspToIncrementalAsp(pinnedAspProgram)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules.toSet.partition(_.isGround)
 
@@ -50,7 +49,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
     val groundHeadsAsFacts: Set[NormalRule] = groundTimeVariableCalculations filter (_.isGround) map (g => AspFact[Atom](g.head))
-    val grounder = new GroundRule[NormalRule, Atom, Atom]()
+    val grounder = new RuleGrounder[NormalRule, Atom, Atom]()
     val inspectWithAllSignals = LarsProgramInspection.from((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toSeq)
     // TODO: grounding fails here
     val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals) toSeq
