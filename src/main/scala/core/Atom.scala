@@ -184,17 +184,39 @@ trait PinnedTimeAtom extends PinnedAtom {
 
 // a(\vec{X}) --> a_at(\vec{X},T)
 trait PinnedAtAtom extends PinnedTimeAtom {
+  def resetPin(time: Time): PinnedAtAtom = {
+    time match {
+      case t: TimePoint if atom.isGround() => GroundPinnedAtAtom(atom, t)
+      case t: TimePoint => NonGroundPinnedAtAtom(atom, t)
+      case v: TimeVariableWithOffset => NonGroundPinnedAtAtom(atom, v)
+    }
+  }
 }
 
 // a(\vec{X}) --> a_cnt(\vec{X},C)
 trait PinnedCntAtom extends PinnedAtom {
   val cnt: Argument
   override val pinnedArguments: Seq[Argument] = Seq(cnt)
+  def resetPin(count: Argument): PinnedCntAtom = {
+    count match {
+      case v: Variable => NonGroundCountAtom(atom, count)
+      case v: Value => if (atom.isGround()) {
+        GroundCountAtom(atom, v)
+      } else {
+        NonGroundCountAtom(atom, v)
+      }
+    }
+  }
 }
 
 trait PinnedTimeCntAtom extends PinnedAtAtom with PinnedCntAtom {
   override val pinnedArguments = Seq(time, cnt)
-
+  def resetPin(time: Time, count: Argument): PinnedTimeCntAtom = {
+    (time, count) match {
+      case (t: TimePoint, v: Value) => GroundAtCntAtom(atom, t, v)
+      case _ => VariableTimeCntAtom(atom, time, count)
+    }
+  }
 }
 
 object PinnedAtom {
@@ -209,7 +231,8 @@ object PinnedAtom {
     }
   }
 
-  //TODO better rename to asPinnedAtAtom
+  //TODO better rename to asPinnedAtAtom (below)
+  @deprecated
   def apply(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
     time match {
@@ -219,12 +242,30 @@ object PinnedAtom {
     }
   }
 
-  //TODO better rename to asPinnedTimeCntAtom
-  def apply(atom: Atom, time: Time, tick: Argument): PinnedTimeCntAtom = {
+  def asPinnedAtAtom(atom: Atom, time: Time): PinnedAtAtom = {
+    val newAtom = appendToPredicateCaption(atom,"_at")
+    time match {
+      case t: TimePoint if atom.isGround() => GroundPinnedAtAtom(newAtom, t)
+      case t: TimePoint => NonGroundPinnedAtAtom(newAtom, t)
+      case v: TimeVariableWithOffset => NonGroundPinnedAtAtom(newAtom, v)
+    }
+  }
+
+  //TODO better rename to asPinnedTimeCntAtom (below)
+  @deprecated
+  def apply(atom: Atom, time: Time, count: Argument): PinnedTimeCntAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at_cnt")
-    (time, tick) match {
+    (time, count) match {
       case (t: TimePoint, tv: Value) => GroundAtCntAtom(newAtom, t, tv)
-      case _ => VariableTimeCntAtom(newAtom, time, tick)
+      case _ => VariableTimeCntAtom(newAtom, time, count)
+    }
+  }
+
+  def asPinnedAtCntAtom(atom: Atom, time: Time, count: Argument): PinnedTimeCntAtom = {
+    val newAtom = appendToPredicateCaption(atom,"_at_cnt")
+    (time, count) match {
+      case (t: TimePoint, tv: Value) => GroundAtCntAtom(newAtom, t, tv)
+      case _ => VariableTimeCntAtom(newAtom, time, count)
     }
   }
 

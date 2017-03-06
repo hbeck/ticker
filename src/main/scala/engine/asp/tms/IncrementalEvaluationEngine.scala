@@ -11,6 +11,8 @@ import scala.collection.immutable.HashMap
 
 /**
   * Created by FM, HB on Feb/Mar 2017.
+  *
+  * (this class does the grounding, pinning is done by the IncrementalRuleMaker)
   */
 case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
@@ -56,18 +58,17 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
     networkTime = TimePoint(time)
 
-    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.incrementalRulesForTime(time) //may contain ground rules
-    val rulesToAdd = groundAndRegister(incrementalRules)
+    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundAt(networkTime) //may contain ground rules
+    val rulesToAdd = groundAndRegisterExpiration(incrementalRules)
 
     tmsPolicy.add(networkTime)(rulesToAdd)
 
     val rulesToRemove = expirationHandling.unregisterExpiredByNetworkTime()
     tmsPolicy.remove(networkTime)(rulesToRemove)
 
-    discardOutdatedSignals() //TODO integrate in expirationHandling
   }
 
-  def groundAndRegister(rules: Seq[(Expiration,NormalRule)]): Seq[NormalRule] = {
+  def groundAndRegisterExpiration(rules: Seq[(Expiration,NormalRule)]): Seq[NormalRule] = {
 
     val rulesToGround = rules map { case (_,r) => r }
 
@@ -91,18 +92,16 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     tupleCount = tupleCount + 1
 
     val signalFacts: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.factsForSignal(trackedSignal)
-    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.incrementalRulesForSignal(trackedSignal) //may contain ground rules
+    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForSignal(trackedSignal) //may contain ground rules
 
     expirationHandling.register(signalFacts)
-    val rulesToAdd = groundAndRegister(incrementalRules)
+    val rulesToAdd = groundAndRegisterExpiration(incrementalRules)
 
     tmsPolicy.add(networkTime)(signalFacts map { case (e,r) => r})
     tmsPolicy.add(networkTime)(rulesToAdd)
 
     val rulesToRemove = expirationHandling.unregisterExpiredByCount()
     tmsPolicy.remove(networkTime)(rulesToRemove)
-
-    discardOutdatedSignals() //TODO integrate in expirationHandling
 
   }
 
@@ -155,59 +154,14 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   @deprecated
   def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
-  def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
-    val previousTupleCount = signalTracker.tupleCount
-    val trackedSignals = signalTracker.track(time, signalAtoms)
-    val currentTupleCount = signalTracker.tupleCount
 
-    val pinnedSignals = trackedSignals flatMap asFacts
-
-    // TODO hb: updating instead of recomputing
-    // (we have three iterations over all values instead of a single addition of the new signals;
-    //  maybe we should use a data structure that maintains signalStream and entireStreamAsFacts?)
-    val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(time).flatMap(asFacts).toSet
-
-    val prevPosition = TickPosition(time,previousTupleCount) //TODO do we have to include time?
-    val currPosition = TickPosition(time,currentTupleCount)
-
-    val rulesToGround = larsProgramEncoding.rulesToGround(prevPosition,currPosition)
-
-    //TODO incrementally update inspection
-    val inspection = LarsProgramInspection.from(rulesToGround ++ entireStreamAsFacts)
-    val preparedRuleGrounder = new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection) _
-    val groundedRulesToAdd = rulesToGround flatMap preparedRuleGrounder
-
-    val add = tmsPolicy.add(time) _
-    val remove = tmsPolicy.remove(time) _
-
-    // separating the calls ensures maximum on support for rules
-    // facts first
-    add(pinnedSignals)
-    add(groundedRulesToAdd)
-
-    val outdatedRules = Set[NormalRule]()
-    //remove(rulesToRemove)
-
-    //TODO update managing structure
-
-    tmsPolicy.getModel(time)
-  }
-
-  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
-    case p: PinnedAtAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => GroundPinnedAtAtom(Atom(p), t)
-    // in incremental mode we assume that all (resulting) signals are meant to be at T
-    case a: Atom => PinnedAtom(a, timePoint)
-  }
-
-  def discardOutdatedSignals() = {
-    val maxWindowTicks = 1000
-
-    val signalsToRemove = signalTracker.discardOutdatedSignals(networkTime)
-
-    signalsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFacts(atom)) }
-  }
+//  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
+//    case p: PinnedAtAtom => p
+//    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => GroundPinnedAtAtom(Atom(p), t)
+//    // in incremental mode we assume that all (resulting) signals are meant to be at T
+//    case a: Atom => PinnedAtom(a, timePoint)
+//  }
 
   //private def trackSignals(time: TimePoint, signals: Seq[Atom]) = {
   //  tuplePositions = signals.toList ++ tuplePositions

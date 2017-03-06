@@ -14,8 +14,8 @@ package object lars {
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
   //TODO hb move to engine asp package (like now/cnt/pin)
-  val T = TimeVariableWithOffset(Variable("T"))
-  val C = Variable("C")
+  val TimePinVariable = TimeVariableWithOffset(Variable("NN"))
+  val CountPinVariable = Variable("CC")
   val D = Variable("D")
 
   val U = Variable("U")

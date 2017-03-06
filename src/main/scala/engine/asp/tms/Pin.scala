@@ -173,7 +173,7 @@ object Pin {
     Pin(
       Assignment(
         Map(
-          core.lars.T -> time
+          core.lars.TimePinVariable -> time
         )
       )
     )
@@ -183,7 +183,7 @@ object Pin {
     Pin(
       Assignment(
         Map(
-          core.lars.C -> IntValue(count.toInt)
+          core.lars.CountPinVariable -> IntValue(count.toInt)
         )
       )
     )
@@ -193,8 +193,8 @@ object Pin {
     Pin(
       Assignment(
         Map(
-          core.lars.T -> time,
-          core.lars.C -> IntValue(count.toInt)
+          core.lars.TimePinVariable -> time,
+          core.lars.CountPinVariable -> IntValue(count.toInt)
         )
       )
     )

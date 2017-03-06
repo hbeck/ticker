@@ -18,6 +18,7 @@ package object asp {
   //type Outdate = TickPair //time, count
   type TicksUntilExpiration = TickPair
   type TicksUntilOutdated = TickPair
+  type Tick = TickPair
 
   val specialTickAtoms = Seq(now, cnt, pin)
   val specialTickPredicates = specialTickAtoms.map(_.predicate)

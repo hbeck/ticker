@@ -9,24 +9,23 @@ import engine.asp.tms.Pin
 
 /**
   * Created by hb on 05.03.17.
+  *
+  * (this class does the pinning, grounding is done by the IncrementalEvaluationEngine)
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
 
-  val R: Seq[(Expiration,NormalRule)] = larsProgramEncoding.larsRuleEncodings map (e => (e.ticksUntilOutdated,e.aspRule))
+  val R: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.larsRuleEncodings map (e => (e.ticksUntilOutdated,e.aspRule))
   val Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules
   val W = larsProgramEncoding.windowAtomEncoders
 
-  val (nonExpiringR,expiringR) = R partition (tuple => tuple._1.time == -1 && tuple._1.count == -1)
+  val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == -1 && ticks.count == -1 }
 
-  //rules that cannot be pinned and thus are not expiring. i.e., ground rules (not mentioning time variables) and those which can be kept
-  //due to setting their expiration to -1. this can be done for all lars rule encodings (but not incremental window rules)
-  //def nonExpiringRules() = nonExpiringR
-  def incrementalRulesForTime(time: TimePoint): Seq[(Expiration,NormalRule)] = {
+  def allRulesToGroundAt(time: TimePoint): Seq[(Expiration,NormalRule)] = {
 
     val pin = Pin(time)
     val nextTime: Expiration = TickPair(time.value + 1, -1)
 
-    val pinnedQ = Q map (rule => (nextTime, pin.ground(rule)))
+    val pinnedQ = Q map (rule => (nextTime, pin.ground(rule))) //TODO pinning here vs in encoding
 
     val pinnedExpiringR = expiringR map {
       case (tickPair,rule) => (tickPair,pin.ground(rule))
@@ -45,7 +44,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
     //TODO
     Seq()
   }
-  def incrementalRulesForSignal(trackedSignal: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
+  def allRulesToGroundForSignal(trackedSignal: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
     //TODO
     Seq()
   }

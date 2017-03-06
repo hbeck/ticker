@@ -21,7 +21,7 @@ object TickBasedAspToIncrementalAsp {
     case p: PinnedAtom => p
     case _ => pinned.arguments match {
       case pinned.time :: Nil => pinned.time match {
-        case t: TimeVariableWithOffset if t.variable == T.variable => pinned.atom
+        case t: TimeVariableWithOffset if t.variable == TimePinVariable.variable => pinned.atom
         case p: TimePoint => pinned.atom
         case _ => pinned
       }

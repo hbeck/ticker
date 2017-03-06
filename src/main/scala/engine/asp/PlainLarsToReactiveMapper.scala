@@ -2,7 +2,7 @@ package engine.asp
 
 import core._
 import core.asp.{AspFact, AspRule, NormalProgram, NormalRule}
-import core.lars.{TimeUnit => _, T => _, _}
+import core.lars.{TimeUnit => _, TimePinVariable => _, _}
 
 import scala.concurrent.duration._
 
@@ -117,7 +117,7 @@ case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: A
     AspRule[Atom, Atom](unpackedWindowAtom.apply(parameter - i, parameter), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i)))
   }
 
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = rule.assign(Assignment(Map(t -> i, N -> i)))
 //    val removed = rule.assign(Assignment(Map(t -> IntValue(i.int - length.toInt), N -> i)))
 //
@@ -142,7 +142,7 @@ case class ReactiveTimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncodi
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(t), PinnedAtom(atom, t - i))))
 
   //TODO hb prepared for later use
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = rule.assign(Assignment(Map(t -> i, N -> i)))
 //    val removed = rule.assign(Assignment(Map(t -> IntValue(i.int - length.toInt), N -> i)))
 //
@@ -171,7 +171,7 @@ case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: 
 
   val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(N)), Set[Atom](PinnedAtom(atom, t)))
 
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = incrementalRule.assign(Assignment(Map(N -> tick, t -> tick)))
 //    val removed = incrementalRule.assign(Assignment(Map(N -> tick, t -> IntValue(tick.int - length.toInt))))
 
@@ -194,7 +194,7 @@ case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncod
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asPinnedCntAtom(atom, C - i))))
 
 
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = rule.assign(Assignment(Map(D -> i, C -> i)))
 //    val removed = rule.assign(Assignment(Map(D -> IntValue(i.int - length.toInt), C -> i)))
 //
@@ -261,7 +261,7 @@ case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding:
 
   val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(C)), Set[Atom](PinnedAtom(atom, t)))
 
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
 //    val added = incrementalRule.assign(Assignment(Map(C -> tick, t -> tick)))
 //    val removed = incrementalRule.assign(Assignment(Map(C -> tick, t -> IntValue(tick.int - length.toInt))))
 
@@ -283,7 +283,7 @@ case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: 
   // at atoms got their parameter already encoded
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, timeVariable, D), Sum(D, IntValue(-i), D))))
 
-  override def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
+  def incrementalRulesAt(currentPosition: TickPosition): IncrementalRules = {
     null
   }
 }

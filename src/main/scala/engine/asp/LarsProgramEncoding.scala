@@ -17,15 +17,15 @@ trait WindowAtomEncoder {
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
 
-  @deprecated
-  def incrementalRulesAt(tick: TickPosition): IncrementalRules
+}
 
-  //def pinnedIncrementalRules(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule]
+trait IncrementallyPinnedRules {
+  //retrieve incremental rules, pinned by given tick
+  def rulesToGroundAt(tick: Tick): Seq[(Expiration,NormalRule)]
 }
 
 @deprecated
 case class TickPosition(time: TimePoint, count: Long)
-
 
 trait TimeWindowEncoder extends WindowAtomEncoder
 
@@ -41,7 +41,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TickPair = windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated) reduce ((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TicksUntilOutdated = windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated) reduce ((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
 
 }
 
