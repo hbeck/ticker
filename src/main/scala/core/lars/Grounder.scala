@@ -14,7 +14,7 @@ import scala.collection.immutable.HashMap
 case class Grounder(program: LarsProgram) {
 
   val inspect = LarsProgramInspection(program)
-  val preparedRuleGrounder = new RuleGrounder[LarsRule, HeadAtom, ExtendedAtom]().ground(inspect) _
+  val preparedRuleGrounder = new RuleGrounder[LarsRule, HeadAtom, ExtendedAtom]().groundWith(inspect) _
   val groundRules = program.rules flatMap preparedRuleGrounder
   val groundProgram = LarsProgram(groundRules)
 
@@ -24,7 +24,7 @@ class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: Exte
 
   import Grounder._
 
-  def ground(inspect: LarsProgramInspection[TRule, _, _])(rule: TRule): Set[TRule] = {
+  def groundWith(inspect: LarsProgramInspection[TRule, _, _])(rule: TRule): Set[TRule] = {
     if (rule isGround) {
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms

@@ -23,15 +23,15 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     if (time.value < networkTime.value) {
       throw new RuntimeException("out-of-order events are not allowed. new signals for t=" + time + ", system time already at t'=" + networkTime)
     }
-    updateTime(time)
-    atoms foreach addToTms
+    updateNetworkTimeTo(time)
+    atoms foreach addSignalAtNetworkTime
   }
 
   override def evaluate(time: TimePoint): Result = {
     if (time.value < networkTime.value) {
       return new UnknownResult("cannot evaluate previous time t=" + time + ", system time already at t'=" + networkTime)
     }
-    updateTime(time)
+    updateNetworkTimeTo(time)
     tmsPolicy.getModel(time)
   }
 
@@ -41,40 +41,76 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   val signalTracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
 
-  var rulesExpiringAtTime: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
-  var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
-
   val incrementalRuleMaker = IncrementalRuleMaker(larsProgramEncoding)
 
-  def updateTime(time: TimePoint) {
+  def updateNetworkTimeTo(time: TimePoint) {
     if (time.value > networkTime.value) {
-      for (t <- (networkTime.value + 1) to (time.value - 1)) {
-        singleTimeIncrementTo(t, false)
+      for (t <- (networkTime.value + 1) to (time.value)) {
+        singleTimeIncrementTo(t)
       }
-      singleTimeIncrementTo(networkTime.value, true)
     }
-
-    discardOutdatedSignals(time)
   }
 
-  //the option not to include those rules which expire immediately in a sequence of updates is an immediately available optimization
-  //a more enhanced version would calculate the 'holes', i.e., the sequence of intermediate rules that will not be used (per window atom)
-  //this is a more involved optimization going beyond a pure incremental approach (left for future work)
-  def singleTimeIncrementTo(time: Long, includeImmediatelyExpiringRules: Boolean) {
-
-    incrementalRuleMaker.rulesForTime(time,includeImmediatelyExpiringRules)
-
-    //TODO
+  def singleTimeIncrementTo(time: Long) {
 
     networkTime = TimePoint(time)
+
+    val rules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesForTime(time) //may contain ground rules
+    val rulesToGround = rules map { case (_,r) => r }
+
+    val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(time).flatMap(asFacts).toSet //TODO incremental
+    val inspection = LarsProgramInspection.from(rulesToGround ++ entireStreamAsFacts) //TODO incremental
+    val ground = new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection) _
+
+    //expiration date of non-ground rule carries over to grounding (flat representation for grouping later)
+    val groundRulesWithExpiration: Seq[(Expiration, NormalRule)]  = rules flatMap { case (expiration,rule) =>
+        ground(rule) map (groundRule => (expiration,groundRule))
+    }
+
+    expirationHandling.register(groundRulesWithExpiration)
+
+    val rulesToAdd = groundRulesWithExpiration map { case (_,r) => r }
+    tmsPolicy.add(time)(rulesToAdd)
+
+    val rulesToRemove = expirationHandling.unregisterExpiredByNetworkTime()
+    tmsPolicy.remove(time)(rulesToRemove)
+
+    discardOutdatedSignals() //TODO integrate in expirationHandling
   }
 
-  def addToTms(signal: Atom) {
-    signalTracker.trackSignal(networkTime, signal)
+  def addSignalAtNetworkTime(signal: Atom) {
+    signalTracker.track(networkTime, signal)
     //TODO
 
+  }
 
+  object expirationHandling {
 
+    var rulesExpiringAtTime: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
+    var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
+
+    def register(rules: Seq[(Expiration,NormalRule)]) = {
+      val groupedByTime: Map[Long, Seq[(Long, NormalRule)]] = rules collect { case (e,r) if (e.time != -1) => (e.time,r) } groupBy { case (t,_) => t }
+      val groupedByCount: Map[Long, Seq[(Long, NormalRule)]] = rules collect { case (e,r) if (e.count != -1) => (e.count,r) } groupBy { case (c,_) => c }
+      groupedByTime foreach { case (t,seq) =>
+        val rules = seq map { case (t,r) => r }
+        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t,Set()) ++ rules)
+      }
+      groupedByCount foreach { case (c,seq) =>
+        val rules = seq map { case (c,r) => r }
+        rulesExpiringAtCount = rulesExpiringAtTime updated (c, rulesExpiringAtCount.getOrElse(c,Set()) ++ rules)
+      }
+    }
+
+    def unregisterExpiredByNetworkTime(): Seq[NormalRule] = {
+      val time = networkTime.value
+      if (!rulesExpiringAtTime.contains(time)) {
+        return Seq()
+      }
+      val rules: Set[NormalRule] = rulesExpiringAtTime.get(time).get
+      rulesExpiringAtTime = rulesExpiringAtTime - time
+      rules.toSeq
+    }
   }
 
   //
@@ -106,7 +142,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
     //TODO incrementally update inspection
     val inspection = LarsProgramInspection.from(rulesToGround ++ entireStreamAsFacts)
-    val preparedRuleGrounder = new RuleGrounder[NormalRule,Atom,Atom]().ground(inspection) _
+    val preparedRuleGrounder = new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection) _
     val groundedRulesToAdd = rulesToGround flatMap preparedRuleGrounder
 
     val add = tmsPolicy.add(time) _
@@ -132,11 +168,10 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     case a: Atom => PinnedAtom(a, timePoint)
   }
 
-  def discardOutdatedSignals(time: TimePoint) = {
-    //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
-    val maxWindowTicks = 100
-    //TODO
-    val signalsToRemove = signalTracker.discardOutdatedSignals(time)
+  def discardOutdatedSignals() = {
+    val maxWindowTicks = 1000
+
+    val signalsToRemove = signalTracker.discardOutdatedSignals(networkTime)
 
     signalsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFacts(atom)) }
   }

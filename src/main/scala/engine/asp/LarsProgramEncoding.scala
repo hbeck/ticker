@@ -14,7 +14,8 @@ trait WindowAtomEncoder {
 
   val allWindowRules: Seq[NormalRule] //one-shot/reactive clingo solving: e.g. for window^3 diamond all 4 rules
 
-  def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration
+  //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
+  def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
 
   @deprecated
   def incrementalRulesAt(tick: TickPosition): IncrementalRules
@@ -40,7 +41,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilExpiration(): TickPair = windowAtomEncoders map (_.ticksUntilIncrementalRulesExpire) reduce ((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TickPair = windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated) reduce ((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
 
 }
 

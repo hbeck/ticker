@@ -28,7 +28,7 @@ class ProgramContainingSlidingWindows extends TransformLarsSpec {
 
     val inspection = LarsProgramInspection.from(converted.rules)
     val grounder = new RuleGrounder[NormalRule, Atom, Atom]
-    val groundedRules = converted.rules flatMap grounder.ground(inspection)
+    val groundedRules = converted.rules flatMap grounder.groundWith(inspection)
 
     assert(groundedRules.size == 8)
   }

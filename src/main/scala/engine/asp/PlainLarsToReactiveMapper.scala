@@ -95,7 +95,7 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
 
 case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = t) extends TimeWindowEncoder {
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 
   val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
   //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
@@ -150,13 +150,13 @@ case class ReactiveTimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncodi
     null
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 }
 
 
 case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 
   val N: Variable = TimeVariableWithOffset("N")
   val spoilerPredicate = Predicate(f"spoil_ti_${length}_${atom.predicate.caption}")
@@ -183,7 +183,7 @@ case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: 
 
 case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 
   val C = TimeVariableWithOffset("C")
   //TODO hb review why time variable?
@@ -206,7 +206,7 @@ case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncod
 
 case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 
   val C: Variable = TimeVariableWithOffset("C")
   val D: Variable = TimeVariableWithOffset("D")
@@ -273,7 +273,7 @@ case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding:
 
 case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = t) extends TupleWindowEncoder {
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,-1) //???
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //???
 
   val D = TimeVariableWithOffset("D")
   val C = TimeVariableWithOffset("C")

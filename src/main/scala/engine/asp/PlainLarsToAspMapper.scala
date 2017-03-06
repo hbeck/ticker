@@ -115,7 +115,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, tim
     IncrementalRules(PlainLarsToAspMapper.asNormalRules(added), PlainLarsToAspMapper.asNormalRules(removed))
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(length+1,-1)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(length+1,-1)
 }
 
 /* EXAMPLE.
@@ -150,7 +150,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(length+1,-1)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //since time variable not included
 
 }
 
@@ -183,7 +183,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
     IncrementalRules(PlainLarsToAspMapper.asNormalRules(added) :+ baseRule, PlainLarsToAspMapper.asNormalRules(removed))
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(length,-1)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //since time variable not included
 }
 
 case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = T) extends TupleWindowEncoder {
@@ -204,7 +204,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, ti
     null
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1, length)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1, length)
 }
 
 case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
@@ -230,7 +230,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
     IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1,length)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //no time/count variable in window atom
 }
 
 case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
@@ -318,6 +318,6 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     IncrementalRules(PlainLarsToAspMapper.asNormalRules(added) :+ baseRule, PlainLarsToAspMapper.asNormalRules(removed))
   }
 
-  override def ticksUntilIncrementalRulesExpire(): TicksUntilExpiration = TickPair(-1, length-1)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1, -1) //no time/count variable in window atom
 }
 

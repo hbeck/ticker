@@ -87,7 +87,7 @@ case class SignalTracker[TTrackedSignal <: TrackedSignal](maxTimeWindowSizeInTic
     trackedSignals
   }
 
-  def trackSignal(time: TimePoint, signal: Atom): TTrackedSignal = {
+  def track(time: TimePoint, signal: Atom): TTrackedSignal = {
     tupleCount = tupleCount + 1
 
     val trackedSignal = trackBuilder(
