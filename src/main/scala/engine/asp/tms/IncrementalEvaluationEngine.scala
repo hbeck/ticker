@@ -18,6 +18,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   //time of the truth maintenance network due to previous append and result calls
   var networkTime: TimePoint = TimePoint(-1)
+  var tupleCount: Long = 0
 
   override def append(time: TimePoint)(atoms: Atom*) {
     if (time.value < networkTime.value) {
@@ -55,32 +56,53 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
     networkTime = TimePoint(time)
 
-    val rules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesForTime(time) //may contain ground rules
+    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.incrementalRulesForTime(time) //may contain ground rules
+    val rulesToAdd = groundAndRegister(incrementalRules)
+
+    tmsPolicy.add(networkTime)(rulesToAdd)
+
+    val rulesToRemove = expirationHandling.unregisterExpiredByNetworkTime()
+    tmsPolicy.remove(networkTime)(rulesToRemove)
+
+    discardOutdatedSignals() //TODO integrate in expirationHandling
+  }
+
+  def groundAndRegister(rules: Seq[(Expiration,NormalRule)]): Seq[NormalRule] = {
+
     val rulesToGround = rules map { case (_,r) => r }
 
-    val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(time).flatMap(asFacts).toSet //TODO incremental
+    val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(networkTime).flatMap(asFacts).toSet //TODO incremental
     val inspection = LarsProgramInspection.from(rulesToGround ++ entireStreamAsFacts) //TODO incremental
     val ground = new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection) _
 
     //expiration date of non-ground rule carries over to grounding (flat representation for grouping later)
     val groundRulesWithExpiration: Seq[(Expiration, NormalRule)]  = rules flatMap { case (expiration,rule) =>
-        ground(rule) map (groundRule => (expiration,groundRule))
+      ground(rule) map (groundRule => (expiration,groundRule))
     }
 
     expirationHandling.register(groundRulesWithExpiration)
 
-    val rulesToAdd = groundRulesWithExpiration map { case (_,r) => r }
-    tmsPolicy.add(time)(rulesToAdd)
-
-    val rulesToRemove = expirationHandling.unregisterExpiredByNetworkTime()
-    tmsPolicy.remove(time)(rulesToRemove)
-
-    discardOutdatedSignals() //TODO integrate in expirationHandling
+    groundRulesWithExpiration map { case (_,r) => r }
   }
 
   def addSignalAtNetworkTime(signal: Atom) {
-    signalTracker.track(networkTime, signal)
-    //TODO
+
+    val trackedSignal = signalTracker.track(networkTime, signal)
+    tupleCount = tupleCount + 1
+
+    val signalFacts: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.factsForSignal(trackedSignal)
+    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.incrementalRulesForSignal(trackedSignal) //may contain ground rules
+
+    expirationHandling.register(signalFacts)
+    val rulesToAdd = groundAndRegister(incrementalRules)
+
+    tmsPolicy.add(networkTime)(signalFacts map { case (e,r) => r})
+    tmsPolicy.add(networkTime)(rulesToAdd)
+
+    val rulesToRemove = expirationHandling.unregisterExpiredByCount()
+    tmsPolicy.remove(networkTime)(rulesToRemove)
+
+    discardOutdatedSignals() //TODO integrate in expirationHandling
 
   }
 
@@ -111,6 +133,16 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
       rulesExpiringAtTime = rulesExpiringAtTime - time
       rules.toSeq
     }
+
+    def unregisterExpiredByCount(): Seq[NormalRule] = {
+      if (!rulesExpiringAtCount.contains(tupleCount)) {
+        return Seq()
+      }
+      val rules: Set[NormalRule] = rulesExpiringAtCount.get(tupleCount).get
+      rulesExpiringAtCount = rulesExpiringAtCount - tupleCount
+      rules.toSeq
+    }
+    
   }
 
   //
@@ -120,12 +152,13 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   //book keeping for auxiliary signals to handle window logic
   //var tuplePositions: List[Atom] = List()
 
-  private def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  @deprecated
+  def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
     val previousTupleCount = signalTracker.tupleCount
-    val trackedSignals = signalTracker.trackSignals(time, signalAtoms)
+    val trackedSignals = signalTracker.track(time, signalAtoms)
     val currentTupleCount = signalTracker.tupleCount
 
     val pinnedSignals = trackedSignals flatMap asFacts

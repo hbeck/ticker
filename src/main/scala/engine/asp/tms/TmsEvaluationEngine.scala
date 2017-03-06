@@ -38,7 +38,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
 
 
-    val tracked = tracker.trackSignals(time, signalAtoms)
+    val tracked = tracker.track(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)
 
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure

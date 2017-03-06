@@ -23,7 +23,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "Appending atom a at t1" should "allow it to be queried at t1" in {
     val engine = stream
 
-    engine.trackSignals(t1, Seq(atom))
+    engine.track(t1, Seq(atom))
 
     assert(engine.allTimePoints(t1).map(_.signal) == Seq(atom))
   }
@@ -32,7 +32,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
     val engine = stream
 
 
-    engine.trackSignals(t1, Seq(atom))
+    engine.track(t1, Seq(atom))
 
     assert(engine.allTimePoints(t0) == Seq())
   }
@@ -40,7 +40,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   it should "be available at t2" in {
     val engine = stream
 
-    engine.trackSignals(t1, Seq(atom))
+    engine.track(t1, Seq(atom))
 
     assert(engine.allTimePoints(t2).map(_.signal) == Seq(atom))
   }
@@ -48,11 +48,11 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "Adding to atoms after each other" should "result in only atom at t1" in {
     val engine = stream
 
-    engine.trackSignals(t0, Seq(atom))
+    engine.track(t0, Seq(atom))
 
     val atom2 = Atom("b")
 
-    engine.trackSignals(t1, Seq(atom2))
+    engine.track(t1, Seq(atom2))
 
     assert(engine.allTimePoints(t1).map(_.signal) == Seq(atom2))
   }
@@ -61,11 +61,11 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
     val engine = stream
 
 
-    engine.trackSignals(t1, Seq(atom))
+    engine.track(t1, Seq(atom))
 
     val atom2 = Atom("b")
 
-    engine.trackSignals(t1, Seq(atom2))
+    engine.track(t1, Seq(atom2))
 
     assert(engine.allTimePoints(t1).map(_.signal) == Seq(atom, atom2))
   }
@@ -79,7 +79,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "A stream with one entry at t1" should "be returned as single result" in {
     val s = stream
 
-    s.trackSignals(t0, Seq(atom))
+    s.track(t0, Seq(atom))
 
     assert(s.allTimePoints(t1) == Seq(DefaultTrackedSignal(atom, t0, 1)))
   }
@@ -87,10 +87,10 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
   "A stream with one entry at t0 and one t1" should "return both with their timestamps" in {
     val s = stream
 
-    s.trackSignals(t0, Seq(atom))
+    s.track(t0, Seq(atom))
 
     val b = Atom("b")
-    s.trackSignals(t1, Seq(b))
+    s.track(t1, Seq(b))
 
     assert(s.allTimePoints(t1) == Seq(
       DefaultTrackedSignal(atom, t0, 1),

@@ -28,7 +28,7 @@ case class AspPushEvaluationEngine(val aspEvaluation: OneShotEvaluation) extends
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    signalTracker.trackSignals(time, atoms)
+    signalTracker.track(time, atoms)
 
     val keysToRemove = cachedResults.keySet filter (_.value >= time.value)
     keysToRemove foreach cachedResults.remove

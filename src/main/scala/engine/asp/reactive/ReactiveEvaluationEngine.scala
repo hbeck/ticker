@@ -62,7 +62,7 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   }
 
   private def trackAtoms(time: TimePoint, atoms: Seq[Atom]): Seq[TrackedSignal] = {
-    signalTracker.trackSignals(time, atoms)
+    signalTracker.track(time, atoms)
   }
 
   //TODO naming: clingo or reactive clingo?

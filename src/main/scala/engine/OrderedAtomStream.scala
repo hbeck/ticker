@@ -71,7 +71,7 @@ case class SignalTracker[TTrackedSignal <: TrackedSignal](maxTimeWindowSizeInTic
       toSeq
   }
 
-  def trackSignals(time: TimePoint, signals: Seq[Atom]): Seq[TTrackedSignal] = {
+  def track(time: TimePoint, signals: Seq[Atom]): Seq[TTrackedSignal] = {
 
     val trackedSignals = signals.zipWithIndex map { case (signal, position) =>
       trackBuilder(

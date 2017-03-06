@@ -31,7 +31,7 @@ case class AspPullEvaluationEngine(private val aspEvaluation: OneShotEvaluation)
   }
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    signalTracker.trackSignals(time, atoms)
+    signalTracker.track(time, atoms)
     // TODO: implement invalidation of result
     // the remove is probably not enough (==> invalidate previous fetched results)
     cachedResults.remove(time)
