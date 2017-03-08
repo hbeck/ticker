@@ -66,9 +66,9 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   }
 
   //TODO naming: clingo or reactive clingo?
-  case class TrackedSignalForClingo(signal: GroundAtom, time: TimePoint, position: Long) extends TrackedSignal {
+  case class TrackedSignalForClingo(signal: GroundAtom, time: TimePoint, count: Long) extends TrackedSignal {
     val timeDimension = Tick(clingoProgram.timeDimension.parameter, time.value)
-    val cntDimension = Tick(clingoProgram.countDimension.parameter, position)
+    val cntDimension = Tick(clingoProgram.countDimension.parameter, count)
     val clingoArgument = (signal, Seq(timeDimension, cntDimension))
   }
 

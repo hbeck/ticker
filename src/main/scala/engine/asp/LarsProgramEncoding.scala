@@ -17,15 +17,9 @@ trait WindowAtomEncoder {
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
 
-}
+  def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)]
 
-trait IncrementallyPinnedRules {
-  //retrieve incremental rules, pinned by given tick
-  def rulesToGroundAt(tick: Tick): Seq[(Expiration,NormalRule)]
 }
-
-@deprecated
-case class TickPosition(time: TimePoint, count: Long)
 
 trait TimeWindowEncoder extends WindowAtomEncoder
 
@@ -56,18 +50,6 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings map (_.aspRule)) partition (_.isGround)
 
   val groundRules = Seq[NormalRule]() ++ (backgroundData map (AspFact(_))) ++ groundRuleEncodings
-
-  @deprecated
-  def rulesToGround(prevPosition: TickPosition, currPosition: TickPosition): Seq[NormalRule] = {
-//    val pin = Pin(currPosition.time)
-//    val atNewEq: Seq[NormalRule] = nowAndAtNowIdentityRules map (pin.ground(_))
-//    val incrementalRules = windowAtomEncoders.flatMap {
-//      e => e.pinnedIncrementalRules(prevPosition,currPosition)
-//    }
-//    atNewEq ++ nonGroundRuleEncodings ++ incrementalRules
-    //TODO
-    Seq()
-  }
 
   /*
    * one-shot stuff
@@ -106,4 +88,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
 case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule]) {
   def ++(other: IncrementalRules) = IncrementalRules(toAdd ++ other.toAdd, toRemove ++ other.toRemove)
 }
+
+@deprecated
+case class TickPosition(time: TimePoint, count: Long) //TODO remove this
 

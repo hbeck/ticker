@@ -38,13 +38,13 @@ import scala.collection.SortedMap
 trait TrackedSignal {
   val signal: GroundAtom
   val time: TimePoint
-  val position: Long
+  val count: Long
 }
 
-case class DefaultTrackedSignal(signal: GroundAtom, time: TimePoint, position: Long) extends TrackedSignal {
-  lazy val timePinned: PinnedAtAtom = PinnedAtom(signal, time)
-  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(signal, IntValue(position.toInt))
-  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom(signal, time, IntValue(position.toInt))
+case class DefaultTrackedSignal(signal: GroundAtom, time: TimePoint, count: Long) extends TrackedSignal {
+  lazy val timePinned: PinnedAtAtom = PinnedAtom.asPinnedAtAtom(signal, time)
+  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(signal, IntValue(count.toInt))
+  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
 }
 
 object SignalTracker {
@@ -62,7 +62,7 @@ case class SignalTracker[TTrackedSignal <: TrackedSignal](maxTimeWindowSizeInTic
 
     // TODO: currently we keep more atoms than needed (tuple-bases window!)
     val signalsToRemove = signalStream.filterKeys(t => t.value < time.value - maxTimeWindowSizeInTicks).
-      filter(_._2.forall(_.position < tupleCount - maxTupleWindowSize))
+      filter(_._2.forall(_.count < tupleCount - maxTupleWindowSize))
 
     signalStream = signalStream -- signalsToRemove.keySet
 

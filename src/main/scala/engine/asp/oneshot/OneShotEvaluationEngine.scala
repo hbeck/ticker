@@ -26,8 +26,8 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
     val signals = dataStream flatMap { s =>
       Seq[AspFact[AtomWithArgument]](
         AspFact(PinnedAtom(s.signal, s.time)),
-        AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.position.toInt))),
-        AspFact(PinnedAtom(s.signal, s.time, Value(s.position.toInt)))
+        AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.count.toInt))),
+        AspFact(PinnedAtom(s.signal, s.time, Value(s.count.toInt)))
       )
     }
 

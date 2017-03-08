@@ -12,11 +12,13 @@ import scala.collection.immutable.HashMap
 /**
   * Created by FM, HB on Feb/Mar 2017.
   *
-  * (this class does the grounding, pinning is done by the IncrementalRuleMaker)
+  * (This class does the grounding, pinning is done by the IncrementalRuleMaker.)
   */
 case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
   tmsPolicy.initialize(larsProgramEncoding.groundBaseRules)
+
+  val grounder = IncrementalGrounder(larsProgramEncoding)
 
   //time of the truth maintenance network due to previous append and result calls
   var networkTime: TimePoint = TimePoint(-1)
@@ -24,7 +26,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   override def append(time: TimePoint)(atoms: Atom*) {
     if (time.value < networkTime.value) {
-      throw new RuntimeException("out-of-order events are not allowed. new signals for t=" + time + ", system time already at t'=" + networkTime)
+      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + networkTime)
     }
     updateNetworkTimeTo(time)
     atoms foreach addSignalAtNetworkTime
@@ -32,7 +34,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   override def evaluate(time: TimePoint): Result = {
     if (time.value < networkTime.value) {
-      return new UnknownResult("cannot evaluate previous time t=" + time + ", system time already at t'=" + networkTime)
+      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + networkTime)
     }
     updateNetworkTimeTo(time)
     tmsPolicy.getModel(time)
@@ -58,8 +60,8 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
     networkTime = TimePoint(time)
 
-    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundAt(networkTime) //may contain ground rules
-    val rulesToAdd = groundAndRegisterExpiration(incrementalRules)
+    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForTime(networkTime) //may contain ground rules
+    val rulesToAdd = groundAndRegisterExpiration(rulesToGround)
 
     tmsPolicy.add(networkTime)(rulesToAdd)
 
@@ -91,13 +93,9 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     val trackedSignal = signalTracker.track(networkTime, signal)
     tupleCount = tupleCount + 1
 
-    val signalFacts: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.factsForSignal(trackedSignal)
-    val incrementalRules: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForSignal(trackedSignal) //may contain ground rules
+    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForSignal(trackedSignal) //may contain ground rules
+    val rulesToAdd = groundAndRegisterExpiration(rulesToGround)
 
-    expirationHandling.register(signalFacts)
-    val rulesToAdd = groundAndRegisterExpiration(incrementalRules)
-
-    tmsPolicy.add(networkTime)(signalFacts map { case (e,r) => r})
     tmsPolicy.add(networkTime)(rulesToAdd)
 
     val rulesToRemove = expirationHandling.unregisterExpiredByCount()
