@@ -2,6 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, NormalRule}
+import core.grounding.incremental.IncrementalAspGrounder
 import core.lars.TimePoint
 import engine._
 import engine.asp._
@@ -18,9 +19,9 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
 
   //time of the truth maintenance network due to previous append and result calls
   var now = TickPair(0,0) //using (-1,0), first + will fail!
-  val grounder = IncrementalGrounder(larsProgramEncoding)
+  val grounder = IncrementalAspGrounder(larsProgramEncoding.groundBaseRules)
 
-  tmsPolicy.initialize(grounder.staticGroundRules())
+  tmsPolicy.initialize(grounder.staticGroundRules)
 
   override def append(time: TimePoint)(atoms: Atom*) {
     if (time.value < now.time) {

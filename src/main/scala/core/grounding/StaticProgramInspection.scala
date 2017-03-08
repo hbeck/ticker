@@ -12,7 +12,7 @@ import scala.collection.immutable.HashMap
 /*
  * Works for ASP and LARS without @
  */
-case class ProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
+case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
 
   //ignore AtAtoms throughout
 
@@ -224,8 +224,8 @@ case class ProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBo
 
 }
 
-object ProgramInspection {
-  def forLars(program: LarsProgram): ProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = ProgramInspection[LarsRule, HeadAtom, ExtendedAtom](program.rules)
+object StaticProgramInspection {
+  def forLars(program: LarsProgram): StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom](program.rules)
 
-  def forAsp(program: NormalProgram): ProgramInspection[NormalRule, Atom, Atom] = ProgramInspection[NormalRule, Atom, Atom](program.rules)
+  def forAsp(program: NormalProgram): StaticProgramInspection[NormalRule, Atom, Atom] = StaticProgramInspection[NormalRule, Atom, Atom](program.rules)
 }

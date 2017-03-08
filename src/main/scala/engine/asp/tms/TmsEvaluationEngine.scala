@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, AspProgram, NormalRule}
-import core.grounding.{GrounderInstance, ProgramInspection}
+import core.grounding.{GrounderInstance, StaticProgramInspection, StaticProgramInspection$}
 import core.lars._
 import engine._
 import engine.asp._
@@ -53,10 +53,11 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
 
     val groundHeadsAsFacts: Set[NormalRule] = groundTimeVariableCalculations filter (_.isGround) map (g => AspFact[Atom](g.head))
-    val grounder = GrounderInstance.forAsp()
-    val inspectWithAllSignals = ProgramInspection.forAsp(AspProgram((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toList))
+
+    val inspectWithAllSignals = StaticProgramInspection.forAsp(AspProgram((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toList))
+    val grounder = GrounderInstance.oneShotAsp(inspectWithAllSignals)
     // TODO: grounding fails here
-    val grounded = groundTimeVariableCalculations flatMap grounder.groundWith(inspectWithAllSignals) toSeq
+    val grounded = groundTimeVariableCalculations flatMap grounder.ground toSeq
 
     val nowAtom = AspFact[Atom](now(time))
     val cntAtom = AspFact[Atom](cnt(tracker.tupleCount))

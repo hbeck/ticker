@@ -79,7 +79,7 @@ object ClingoConversion {
   }
 }
 
-trait ClingoProgram {
+trait ClingoProgram { //extends Program... not so easy
   val rules: Set[ClingoExpression]
 }
 

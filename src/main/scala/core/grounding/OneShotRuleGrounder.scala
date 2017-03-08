@@ -8,9 +8,9 @@ import core.grounding.Grounding._
 /*
  * Works for ASP and LARS programs without @
  */
-class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom] {
+case class OneShotRuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](inspect: StaticProgramInspection[TRule, THead, TBody]) {
 
-  def groundWith(inspect: ProgramInspection[TRule, THead, TBody])(rule: TRule): Set[TRule] = {
+  def ground(rule: TRule): Set[TRule] = {
     if (rule isGround) {
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
