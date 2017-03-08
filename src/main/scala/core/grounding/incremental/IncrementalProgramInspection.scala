@@ -2,7 +2,7 @@ package core.grounding.incremental
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
-import core.grounding.Grounding
+import core.grounding.{Grounding, ProgramInspection}
 import core.lars.{ExtendedAtom, HeadAtom, LarsProgram, LarsRule}
 
 import scala.collection.immutable.HashMap
@@ -15,7 +15,11 @@ import scala.collection.immutable.HashMap
  *
  * //TODO currently a copy of StaticProgramInspection
  */
-case class IncrementalProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
+case class IncrementalProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) extends ProgramInspection[TRule,THead,TBody] {
+
+  override def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
+    rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
+  }
 
   //ignore AtAtoms throughout
 
@@ -96,10 +100,6 @@ case class IncrementalProgramInspection[TRule <: Rule[THead, TBody], THead <: He
   //
   //
   //
-
-  def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
-    rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
-  }
 
   def possibleValuesForVariable(rule: TRule, variable: Variable): Set[Value] = {
 

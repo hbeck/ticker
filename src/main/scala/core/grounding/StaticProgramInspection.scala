@@ -12,7 +12,15 @@ import scala.collection.immutable.HashMap
 /*
  * Works for ASP and LARS without @
  */
-case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
+case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) extends ProgramInspection[TRule,THead,TBody] {
+
+  override def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
+    rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
+  }
+
+  //
+  //
+  //
 
   //ignore AtAtoms throughout
 
@@ -93,10 +101,6 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   //
   //
   //
-
-  def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
-    rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
-  }
 
   def possibleValuesForVariable(rule: TRule, variable: Variable): Set[Value] = {
 

@@ -4,11 +4,7 @@ import core._
 import core.lars.{Assignment, ExtendedAtom, HeadAtom}
 import core.grounding.Grounding._
 
-
-/*
- * Works for ASP and LARS programs without @
- */
-case class OneShotRuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](inspect: StaticProgramInspection[TRule, THead, TBody]) {
+case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](inspect: ProgramInspection[TRule, THead, TBody]) {
 
   def ground(rule: TRule): Set[TRule] = {
     if (rule isGround) {
