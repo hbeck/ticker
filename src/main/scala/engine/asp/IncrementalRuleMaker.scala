@@ -2,7 +2,6 @@ package engine.asp
 
 import core._
 import core.asp.{AspFact, NormalRule}
-import core.lars.TimePoint
 import engine.DefaultTrackedSignal
 import engine.asp.tms.Pin
 
@@ -15,9 +14,9 @@ import engine.asp.tms.Pin
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
 
   val R: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.larsRuleEncodings map (e => (e.ticksUntilOutdated,e.aspRule))
-  val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map (r => (TickPair(1,-1),r))
+  val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map (r => (TickPair(1,Void),r))
 
-  val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == -1 && ticks.count == -1 }
+  val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == Void && ticks.count == Void }
 
   /*
    * TODO separate rules:
@@ -27,44 +26,41 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
    * d) both tick-variables
    */
 
-  def allRulesToGroundForTime(time: TimePoint): Seq[(Expiration,NormalRule)] = {
-    val pin = timePinned(time) _
+  def rulesToGroundFor(now: TickPair, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = {
+    val pinWithExp = timeCountPinned(now) _
+    val facts:Seq[(Expiration,NormalRule)] = signal match {
+      case Some(atom) => pinnedAtoms(DefaultTrackedSignal(atom,now))
+      case None => Seq()
+    }
     //note that this approach is not uniform. would be more elegant to return incremental rules with
     //tick variables plus TicksUntilOutdated, and uniformly pin them (like pin(Q) and pin(expiringR)
-    val nowTick = TickPair(time.value,-1)
-    val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(nowTick))
-    pin(Q) ++ pin(expiringR) ++ nonExpiringR ++ windowRules
+    val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(now))
+    facts ++ pinWithExp(Q) ++ pinWithExp(expiringR) ++ nonExpiringR ++ windowRules
   }
 
-  def allRulesToGroundForSignal(trackedSignal: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
-    val pin = timeCountPinned(trackedSignal.time, trackedSignal.count) _
-    val facts = pinnedAtoms(trackedSignal)
-    //note that this approach is not uniform. would be more elegant to return incremental rules with
-    //tick variables plus TicksUntilOutdated, and uniformly pin them (like pin(Q) and pin(expiringR)
-    val nowTick = TickPair(trackedSignal.time.value,trackedSignal.count)
-    val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(nowTick))
-    facts ++ pin(Q) ++ pin(expiringR) ++ nonExpiringR ++ windowRules
-  }
-
-  //
-  //
-
-  def timeCountPinned(time: TimePoint, count: Long)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {
-    val pin = Pin(time,count)
-    val tick = TickPair(time.value,count)
+  def timeCountPinned(now: TickPair)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {
+    val pin = Pin(now.time,now.count)
     rules map {
-      case (ticksUntilOutdated,rule) => (tick+ticksUntilOutdated, pin.ground(rule))
+      case (ticksUntilOutdated,rule) => (now+ticksUntilOutdated, pin.ground(rule))
     }
   }
 
-  def timePinned(time: TimePoint)(rules: Seq[(TicksUntilOutdated,NormalRule)]) = timeCountPinned(time,-1)(rules)
+  /*
+  def timePinned(time: Long)(rules: Seq[(TicksUntilOutdated,NormalRule)]) = timeCountPinned(TickPair(time,Void))(rules)
 
-  def countPinned(count: Long)(rules: Seq[(TicksUntilOutdated,NormalRule)]) = timeCountPinned(TimePoint(-1),count)(rules)
+  def countPinned(count: Long)(rules: Seq[(TicksUntilOutdated,NormalRule)]) = timeCountPinned(TickPair(Void,count))(rules)
+  */
 
   def pinnedAtoms(t: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
     Seq(t.timePinned, t.countPinned, t.timeCountPinned) map {
-      a => (TickPair(-1L,-1L),AspFact[Atom](a)) //TODO reconsider outdating of signals
+      a => (TickPair(Void,Void),AspFact[Atom](a)) //TODO reconsider outdating of signals
     }
   }
+
+  //val signalTracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
+
+  //  def trackSignal(get: Atom) = {
+  //    val trackedSignal = signalTracker.track(networkTime, signal)
+  //  }
 
 }

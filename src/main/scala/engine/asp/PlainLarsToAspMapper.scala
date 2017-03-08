@@ -99,11 +99,11 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtA
     val head:Atom = windowAtomEncoding.resetPin(t)
     val posBody = Set(PinnedAtom.asPinnedAtAtom(atom,t))
     val rule: NormalRule = AspRule(head,posBody)
-    val exp: Expiration = TickPair(t + length + 1, -1)
+    val exp: Expiration = TickPair(t + length + 1, Void)
     Seq((exp,rule))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(length+1,-1)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(length+1,Void)
 
 }
 
@@ -127,11 +127,11 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
     val t = tick.time
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,t))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
-    val exp: Expiration = TickPair(t + length + 1, -1)
+    val exp: Expiration = TickPair(t + length + 1, Void)
     Seq((exp,rule))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //since time variable not included
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void,Void) //since time variable not included
 
 }
 
@@ -149,15 +149,15 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
     val baseRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
-    val expBase: Expiration = TickPair(-1,-1)
+    val expBase: Expiration = TickPair(Void,Void)
     if (length == 0) return Seq((expBase,baseRule))
 
     val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom, now(TimePinVariable)), Set(PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - 1)))
-    val expSp: Expiration = TickPair(tick.time + length, -1)
+    val expSp: Expiration = TickPair(tick.time + length, Void)
     Seq((expBase,baseRule),(expSp,spoilerRule))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //since time variable not included
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void,Void) //since time variable not included
 }
 
 case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtAtom, atTime: Time) extends TupleWindowEncoder {
@@ -173,11 +173,11 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
     val head:Atom = windowAtomEncoding.asInstanceOf[Atom]
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,atTime,IntValue(c)))
     val rule: NormalRule = AspRule(head,posBody)
-    val exp: Expiration = TickPair(-1, c + length)
+    val exp: Expiration = TickPair(Void, c + length)
     Seq((exp,rule))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1, length)
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void, length)
 }
 
 case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
@@ -190,11 +190,11 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
     val c = tick.count.toInt
     val posBody = Set(PinnedAtom.asPinnedCntAtom(atom,IntValue(c)))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
-    val exp: Expiration = TickPair(-1, c + length)
+    val exp: Expiration = TickPair(Void, c + length)
     Seq((exp,rule))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1) //no time/count variable in window atom
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void,Void) //no time/count variable in window atom
 }
 
 case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
@@ -232,7 +232,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     val c = IntValue(tick.count.toInt)
 
     val baseRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
-    val expBase: Expiration = TickPair(-1,-1)
+    val expBase: Expiration = TickPair(Void,Void)
     if (length < 2) return Seq((expBase,baseRule))
 
     val spoilerRule1: NormalRule = AspRule(spoilerAtom,
@@ -246,10 +246,10 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
         Gt(t, T1 + 1)
       ))
 
-    val expSp: Expiration = TickPair(-1, tick.count + length - 1)
+    val expSp: Expiration = TickPair(Void, tick.count + length - 1)
     Seq((expBase,baseRule),(expSp,spoilerRule1),(expSp,spoilerRule2))
   }
 
-  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1, -1) //no time/count variable in window atom
+  override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void, Void) //no time/count variable in window atom
 }
 

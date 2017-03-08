@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, NormalRule}
-import core.lars.{LarsProgramInspection, RuleGrounder, TimePoint}
+import core.lars.TimePoint
 import engine._
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
@@ -12,31 +12,29 @@ import scala.collection.immutable.HashMap
 /**
   * Created by FM, HB on Feb/Mar 2017.
   *
-  * (This class does the grounding, pinning is done by the IncrementalRuleMaker.)
+  * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
 case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  tmsPolicy.initialize(larsProgramEncoding.groundBaseRules)
-
+  //time of the truth maintenance network due to previous append and result calls
+  var now = TickPair(0,0) //using (-1,0), first + will fail!
   val grounder = IncrementalGrounder(larsProgramEncoding)
 
-  //time of the truth maintenance network due to previous append and result calls
-  var networkTime: TimePoint = TimePoint(-1)
-  var tupleCount: Long = 0
+  tmsPolicy.initialize(grounder.staticGroundRules())
 
   override def append(time: TimePoint)(atoms: Atom*) {
-    if (time.value < networkTime.value) {
-      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + networkTime)
+    if (time.value < now.time) {
+      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + now.time)
     }
-    updateNetworkTimeTo(time)
-    atoms foreach addSignalAtNetworkTime
+    updateTimeTo(time)
+    atoms foreach addSignalAtCurrentTime
   }
 
   override def evaluate(time: TimePoint): Result = {
-    if (time.value < networkTime.value) {
-      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + networkTime)
+    if (time.value < now.time) {
+      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + now.time)
     }
-    updateNetworkTimeTo(time)
+    updateTimeTo(time)
     tmsPolicy.getModel(time)
   }
 
@@ -44,63 +42,42 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   //
   //
 
-  val signalTracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
-
   val incrementalRuleMaker = IncrementalRuleMaker(larsProgramEncoding)
 
-  def updateNetworkTimeTo(time: TimePoint) {
-    if (time.value > networkTime.value) {
-      for (t <- (networkTime.value + 1) to (time.value)) {
+  def updateTimeTo(time: TimePoint) {
+    if (time.value > now.time) {
+      for (t <- (now.time + 1) to (time.value)) {
         singleTimeIncrementTo(t)
       }
     }
   }
 
   def singleTimeIncrementTo(time: Long) {
-
-    networkTime = TimePoint(time)
-
-    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForTime(networkTime) //may contain ground rules
-    val rulesToAdd = groundAndRegisterExpiration(rulesToGround)
-
-    tmsPolicy.add(networkTime)(rulesToAdd)
-
-    val rulesToRemove = expirationHandling.unregisterExpiredByNetworkTime()
-    tmsPolicy.remove(networkTime)(rulesToRemove)
-
+    now = now.incrementTime()
+    singleOneDimensionalTickIncrement()
   }
 
-  def groundAndRegisterExpiration(rules: Seq[(Expiration,NormalRule)]): Seq[NormalRule] = {
+  def addSignalAtCurrentTime(signal: Atom) {
+    now = now.incrementCount()
+    singleOneDimensionalTickIncrement(Some(signal))
+  }
 
-    val rulesToGround = rules map { case (_,r) => r }
-
-    val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(networkTime).flatMap(asFacts).toSet //TODO incremental
-    val inspection = LarsProgramInspection.from(rulesToGround ++ entireStreamAsFacts) //TODO incremental
-    val ground = new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection) _
-
-    //expiration date of non-ground rule carries over to grounding (flat representation for grouping later)
-    val groundRulesWithExpiration: Seq[(Expiration, NormalRule)]  = rules flatMap { case (expiration,rule) =>
-      ground(rule) map (groundRule => (expiration,groundRule))
+  //method to be called whenever time xor count increases by 1
+  def singleOneDimensionalTickIncrement(signal: Option[Atom]=None) {
+    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(now, signal)
+    rulesToGround foreach { case (_,r) => grounder.add(r) }
+    val rulesToAdd = rulesToGround flatMap { case (e,r) =>
+      val rules = grounder.ground(r)
+      expirationHandling.register(e,rules)
+      rules
     }
-
-    expirationHandling.register(groundRulesWithExpiration)
-
-    groundRulesWithExpiration map { case (_,r) => r }
-  }
-
-  def addSignalAtNetworkTime(signal: Atom) {
-
-    val trackedSignal = signalTracker.track(networkTime, signal)
-    tupleCount = tupleCount + 1
-
-    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.allRulesToGroundForSignal(trackedSignal) //may contain ground rules
-    val rulesToAdd = groundAndRegisterExpiration(rulesToGround)
-
-    tmsPolicy.add(networkTime)(rulesToAdd)
-
-    val rulesToRemove = expirationHandling.unregisterExpiredByCount()
-    tmsPolicy.remove(networkTime)(rulesToRemove)
-
+    tmsPolicy.add(now.time)(rulesToAdd)
+    val rulesToRemove = signal match { //logic somewhat implicit...
+      case None => expirationHandling.unregisterExpiredByTime()
+      case _ => expirationHandling.unregisterExpiredByCount()
+    }
+    grounder.remove(rulesToRemove)
+    tmsPolicy.remove(now.time)(rulesToRemove)
   }
 
   object expirationHandling {
@@ -108,35 +85,28 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     var rulesExpiringAtTime: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
     var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
 
-    def register(rules: Seq[(Expiration,NormalRule)]) = {
-      val groupedByTime: Map[Long, Seq[(Long, NormalRule)]] = rules collect { case (e,r) if (e.time != -1) => (e.time,r) } groupBy { case (t,_) => t }
-      val groupedByCount: Map[Long, Seq[(Long, NormalRule)]] = rules collect { case (e,r) if (e.count != -1) => (e.count,r) } groupBy { case (c,_) => c }
-      groupedByTime foreach { case (t,seq) =>
-        val rules = seq map { case (t,r) => r }
-        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t,Set()) ++ rules)
-      }
-      groupedByCount foreach { case (c,seq) =>
-        val rules = seq map { case (c,r) => r }
-        rulesExpiringAtCount = rulesExpiringAtTime updated (c, rulesExpiringAtCount.getOrElse(c,Set()) ++ rules)
-      }
+    def register(expiration: Expiration, rules: Set[NormalRule]) {
+      val t = expiration.time
+      val c = expiration.count
+      rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t,Set()) ++ rules)
+      rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c,Set()) ++ rules)
     }
 
-    def unregisterExpiredByNetworkTime(): Seq[NormalRule] = {
-      val time = networkTime.value
-      if (!rulesExpiringAtTime.contains(time)) {
+    def unregisterExpiredByTime(): Seq[NormalRule] = {
+      if (!rulesExpiringAtTime.contains(now.time)) {
         return Seq()
       }
-      val rules: Set[NormalRule] = rulesExpiringAtTime.get(time).get
-      rulesExpiringAtTime = rulesExpiringAtTime - time
+      val rules: Set[NormalRule] = rulesExpiringAtTime.get(now.time).get
+      rulesExpiringAtTime = rulesExpiringAtTime - now.time
       rules.toSeq
     }
 
     def unregisterExpiredByCount(): Seq[NormalRule] = {
-      if (!rulesExpiringAtCount.contains(tupleCount)) {
+      if (!rulesExpiringAtCount.contains(now.count)) {
         return Seq()
       }
-      val rules: Set[NormalRule] = rulesExpiringAtCount.get(tupleCount).get
-      rulesExpiringAtCount = rulesExpiringAtCount - tupleCount
+      val rules: Set[NormalRule] = rulesExpiringAtCount.get(now.count).get
+      rulesExpiringAtCount = rulesExpiringAtCount - now.count
       rules.toSeq
     }
     

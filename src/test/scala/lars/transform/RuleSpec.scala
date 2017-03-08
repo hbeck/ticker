@@ -65,4 +65,5 @@ class RuleSpec extends TransformLarsSpec {
 
     encodeRule(r) should have size 2
   }
+
 }

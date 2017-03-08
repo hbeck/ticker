@@ -11,6 +11,7 @@ import org.scalatest.OptionValues._
   * Created by FM on 23.08.16.
   */
 class RunningFluentSample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine {
+
   val on = StringValue("on")
   val off = StringValue("off")
 
@@ -46,6 +47,5 @@ class RunningFluentSample extends ConfigurableEvaluationSpec with TimeTestFixtur
     evaluationEngine.evaluate(t2).get.value should contain (running)
     evaluationEngine.evaluate(t3).get.value should contain (running)
   }
-
 
 }

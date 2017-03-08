@@ -3,6 +3,7 @@ package engine
 import clingo.ClingoProgramWithLars
 import core._
 import core.lars.TimePoint
+import engine.asp.TickPair
 
 import scala.collection.SortedMap
 
@@ -36,15 +37,19 @@ import scala.collection.SortedMap
 //}
 
 trait TrackedSignal {
-  val signal: GroundAtom
+  val signal: Atom
   val time: TimePoint
   val count: Long
 }
 
-case class DefaultTrackedSignal(signal: GroundAtom, time: TimePoint, count: Long) extends TrackedSignal {
+case class DefaultTrackedSignal(signal: Atom, time: TimePoint, count: Long) extends TrackedSignal {
   lazy val timePinned: PinnedAtAtom = PinnedAtom.asPinnedAtAtom(signal, time)
   lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(signal, IntValue(count.toInt))
   lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
+}
+
+object DefaultTrackedSignal {
+  def apply(signal: Atom, tick: TickPair): DefaultTrackedSignal = DefaultTrackedSignal(signal, TimePoint(tick.time), tick.count)
 }
 
 object SignalTracker {
