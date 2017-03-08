@@ -1,180 +1,28 @@
-package core.lars
+package core.grounding
 
 import core._
-import core.asp.NormalRule
+import core.asp.{NormalProgram, NormalRule}
+import core.lars.{ExtendedAtom, HeadAtom, LarsProgram, LarsRule}
 
 import scala.collection.immutable.HashMap
 
-
 /**
-  * applicable only to lars programs without "@"
-  *
-  * Created by hb on 8/21/16.
+  * Created by hb on 08.03.17.
   */
-case class Grounder(program: LarsProgram) {
+/*
+ * Works for ASP and LARS without @
+ */
+case class ProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
 
-  val inspect = LarsProgramInspection(program)
-  val preparedRuleGrounder = new RuleGrounder[LarsRule, HeadAtom, ExtendedAtom]().groundWith(inspect) _
-  val groundRules = program.rules flatMap preparedRuleGrounder
-  val groundProgram = LarsProgram(groundRules)
+  //ignore AtAtoms throughout
 
-}
-
-class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom] {
-
-  import Grounder._
-
-  def groundWith(inspect: LarsProgramInspection[TRule, _, _])(rule: TRule): Set[TRule] = {
-    if (rule isGround) {
-      if (rule.isFact) return Set(rule)
-      else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
-    }
-    val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
-    ground(rule, possibleVariableValues)
-  }
-
-  def relationsHold(rule: TRule): Boolean = {
-    (rule.pos map (_.atom) filter isRelationAtom forall (holds(_))) &&
-      (rule.neg map (_.atom) filter isRelationAtom forall (!holds(_)))
-  }
-
-  def deleteAuxiliaryAtoms(rule: TRule): TRule = {
-    val corePosAtoms: Set[TBody] = rule.pos filter (!isRelationAtom(_))
-    val coreNegAtoms: Set[TBody] = rule.neg filter (!isRelationAtom(_))
-    rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
-  }
-
-  def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]]): Set[TRule] = {
-    val relationAtoms: Set[AtomWithArgument] = rule.atoms collect { case a: AtomWithArgument if isRelationAtom(a) => a }
-    def holdsPartially = allGroundedRelationsHold(relationAtoms) _
-
-    val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
-
-    val preparedAssignments: Set[Set[(Variable, Value)]] = {
-      pairSingletonsPerVariable.reduce((s1, s2) => cross(s1, s2) filter holdsPartially) //filter
-    }
-
-    val groundRules: Set[TRule] = assign(rule, preparedAssignments) //assign
-    groundRules map deleteAuxiliaryAtoms //cut
-  }
-
-  def assign(rule: TRule, preparedAssignments: Set[Set[(Variable, Value)]]): Set[TRule] = {
-    preparedAssignments map (a => rule.assign(Assignment(a.toMap)).asInstanceOf[TRule])
-  }
-}
-
-object Grounder {
-
-  //note: creating new traits and case classes for 'RelationAtoms' would complicate things too much
-  //i) we would have mixes of {GroundAtom,NonGroundAtom} with {RelationAtom, normal atoms}
-  //ii) ensure that for the special predicate names, RelationAtom instances are generated
-  //there, one still would have to make a pattern matching over predicate names somewhere/somehow
-  //since this plays a role only at the level of grounding, we can do it here directly and keeping
-  //the class hierarchy of atoms simple/uniform.
-  def isRelationAtom(x: ExtendedAtom): Boolean = x match {
-    case a: Atom => a.predicate.caption match {
-      case "neq" => true
-      case "eq" => true
-      case "leq" => true
-      case "lt" => true
-      case "geq" => true
-      case "gt" => true
-      case "pow" => true
-      case "mod" => true
-      case "sum" => true
-      case "prod" => true
-      case _ => false
-    }
-    case _ => false
-  }
-
-  def holds(relationAtom: Atom): Boolean = {
-    if (!relationAtom.isGround())
-      throw new RuntimeException("illegal use. relation atom must be ground when tested whether it holds.")
-
-    val atom = relationAtom.asInstanceOf[GroundAtomWithArguments]
-    val args = atom.arguments
-
-    def i(idx: Int): Int = args(idx) match {
-      case IntValue(k) => k
-      case StringValue(s) => Integer.parseInt(s)
-      case _ => throw new RuntimeException("unknown value " + args(idx) + " in non-ground relation atom " + atom)
-    }
-
-    relationAtom.predicate.caption match {
-      case "neq" => args(0) != args(1)
-      case "leq" => i(0) <= i(1)
-      case "lt" => i(0) < i(1)
-      case "geq" => i(0) >= i(1)
-      case "gt" => i(0) > i(1)
-      case "pow" => Math.pow(i(0), i(1)).toInt == i(2)
-      case "mod" => (i(1) > 0) && (i(0) % i(1) == i(2))
-      case "sum" => i(0) + i(1) == i(2)
-      case "prod" => i(0) * i(1) == i(2)
-      case _ => false
-    }
-  }
-
-
-  // X -> { x1, x2 }
-  // Y -> { y1, y2 }
-  // Z -> { z1, z2 }
-  // =>
-  // [ { {(X,x1)}, {(X,x2)} }
-  //   { {(Y,y1)}, {(Y,y2)} }
-  //   { {(Z,z1)}, {(Z,z2)} } ]
-  def makePairedWithValueSingletons(possibleValuesPerVariable: Map[Variable, Set[Value]]): Seq[Set[Set[(Variable, Value)]]] = {
-    possibleValuesPerVariable map {
-      case (variable, valueSet) => valueSet map (value => Set((variable, value))) // {{(X,x1)},{(X,x2)}}
-    } toSeq
-  }
-
-  //{ {(X,x1)}, {(X,x2)} } cross { {(Y,y1)}, {(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
-  //==>
-  //{ {(X,x1),(Y,y1)}, {(X,x2),(Y,y1)}, {(X,x1),(Y,y2)}, {(X,x2),(Y,y2)} } cross { {(Z,z1)}, {(Z,z2)} }
-  //==>
-  //{ {(X,x1),(Y,y1),(Z,z1)}, {(X,x2),(Y,y1),(Z,z1)}, {(X,x1),(Y,y2),(Z,z1)}, {(X,x2,(Y,y2),(Z,z1)},
-  //  {(X,x1),(Y,y1),(Z,z2)}, {(X,x2),(Y,y1),(Z,z2)}, {(X,x1),(Y,y2),(Z,z2)}, {(X,x2,(Y,y2),(Z,z2))} }
-  def cross[T](sets1: Set[Set[T]], sets2: Set[Set[T]]): Set[Set[T]] = {
-    for (s1 <- sets1; s2 <- sets2) yield s1 union s2
-  }
-
-  def allGroundedRelationsHold(relationAtoms: Set[AtomWithArgument])(partialAssignment: Set[(Variable, Value)]): Boolean = {
-    val groundRelationAtoms: Set[Atom] = relationAtoms map (assign(_, partialAssignment)) filter (_.isGround)
-    groundRelationAtoms forall holds
-  }
-
-  def assign(relationAtom: AtomWithArgument, partialBindings: Set[(Variable, Value)]): Atom = {
-    val assignment = partialBindings.toMap
-    val newArguments = relationAtom.arguments map { arg =>
-      arg match {
-        case variable: Variable => assignment.getOrElse(variable, arg)
-        case value: Value => value
-      }
-    }
-    Atom(relationAtom.predicate, newArguments)
-  }
-
-}
-
-object LarsProgramInspection {
-  def apply(program: LarsProgram): LarsProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = LarsProgramInspection[LarsRule, HeadAtom, ExtendedAtom](program.rules)
-
-  def from(rules: Seq[NormalRule]): LarsProgramInspection[NormalRule, Atom, Atom] = LarsProgramInspection[NormalRule, Atom, Atom](rules)
-}
-
-//TODO Lars?
-case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) {
-
-  //ignore AtAtoms throughout TODO
-
-  val ruleCores: Set[TRule] = rules collect { case r if r.head.isInstanceOf[Atom] => reduceToCore(r) } toSet //TODO @
+  val ruleCores: Set[TRule] = rules collect { case r if r.head.isInstanceOf[Atom] => reduceToCore(r) } toSet
 
   //delete negative body, window atoms, and auxiliary relation expressions (for arithmetic).
   //these are considered later in grounding itself, but not for finding variables
   def reduceToCore(rule: TRule): TRule = {
-    val coreAtoms: Set[TBody] = rule.pos filter (!Grounder.isRelationAtom(_))
-    rule.from(rule.head, coreAtoms, rule.neg).asInstanceOf[TRule] //TODO does not match comment
+    val coreAtoms: Set[TBody] = rule.pos filter (!Grounding.isRelationAtom(_))
+    rule.from(rule.head, coreAtoms, rule.neg).asInstanceOf[TRule]
   }
 
   val facts = ruleCores filter (_.isFact)
@@ -185,7 +33,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
   val groundFactAtomPredicates = groundFactAtoms map (_.predicate)
 
 
-  val groundRuleHeadAtoms: Set[GroundAtom] = ruleCores map (_.head) collect { case x: GroundAtom => x } //TODO @
+  val groundRuleHeadAtoms: Set[GroundAtom] = ruleCores map (_.head) collect { case x: GroundAtom => x }
   val groundIntensionalAtoms = groundRuleHeadAtoms diff groundFactAtoms
   val groundIntensionalPredicates = groundIntensionalAtoms map (_.predicate)
 
@@ -218,7 +66,7 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
     case b: Atom if groundFactAtomPredicates.contains(b.predicate) => b.predicate
   }
 
-  val nonGroundHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate } //TODO @
+  val nonGroundHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate }
   val nonGroundPosBodyPredicates = ruleCores flatMap (_.pos) collect { case x: NonGroundAtom => x.predicate }
   val nonGroundPredicates = nonGroundHeadPredicates union nonGroundPosBodyPredicates
   val intensionalPredicates = ruleCores map (_.head.atom.predicate)
@@ -374,4 +222,10 @@ case class LarsProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom,
     groundIntensional ++ semiGroundIntensional ++ nonGroundIntensional
   }
 
+}
+
+object ProgramInspection {
+  def forLars(program: LarsProgram): ProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = ProgramInspection[LarsRule, HeadAtom, ExtendedAtom](program.rules)
+
+  def forAsp(program: NormalProgram): ProgramInspection[NormalRule, Atom, Atom] = ProgramInspection[NormalRule, Atom, Atom](program.rules)
 }

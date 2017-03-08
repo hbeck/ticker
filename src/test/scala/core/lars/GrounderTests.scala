@@ -3,6 +3,7 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp._
+import core.grounding.{Grounding, LarsGrounding}
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.evaluation.Util._
 import jtms.networks.OptimizedNetwork
@@ -56,7 +57,7 @@ class GrounderTests extends FunSuite {
     val gr1 = r1
     val gr2 = rule("b(x) :- a(x)")
     val gp = program(gr1,gr2)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     //grounder.inspect.rules foreach println
 
@@ -81,7 +82,7 @@ class GrounderTests extends FunSuite {
     val gr2 = rule("b(x) :- c(x)")
     val gr3 = rule("c(x) :- a(x)")
     val gp = program(gr1,gr2,gr3)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == Set(strVal("x")))
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == Set(strVal("x")))
@@ -111,7 +112,7 @@ class GrounderTests extends FunSuite {
 
     val expectedCross = Set(Set((X,x1),(Y,y1)),Set((X,x1),(Y,y2)),Set((X,x2),(Y,y1)),Set((X,x2),(Y,y2)))
 
-    assert(Grounder.cross(xSets,ySets) == expectedCross)
+    assert(Grounding.cross(xSets,ySets) == expectedCross)
   }
 
   test("cross 2") {
@@ -122,7 +123,7 @@ class GrounderTests extends FunSuite {
       Set(Set((X,x1),(Y,y1),(Z,z1)),Set((X,x1),(Y,y2),(Z,z1)),Set((X,x2),(Y,y1),(Z,z1)),Set((X,x2),(Y,y2),(Z,z1)),
         Set((X,x1),(Y,y1),(Z,z2)),Set((X,x1),(Y,y2),(Z,z2)),Set((X,x2),(Y,y1),(Z,z2)),Set((X,x2),(Y,y2),(Z,z2)))
 
-    assert(Grounder.cross(cross1,zSets) == expected)
+    assert(Grounding.cross(cross1,zSets) == expected)
   }
 
   test("cross reduce ") {
@@ -134,7 +135,7 @@ class GrounderTests extends FunSuite {
       Set(Set((X,x1),(Y,y1),(Z,z1)),Set((X,x1),(Y,y2),(Z,z1)),Set((X,x2),(Y,y1),(Z,z1)),Set((X,x2),(Y,y2),(Z,z1)),
           Set((X,x1),(Y,y1),(Z,z2)),Set((X,x1),(Y,y2),(Z,z2)),Set((X,x2),(Y,y1),(Z,z2)),Set((X,x2),(Y,y2),(Z,z2)))
 
-    val result: Set[Set[(Variable, Value)]] = Seq(xSet,ySet,zSet).reduce((s1, s2) => Grounder.cross(s1,s2))
+    val result: Set[Set[(Variable, Value)]] = Seq(xSet,ySet,zSet).reduce((s1, s2) => Grounding.cross(s1,s2))
 
     assert(result == expected)
   }
@@ -171,7 +172,7 @@ class GrounderTests extends FunSuite {
     val gr3x = rule("b(x) :- a(x)")
     val gr3y = rule("b(y) :- a(y)")
     val gp = program(gax,gay,gr3x,gr3y)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
     assert(grounder.groundProgram == gp)
@@ -198,7 +199,7 @@ class GrounderTests extends FunSuite {
     val gr3x = rule("c(x) :- a(x)")
     val gr3y = rule("c(y) :- a(y)")
     val gp = program(gax,gay,gr2x,gr2y,gr3x,gr3y)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVals("x","y"))
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y"))
@@ -227,7 +228,7 @@ class GrounderTests extends FunSuite {
     val gr3y = rule("c(y) :- a(y)")
     val gr3z = rule("c(z) :- a(z)")
     val gp = program(gax,gay,gaz,gr3x,gr3y,gr3z)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y","z"))
 
@@ -259,7 +260,7 @@ class GrounderTests extends FunSuite {
     val gr3y = rule("c(y) :- a(y)")
     val gr3z = rule("c(z) :- a(z)")
     val gp = program(gax,gay,gaz,gr2x,gr2y,gr2z,gr3x,gr3y,gr3z)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r2,v("V")) == strVals("x","y","z"))
     assert(grounder.inspect.possibleValuesForVariable(r3,v("V")) == strVals("x","y","z"))
@@ -326,7 +327,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](ax1,ax2,bx1,bx2) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(ri,v("X")) == strVals("x1","x2"))
     assert(grounder.inspect.possibleValuesForVariable(ri,v("Y")) == strVals("y1","y2"))
@@ -366,7 +367,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](ax1,ax2,by3,by4) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVals("x1","x2"))
     assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVals("y3","y4"))
@@ -455,7 +456,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](a12,a23,a34) ++ manualGrounding
     val gp = LarsProgram(rules)
 
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     //printInspect(grounder)
 
@@ -514,7 +515,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
     assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
@@ -572,7 +573,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](a1,b11,b12,c1,c2,d12) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
     assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y1","y2"))
@@ -623,7 +624,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](a,b) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
     assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y"))
@@ -677,7 +678,7 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](a,b) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = Grounder(p)
+    val grounder = LarsGrounding(p)
 
     assert(grounder.inspect.possibleValuesForVariable(r1,v("X")) == strVals("x"))
     assert(grounder.inspect.possibleValuesForVariable(r1,v("Y")) == strVals("y"))
@@ -733,7 +734,7 @@ class GrounderTests extends FunSuite {
     assert(facts forall (_.head.isInstanceOf[GroundAtom]))
 
     val inputProgram = LarsProgram(facts ++ Seq(r))
-    val grounder = Grounder(inputProgram)
+    val grounder = LarsGrounding(inputProgram)
 
     //println(grounder.groundProgram)
 
@@ -837,7 +838,7 @@ class GrounderTests extends FunSuite {
     assert(facts forall (_.head.isInstanceOf[GroundAtom]))
 
     val inputProgram = LarsProgram(facts ++ Seq(r1,r2))
-    val grounder = Grounder(inputProgram)
+    val grounder = LarsGrounding(inputProgram)
 
     //println(grounder.groundProgram)
 
@@ -961,7 +962,7 @@ class GrounderTests extends FunSuite {
     )
 
     val inputProgram = LarsProgram(schedulingProgram.rules ++ facts)
-    val grounder = Grounder(inputProgram)
+    val grounder = LarsGrounding(inputProgram)
 
 
     //
@@ -1171,7 +1172,7 @@ class GrounderTests extends FunSuite {
 
       //println(inputProgram)
       val grounder = printTime("grounding time") {
-        Grounder(inputProgram)
+        LarsGrounding(inputProgram)
       }
 
       //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
@@ -1314,7 +1315,7 @@ class GrounderTests extends FunSuite {
 
       //println(inputProgram)
       val grounder = printTime("grounding time") {
-        Grounder(inputProgram)
+        LarsGrounding(inputProgram)
       }
 
       //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
@@ -1474,7 +1475,7 @@ class GrounderTests extends FunSuite {
       val inputProgram = LarsProgram(nonGroundRules ++ facts)
 
       val grounding = printTime("grounding") {
-        Grounder(inputProgram)
+        LarsGrounding(inputProgram)
       }
       println("#rules: " + grounding.groundRules.size)
       println(grounding.groundProgram)

@@ -1,8 +1,7 @@
 package engine.asp
 
-import core._
-import core.asp.NormalRule
-import core.lars.{LarsProgramInspection, RuleGrounder}
+import core.asp.{AspProgram, NormalRule}
+import core.grounding.{GrounderInstance, ProgramInspection}
 
 /**
   * Created by hb on 08.03.17.
@@ -32,8 +31,9 @@ case class IncrementalGrounder(larsProgramEncoding: LarsProgramEncoding) {
   }
 
   def ground(rule: NormalRule): Set[NormalRule] = {
-    val inspection = LarsProgramInspection.from(Seq(rule) ++ facts) //TODO incremental
-    new RuleGrounder[NormalRule,Atom,Atom]().groundWith(inspection)(rule)
+    val inspection = ProgramInspection.forAsp(AspProgram(List(rule) ++ facts)) //TODO incremental
+    val grounder = GrounderInstance.forAsp()
+    grounder.groundWith(inspection)(rule)
   }
 
 }

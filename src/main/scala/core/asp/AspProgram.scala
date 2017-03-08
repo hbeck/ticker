@@ -1,13 +1,13 @@
 package core.asp
 
-import core.Atom
+import core.{Atom, Program}
 
 
 /**
   * Created by FM on 25.02.16.
   */
-trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
-  val rules: Seq[TAspRule]
+trait AspProgram[TAtom <: Atom, TRule <: AspRule[TAtom]] extends Program[TRule,TAtom,TAtom] {
+  val rules: Seq[TRule]
   lazy val atoms = this.rules.flatMap(_.atoms).toSet
 }
 

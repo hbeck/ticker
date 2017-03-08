@@ -1,7 +1,7 @@
 package lars.plain
 
-import core.Atom
-import core.asp.NormalRule
+import core.asp.AspProgram
+import core.grounding.GrounderInstance
 import core.lars._
 import engine.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
@@ -26,8 +26,8 @@ class ProgramContainingSlidingWindows extends TransformLarsSpec {
   it should "be partial grounded into 8 rules" in {
     val converted = converter.apply(program)
 
-    val inspection = LarsProgramInspection.from(converted.rules)
-    val grounder = new RuleGrounder[NormalRule, Atom, Atom]
+    val inspection = ProgramInspection.forAsp(AspProgram(converted.rules.toList))
+    val grounder = GrounderInstance.forAsp()
     val groundedRules = converted.rules flatMap grounder.groundWith(inspection)
 
     assert(groundedRules.size == 8)

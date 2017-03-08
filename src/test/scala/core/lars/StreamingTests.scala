@@ -9,6 +9,7 @@ import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 import runner.Load
 import Util._
+import core.grounding.LarsGrounding
 
 
 /**
@@ -68,7 +69,7 @@ class StreamingTests extends FunSuite {
 
       //println(inputProgram)
       val grounder = printTime("grounding time") {
-        Grounder(inputProgram)
+        LarsGrounding(inputProgram)
       }
 
       println(LarsProgram(grounder.groundRules))

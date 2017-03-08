@@ -1,5 +1,6 @@
 package evaluation.reachBlocked
 
+import core.grounding.LarsGrounding
 import core.lars.{LarsFact, _}
 import core.{Atom, Ground, Value}
 
@@ -80,7 +81,7 @@ trait ParallelLanes extends ReachBlockedProgram {
 
     val program = LarsProgram(baseProgram.rules ++ edges)
 
-    val grounder = Grounder(program)
+    val grounder = LarsGrounding(program)
 
     grounder.groundProgram
 

@@ -34,7 +34,6 @@ sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
 trait AspFact[TAtom <: Atom] extends AspRule[TAtom] with Fact[TAtom, TAtom]
 
-
 object AspRule {
 
   def pos[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(atoms.toSet)
@@ -64,7 +63,6 @@ case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: 
   override def hashCode(): Int = precomputedHash
 
   //    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
-
 
 }
 
