@@ -44,7 +44,10 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
     //note that this approach is not uniform. would be more elegant to return incremental rules with
     //tick variables plus TicksUntilOutdated, and uniformly pin them (like pin(Q) and pin(expiringR)
     val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(now))
-    facts ++ pinWithExp(Q) ++ pinWithExp(expiringR) ++ nonExpiringR ++ windowRules
+    val pq = pinWithExp(Q)
+    val pr = pinWithExp(expiringR)
+    val pw = pinWithExp(windowRules)
+    facts ++ pq ++ pr ++ nonExpiringR ++ pw
   }
 
   def timeCountPinned(now: TickPair)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {

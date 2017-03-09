@@ -152,7 +152,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
     val expBase: Expiration = TickPair(Void,Void)
     if (length == 0) return Seq((expBase,baseRule))
 
-    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom, now(TimePinVariable)), Set(PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - 1)))
+    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - 1)))
     val expSp: Expiration = TickPair(tick.time + length, Void)
     Seq((expBase,baseRule),(expSp,spoilerRule))
   }
@@ -238,6 +238,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     val spoilerRule1: NormalRule = AspRule(spoilerAtom,
       Set[Atom](atom),
       Set[Atom](PinnedAtom.asPinnedCntAtom(atom, c - 1)))
+
     val spoilerRule2: NormalRule = AspRule(spoilerAtom,
       Set[Atom](
         atom,

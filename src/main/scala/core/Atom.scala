@@ -220,8 +220,8 @@ trait PinnedTimeAtom extends PinnedAtom {
       val timeAssign = assignment.apply(time)
       timeAssign match {
         case Some(value) => value match {
-          case i: IntValue => v.calculate(TimePoint(i.int))
-          case t: TimePoint => v.calculate(t)
+          case i: IntValue => TimePoint(i.int)
+          case t: TimePoint => t
           case _ => v
         }
         case _ => v //if time variable does not occur in assignment

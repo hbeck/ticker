@@ -112,10 +112,10 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     val T = TimeVariableWithOffset("T")
 
     val program = LarsProgram.from(
-      //q1 <= WindowAtom(SlidingTimeWindow(10), Diamond, p)//,
-      /*q2 <= WindowAtom(SlidingTimeWindow(10), Box, p),
-      q3 <= WindowAtom(SlidingTimeWindow(10), At(3), p),*/
-      q4 <= WindowAtom(SlidingTimeWindow(10), At(T), p)//,
+      q1 <= WindowAtom(SlidingTimeWindow(10), Diamond, p),
+      q2 <= WindowAtom(SlidingTimeWindow(10), Box, p),
+      q3 <= WindowAtom(SlidingTimeWindow(10), At(3), p),
+      q4 <= WindowAtom(SlidingTimeWindow(10), At(T), p)
         /*
       q5 <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
       q6 <= WindowAtom(SlidingTupleWindow(10), Box, p),
@@ -131,7 +131,9 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     var model = engine.evaluate(TimePoint(3)).model
     assert(model contains p)
-    //assert(model contains q1)
+    assert(model contains q1)
+    assert(!(model contains q2))
+    assert(model contains q3)
     assert(model contains q4)
   }
 
