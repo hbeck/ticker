@@ -15,13 +15,15 @@ import scala.collection.immutable.HashMap
   *
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
-case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+
+  val grounder = IncrementalAspGrounder()
+  grounder.add(incrementalRuleMaker.staticGroundRules)
+  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
   //time of the truth maintenance network due to previous append and result calls
   var now = TickPair(0,0) //using (-1,0), first + will fail!
-  val grounder = IncrementalAspGrounder(larsProgramEncoding.groundBaseRules)
-
-  tmsPolicy.initialize(grounder.staticGroundRules)
+  singleOneDimensionalTickIncrement() //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(time: TimePoint)(atoms: Atom*) {
     if (time.value < now.time) {
@@ -42,8 +44,6 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
   //
   //
   //
-
-  val incrementalRuleMaker = IncrementalRuleMaker(larsProgramEncoding)
 
   def updateTimeTo(time: TimePoint) {
     if (time.value > now.time) {
@@ -69,7 +69,7 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     rulesToGround foreach { case (_,r) => grounder.add(r) }
     val rulesToAdd = rulesToGround flatMap { case (e,r) =>
       val rules = grounder.ground(r)
-      expirationHandling.register(e,rules)
+      if (!rules.isEmpty) expirationHandling.register(e,rules)
       rules
     }
     tmsPolicy.add(now.time)(rulesToAdd)
@@ -89,8 +89,12 @@ case class IncrementalEvaluationEngine(larsProgramEncoding: LarsProgramEncoding,
     def register(expiration: Expiration, rules: Set[NormalRule]) {
       val t = expiration.time
       val c = expiration.count
-      rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t,Set()) ++ rules)
-      rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c,Set()) ++ rules)
+      if (t != Void) {
+        rulesExpiringAtTime = rulesExpiringAtTime updated(t, rulesExpiringAtTime.getOrElse(t, Set()) ++ rules)
+      }
+      if (c != Void) {
+        rulesExpiringAtCount = rulesExpiringAtCount updated(c, rulesExpiringAtCount.getOrElse(c, Set()) ++ rules)
+      }
     }
 
     def unregisterExpiredByTime(): Seq[NormalRule] = {

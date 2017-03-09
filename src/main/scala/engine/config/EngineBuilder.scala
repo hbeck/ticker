@@ -59,7 +59,7 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 
   def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
 
-  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(larsProgramEncoding, policy))
+  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy))
 
 }
 

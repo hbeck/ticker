@@ -46,7 +46,18 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(model contains inference)
 
     model = engine.evaluate(TimePoint(3)).model
-    assert(model.isEmpty)
+    assert(!(model contains inference))
+
+    //additional
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("1")))))
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("2")))))
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3")))))
+    assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("0")))))
+    assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("1")))))
+    assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("2")))))
+    assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("3")))))
+
+    //TODO assert next addition has count correct
 
   }
 

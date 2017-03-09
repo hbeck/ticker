@@ -10,8 +10,8 @@ case class TickPair(time: Long, count: Long) {
   def + (other: TickPair): TickPair = {
     //ignoring -1 as number
     def add(n1: Long, n2: Long) = {
-      if (n1 == Void) n2
-      else if (n2 == Void) n1
+      if (n1 == Void) Void
+      else if (n2 == Void) Void
       else n1 + n2
     }
     TickPair(add(this.time,other.time),add(this.count,other.count))

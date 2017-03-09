@@ -3,43 +3,44 @@ package core.grounding.incremental
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.GrounderInstance
 
-import scala.collection.mutable.ListBuffer
-
 /**
   * Created by hb on 08.03.17.
   */
-case class IncrementalAspGrounder(staticGroundRules: Seq[NormalRule]) {
+case class IncrementalAspGrounder() {
 
-  val allRules: ListBuffer[NormalRule] = ListBuffer() ++ staticGroundRules
+  var allRules: Set[NormalRule] = Set()
 
   var inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules.toList)) //TODO incremental
-  val grounder = GrounderInstance.incrementalAsp(inspection)
+  var grounder = GrounderInstance.incrementalAsp(inspection) //TODO val when incremental
 
 
   //val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(networkTime).flatMap(asFacts).toSet
 
   //var facts: Set[NormalRule] = Set()
 
-//  def add(rules: Seq[NormalRule]) {
-//    rules foreach add //todo incremental
-//  }
+  def add(rules: Seq[NormalRule]) {
+    //rules foreach add //todo incremental
+    allRules = allRules ++ rules
+  }
 
   def add(rule: NormalRule) {
     //TODO incremental call to inspect
-    allRules += rule
+    allRules = allRules + rule
   }
 
   def remove(rules: Seq[NormalRule]) {
-    rules foreach remove //TODO incremental
+    //rules foreach remove //TODO incremental
+    allRules = allRules -- rules
   }
 
   def remove(rule: NormalRule) {
     //TODO incremental call to inspect
-    allRules -= rule
+    allRules = allRules - rule
   }
 
   def ground(rule: NormalRule): Set[NormalRule] = {
     inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules.toList)) //TODO incremental
+    grounder = GrounderInstance.incrementalAsp(inspection)
     grounder.ground(rule)
   }
 

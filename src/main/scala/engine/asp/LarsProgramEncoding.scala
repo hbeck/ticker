@@ -47,10 +47,6 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
 
-  val (groundRuleEncodings,nonGroundRuleEncodings) = (larsRuleEncodings map (_.aspRule)) partition (_.isGround)
-
-  val groundRules = Seq[NormalRule]() ++ (backgroundData map (AspFact(_))) ++ groundRuleEncodings
-
   /*
    * one-shot stuff
    */

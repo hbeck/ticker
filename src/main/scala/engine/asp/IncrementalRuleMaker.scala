@@ -3,7 +3,7 @@ package engine.asp
 import core._
 import core.asp.{AspFact, NormalRule}
 import engine.DefaultTrackedSignal
-import engine.asp.tms.Pin
+import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 
 
 /**
@@ -13,10 +13,19 @@ import engine.asp.tms.Pin
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
 
-  val R: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.larsRuleEncodings map (e => (e.ticksUntilOutdated,e.aspRule))
-  val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map (r => (TickPair(1,Void),r))
+  val R: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.larsRuleEncodings map { encoding =>
+    val rule = TickBasedAspToIncrementalAsp.stripTickAtoms(encoding.aspRule)
+    (encoding.ticksUntilOutdated,rule)
+  }
+  val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
+    (TickPair(1,Void),TickBasedAspToIncrementalAsp.stripTickAtoms(r))
+  }
 
   val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == Void && ticks.count == Void }
+
+  val (groundNonExpiringR,nonGroundNonExpiringR) = nonExpiringR partition { case (_,r) => r.isGround }
+
+  val staticGroundRules = groundNonExpiringR map { case (_,r) => r } //TODO add those of window atom encoders later
 
   /*
    * TODO separate rules:
