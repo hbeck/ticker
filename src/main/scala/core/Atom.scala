@@ -16,6 +16,8 @@ sealed trait Atom extends HeadAtom {
 
   val predicate: Predicate
 
+  override def hashCode(): Int = this.toString.hashCode
+
 }
 
 case class Predicate(caption: String) {
@@ -25,6 +27,11 @@ case class Predicate(caption: String) {
     case a: Argument => a
     case x: Any => Argument.convertToArgument(x.toString)
   })
+
+  override def equals(other: Any) = other match {
+    case Predicate(p) => this.caption equals p
+    case _ => false
+  }
 }
 
 trait AtomWrapper {
@@ -50,9 +57,14 @@ case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
 case class PredicateAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
 
-  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PredicateAtom.this)
+  //private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PredicateAtom.this)
 
-  override def hashCode(): Int = precomputedHash
+  //override def hashCode(): Int = this.toString.hashCode
+
+  override def equals(other: Any) = other match {
+    case PredicateAtom(p) => this.predicate equals p
+    case _ => false
+  }
 }
 
 trait AtomWithArgument extends Atom {
@@ -112,14 +124,28 @@ case class NonGroundAtomWithArguments(override val predicate: Predicate, argumen
     }
     Atom(predicate, newArguments)
   }
+
+  override def equals(other: Any) = other match {
+    case NonGroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
+    case NonGroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
+    case NonGroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
+    case _ => false
+  }
 }
 
 case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
   override def isGround() = true
 
-  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(GroundAtomWithArguments.this)
+  //private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(GroundAtomWithArguments.this)
 
-  override def hashCode(): Int = precomputedHash
+  //override def hashCode(): Int = this.toString.hashCode
+
+  override def equals(other: Any) = other match {
+    case GroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
+    case GroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
+    case GroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
+    case _ => false
+  }
 }
 
 object GroundAtom {

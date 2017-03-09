@@ -92,14 +92,43 @@ case class StringValue(value: String) extends Value {
 
   override def +(offset: Offset): Argument = this
 
+  private lazy val precomputedHash = value.toString.hashCode
+
+  override def hashCode(): Int = precomputedHash
+
+  /*
+  override def equals(other: Any) = other match {
+    case StringValue(s) => this.value == s
+    case IntValue(i) => this.value == ""+i
+    case TimePoint(i) => this.value == ""+i
+    case _ => false
+  }
+  */
+
+
 }
 
 case class IntValue(int: Int) extends Value {
+
   override def toString = "" + int
 
   override def -(offset: Offset): Argument = IntValue(int - offset)
 
   override def +(offset: Offset): Argument = IntValue(int + offset)
+
+  private lazy val precomputedHash = (""+int).hashCode
+
+  override def hashCode(): Int = precomputedHash
+
+  /*
+  override def equals(other: Any) = other match {
+    case IntValue(i) => this.int == i
+    case StringValue(s) => ""+this.int == s
+    case TimePoint(i) => this.int == i
+    case _ => false
+  }
+  */
+
 }
 
 object IntValue {
