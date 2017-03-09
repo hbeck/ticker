@@ -67,8 +67,8 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     for (a <- model) {
       if (a equals bat3) {
         found = true
-        println("hash in set:    "+a.hashCode)
-        println("hash of manual: "+bat3.hashCode)
+        //println("hash in set:    "+a.hashCode)
+        //println("hash of manual: "+bat3.hashCode)
       }
 
     }

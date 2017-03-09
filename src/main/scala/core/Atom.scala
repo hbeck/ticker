@@ -18,6 +18,13 @@ sealed trait Atom extends HeadAtom {
 
   override def hashCode(): Int = this.toString.hashCode
 
+  override def equals(other: Any): Boolean = other match {
+    case a: Atom => this.toString == a.toString
+    case _ => false
+  }
+
+
+
 }
 
 case class Predicate(caption: String) {
@@ -28,10 +35,12 @@ case class Predicate(caption: String) {
     case x: Any => Argument.convertToArgument(x.toString)
   })
 
+  /*
   override def equals(other: Any) = other match {
     case Predicate(p) => this.caption equals p
     case _ => false
   }
+  */
 }
 
 trait AtomWrapper {
@@ -41,12 +50,12 @@ trait AtomWrapper {
 
 trait GroundAtom extends Atom {
   override def isGround(): Boolean = true
-
   override def assign(assignment: Assignment) = this
 }
 
 object Falsum extends GroundAtom {
   override val predicate = Predicate("⊥")
+  override def toString = predicate.toString
 }
 
 //TODO allow with arguments!
@@ -61,10 +70,12 @@ case class PredicateAtom(predicate: Predicate) extends GroundAtom {
 
   //override def hashCode(): Int = this.toString.hashCode
 
+  /*
   override def equals(other: Any) = other match {
     case PredicateAtom(p) => this.predicate equals p
     case _ => false
   }
+  */
 }
 
 trait AtomWithArgument extends Atom {
@@ -75,6 +86,7 @@ trait AtomWithArgument extends Atom {
 
   override def arity = arguments.size
 
+  /*
   def ==(other: AtomWithArgument): Boolean = {
     if (this eq other) return true
     if (this.predicate != other.predicate) return false
@@ -82,11 +94,14 @@ trait AtomWithArgument extends Atom {
     if (!this.arguments.equals(other.arguments)) return false
     true
   }
+  */
 
+  /*
   override def equals(other: Any): Boolean = other match {
     case x: AtomWithArgument => this == x
     case _ => false
   }
+  */
 
   override def toString = {
     val sb = new StringBuilder
@@ -125,12 +140,14 @@ case class NonGroundAtomWithArguments(override val predicate: Predicate, argumen
     Atom(predicate, newArguments)
   }
 
+  /*
   override def equals(other: Any) = other match {
     case NonGroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
     case NonGroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
     case NonGroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
     case _ => false
   }
+  */
 }
 
 case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArgument {
@@ -140,12 +157,14 @@ case class GroundAtomWithArguments(override val predicate: Predicate, arguments:
 
   //override def hashCode(): Int = this.toString.hashCode
 
+  /*
   override def equals(other: Any) = other match {
     case GroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
     case GroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
     case GroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
     case _ => false
   }
+  */
 }
 
 object GroundAtom {
