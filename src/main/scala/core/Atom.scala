@@ -218,10 +218,13 @@ trait PinnedTimeAtom extends PinnedAtom {
     case t: TimePoint => t
     case v: TimeVariableWithOffset => {
       val timeAssign = assignment.apply(time)
-      timeAssign.get match {
-        case i: IntValue => v.calculate(TimePoint(i.int))
-        case t: TimePoint => v.calculate(t)
-        case _ => v
+      timeAssign match {
+        case Some(value) => value match {
+          case i: IntValue => v.calculate(TimePoint(i.int))
+          case t: TimePoint => v.calculate(t)
+          case _ => v
+        }
+        case _ => v //if time variable does not occur in assignment
       }
     }
   }
@@ -337,11 +340,10 @@ case class NonGroundPinnedAtAtom(override val atom: Atom, time: Time) extends Pi
 
   override def isGround(): Boolean = false
 
-  //assume pinned atoms may have variables only in its special time argument TODO hb?
   override def assign(assignment: Assignment): ExtendedAtom = {
     val assignedTime = assignmentForTime(assignment)
     val assignedAtom = atom.assign(assignment).asInstanceOf[Atom]
-    if (assignedAtom.isGround()) {
+    if (assignedAtom.isGround() && assignedTime.isInstanceOf[TimePoint]) {
       GroundPinnedAtAtom(assignedAtom, assignedTime.asInstanceOf[TimePoint])
     } else {
       NonGroundPinnedAtAtom(assignedAtom, assignedTime)

@@ -80,7 +80,7 @@ object Util {
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
     val pin = Pin(Assignment(Map(TimePinVariable -> TimePoint(time))))
-    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground
+    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.groundTickVariables
 
     AspProgram((groundRules ++ pinnedRules).toList)
   }

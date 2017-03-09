@@ -96,5 +96,44 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
   }
 
+  test("basic propositional") {
+    val p = Atom(Predicate("p"))
+    val q1 = Atom(Predicate("q1"))
+    val q2 = Atom(Predicate("q2"))
+    val q3 = Atom(Predicate("q3"))
+    val q4 = Atom(Predicate("q4"))
+    val q5 = Atom(Predicate("q5"))
+    val q6 = Atom(Predicate("q6"))
+    val q7 = Atom(Predicate("q7"))
+    val q8 = Atom(Predicate("q8"))
+    val q9 = Atom(Predicate("q9"))
+    val q10 = Atom(Predicate("q10"))
+    val q11 = Atom(Predicate("q11"))
+    val T = TimeVariableWithOffset("T")
+
+    val program = LarsProgram.from(
+      //q1 <= WindowAtom(SlidingTimeWindow(10), Diamond, p)//,
+      /*q2 <= WindowAtom(SlidingTimeWindow(10), Box, p),
+      q3 <= WindowAtom(SlidingTimeWindow(10), At(3), p),*/
+      q4 <= WindowAtom(SlidingTimeWindow(10), At(T), p)//,
+        /*
+      q5 <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
+      q6 <= WindowAtom(SlidingTupleWindow(10), Box, p),
+      q7 <= WindowAtom(SlidingTupleWindow(10), At(3), p),
+      q8 <= WindowAtom(SlidingTupleWindow(10), At(T), p),
+      q10 <= p,
+      q11 <= AtAtom(T,p)*/
+    )
+
+    val engine = defaultEngine(program)
+
+    engine.append(TimePoint(3))(p)
+
+    var model = engine.evaluate(TimePoint(3)).model
+    assert(model contains p)
+    //assert(model contains q1)
+    assert(model contains q4)
+  }
+
 
 }

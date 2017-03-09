@@ -50,7 +50,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
   def timeCountPinned(now: TickPair)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {
     val pin = Pin(now.time,now.count)
     rules map {
-      case (ticksUntilOutdated,rule) => (now+ticksUntilOutdated, pin.ground(rule))
+      case (ticksUntilOutdated,rule) => (now+ticksUntilOutdated, pin.groundTickVariables(rule))
     }
   }
 

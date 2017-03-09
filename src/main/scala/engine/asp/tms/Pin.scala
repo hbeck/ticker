@@ -123,12 +123,8 @@ case class Pin(assignment: Assignment) {
   }
   */
 
-  def ground(atom: Atom): Atom = atom match {
-    case p: PinnedAtom => {
-      val g = this.apply(p)
-      //      ground(g) //TODO hb: why is this commented?
-      g
-    }
+  def groundTickVariables(atom: Atom): Atom = atom match {
+    case p: PinnedAtom => this.apply(p)
     case ng: NonGroundAtomWithArguments => ng.assign(assignment)
     case rel: RelationAtom if !rel.isGround() => rel.assign(assignment).asInstanceOf[Atom]
     case a: GroundAtom => a
@@ -136,13 +132,13 @@ case class Pin(assignment: Assignment) {
     //    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
-  def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))
+  def groundTickVariables(fact: NormalFact): NormalFact = AspFact(this.groundTickVariables(fact.head))
 
-  def ground(rule: NormalRule): NormalRule = {
+  def groundTickVariables(rule: NormalRule): NormalRule = {
     AspRule(
-      this.ground(rule.head),
-      rule.pos map this.ground,
-      rule.neg map this.ground
+      this.groundTickVariables(rule.head),
+      rule.pos map this.groundTickVariables,
+      rule.neg map this.groundTickVariables
     )
   }
 
@@ -150,19 +146,19 @@ case class Pin(assignment: Assignment) {
   //    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
   //  }
 
-  def ground(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
+  def groundTickVariables(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 
-  def ground(rules: Seq[NormalRule]): Seq[NormalRule] = rules map ground
+  def groundTickVariables(rules: Seq[NormalRule]): Seq[NormalRule] = rules map groundTickVariables
 
   def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(ground(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(groundTickVariables(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): NormalRule = {
     AspRule(
-      ground(this.apply(pinnedAspRule.head)),
-      pinnedAspRule.pos map this.apply map this.ground,
-      pinnedAspRule.neg map this.apply map this.ground
+      groundTickVariables(this.apply(pinnedAspRule.head)),
+      pinnedAspRule.pos map this.apply map this.groundTickVariables,
+      pinnedAspRule.neg map this.apply map this.groundTickVariables
     )
   }
 }

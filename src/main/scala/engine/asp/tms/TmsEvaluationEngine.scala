@@ -50,7 +50,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     val pin = Pin(Assignment(Map(core.lars.TimePinVariable -> time, core.lars.CountPinVariable -> IntValue(tracker.tupleCount.toInt))))
 
     // performs simple pinning-calculations (eg. T + 1)
-    val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
+    val groundTimeVariableCalculations = nonGroundRules map (r => pin.groundTickVariables(r))
 
     val groundHeadsAsFacts: Set[NormalRule] = groundTimeVariableCalculations filter (_.isGround) map (g => AspFact[Atom](g.head))
 
