@@ -171,7 +171,8 @@ case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncod
 
   val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
 
-  val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asPinnedCntAtom(atom, C - i))))
+  //val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asPinnedCntAtom(atom, C - i))))
+  val allWindowRules = Seq() //TODO
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = Seq() //TODO
 }
@@ -207,7 +208,7 @@ case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding:
         Sum(C, IntValue(-(i)), D)
       ),
       Set[Atom](
-        PinnedAtom.asPinnedCntAtom(atom, D)
+        //PinnedAtom.asPinnedAtCntAtom(atom, T, D) //TODO
       )
     )
   }

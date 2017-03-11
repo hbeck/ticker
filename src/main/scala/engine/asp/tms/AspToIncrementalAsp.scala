@@ -54,7 +54,7 @@ object TickBasedAspToIncrementalAsp {
     rule.
       from(
         rule.head,
-        rule.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
+        rule.pos filterNot (a => engine.asp.specialPinPredicates.contains(a.predicate)),
         rule.neg
       ).
       asInstanceOf[NormalRule]

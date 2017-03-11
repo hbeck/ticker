@@ -44,8 +44,7 @@ trait TrackedSignal {
 
 case class DefaultTrackedSignal(signal: Atom, time: TimePoint, count: Long) extends TrackedSignal {
   lazy val timePinned: PinnedAtAtom = PinnedAtom.asPinnedAtAtom(signal, time)
-  lazy val countPinned: PinnedCntAtom = PinnedAtom.asPinnedCntAtom(signal, IntValue(count.toInt))
-  lazy val timeCountPinned: PinnedTimeCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
+  lazy val timeCountPinned: PinnedAtCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
 }
 
 object DefaultTrackedSignal {

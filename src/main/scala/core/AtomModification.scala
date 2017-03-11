@@ -1,7 +1,7 @@
 package core
 
-import engine.asp.{cnt, now, pin}
 import core.lars.Time
+import engine.asp.{cnt, now}
 
 /**
   * Created by FM on 17.06.16.
@@ -20,7 +20,6 @@ case class AtomModification(atom: Atom) {
     atom match {
       case `cnt` => this (timeAsArgument)
       case `now` => this (timeAsArgument)
-      case `pin` => this (timeAsArgument)
       case _ => PinnedAtom(atom, time)
     }
   }

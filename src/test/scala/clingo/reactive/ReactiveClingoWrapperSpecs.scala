@@ -294,6 +294,8 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
 
 
   "With reactive engine" should "have running a :- w#^2 @_T b" in {
+    val U = Variable("U")
+
     val p = LarsProgram.from(
       AtAtom(U, Atom("a")) <= WindowAtom(SlidingTupleWindow(2), At(U), Atom("b"))
     )

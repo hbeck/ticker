@@ -8,9 +8,10 @@ import core._
   * Created by FM on 13.05.16.
   */
 package object asp {
-  val now = Atom("now") //used in a_at(\vec{X},T)
-  val cnt = Atom("cnt") //used in a_cnt(\vec{X},C)
-  val pin = Atom("pin") //used in a_at_cnt(\vec{X},T,C) //pin = time + tick
+
+  val now = Predicate("now")
+  val cnt = Predicate("cnt")
+  val tickPredicate = Predicate("tick")
 
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   //use -1 for infinity
@@ -21,8 +22,7 @@ package object asp {
   type Tick = TickPair
   val Void: Long = -1L
 
-  val specialTickAtoms = Seq(now, cnt, pin)
-  val specialTickPredicates = specialTickAtoms.map(_.predicate)
+  val specialPinPredicates = Seq(now, cnt) //note that "tick" is not used for pinning!
 
   type PinnedRule = AspRule[AtomWithArgument]
   type PinnedFact = AspFact[AtomWithArgument]

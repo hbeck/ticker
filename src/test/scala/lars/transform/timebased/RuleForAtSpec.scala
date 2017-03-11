@@ -22,7 +22,7 @@ class RuleForAtSpec extends TransformLarsSpec {
       rule =>
         rule.body collect {
           case a: AtomWithArgument => a.predicate
-        } should contain(now.predicate)
+        } should contain(now)
     }
   }
   it should "contain now(t2)" in {

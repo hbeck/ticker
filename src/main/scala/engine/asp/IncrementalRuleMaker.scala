@@ -64,7 +64,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
   */
 
   def pinnedAtoms(t: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
-    Seq(t.timePinned, t.countPinned, t.timeCountPinned) map {
+    // Seq(t.timePinned, t.countPinned, t.timeCountPinned) map {
+    Seq(t.timePinned, t.timeCountPinned) map {
       a => (TickPair(Void,Void),AspFact[Atom](a)) //TODO reconsider outdating of signals
     }
   }

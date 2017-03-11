@@ -16,9 +16,6 @@ package object lars {
   //TODO hb move to engine asp package (like now/cnt/pin)
   val TimePinVariable = TimeVariableWithOffset(Variable("NN"))
   val CountPinVariable = Variable("CC")
-  val D = Variable("D")
-
-  val U = Variable("U")
 
   def TimeW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
 

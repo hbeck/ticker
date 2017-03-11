@@ -13,13 +13,13 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
 
   def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(
-      AspRule[Atom, Atom](a, Set(now(TimePinVariable), PinnedAtom(a, TimePinVariable))),
-      AspRule[Atom, Atom](PinnedAtom(a, TimePinVariable), Set(now(TimePinVariable), a))
+      AspRule[Atom, Atom](a, Set(now(TimePinVariable), PinnedAtom.asPinnedAtAtom(a, TimePinVariable))),
+      AspRule[Atom, Atom](PinnedAtom.asPinnedAtAtom(a, TimePinVariable), Set(now(TimePinVariable), a))
     )
   }
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    case AtAtom(t, a) => PinnedAtom(a, t)
+    case AtAtom(t, a) => PinnedAtom.asPinnedAtAtom(a, t)
     case a: Atom => a
     case a: WindowAtom => this.encodedWindowAtom(a)
   }
@@ -53,7 +53,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
     }
 
     windowAtom.temporalModality match {
-      case At(v: Time) => PinnedAtom.asPinnedAtAtom(Atom(predicate, previousArguments), v) //fine to say it is a w@(...)
+      case At(v: Time) => PinnedAtom.asPinnedAtAtom(Atom(predicate, previousArguments), v) //note the slight difference in semantics: if this pinned atom holds, then the atom within holds at the respective time, not the window atom itself
       case _ => Atom(predicate, previousArguments)
     }
   }
@@ -152,7 +152,8 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
     val expBase: Expiration = TickPair(Void,Void)
     if (length == 0) return Seq((expBase,baseRule))
 
-    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - 1)))
+    val t = tick.time - 1
+    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePoint(t))))
     val expSp: Expiration = TickPair(tick.time + length, Void)
     Seq((expBase,baseRule),(expSp,spoilerRule))
   }
@@ -169,9 +170,10 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
   }
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
+    val t = tick.time
     val c = tick.count.toInt
     val head:Atom = windowAtomEncoding.asInstanceOf[Atom]
-    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,atTime,IntValue(c)))
+    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePoint(t),IntValue(c)))
     val rule: NormalRule = AspRule(head,posBody)
     val exp: Expiration = TickPair(Void, c + length)
     Seq((exp,rule))
@@ -182,13 +184,16 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
 
 case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
+  val T = TimeVariableWithOffset(StringVariable("TT"))
+
   val allWindowRules = (0 to length.toInt) map { i =>
-    AspRule(windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedCntAtom(atom, CountPinVariable - i)))
+    AspRule(windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, T, CountPinVariable - i)))
   }
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
+    val t = tick.time
     val c = tick.count.toInt
-    val posBody = Set(PinnedAtom.asPinnedCntAtom(atom,IntValue(c)))
+    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePoint(t),IntValue(c)))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: Expiration = TickPair(Void, c + length)
     Seq((exp,rule))
@@ -199,56 +204,53 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 
 case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
 
-  val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
-
   val baseRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
 
-  val spoilerRules1: Seq[NormalRule] = (1 to length.toInt-1) map { i =>
-    AspRule(spoilerAtom,
-      Set[Atom](atom,cnt(CountPinVariable)),
-      Set[Atom](PinnedAtom.asPinnedCntAtom(atom, CountPinVariable - i)))
-  }
+  val T = TimeVariableWithOffset("TT")
+  val U = TimeVariableWithOffset("UU")
 
-  val T1 = Variable("TT1")
-  val T2 = Variable("TT2")
+  val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
+  val startAtom = NonGroundAtom(Predicate(f"start_tu_${length}_${atom.predicate.caption}"), Seq(T))
 
-  val spoilerRules2: Seq[NormalRule] = (1 to length.toInt-1) map { i =>
-    AspRule(spoilerAtom,
-      Set[Atom](
-        atom,
-        cnt(CountPinVariable),
-        PinnedAtom.asPinnedAtCntAtom(atom, T1, CountPinVariable - i),
-        PinnedAtom.asPinnedAtCntAtom(atom, T2, CountPinVariable - i + 1),
-        Gt(T2, T1 + 1)
-      ))
-  }
+  val spoilerRule: NormalRule = AspRule(spoilerAtom,
+    Set[Atom](atom,startAtom,now(TimePinVariable),LeqLe(T,U,TimePinVariable)),
+    Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
-  val spoilerRules: Seq[NormalRule] = spoilerRules1 ++ spoilerRules2
+  val startRule: NormalRule = AspRule(spoilerAtom,
+    Set[Atom](
+      atom,
+      cnt(CountPinVariable),
+      tickPredicate(Seq(T,CountPinVariable - length.toInt + 1))
+    ))
 
-  override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
+  val spoilingRules: Seq[NormalRule] = Seq(spoilerRule,startRule)
+
+  override val allWindowRules: Seq[NormalRule] = spoilingRules :+ baseRule
+
+  //this variable may go if we can remove predicate "tick" from the pos body of the incremental rule
+  //requires more intelligent grounding
+  val D = TimeVariableWithOffset(StringVariable("DD"))
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
     val t = TimePoint(tick.time)
-    val c = IntValue(tick.count.toInt)
 
     val baseRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
     val expBase: Expiration = TickPair(Void,Void)
     if (length < 2) return Seq((expBase,baseRule))
 
-    val spoilerRule1: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom),
-      Set[Atom](PinnedAtom.asPinnedCntAtom(atom, c - 1)))
+    val spoilerRule: NormalRule = AspRule(spoilerAtom,
+      Set[Atom](atom,startAtom,LeqLe(T,U,t),tickPredicate(Seq(U,D))),
+      Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
-    val spoilerRule2: NormalRule = AspRule(spoilerAtom,
+    val startRule: NormalRule = AspRule(spoilerAtom,
       Set[Atom](
         atom,
-        PinnedAtom.asPinnedAtCntAtom(atom, T1, c - 1),
-        PinnedAtom.asPinnedAtCntAtom(atom, t, c),
-        Gt(t, T1 + 1)
+        tickPredicate(Seq(T,IntValue(tick.count.toInt - length.toInt + 1)))
       ))
 
-    val expSp: Expiration = TickPair(Void, tick.count + length - 1)
-    Seq((expBase,baseRule),(expSp,spoilerRule1),(expSp,spoilerRule2))
+    val expSpoiler: Expiration = TickPair(tick.time + 1, Void)
+    val expStart: Expiration = TickPair(Void, tick.count + 1)
+    Seq((expBase,baseRule),(expSpoiler,spoilerRule),(expStart,startRule))
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(Void, Void) //no time/count variable in window atom

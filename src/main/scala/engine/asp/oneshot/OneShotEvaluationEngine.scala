@@ -20,14 +20,15 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
 
   def apply(time: TimePoint, count: Long, dataStream: SignalStream): Result = {
 
-    val nowFact = AspFact(now(time))
-    val cntFact = AspFact(cnt(IntValue(count.toInt)))
+    val nowFact = AspFact(now(time)).asInstanceOf[PinnedFact]
+    val cntFact= AspFact(cnt(IntValue(count.toInt))).asInstanceOf[PinnedFact]
 
     val signals = dataStream flatMap { s =>
       Seq[AspFact[AtomWithArgument]](
-        AspFact(PinnedAtom(s.signal, s.time)),
-        AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.count.toInt))),
-        AspFact(PinnedAtom(s.signal, s.time, Value(s.count.toInt)))
+        AspFact(PinnedAtom.asPinnedAtAtom(s.signal, s.time)),
+        //AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.count.toInt))),
+        AspFact(tickPredicate(Seq(s.time,Value(s.count.toInt))).asInstanceOf[AtomWithArgument]),
+        AspFact(PinnedAtom.asPinnedAtCntAtom(s.signal, s.time, Value(s.count.toInt)))
       )
     }
 

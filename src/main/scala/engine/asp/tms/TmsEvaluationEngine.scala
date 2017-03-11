@@ -35,10 +35,10 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     discardOutdatedAuxiliaryAtoms(time)
   }
 
-  private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  //private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
-
 
     val tracked = tracker.track(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)

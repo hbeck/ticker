@@ -19,7 +19,7 @@ object ClingoEvaluation {
   def apply() = new ClingoEvaluation(ClingoWrapper())
 
   private val TimeAtomPattern = "(.+)_at".r
-  private val CntAtomPattern = "(.+)_cnt".r
+  //private val CntAtomPattern = "(.+)_cnt".r
   private val TimeCntAtomPattern = "(.+)_at_cnt".r
 
   //string to Atom
@@ -40,7 +40,7 @@ object ClingoEvaluation {
 
     val atom = (predicateName, arguments) match {
       case (TimeCntAtomPattern(predicate), Seq(IntValue(t), tick: IntValue)) => PinnedAtom(Atom(predicate), TimePoint(t), tick)
-      case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asPinnedCntAtom(Atom(predicate), i)
+      //case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asPinnedCntAtom(Atom(predicate), i)
       case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom(Atom(predicate), TimePoint(t))
       case _ => GroundAtom(Predicate(predicateName), arguments)
     }

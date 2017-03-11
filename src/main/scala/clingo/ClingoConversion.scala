@@ -43,6 +43,10 @@ object ClingoConversion {
     case Gt(l, r) => f"$l > $r"
     case Sum(l, r, e) => f"$l + $r = $e"
     case Product(l, r, e) => f"$l * $r = $e"
+    case LeqLeq(l, x, u) => f"$x = $l .. $u" // l <= x <= u which has x safe automatically
+    case LeLe(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
+    case LeLeq(l, x, u) => f"$x = ${l+1} .. $u"
+    case LeqLe(l, x, u) => f"$x = $l .. ${u-1}"
   }
 
   def apply[TAtom](atom: TAtom): ClingoAtom = {

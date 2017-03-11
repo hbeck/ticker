@@ -1,7 +1,7 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, NormalRule}
+import core.asp.NormalRule
 import core.grounding.incremental.IncrementalAspGrounder
 import core.lars.TimePoint
 import engine._
@@ -124,10 +124,8 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   //book keeping for auxiliary signals to handle window logic
   //var tuplePositions: List[Atom] = List()
 
-  @deprecated
-  def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
-
-
+  //@deprecated
+  //def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
 //  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
 //    case p: PinnedAtAtom => p
