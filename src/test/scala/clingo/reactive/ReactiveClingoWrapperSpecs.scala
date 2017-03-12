@@ -63,9 +63,9 @@ class ReactiveClingoWrapperSpecs extends FlatSpec with AtomTestFixture {
     val result = wrapper.runReactive(program)
   }
 
-  def tick_now(value: Int = 1) = Tick(TickParameter("t"), value)
+  def tick_now(value: Int = 1) = ClingoTick(TickParameter("t"), value)
 
-  def tick_cnt(value: Int = 1) = Tick(TickParameter("c"), value)
+  def tick_cnt(value: Int = 1) = ClingoTick(TickParameter("c"), value)
 
   def tickAt(now: Int, cnt: Int) = Seq(tick_now(now), tick_cnt(cnt))
 

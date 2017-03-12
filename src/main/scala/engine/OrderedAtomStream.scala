@@ -3,7 +3,7 @@ package engine
 import clingo.ClingoProgramWithLars
 import core._
 import core.lars.TimePoint
-import engine.asp.TickPair
+import engine.asp.Tick
 
 import scala.collection.SortedMap
 
@@ -48,7 +48,7 @@ case class DefaultTrackedSignal(signal: Atom, time: TimePoint, count: Long) exte
 }
 
 object DefaultTrackedSignal {
-  def apply(signal: Atom, tick: TickPair): DefaultTrackedSignal = DefaultTrackedSignal(signal, TimePoint(tick.time), tick.count)
+  def apply(signal: Atom, tick: Tick): DefaultTrackedSignal = DefaultTrackedSignal(signal, TimePoint(tick.time), tick.count)
 }
 
 object SignalTracker {

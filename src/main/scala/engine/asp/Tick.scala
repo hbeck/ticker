@@ -6,26 +6,26 @@ package engine.asp
   * Special logic to introduce irrelevance/infinity with -1
   *
   */
-case class TickPair(time: Long, count: Long) {
-  def + (other: TickPair): TickPair = {
+case class Tick(time: Long, count: Long) {
+  def + (other: Tick): Tick = {
     //ignoring -1 as number
     def add(n1: Long, n2: Long) = {
       if (n1 == Void || n2 == Void) Void
       else n1 + n2
     }
-    TickPair(add(this.time,other.time),add(this.count,other.count))
+    Tick(add(this.time,other.time),add(this.count,other.count))
   }
 
-  def incrementTime(): TickPair = TickPair(time+1,count)
-  def incrementCount(): TickPair = TickPair(time,count+1)
+  def incrementTime(): Tick = Tick(time+1,count)
+  def incrementCount(): Tick = Tick(time,count+1)
 }
 
-object TickPair {
+object Tick {
 
-  def min(p1: TickPair, p2: TickPair) = {
+  def min(p1: Tick, p2: Tick) = {
     val time = minWithVoidAsInfinity(p1.time,p2.time)
     val count = minWithVoidAsInfinity(p1.count,p2.count)
-    TickPair(time,count)
+    Tick(time,count)
   }
 
   def minWithVoidAsInfinity(i: Long, j: Long): Long = {

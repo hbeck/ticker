@@ -35,7 +35,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TicksUntilOutdated = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(TickPair(-1L,-1L))((ticks1, ticks2) => TickPair.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TicksUntilOutdated = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(-1L,-1L))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
 
 }
 

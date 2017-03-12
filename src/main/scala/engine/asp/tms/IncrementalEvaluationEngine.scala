@@ -22,7 +22,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
   //time of the truth maintenance network due to previous append and result calls
-  var currentTick = TickPair(0,0) //using (-1,0), first + will fail!
+  var currentTick = Tick(0,0) //using (-1,0), first + will fail!
   singleOneDimensionalTickIncrement() //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(time: TimePoint)(atoms: Atom*) {

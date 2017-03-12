@@ -14,9 +14,9 @@ import scala.tools.nsc.io.Socket
   * Created by fm on 25/01/2017.
   */
 
-case class Tick(parameter: TickParameter, value: Long)
+case class ClingoTick(parameter: TickParameter, value: Long)
 
-case class ReactiveClingoSignal(predicate: ClingoAtom, arguments: Seq[Value], ticks: Seq[Tick])
+case class ReactiveClingoSignal(predicate: ClingoAtom, arguments: Seq[Value], ticks: Seq[ClingoTick])
 
 object ReactiveClingoClient {
   def connect(port: Int = 5123): ReactiveClingoClient = {
@@ -95,7 +95,7 @@ class ReactiveClingoClient(socket: Socket) extends Resource {
   }
 
 
-  def evaluate(ticks: Seq[Tick]): Option[Set[ClingoModel]] = {
+  def evaluate(ticks: Seq[ClingoTick]): Option[Set[ClingoModel]] = {
     val ticksAsString = ticks.map(t => t.parameter + ":" + t.value)
     send("solve", ticksAsString)
 

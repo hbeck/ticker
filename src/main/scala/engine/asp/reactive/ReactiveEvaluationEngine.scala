@@ -1,6 +1,6 @@
 package engine.asp.reactive
 
-import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, Tick}
+import clingo.reactive.{ReactiveClingo, ReactiveClingoProgram, ClingoTick}
 import clingo.{ClingoEvaluation, ClingoWrapper}
 import common.Resource
 import core._
@@ -33,8 +33,8 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
   override def evaluate(time: TimePoint): Result = {
 
     val parameters = Seq(
-      Tick(clingoProgram.timeDimension.parameter, time.value),
-      Tick(clingoProgram.countDimension.parameter, signalTracker.tupleCount)
+      ClingoTick(clingoProgram.timeDimension.parameter, time.value),
+      ClingoTick(clingoProgram.countDimension.parameter, signalTracker.tupleCount)
     )
 
     val clingoModel = runningReactiveClingo.evaluate(parameters)
@@ -67,8 +67,8 @@ case class ReactiveEvaluationEngine(program: LarsProgramEncoding, clingoWrapper:
 
   //TODO naming: clingo or reactive clingo?
   case class TrackedSignalForClingo(signal: GroundAtom, time: TimePoint, count: Long) extends TrackedSignal {
-    val timeDimension = Tick(clingoProgram.timeDimension.parameter, time.value)
-    val cntDimension = Tick(clingoProgram.countDimension.parameter, count)
+    val timeDimension = ClingoTick(clingoProgram.timeDimension.parameter, time.value)
+    val cntDimension = ClingoTick(clingoProgram.countDimension.parameter, count)
     val clingoArgument = (signal, Seq(timeDimension, cntDimension))
   }
 

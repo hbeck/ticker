@@ -19,7 +19,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
     (encoding.ticksUntilOutdated,rule)
   }
   val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
-    (TickPair(1,Void),TickBasedAspToIncrementalAsp.stripTickAtoms(r))
+    (Tick(1,Void),TickBasedAspToIncrementalAsp.stripTickAtoms(r))
   }
 
   val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == Void && ticks.count == Void }
@@ -36,10 +36,9 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
    * d) both tick-variables
    */
 
-  def rulesToGroundFor(currentTick: TickPair, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = { //TODO naming tick, tickPair, now...
+  def rulesToGroundFor(currentTick: Tick, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = {
     val pinWithExp = timeCountPinned(currentTick) _
-    val tickFact: NormalRule = AspFact(Atom(tickPredicate,Seq(TimePoint(currentTick.time),Value(currentTick.count.toInt))))
-    val expTickFact: (Expiration, NormalRule) = (TickPair(-1,-1),tickFact)
+    val expTickFact: (Expiration, NormalRule) = (Tick(-1,-1),tickRule(TimePoint(currentTick.time),Value(currentTick.count.toInt)))
     val facts:Seq[(Expiration,NormalRule)] = Seq(expTickFact) ++ {
       signal match {
         case Some(atom) => pinnedAtoms(DefaultTrackedSignal(atom,currentTick))
@@ -53,7 +52,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
     facts ++ pq ++ pr ++ nonExpiringR ++ windowRules
   }
 
-  def timeCountPinned(now: TickPair)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {
+  def timeCountPinned(now: Tick)(rules: Seq[(TicksUntilOutdated,NormalRule)]): Seq[(Expiration,NormalRule)] = {
     val pin = Pin(now.time,now.count)
     rules map {
       case (ticksUntilOutdated,rule) => (now+ticksUntilOutdated, pin.groundTickVariables(rule))
@@ -69,7 +68,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
   def pinnedAtoms(t: DefaultTrackedSignal): Seq[(Expiration,NormalRule)] = {
     // Seq(t.timePinned, t.countPinned, t.timeCountPinned) map {
     Seq(t.timePinned, t.timeCountPinned) map {
-      a => (TickPair(Void,Void),AspFact[Atom](a)) //TODO reconsider outdating of signals
+      a => (Tick(Void,Void),AspFact[Atom](a)) //TODO reconsider outdating of signals
     }
   }
 
