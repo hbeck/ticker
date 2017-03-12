@@ -2,6 +2,7 @@ package engine.asp
 
 import core._
 import core.asp.{AspFact, NormalRule}
+import core.lars.TimePoint
 import engine.DefaultTrackedSignal
 import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 
@@ -35,15 +36,19 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
    * d) both tick-variables
    */
 
-  def rulesToGroundFor(now: TickPair, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = {
-    val pinWithExp = timeCountPinned(now) _
-    val facts:Seq[(Expiration,NormalRule)] = signal match {
-      case Some(atom) => pinnedAtoms(DefaultTrackedSignal(atom,now))
-      case None => Seq()
+  def rulesToGroundFor(currentTick: TickPair, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = { //TODO naming tick, tickPair, now...
+    val pinWithExp = timeCountPinned(currentTick) _
+    val tickFact: NormalRule = AspFact(Atom(tickPredicate,Seq(TimePoint(currentTick.time),Value(currentTick.count.toInt))))
+    val expTickFact: (Expiration, NormalRule) = (TickPair(-1,-1),tickFact)
+    val facts:Seq[(Expiration,NormalRule)] = Seq(expTickFact) ++ {
+      signal match {
+        case Some(atom) => pinnedAtoms(DefaultTrackedSignal(atom,currentTick))
+        case None => Seq()
+      }
     }
     //note that this approach is not uniform. would be more elegant to return incremental rules with
     //tick variables plus TicksUntilOutdated, and uniformly pin them (like pin(Q) and pin(expiringR)
-    val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(now))
+    val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(currentTick))
     val pq = pinWithExp(Q)
     val pr = pinWithExp(expiringR)
     val pw = pinWithExp(windowRules)

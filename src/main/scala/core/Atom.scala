@@ -21,7 +21,7 @@ sealed trait Atom extends HeadAtom {
   lazy val cachedHash = this.toString.hashCode
 
   override def equals(other: Any): Boolean = other match {
-    case a: Atom => this.toString == a.toString
+    case a: Atom => this.cachedHash == a.cachedHash
     case _ => false
   }
 
@@ -30,6 +30,7 @@ sealed trait Atom extends HeadAtom {
 case class Predicate(caption: String) {
   override def toString = caption
 
+  @deprecated //better use atom constructor
   def apply(arguments: Any*) = Atom(this, arguments map {
     case a: Argument => a
     case x: Any => Argument.convertToArgument(x.toString)

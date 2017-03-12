@@ -104,7 +104,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
   def possibleValuesForVariable(rule: TRule, variable: Variable): Set[Value] = {
 
-    val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere
+    val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere //TODO move up
 
     //per convention, a variable now cannot occur in a signal only.
     //we test first for fact atoms, then we try intentional atoms.
@@ -120,7 +120,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable, Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("variable " + variable + " does not appear in a fact atom or intensional atom in rule " + coreRule)
+      throw new RuntimeException("rule " + coreRule + ": variable " + variable + " does not appear in a fact atom or intensional atom.")
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values

@@ -13,6 +13,8 @@ case class IncrementalAspGrounder() {
   var inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules.toList)) //TODO incremental
   var grounder = GrounderInstance.incrementalAsp(inspection) //TODO val when incremental
 
+  var rulesUpdated=true
+
 
   //val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(networkTime).flatMap(asFacts).toSet
 
@@ -21,26 +23,33 @@ case class IncrementalAspGrounder() {
   def add(rules: Seq[NormalRule]) {
     //rules foreach add //todo incremental
     allRules = allRules ++ rules
+    rulesUpdated = true
   }
 
   def add(rule: NormalRule) {
     //TODO incremental call to inspect
     allRules = allRules + rule
+    rulesUpdated = true
   }
 
   def remove(rules: Seq[NormalRule]) {
     //rules foreach remove //TODO incremental
     allRules = allRules -- rules
+    rulesUpdated = true
   }
 
   def remove(rule: NormalRule) {
     //TODO incremental call to inspect
     allRules = allRules - rule
+    rulesUpdated = true
   }
 
   def ground(rule: NormalRule): Set[NormalRule] = {
-    inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules.toList)) //TODO incremental
-    grounder = GrounderInstance.incrementalAsp(inspection)
+    if (rulesUpdated) {
+      inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules.toList)) //TODO incremental
+      grounder = GrounderInstance.incrementalAsp(inspection)
+      rulesUpdated = false
+    }
     grounder.ground(rule)
   }
 

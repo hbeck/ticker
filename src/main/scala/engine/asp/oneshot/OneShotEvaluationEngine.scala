@@ -27,7 +27,7 @@ case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: 
       Seq[AspFact[AtomWithArgument]](
         AspFact(PinnedAtom.asPinnedAtAtom(s.signal, s.time)),
         //AspFact(PinnedAtom.asPinnedCntAtom(s.signal, Value(s.count.toInt))),
-        AspFact(tickPredicate(Seq(s.time,Value(s.count.toInt))).asInstanceOf[AtomWithArgument]),
+        AspFact(Atom(tickPredicate,Seq(s.time,Value(s.count.toInt))).asInstanceOf[AtomWithArgument]),
         AspFact(PinnedAtom.asPinnedAtCntAtom(s.signal, s.time, Value(s.count.toInt)))
       )
     }

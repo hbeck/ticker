@@ -170,10 +170,10 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
   }
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = tick.time
+    val t = TimePoint(tick.time)
     val c = tick.count.toInt
-    val head:Atom = windowAtomEncoding.asInstanceOf[Atom]
-    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePoint(t),IntValue(c)))
+    val head:Atom = windowAtomEncoding.resetPin(t)
+    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,t,IntValue(c)))
     val rule: NormalRule = AspRule(head,posBody)
     val exp: Expiration = TickPair(Void, c + length)
     Seq((exp,rule))
@@ -210,7 +210,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
   val U = TimeVariableWithOffset("UU")
 
   val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
-  val startAtom = NonGroundAtom(Predicate(f"start_tu_${length}_${atom.predicate.caption}"), Seq(T))
+  val startAtom = Atom(Predicate(f"start_tu_${length}_${atom.predicate.caption}"), Seq(T))
 
   val spoilerRule: NormalRule = AspRule(spoilerAtom,
     Set[Atom](atom,startAtom,now(TimePinVariable),LeqLe(T,U,TimePinVariable)),
@@ -220,7 +220,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     Set[Atom](
       atom,
       cnt(CountPinVariable),
-      tickPredicate(Seq(T,CountPinVariable - length.toInt + 1))
+      Atom(tickPredicate,Seq(T,CountPinVariable - length.toInt + 1))
     ))
 
   val spoilingRules: Seq[NormalRule] = Seq(spoilerRule,startRule)
@@ -239,13 +239,13 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     if (length < 2) return Seq((expBase,baseRule))
 
     val spoilerRule: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom,startAtom,LeqLe(T,U,t),tickPredicate(Seq(U,D))),
+      Set[Atom](atom,startAtom,LeqLe(T,U,t),Atom(tickPredicate,Seq(U,D))),
       Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
-    val startRule: NormalRule = AspRule(spoilerAtom,
+    val startRule: NormalRule = AspRule(startAtom,
       Set[Atom](
         atom,
-        tickPredicate(Seq(T,IntValue(tick.count.toInt - length.toInt + 1)))
+        Atom(tickPredicate,Seq(T,IntValue(tick.count.toInt - length.toInt + 1)))
       ))
 
     val expSpoiler: Expiration = TickPair(tick.time + 1, Void)
