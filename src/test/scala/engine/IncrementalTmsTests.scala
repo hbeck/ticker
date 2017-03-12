@@ -22,7 +22,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     val engine = defaultEngine(program)
 
     var model = engine.evaluate(TimePoint(0)).model
-    assert(model.isEmpty)
+    assert(model.size == 1) //
 
     val signal = Atom(Predicate("b"),Seq(StringValue("y")))
 
@@ -75,7 +75,6 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(found)
     assert(model contains bat3)
     assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_cnt"),Seq(StringValue("y"),StringValue("2"))))
     assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
 
     model = engine.evaluate(TimePoint(5)).model
@@ -83,7 +82,6 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(model contains inference)
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
     assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_cnt"),Seq(StringValue("y"),StringValue("2"))))
     assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
 
     model = engine.evaluate(TimePoint(6)).model
@@ -91,7 +89,6 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(!(model contains inference))
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
     assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_cnt"),Seq(StringValue("y"),StringValue("2"))))
     assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
 
   }

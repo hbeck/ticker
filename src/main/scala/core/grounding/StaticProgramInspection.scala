@@ -136,8 +136,6 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
   var valuesForPredicateArg: Map[Predicate, Map[Int, Set[Value]]] = HashMap[Predicate, Map[Int, Set[Value]]]()
 
-  var triedSources: Map[Predicate,Set[Predicate]] = HashMap[Predicate,Set[Predicate]]()
-
   def lookupOrFindValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
 
     var cacheForPredicate: Option[Map[Int, Set[Value]]] = valuesForPredicateArg.get(predicate)
@@ -161,6 +159,8 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
     values
   }
+
+  var triedSources: Map[Predicate,Set[Predicate]] = HashMap[Predicate,Set[Predicate]]()
 
   def findValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
 

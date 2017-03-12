@@ -7,7 +7,7 @@ import core.lars.LarsProgram
   *
   * Created by hb on 8/21/16.
   */
-case class LarsGrounding(program: LarsProgram) extends OneShotGrounding /*[LarsProgram, LarsRule, HeadAtom, ExtendedAtom] */ {
+case class LarsGrounding(program: LarsProgram) {
 
   val inspect = StaticProgramInspection.forLars(program)
   val grounder = GrounderInstance.oneShotLars(inspect)
@@ -15,3 +15,4 @@ case class LarsGrounding(program: LarsProgram) extends OneShotGrounding /*[LarsP
   val groundProgram = LarsProgram(groundRules)
 
 }
+

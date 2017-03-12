@@ -17,7 +17,7 @@ trait WindowAtomEncoder {
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
 
-  def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)]
+  def incrementalRules(tick: Tick): Seq[(TicksUntilOutdated,NormalRule)]
 
 }
 
