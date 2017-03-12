@@ -1,6 +1,6 @@
 package lars.transform.timebased
 
-import core.AtomWithArgument
+import core.{AtomWithArguments, AtomWithArguments$}
 import core.lars._
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
@@ -21,7 +21,7 @@ class RuleForAtSpec extends TransformLarsSpec {
     forAll(ruleForAt(w_te_1_a_1_a)) {
       rule =>
         rule.body collect {
-          case a: AtomWithArgument => a.predicate
+          case a: AtomWithArguments => a.predicate
         } should contain(now)
     }
   }

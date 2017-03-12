@@ -251,7 +251,7 @@ class StreamingTests extends FunSuite {
           if (idCount.isEmpty) { //print first model
             println("\t"+timepoint+" -> "+projected(model))
           }
-          val id: Int = Integer.parseInt( projected(model).head.asInstanceOf[AtomWithArgument].arguments(0).toString )
+          val id: Int = Integer.parseInt( projected(model).head.asInstanceOf[AtomWithArguments].arguments(0).toString )
           val count = idCount.getOrElse(id,0)
           idCount = idCount + (id -> (count + 1))
           //end2 = System.currentTimeMillis()

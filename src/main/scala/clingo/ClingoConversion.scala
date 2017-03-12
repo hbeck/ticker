@@ -43,6 +43,8 @@ object ClingoConversion {
     case Gt(l, r) => f"$l > $r"
     case Sum(l, r, e) => f"$l + $r = $e"
     case Product(l, r, e) => f"$l * $r = $e"
+    case Mod(l, r, e) => f"$l \\ $r = $e"
+    case Pow(l, r, e) => f"$l ** $r = $e"
     case LeqLeq(l, x, u) => f"$x = $l .. $u" // l <= x <= u which has x safe automatically
     case LeLe(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
     case LeLeq(l, x, u) => f"$x = ${l+1} .. $u"
@@ -53,7 +55,7 @@ object ClingoConversion {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case r: RelationAtom => return this.apply(r)
-      case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case aa: AtomWithArguments => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case x: GroundAtom => (x.predicate.caption, "")
       case _ => (atom.toString, "")
     }

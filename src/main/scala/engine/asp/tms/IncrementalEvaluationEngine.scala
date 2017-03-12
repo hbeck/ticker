@@ -22,20 +22,20 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
   //time of the truth maintenance network due to previous append and result calls
-  var now = TickPair(0,0) //using (-1,0), first + will fail!
+  var currentTick = TickPair(0,0) //using (-1,0), first + will fail!
   singleOneDimensionalTickIncrement() //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(time: TimePoint)(atoms: Atom*) {
-    if (time.value < now.time) {
-      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + now.time)
+    if (time.value < currentTick.time) {
+      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + currentTick.time)
     }
     updateTimeTo(time)
     atoms foreach addSignalAtCurrentTime
   }
 
   override def evaluate(time: TimePoint): Result = {
-    if (time.value < now.time) {
-      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + now.time)
+    if (time.value < currentTick.time) {
+      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + currentTick.time)
     }
     updateTimeTo(time)
     tmsPolicy.getModel(time)
@@ -46,39 +46,41 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   //
 
   def updateTimeTo(time: TimePoint) {
-    if (time.value > now.time) {
-      for (t <- (now.time + 1) to (time.value)) {
+    if (time.value > currentTick.time) {
+      for (t <- (currentTick.time + 1) to (time.value)) {
         singleTimeIncrementTo(t)
       }
     }
   }
 
   def singleTimeIncrementTo(time: Long) {
-    now = now.incrementTime()
+    currentTick = currentTick.incrementTime()
     singleOneDimensionalTickIncrement()
   }
 
   def addSignalAtCurrentTime(signal: Atom) {
-    now = now.incrementCount()
+    currentTick = currentTick.incrementCount()
     singleOneDimensionalTickIncrement(Some(signal))
   }
 
   //method to be called whenever time xor count increases by 1
   def  singleOneDimensionalTickIncrement(signal: Option[Atom]=None) {
-    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(now, signal)
+    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
     rulesToGround foreach { case (_,r) => grounder.add(r) }
     val rulesToAdd = rulesToGround flatMap { case (e,r) =>
       val rules = grounder.ground(r)
       if (!rules.isEmpty) expirationHandling.register(e,rules)
       rules
     }
-    tmsPolicy.add(now.time)(rulesToAdd)
+    println("\nrules added to tms at "+currentTick)
+    rulesToAdd foreach println
+    tmsPolicy.add(currentTick.time)(rulesToAdd)
     val rulesToRemove = signal match { //logic somewhat implicit...
       case None => expirationHandling.unregisterExpiredByTime()
       case _ => expirationHandling.unregisterExpiredByCount()
     }
     grounder.remove(rulesToRemove)
-    tmsPolicy.remove(now.time)(rulesToRemove)
+    tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }
 
   object expirationHandling {
@@ -98,20 +100,20 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     }
 
     def unregisterExpiredByTime(): Seq[NormalRule] = {
-      if (!rulesExpiringAtTime.contains(now.time)) {
+      if (!rulesExpiringAtTime.contains(currentTick.time)) {
         return Seq()
       }
-      val rules: Set[NormalRule] = rulesExpiringAtTime.get(now.time).get
-      rulesExpiringAtTime = rulesExpiringAtTime - now.time
+      val rules: Set[NormalRule] = rulesExpiringAtTime.get(currentTick.time).get
+      rulesExpiringAtTime = rulesExpiringAtTime - currentTick.time
       rules.toSeq
     }
 
     def unregisterExpiredByCount(): Seq[NormalRule] = {
-      if (!rulesExpiringAtCount.contains(now.count)) {
+      if (!rulesExpiringAtCount.contains(currentTick.count)) {
         return Seq()
       }
-      val rules: Set[NormalRule] = rulesExpiringAtCount.get(now.count).get
-      rulesExpiringAtCount = rulesExpiringAtCount - now.count
+      val rules: Set[NormalRule] = rulesExpiringAtCount.get(currentTick.count).get
+      rulesExpiringAtCount = rulesExpiringAtCount - currentTick.count
       rules.toSeq
     }
     

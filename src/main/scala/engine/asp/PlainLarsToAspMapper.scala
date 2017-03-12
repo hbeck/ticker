@@ -48,7 +48,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
   def encodedWindowAtom(windowAtom: WindowAtom) = {
     val predicate = predicateFor(windowAtom)
     val previousArguments = windowAtom.atom match {
-      case aa: AtomWithArgument => aa.arguments
+      case aa: AtomWithArguments => aa.arguments
       case a: Atom => Seq()
     }
 

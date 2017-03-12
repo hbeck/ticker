@@ -1,7 +1,7 @@
 package core.grounding
 
 import core._
-import core.lars.ExtendedAtom
+import core.lars.Assignment
 
 /**
   * Created by hb on 08.03.17.
@@ -14,6 +14,7 @@ object Grounding {
   //there, one still would have to make a pattern matching over predicate names somewhere/somehow
   //since this plays a role only at the level of grounding, we can do it here directly and keeping
   //the class hierarchy of atoms simple/uniform.
+  /*
   def isRelationAtom(x: ExtendedAtom): Boolean = x match {
     case a: Atom => a.predicate.caption match {
       case "neq" => true
@@ -30,8 +31,9 @@ object Grounding {
     }
     case _ => false
   }
+   */
 
-  def holds(relationAtom: Atom): Boolean = {
+  def holds(relationAtom: RelationAtom): Boolean = {
     if (!relationAtom.isGround())
       throw new RuntimeException("illegal use. relation atom must be ground when tested whether it holds.")
 
@@ -45,6 +47,7 @@ object Grounding {
     }
 
     relationAtom.predicate.caption match {
+      case "eq" => args(0) == args(1)
       case "neq" => args(0) != args(1)
       case "leq" => i(0) <= i(1)
       case "lt" => i(0) < i(1)
@@ -82,20 +85,14 @@ object Grounding {
     for (s1 <- sets1; s2 <- sets2) yield s1 union s2
   }
 
-  def allGroundedRelationsHold(relationAtoms: Set[AtomWithArgument])(partialAssignment: Set[(Variable, Value)]): Boolean = {
-    val groundRelationAtoms: Set[Atom] = relationAtoms map (assign(_, partialAssignment)) filter (_.isGround)
+  def allGroundedRelationsHold(relationAtoms: Set[RelationAtom])(partialAssignment: Set[(Variable, Value)]): Boolean = {
+    val groundRelationAtoms: Set[RelationAtom] = relationAtoms map (assign(_, partialAssignment)) filter (_.isGround)
     groundRelationAtoms forall holds
   }
 
-  def assign(relationAtom: AtomWithArgument, partialBindings: Set[(Variable, Value)]): Atom = {
-    val assignment = partialBindings.toMap
-    val newArguments = relationAtom.arguments map { arg =>
-      arg match {
-        case variable: Variable => assignment.getOrElse(variable, arg)
-        case value: Value => value
-      }
-    }
-    Atom(relationAtom.predicate, newArguments)
+  def assign(relationAtom: RelationAtom, partialBindings: Set[(Variable, Value)]): RelationAtom = {
+    val assignment = Assignment(partialBindings.toMap)
+    relationAtom.assign(assignment).asInstanceOf[RelationAtom]
   }
 
 }

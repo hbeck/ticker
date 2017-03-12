@@ -33,7 +33,7 @@ import engine.asp._
   */
 case class Pin(assignment: Assignment) {
 
-  def apply(aa: AtomWithArgument):Atom = {
+  def apply(aa: AtomWithArguments):Atom = {
     aa.assign(assignment).asInstanceOf[Atom]
   }
 

@@ -20,7 +20,7 @@ class AspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   def LarsToAspProgram: PlainLarsToAspMapper = engine.asp.PlainLarsToAspMapper(1 second)
 
   "A rule containing a normal Atom" should "not be modified" in {
-    val rule: AspRule[AtomWithArgument] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
+    val rule: AspRule[AtomWithArguments] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
 
     TickBasedAspToIncrementalAsp(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
   }

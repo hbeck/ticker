@@ -29,7 +29,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   //delete negative body, window atoms, and auxiliary relation expressions (for arithmetic).
   //these are considered later in grounding itself, but not for finding variables
   def reduceToCore(rule: TRule): TRule = {
-    val coreAtoms: Set[TBody] = rule.pos filter (!Grounding.isRelationAtom(_))
+    val coreAtoms: Set[TBody] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
     rule.from(rule.head, coreAtoms, rule.neg).asInstanceOf[TRule]
   }
 
@@ -54,7 +54,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
     val atomsPerPredicate: Map[Predicate, Set[GroundAtom]] = atoms groupBy (_.predicate)
     atomsPerPredicate mapValues { set =>
       set.map {
-        case a: AtomWithArgument => a.arguments //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
+        case a: AtomWithArguments => a.arguments //{a(x,y), a(z,y)} ==> {(x,z), (y,w)}
         case _ => Seq()
       }
         .flatMap(_.zipWithIndex) // ==> {(x,0), (y,1), (z,0), (w,1)}
@@ -189,21 +189,21 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
     //first consider head atoms where the given argument appears ground
     val tuple: (Set[TRule], Set[TRule]) = justifications partition { rule =>
-      val arg = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx)
+      val arg = rule.head.asInstanceOf[AtomWithArguments].arguments(argumentIdx)
       arg.isInstanceOf[Value]
     }
     val justificationsWithValue = tuple._1
     val justificationsWithVariable = tuple._2
 
     val semiGroundIntensional: Set[Value] = justificationsWithValue map { rule =>
-      val arg = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx)
+      val arg = rule.head.asInstanceOf[AtomWithArguments].arguments(argumentIdx)
       arg.asInstanceOf[Value]
     }
 
     //second, consider head atoms where the given argument appears non-ground.
     //there we have to retrieve values from the rule body, potentially recursively
     val variableSources: Set[(Predicate, Int)] = justificationsWithVariable flatMap { rule =>
-      val variable = rule.head.asInstanceOf[AtomWithArgument].arguments(argumentIdx).asInstanceOf[Variable]
+      val variable = rule.head.asInstanceOf[AtomWithArguments].arguments(argumentIdx).asInstanceOf[Variable]
       val allSources: Set[(Predicate, Int)] = rule.pos collect {
         //neg deliberately ignored!
         case x: NonGroundAtom if x.positionOf(variable) >= 0 => (x.predicate, x.positionOf(variable))

@@ -13,12 +13,16 @@ trait Argument { //TODO offset at too generic position ~> IntVariable etc
 
   override def hashCode(): Int = cachedHash
 
-  lazy val cachedHash = this.toString.hashCode
+  lazy val cachedString = this.toString
+
+  lazy val cachedHash = cachedString.hashCode
 
   override def equals(other: Any): Boolean = other match {
     case a: Argument => this.cachedHash == a.cachedHash
     case _ => false
   }
+
+  def ==(other: Argument): Boolean = this.cachedHash == other.cachedHash
 
 }
 

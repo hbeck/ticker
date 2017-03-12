@@ -13,8 +13,7 @@ trait ExtendedAtom {
   def assign(assignment: Assignment): ExtendedAtom //not called 'ground' since assignment might be partial
 }
 
-trait HeadAtom extends ExtendedAtom {
-}
+trait HeadAtom extends ExtendedAtom
 
 trait GroundExtendedAtom extends ExtendedAtom {
   override def isGround(): Boolean = true

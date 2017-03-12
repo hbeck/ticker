@@ -12,7 +12,7 @@ import engine.asp._
   */
 object TickBasedAspToIncrementalAsp {
 
-  def unpin(atom: AtomWithArgument): Atom = atom match {
+  def unpin(atom: AtomWithArguments): Atom = atom match {
     case p: PinnedAtAtom => unpin(p)
     case _ => atom
   }
@@ -31,7 +31,7 @@ object TickBasedAspToIncrementalAsp {
 
   def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {
 
-    def unpinIfNeeded(pinned: AtomWithArgument) = atomsToUnpin.contains(pinned) match {
+    def unpinIfNeeded(pinned: AtomWithArguments) = atomsToUnpin.contains(pinned) match {
       case true => unpin(pinned)
       case false => pinned
     }

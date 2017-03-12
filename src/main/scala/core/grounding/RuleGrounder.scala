@@ -15,19 +15,34 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     ground(rule, possibleVariableValues)
   }
 
+  /*
   def relationsHold(rule: TRule): Boolean = {
     (rule.pos map (_.atom) filter isRelationAtom forall (holds(_))) &&
     (rule.neg map (_.atom) filter isRelationAtom forall (!holds(_)))
   }
+  */
 
+  def relationsHold(rule: TRule): Boolean = {
+    (rule.pos map (_.atom) collect { case r:RelationAtom => r } forall (holds(_))) &&
+      (rule.neg map (_.atom) collect { case r:RelationAtom => r } forall (!holds(_)))
+  }
+
+  /*
   def deleteAuxiliaryAtoms(rule: TRule): TRule = {
     val corePosAtoms: Set[TBody] = rule.pos filter (!isRelationAtom(_))
     val coreNegAtoms: Set[TBody] = rule.neg filter (!isRelationAtom(_))
     rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
   }
+  */
+
+  def deleteAuxiliaryAtoms(rule: TRule): TRule = {
+    val corePosAtoms: Set[TBody] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
+    val coreNegAtoms: Set[TBody] = rule.neg filterNot (_.isInstanceOf[RelationAtom])
+    rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
+  }
 
   def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]]): Set[TRule] = {
-    val relationAtoms: Set[AtomWithArgument] = rule.atoms collect { case a: AtomWithArgument if isRelationAtom(a) => a }
+    val relationAtoms: Set[RelationAtom] = rule.atoms collect { case a: RelationAtom => a }
     def holdsPartially = allGroundedRelationsHold(relationAtoms) _
 
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)

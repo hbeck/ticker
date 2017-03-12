@@ -24,9 +24,9 @@ package object asp {
 
   val specialPinPredicates = Seq(now, cnt) //note that "tick" is not used for pinning!
 
-  type PinnedRule = AspRule[AtomWithArgument]
-  type PinnedFact = AspFact[AtomWithArgument]
-  type PinnedProgram = AspProgram[AtomWithArgument, PinnedRule]
+  type PinnedRule = AspRule[AtomWithArguments]
+  type PinnedFact = AspFact[AtomWithArguments]
+  type PinnedProgram = AspProgram[AtomWithArguments, PinnedRule]
 
   type PinnedModel = Set[Atom] //TODO AspModel?
   type PinnedStream = Set[PinnedFact]
