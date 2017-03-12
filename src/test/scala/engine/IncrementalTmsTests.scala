@@ -114,19 +114,49 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       q3 <= WindowAtom(SlidingTimeWindow(10), At(3), p),
       q4 <= WindowAtom(SlidingTimeWindow(10), At(T), p),
       q5 <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
+      q6 <= WindowAtom(SlidingTupleWindow(10), Box, p),
       q7 <= WindowAtom(SlidingTupleWindow(10), At(3), p),
       q8 <= WindowAtom(SlidingTupleWindow(10), At(T), p),
       q10 <= p,
-      q11 <= AtAtom(T,p),
-      q6 <= WindowAtom(SlidingTupleWindow(10), Box, p)
+      q11 <= AtAtom(T,p)
+    )
+
+    val expectModelAtTimes:Map[Atom,Set[Int]] = Map(
+      p -> Set(3),
+      q1 -> (3 to 13).toSet,
+      q2 -> Set(),
+      q3 -> (3 to 13).toSet,
+      q4 -> (3 to 13).toSet,
+      q5 -> (3 to 20).toSet,
+      q6 -> Set(),
+      q7 -> (3 to 20).toSet,
+      q8 -> (3 to 20).toSet,
+      q10 -> Set(3),
+      q11 -> (3 to 20).toSet
     )
 
     val engine = defaultEngine(program)
 
-    engine.append(TimePoint(3))(p)
+    for (t <- 0 to 20) {
+      if (t==3) {
+        engine.append(TimePoint(t))(p)
+      }
 
-    var model = engine.evaluate(TimePoint(3)).model
+      val model = engine.evaluate(TimePoint(t)).model
 
+      for (a <- Seq(p,q1,q2,q3,q4,q5,q6,q7,q8,q10,q11)) {
+        if (expectModelAtTimes(a) contains t) {
+          assert(model contains a)
+        } else {
+          assert(!(model contains a))
+        }
+      }
+
+
+
+    }
+
+    /* t=3
     assert(model contains p)
     assert(model contains q1)
     assert(!(model contains q2))
@@ -138,6 +168,8 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(model contains q10)
     assert(model contains q11)
     assert(!(model contains q6))
+    */
+
 
   }
 
