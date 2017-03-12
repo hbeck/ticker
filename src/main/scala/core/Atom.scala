@@ -25,6 +25,12 @@ sealed trait Atom extends HeadAtom {
     case _ => false
   }
 
+  @deprecated //confusing use, use Predicate instead, or Atom(arguments)
+  def apply(arguments: Any*): AtomWithArguments = {
+    val args: Seq[Argument] =  arguments map (a => Argument.convertToArgument(a.toString))
+    AtomModification(this).appendArguments(args)
+  }
+
 }
 
 case class Predicate(caption: String) {
@@ -36,12 +42,6 @@ case class Predicate(caption: String) {
     case x: Any => Argument.convertToArgument(x.toString)
   })
 
-  /*
-  override def equals(other: Any) = other match {
-    case Predicate(p) => this.caption equals p
-    case _ => false
-  }
-  */
 }
 
 trait AtomWrapper {
@@ -66,17 +66,6 @@ case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
 
 case class PredicateAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
-
-  //private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(PredicateAtom.this)
-
-  //override def hashCode(): Int = this.toString.hashCode
-
-  /*
-  override def equals(other: Any) = other match {
-    case PredicateAtom(p) => this.predicate equals p
-    case _ => false
-  }
-  */
 }
 
 trait AtomWithArguments extends Atom {
@@ -100,23 +89,6 @@ trait AtomWithArguments extends Atom {
     AtomWithArguments(this.predicate,newArguments)
   }
 
-
-  /*
-  def ==(other: AtomWithArgument): Boolean = {
-    if (this eq other) return true
-    if (this.predicate != other.predicate) return false
-    if (this.arguments.length != other.arguments.length) return false
-    if (!this.arguments.equals(other.arguments)) return false
-    true
-  }
-  */
-
-  /*
-  override def equals(other: Any): Boolean = other match {
-    case x: AtomWithArgument => this == x
-    case _ => false
-  }
-  */
 
   override def toString = {
     val sb = new StringBuilder
@@ -154,32 +126,10 @@ case class NonGroundAtomWithArguments(override val predicate: Predicate, argumen
     AtomWithArguments(predicate, newArguments)
   }
 
-  /*
-  override def equals(other: Any) = other match {
-    case NonGroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
-    case NonGroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
-    case NonGroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
-    case _ => false
-  }
-  */
 }
 
 case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArguments {
   override def isGround() = true
-  //val arguments = values
-
-  //private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(GroundAtomWithArguments.this)
-
-  //override def hashCode(): Int = this.toString.hashCode
-
-  /*
-  override def equals(other: Any) = other match {
-    case GroundAtomWithArguments(pred,_) if (!(this.predicate equals pred)) => false
-    case GroundAtomWithArguments(_,args) if (this.arguments.length != args.length) => false
-    case GroundAtomWithArguments(_,args) if ((0 to arguments.length-1) forall (idx => this.arguments(idx) equals args(idx))) => true
-    case _ => false
-  }
-  */
 }
 
 object GroundAtom {
@@ -235,7 +185,7 @@ trait PinnedTimeAtom extends PinnedAtom {
       val timeAssign = assignment.apply(time)
       timeAssign match {
         case Some(value) => value match {
-          case i: IntValue => TimePoint(i.int)
+          case IntValue(i) => TimePoint(i)
           case t: TimePoint => t
           case _ => v
         }
@@ -256,22 +206,6 @@ trait PinnedAtAtom extends PinnedTimeAtom {
   }
 }
 
-//// a(\vec{X}) --> a_cnt(\vec{X},C)
-//trait PinnedCntAtom extends PinnedAtom {
-//  val cnt: Argument
-//  override val pinnedArguments: Seq[Argument] = Seq(cnt)
-//  def resetPin(count: Argument): PinnedCntAtom = {
-//    count match {
-//      case v: Variable => NonGroundCountAtom(atom, count)
-//      case v: Value => if (atom.isGround()) {
-//        GroundCountAtom(atom, v)
-//      } else {
-//        NonGroundCountAtom(atom, v)
-//      }
-//    }
-//  }
-//}
-
 trait PinnedAtCntAtom extends PinnedAtAtom { // with PinnedCntAtom {
   val cnt: Argument
   override val pinnedArguments = Seq(time, cnt)
@@ -279,6 +213,20 @@ trait PinnedAtCntAtom extends PinnedAtAtom { // with PinnedCntAtom {
     (time, count) match {
       case (t: TimePoint, v: Value) => GroundAtCntAtom(atom, t, v)
       case _ => VariableAtCntAtom(atom, time, count)
+    }
+  }
+
+  def assignmentForCount(assignment: Assignment): Argument = cnt match {
+    case c: IntValue => c
+    case v: Variable => {
+      val cntAssign = assignment.apply(cnt)
+      cntAssign match {
+        case Some(value) => value match {
+          case i: IntValue => i
+          case _ => v
+        }
+        case _ => v //if time variable does not occur in assignment
+      }
     }
   }
 }
@@ -295,16 +243,10 @@ object PinnedAtom {
     }
   }
 
-  //TODO better rename to asPinnedAtAtom (below)
-  @deprecated
-  def apply(atom: Atom, time: Time): PinnedAtAtom = {
-    val newAtom = appendToPredicateCaption(atom,"_at")
-    time match {
-      case t: TimePoint if atom.isGround() => GroundPinnedAtAtom(newAtom, t)
-      case t: TimePoint => NonGroundPinnedAtAtom(newAtom, t)
-      case v: TimeVariableWithOffset => NonGroundPinnedAtAtom(newAtom, v)
-    }
-  }
+  @deprecated //confusing use
+  def apply(atom: Atom, time: Time): PinnedAtAtom = asPinnedAtAtom(atom,time)
+  @deprecated //confusing use
+  def apply(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = asPinnedAtCntAtom(atom,time,count)
 
   def asPinnedAtAtom(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
@@ -315,16 +257,6 @@ object PinnedAtom {
     }
   }
 
-  //TODO better rename to asPinnedAtCntAtom (below)
-  @deprecated
-  def apply(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = {
-    val newAtom = appendToPredicateCaption(atom,"_at_cnt")
-    (time, count) match {
-      case (t: TimePoint, tv: Value) => GroundAtCntAtom(newAtom, t, tv)
-      case _ => VariableAtCntAtom(newAtom, time, count)
-    }
-  }
-
   def asPinnedAtCntAtom(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at_cnt")
     (time, count) match {
@@ -332,18 +264,6 @@ object PinnedAtom {
       case _ => VariableAtCntAtom(newAtom, time, count)
     }
   }
-
-//  def asPinnedCntAtom(atom: Atom, count: Argument): PinnedCntAtom = {
-//    val newAtom = appendToPredicateCaption(atom,"_cnt")
-//    count match {
-//      case v: Variable => NonGroundCountAtom(newAtom, count)
-//      case v: Value => if (atom.isGround()) {
-//        GroundCountAtom(newAtom, v)
-//      } else {
-//        NonGroundCountAtom(newAtom, v)
-//      }
-//    }
-//  }
 
 }
 
@@ -367,35 +287,21 @@ case class NonGroundPinnedAtAtom(override val atom: Atom, time: Time) extends Pi
   }
 }
 
-//case class GroundCountAtom(override val atom: Atom, cnt: Value) extends PinnedCntAtom with GroundAtom with AtomWrapper
-//
-//case class NonGroundCountAtom(override val atom: Atom, cnt: Argument) extends PinnedCntAtom with NonGroundAtom with AtomWrapper {
-//
-//  override def isGround(): Boolean = false
-//
-//  //assume pinned atoms may have variables only in its special time argument TODO
-//  override def assign(assignment: Assignment): ExtendedAtom = assignment.apply(cnt) match {
-//    case Some(v) => PinnedAtom.asPinnedCntAtom(atom.assign(assignment).asInstanceOf[Atom], v)
-//    case None => this
-//  }
-//}
-
 case class VariableAtCntAtom(override val atom: Atom, override val time: Time, override val cnt: Argument) extends PinnedAtCntAtom with NonGroundAtom with AtomWrapper {
 
   override def isGround(): Boolean = false
 
-  //assume pinned atoms may have variables only in its special time argument //TODO !!!
+  //TODO curr
   override def assign(assignment: Assignment): Atom = {
-    val timeAssign = assignmentForTime(assignment)
-    val tickAssign = assignment.apply(cnt)
-
+    val assignedTime = assignmentForTime(assignment)
     val assignedAtom = atom.assign(assignment).asInstanceOf[Atom]
-
-    tickAssign match {
-      case Some(t) => PinnedAtom(assignedAtom, timeAssign, t)
-      case None => PinnedAtom(assignedAtom, timeAssign, cnt)
+    if (assignedAtom.isGround() && assignedTime.isInstanceOf[TimePoint]) {
+      GroundPinnedAtAtom(assignedAtom, assignedTime.asInstanceOf[TimePoint])
+    } else {
+      NonGroundPinnedAtAtom(assignedAtom, assignedTime)
     }
   }
+
 }
 
 object Atom {
@@ -421,6 +327,10 @@ object Atom {
   implicit def asAtomModification(atom: Atom): AtomModification = AtomModification(atom)
 }
 
+//
+//
+//
+
 //auxiliary atom for arithmetic. stripped off rules by Grounder
 trait RelationAtom extends AtomWithArguments {
   def holds(): Option[Boolean] = {
@@ -437,6 +347,8 @@ abstract class BinaryRelationAtom(x: Argument, y: Argument) extends RelationAtom
 
   override def isGround(): Boolean = x.isInstanceOf[Value] && y.isInstanceOf[Value]
 
+  def newInstance(nx: Argument, ny: Argument): RelationAtom
+
   override def assign(assignment: Assignment): Atom = {
     val xArg: Argument = assignment(x) match {
       case Some(value) => value;
@@ -446,7 +358,7 @@ abstract class BinaryRelationAtom(x: Argument, y: Argument) extends RelationAtom
       case Some(value) => value;
       case _ => y
     }
-    this (xArg, yArg)
+    newInstance(xArg,yArg)
   }
 
 }
@@ -456,6 +368,8 @@ abstract class BinaryNumericRelationAtom(x: Argument, y: Argument) extends Binar
 abstract class TernaryRelationAtom(x: Argument, y: Argument, z: Argument) extends RelationAtom {
 
   override def isGround(): Boolean = x.isInstanceOf[Value] && y.isInstanceOf[Value] && z.isInstanceOf[Value]
+
+  def newInstance(nx: Argument, ny: Argument, nz: Argument): RelationAtom
 
   override def assign(assignment: Assignment): Atom = {
     val xArg: Argument = assignment(x) match {
@@ -470,7 +384,7 @@ abstract class TernaryRelationAtom(x: Argument, y: Argument, z: Argument) extend
       case Some(value) => value;
       case _ => z
     }
-    this (xArg, yArg, zArg)
+    newInstance(xArg, yArg, zArg)
   }
 }
 
@@ -481,71 +395,85 @@ abstract class TernaryNumericRelationAtom(x: Argument, y: Argument, z: Argument)
 case class Eq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("eq")
   override def groundingHolds(): Boolean = x == y
+  override def newInstance(nx: Argument, ny: Argument) = Eq(nx,ny)
 }
 
 case class Neq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("neq")
   override def groundingHolds(): Boolean = x != y
+  override def newInstance(nx: Argument, ny: Argument) = Neq(nx,ny)
 }
 
 case class Leq(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("leq")
   override def groundingHolds(): Boolean = int(x) <= int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Leq(nx,ny)
 }
 
 case class Geq(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("geq")
   override def groundingHolds(): Boolean = int(x) >= int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Geq(nx,ny)
 }
 
 case class Lt(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("lt")
   override def groundingHolds(): Boolean = int(x) < int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Lt(nx,ny)
 }
 
 case class Gt(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
   override val predicate: Predicate = Predicate("gt")
   override def groundingHolds(): Boolean = int(x) > int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Gt(nx,ny)
 }
 
 case class Sum(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("sum")
   override def groundingHolds(): Boolean = int(x) + int(y) == int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Sum(nx,ny,nz)
 }
 
 case class Product(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("prod")
   override def groundingHolds(): Boolean = int(x) * int(y) == int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Product(nx,ny,nz)
 }
 
 case class Pow(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("pow")
   override def groundingHolds(): Boolean = Math.pow(int(x),int(y)).toInt == int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Pow(nx,ny,nz)
 }
 
 case class Mod(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("pow")
   override def groundingHolds(): Boolean = int(x) > 0 && (int(x) % int(y) == int(z))
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Mod(nx,ny,nz)
 }
 
 case class LeqLeq(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("leqleq")
   override def groundingHolds(): Boolean = int(x) <= int(y) && int(y) <= int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLeq(nx,ny,nz)
 }
 
-case class LeLe(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("lele")
+case class LtLt(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
+  override val predicate: Predicate = Predicate("ltlt")
   override def groundingHolds(): Boolean = int(x) < int(y) && int(y) < int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LtLt(nx,ny,nz)
 }
 
-case class LeLeq(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("leleq")
+case class LtLeq(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
+  override val predicate: Predicate = Predicate("ltleq")
   override def groundingHolds(): Boolean = int(x) < int(y) && int(y) <= int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LtLeq(nx,ny,nz)
 }
 
-case class LeqLe(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("leqle")
+case class LeqLt(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
+  override val predicate: Predicate = Predicate("leqlt")
   override def groundingHolds(): Boolean = int(x) <= int(y) && int(y) < int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLt(nx,ny,nz)
 }
 
 

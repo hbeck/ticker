@@ -213,7 +213,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
   val startAtom = Atom(Predicate(f"start_tu_${length}_${atom.predicate.caption}"), Seq(T))
 
   val spoilerRule: NormalRule = AspRule(spoilerAtom,
-    Set[Atom](atom,startAtom,now(TimePinVariable),LeqLe(T,U,TimePinVariable)),
+    Set[Atom](atom,startAtom,now(TimePinVariable),LeqLt(T,U,TimePinVariable)),
     Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
   val startRule: NormalRule = AspRule(spoilerAtom,
@@ -239,7 +239,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     if (length < 2) return Seq((expBase,baseRule))
 
     val spoilerRule: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom,startAtom,LeqLe(T,U,t),Atom(tickPredicate,Seq(U,D))),
+      Set[Atom](atom,startAtom,LeqLt(T,U,t),Atom(tickPredicate,Seq(U,D))),
       Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
     val startRule: NormalRule = AspRule(startAtom,

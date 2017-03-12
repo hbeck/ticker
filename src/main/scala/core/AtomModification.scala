@@ -12,18 +12,18 @@ import engine.asp.{cnt, now}
   */
 case class AtomModification(atom: Atom) {
 
-  def apply(time: Time): AtomWithArguments = {
+  //TODO why do we have this in addition to Pinned{Time,At}Atom?
+  def appendTimeAsArgument(time: Time): AtomWithArguments = {
     val timeAsArgument: Argument = time
 
-    // TODO: for these special atoms we don't want them to be mapped as PinnedAtoms
-    // because this would create predicate names like 'now_at'
-    atom match {
-      case `cnt` => this (timeAsArgument)
-      case `now` => this (timeAsArgument)
-      case _ => PinnedAtom(atom, time)
+    atom.predicate match {
+      case `cnt` => appendArguments(List(timeAsArgument))
+      case `now` => appendArguments(List(timeAsArgument))
+      case _ => PinnedAtom.asPinnedAtAtom(atom, time)
     }
   }
 
+  /* what is this
   def apply(arguments: List[Argument]): AtomWithArguments = {
     val (pred, atomArgs): (Predicate, Seq[Argument]) = atom match {
       case aa: AtomWithArguments => (aa.predicate, aa.arguments)
@@ -32,10 +32,16 @@ case class AtomModification(atom: Atom) {
     // TODO: is this cast needed?
     Atom(pred, atomArgs ++ arguments).asInstanceOf[AtomWithArguments]
   }
+  */
 
-  def apply(arguments: Argument*): AtomWithArguments = this.apply(arguments.toList)
+  def apply(arguments: Argument*): AtomWithArguments = appendArguments(arguments.toList)
 
-  def appendTimeAsNormalArgument(time: Time): AtomWithArguments = this.apply(time.asInstanceOf[Argument])
+  def appendArguments(arguments: Seq[Argument]): AtomWithArguments = {
+    atom match {
+      case p:PredicateAtom => AtomWithArguments(p.predicate,arguments)
+      case a:AtomWithArguments => AtomWithArguments(a.predicate,a.arguments ++ arguments)
+    }
+  }
 
   def asTupleReference(position: Long) = {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))

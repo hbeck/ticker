@@ -1,12 +1,10 @@
 package engine.asp
 
 import core._
-import core.asp.{AspFact, AspRule, NormalProgram, NormalRule}
-import core.lars.{TimeUnit => _, TimePinVariable => _, _}
+import core.asp.NormalRule
+import core.lars.{TimeUnit => _, _}
 
 import scala.concurrent.duration._
-
-import PlainLarsToReactiveMapper.{t, c}
 
 object PlainLarsToReactiveMapper {
   val t = TimeVariableWithOffset(Variable("t"))
@@ -15,8 +13,32 @@ object PlainLarsToReactiveMapper {
 
 /**
   * Created by fm on 20/01/2017.
+  *
+  * commented out HB 12/03/2017
   */
 case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) extends LarsToAspMapper {
+  override def identityRulesForAtom(a: Atom): Seq[NormalRule] = Seq()
+
+  override def encodingAtom(extendedAtom: ExtendedAtom): Atom = Falsum
+
+  val dummy = new WindowAtomEncoder() {
+    override val length: TupleCount = -1
+    override val allWindowRules: Seq[NormalRule] = Seq()
+
+    //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
+    override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = TickPair(-1,-1)
+
+    override def incrementalRules(tick: Tick): Seq[(Expiration, NormalRule)] = Seq()
+  }
+
+  override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom): WindowAtomEncoder = dummy
+
+  override def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom): WindowAtomEncoder = dummy
+
+  override def timePoints(unit: TimeUnit, size: TupleCount): TupleCount = -1
+}
+
+  /*
 
   def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(
@@ -254,3 +276,5 @@ case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: 
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, timeVariable, D), Sum(D, IntValue(-i), D))))
 
 }
+
+  */

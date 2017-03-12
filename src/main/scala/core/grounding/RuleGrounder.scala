@@ -23,8 +23,8 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
   */
 
   def relationsHold(rule: TRule): Boolean = {
-    (rule.pos map (_.atom) collect { case r:RelationAtom => r } forall (holds(_))) &&
-      (rule.neg map (_.atom) collect { case r:RelationAtom => r } forall (!holds(_)))
+    (rule.pos map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds())) &&
+      (rule.neg map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds()))
   }
 
   /*

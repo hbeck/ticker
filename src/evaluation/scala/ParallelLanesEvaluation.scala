@@ -11,7 +11,6 @@ object ParallelLanesEvaluation {
 
   def main(args: Array[String]): Unit = {
 
-
     val dump = DumpData("Configuration", "node x lanes")
     val dumpToCsv = dump.printResults("output.csv") _
 

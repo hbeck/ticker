@@ -134,15 +134,6 @@ case class IntValue(int: Int) extends Value {
 
   override def hashCode(): Int = precomputedHash
 
-  /*
-  override def equals(other: Any) = other match {
-    case IntValue(i) => this.int == i
-    case StringValue(s) => ""+this.int == s
-    case TimePoint(i) => this.int == i
-    case _ => false
-  }
-  */
-
 }
 
 object IntValue {

@@ -46,9 +46,9 @@ object ClingoConversion {
     case Mod(l, r, e) => f"$l \\ $r = $e"
     case Pow(l, r, e) => f"$l ** $r = $e"
     case LeqLeq(l, x, u) => f"$x = $l .. $u" // l <= x <= u which has x safe automatically
-    case LeLe(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
-    case LeLeq(l, x, u) => f"$x = ${l+1} .. $u"
-    case LeqLe(l, x, u) => f"$x = $l .. ${u-1}"
+    case LtLt(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
+    case LtLeq(l, x, u) => f"$x = ${l+1} .. $u"
+    case LeqLt(l, x, u) => f"$x = $l .. ${u-1}"
   }
 
   def apply[TAtom](atom: TAtom): ClingoAtom = {
