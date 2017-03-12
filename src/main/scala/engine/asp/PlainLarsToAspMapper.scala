@@ -245,7 +245,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
     val startRule: NormalRule = AspRule(startAtom,
       Set[Atom](
         atom,
-        Atom(tickPredicate,Seq(T,IntValue(tick.count.toInt - length.toInt + 1)))
+        Atom(tickPredicate,Seq(T,IntValue(Math.max(0,tick.count.toInt - length.toInt + 1))))
       ))
 
     val expSpoiler: Expiration = TickPair(tick.time + 1, Void)

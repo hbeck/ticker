@@ -72,18 +72,19 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       if (!rules.isEmpty) expirationHandling.register(e,rules)
       rules
     }
-    println("\n--- current tick: "+currentTick+" ---")
-    println("rules added:")
-    rulesToAdd foreach println
+//    println("\n--- current tick: "+currentTick+" ---")
+//    println("rules added:")
+//    rulesToAdd foreach println
     tmsPolicy.add(currentTick.time)(rulesToAdd)
     val expiredRules = signal match { //logic somewhat implicit...
       case None => expirationHandling.unregisterExpiredByTime()
       case _ => expirationHandling.unregisterExpiredByCount()
     }
-    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_))
-    println("\nrules removed:")
-    if (rulesToRemove.isEmpty) {println ("-")} else { rulesToRemove foreach println }
-    println
+    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
+    //val rulesToRemove = expiredRules
+//    println("\nrules removed:")
+//    if (rulesToRemove.isEmpty) {println ("-")} else { rulesToRemove foreach println }
+//    println
     grounder.remove(rulesToRemove)
     tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }
