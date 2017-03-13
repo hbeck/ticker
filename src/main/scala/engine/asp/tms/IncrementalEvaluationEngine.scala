@@ -65,6 +65,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
 
   //method to be called whenever time xor count increases by 1
   def  singleOneDimensionalTickIncrement(signal: Option[Atom]=None) {
+
     val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
     rulesToGround foreach { case (_,r) => grounder.add(r) }
     val rulesToAdd = rulesToGround flatMap { case (e,r) =>

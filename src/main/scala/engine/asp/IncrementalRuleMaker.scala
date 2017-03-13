@@ -45,7 +45,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
         case None => Seq()
       }
     }
-    val pq = if (signal.isDefined) Seq() else pinWithExp(Q) //only needed when time passes
+    //val pq = if (signal.isDefined) Seq() else pinWithExp(Q) //only needed when time passes
+    val pq = pinWithExp(Q) //... but then we have to make sure non-ground rules are repeatedly considered until time increases!
     val pr = pinWithExp(expiringR)
     // window rules already come with expiration, instead of TicksUntilOutdated
     val windowRules: Seq[(Expiration,NormalRule)] = larsProgramEncoding.windowAtomEncoders flatMap (_.incrementalRules(currentTick))

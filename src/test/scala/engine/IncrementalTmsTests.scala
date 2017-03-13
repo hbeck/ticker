@@ -20,6 +20,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
 
+    //IEEConfig.printRules = true
     val engine = defaultEngine(program)
 
     var model = engine.evaluate(TimePoint(0)).model
@@ -30,6 +31,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     engine.append(TimePoint(0))(signal)
 
     model = engine.evaluate(TimePoint(0)).model
+    println(model)
     assert(model contains signal)
 
     val inference = Atom(Predicate("h"),Seq(StringValue("y")))
@@ -96,6 +98,8 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
 
   val p = Atom(Predicate("p"))
+  val p1 = Atom(Predicate("p1"))
+  val p2 = Atom(Predicate("p2"))
   val t_dp = Atom(Predicate("t_dp"))
   val t_bp = Atom(Predicate("t_bp"))
   val t_a3p = Atom(Predicate("t_a3p"))
@@ -149,27 +153,29 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     val stream = Map[Int,Set[Atom]](3 -> Set(p))
 
+    def c = complement(20) _
+
     val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
       p -> Set(3),
-      t_dp -> (3 to 13).toSet,
+      t_dp -> set(3,13),
       t_bp -> Set(),
-      t_a3p -> (3 to 13).toSet,
-      t_aTp -> (3 to 13).toSet,
-      c_dp -> (3 to 20).toSet,
+      t_a3p -> set(3,13),
+      t_aTp -> set(3,13),
+      c_dp -> set(3,20),
       c_bp -> Set(),
-      c_a3p -> (3 to 20).toSet,
-      c_aTp -> (3 to 20).toSet,
+      c_a3p -> set(3,20),
+      c_aTp -> set(3,20),
       h_p -> Set(3),
-      h_a3p -> (3 to 20).toSet,
-      h_aTp -> (3 to 20).toSet,
-      n_t_bp -> (0 to 20).toSet,
-      n_t_dp -> ((0 to 2).toSet ++ (14 to 20).toSet),
-      n_t_a3p -> ((0 to 2).toSet ++ (14 to 20).toSet),
-      n_c_bp -> (0 to 20).toSet,
-      n_c_dp -> (0 to 2).toSet,
-      n_c_a3p -> (0 to 2).toSet,
-      n_h_p -> ((0 to 2).toSet ++ (4 to 20).toSet),
-      n_h_a3p ->(0 to 2).toSet
+      h_a3p -> set(3,20),
+      h_aTp -> set(3,20),
+      n_t_bp -> set(0,20),
+      n_t_dp -> c(set(3,13)),
+      n_t_a3p -> c(set(3,13)),
+      n_c_bp -> set(0,20),
+      n_c_dp -> set(0,2),
+      n_c_a3p -> set(0,2),
+      n_h_p -> c(Set(3)),
+      n_h_a3p -> set(0,2)
     )
 
     checkEntailments(propositionalProgram,expectedEntailmentTimePoints,stream)
@@ -180,27 +186,29 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     val stream = Map[Int,Set[Atom]](0 -> Set(p), 1 -> Set(p), 2 -> Set(p), 3 -> Set(p), 4 -> Set(p), 5 -> Set(p))
 
+    def c = complement(20) _
+
     val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
-      p -> (0 to 5).toSet,
-      t_dp -> (0 to 15).toSet,
-      t_bp -> (0 to 5).toSet,
-      t_a3p -> (3 to 13).toSet,
-      t_aTp -> (0 to 15).toSet,
-      c_dp -> (0 to 20).toSet,
-      c_bp -> (0 to 5).toSet,
-      c_a3p -> (3 to 20).toSet,
-      c_aTp -> (0 to 20).toSet,
-      h_p -> (0 to 5).toSet,
-      h_a3p -> (3 to 20).toSet,
-      h_aTp -> (0 to 20).toSet,
-      n_t_bp -> (6 to 20).toSet,
-      n_t_dp -> (16 to 20).toSet,
-      n_t_a3p -> ((0 to 2).toSet ++ (14 to 20).toSet),
-      n_c_bp -> (6 to 20).toSet,
+      p -> set(0,5),
+      t_dp -> set(0,15),
+      t_bp -> set(0,5),
+      t_a3p -> set(3,13),
+      t_aTp -> set(0,15),
+      c_dp -> set(0,20),
+      c_bp -> set(0,5),
+      c_a3p -> set(3,20),
+      c_aTp -> set(0,20),
+      h_p -> set(0,5),
+      h_a3p -> set(3,20),
+      h_aTp -> set(0,20),
+      n_t_bp -> set(6,20),
+      n_t_dp -> set(16,20),
+      n_t_a3p -> c(set(3,13)),
+      n_c_bp -> set(6,20),
       n_c_dp -> Set(),
-      n_c_a3p -> (0 to 2).toSet,
-      n_h_p -> (6 to 20).toSet,
-      n_h_a3p -> (0 to 2).toSet
+      n_c_a3p -> set(0,2),
+      n_h_p -> set(6,20),
+      n_h_a3p -> set(0,2)
     )
 
 //    var first: Double = 0
@@ -223,6 +231,39 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
   }
 
+  test("basic propositional S3") {
+
+    val stream = Map[Int,Set[Atom]](0 -> Set(p1,p2), 1 -> Set(p1,p2), 2 -> Set(p1,p2), 3 -> Set(p1,p2), 5 -> Set(p1,p2,p))
+
+    def c = complement(20) _
+
+    val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
+      p -> Set(5),
+      t_dp -> set(5,15),
+      t_bp -> Set(),
+      t_a3p -> Set(),
+      t_aTp -> set(5,15),
+      c_dp -> set(5,20),
+      c_bp -> Set(),
+      c_a3p -> Set(),
+      c_aTp -> set(5,20),
+      h_p -> Set(5),
+      h_a3p -> Set(),
+      h_aTp -> set(5,20),
+      n_t_dp -> c(set(5,15)),
+      n_t_bp -> set(0,20),
+      n_t_a3p -> set(0,20),
+      n_c_bp -> set(0,20),
+      n_c_dp -> set(0,4),
+      n_c_a3p -> set(0,20),
+      n_h_p -> c(Set(5)),
+      n_h_a3p -> set(0,20)
+    )
+
+    checkEntailments(propositionalProgram, expectedEntailmentTimePoints, stream)
+
+  }
+
   test("single") {
     val stream = Map[Int,Set[Atom]](0 -> Set(p), 1 -> Set(p), 2 -> Set(p), 3 -> Set(p), 4 -> Set(p), 5 -> Set(p))
 
@@ -238,8 +279,8 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
   def checkEntailments(program: LarsProgram, expectedEntailmentTimePoints: Map[Atom,Set[Int]], stream:Map[Int,Set[Atom]]): Unit = {
 
-    val engine = defaultEngine(program)
     IEEConfig.printRules = false
+    val engine = defaultEngine(program)
 
     val maxInt:Int = expectedEntailmentTimePoints.values reduce { (l,r) => l ++ r} reduce Math.max
     println("timeline: [0,"+maxInt+"]")
@@ -269,6 +310,9 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     }
   }
+
+  def set(start: Int, end: Int): Set[Int] = (start to end).toSet
+  def complement(upTo: Int)(s: Set[Int]) = set(0,upTo) -- s
 
 
 }
