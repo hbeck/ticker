@@ -1,7 +1,8 @@
 package engine
 
-import core.lars._
 import core._
+import core.lars._
+import engine.asp.tms.IEEConfig
 import fixtures.JtmsIncrementalEngine
 import org.scalatest.FunSuite
 
@@ -93,111 +94,180 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
   }
 
-  test("basic propositional") {
-    val p = Atom(Predicate("p"))
-    val q1 = Atom(Predicate("q1"))
-    val q2 = Atom(Predicate("q2"))
-    val q3 = Atom(Predicate("q3"))
-    val q4 = Atom(Predicate("q4"))
-    val q5 = Atom(Predicate("q5"))
-    val q6 = Atom(Predicate("q6"))
-    val q7 = Atom(Predicate("q7"))
-    val q8 = Atom(Predicate("q8"))
-    val q10 = Atom(Predicate("q10"))
-    val q11 = Atom(Predicate("q11"))
-    val qn1 = Atom(Predicate("qn1"))
-    val qn2 = Atom(Predicate("qn2"))
-    val qn3 = Atom(Predicate("qn3"))
-    //val qn4 = Atom(Predicate("qn4"))
-    val qn5 = Atom(Predicate("qn5"))
-    val qn6 = Atom(Predicate("qn6"))
-    val qn7 = Atom(Predicate("qn7"))
-    //val qn8 = Atom(Predicate("qn8"))
-    val qn10 = Atom(Predicate("qn10"))
-    //val qn11 = Atom(Predicate("qn11"))
-    val T = TimeVariableWithOffset("T")
 
-    val heads = Seq(q1,q2,q3,q4,q5,q6,q7,q8,q10,q11,qn1,qn2,qn3,qn5,qn6,qn7,qn10)
-    val atoms = Seq(p)++heads
+  val p = Atom(Predicate("p"))
+  val t_dp = Atom(Predicate("t_dp"))
+  val t_bp = Atom(Predicate("t_bp"))
+  val t_a3p = Atom(Predicate("t_a3p"))
+  val t_aTp = Atom(Predicate("t_aTp"))
+  val c_dp = Atom(Predicate("c_dp"))
+  val c_bp = Atom(Predicate("c_bp"))
+  val c_a3p = Atom(Predicate("c_a3p"))
+  val c_aTp = Atom(Predicate("c_aTp"))
+  val h_p = Atom(Predicate("h_p"))
+  val h_a3p = Atom(Predicate("h_a3p"))
+  val h_aTp = Atom(Predicate("h_aTp"))
+  val n_t_bp = Atom(Predicate("n_t_bp"))
+  val n_t_dp = Atom(Predicate("n_t_dp"))
+  val n_t_a3p = Atom(Predicate("n_t_a3p"))
+  //val qn4 = Atom(Predicate("qn4"))
+  val n_c_bp = Atom(Predicate("n_c_bp"))
+  val n_c_dp = Atom(Predicate("n_c_dp"))
+  val n_c_a3p = Atom(Predicate("n_c_a3p"))
+  //val qnb8 = Atom(Predicate("qnb8"))
+  val n_h_p = Atom(Predicate("n_h_p"))
+  val n_h_a3p = Atom(Predicate("n_h_a3p"))
+  //val qn11 = Atom(Predicate("qn11"))
+  val T = TimeVariableWithOffset("T")
 
-    val program = LarsProgram.from(
-      q1 <= WindowAtom(SlidingTimeWindow(10), Diamond, p),
-      q2 <= WindowAtom(SlidingTimeWindow(10), Box, p),
-      q3 <= WindowAtom(SlidingTimeWindow(10), At(3), p),
-      q4 <= WindowAtom(SlidingTimeWindow(10), At(T), p),
-      q5 <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
-      q6 <= WindowAtom(SlidingTupleWindow(10), Box, p),
-      q7 <= WindowAtom(SlidingTupleWindow(10), At(3), p),
-      q8 <= WindowAtom(SlidingTupleWindow(10), At(T), p),
-      q10 <= p,
-      q11 <= AtAtom(T,p),
-      qn1 <= not(WindowAtom(SlidingTimeWindow(10), Box, p)),
-      qn2 <= not(WindowAtom(SlidingTimeWindow(10), Diamond, p)),
-      qn3 <= not(WindowAtom(SlidingTimeWindow(10), At(3), p)),
-      //qn4 <= not(WindowAtom(SlidingTimeWindow(10), At(T), p)), //grounding limitation
-      qn5 <= not(WindowAtom(SlidingTupleWindow(10), Box, p)),
-      qn6 <= not(WindowAtom(SlidingTupleWindow(10), Diamond, p)),
-      qn7 <= not(WindowAtom(SlidingTupleWindow(10), At(3), p)),
-      //qn8 <= not(WindowAtom(SlidingTupleWindow(10), At(T), p)), //grounding limitation
-      UserDefinedLarsRule(qn10,Set(),Set(p))
-      //UserDefinedLarsRule(qn11,Set(),Set(AtAtom(T,p))) //grounding limitation
-    )
+  val propositionalProgram = LarsProgram.from(
+    t_dp <= WindowAtom(SlidingTimeWindow(10), Diamond, p),
+    t_bp <= WindowAtom(SlidingTimeWindow(10), Box, p),
+    t_a3p <= WindowAtom(SlidingTimeWindow(10), At(3), p),
+    t_aTp <= WindowAtom(SlidingTimeWindow(10), At(T), p),
+    c_dp <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
+    c_bp <= WindowAtom(SlidingTupleWindow(10), Box, p),
+    c_a3p <= WindowAtom(SlidingTupleWindow(10), At(3), p),
+    c_aTp <= WindowAtom(SlidingTupleWindow(10), At(T), p),
+    h_p <= p,
+    h_a3p <= AtAtom(3,p),
+    h_aTp <= AtAtom(T,p),
+    n_t_bp <= not(WindowAtom(SlidingTimeWindow(10), Box, p)),
+    n_t_dp <= not(WindowAtom(SlidingTimeWindow(10), Diamond, p)),
+    n_t_a3p <= not(WindowAtom(SlidingTimeWindow(10), At(3), p)),
+    //qn4 <= not(WindowAtom(SlidingTimeWindow(10), At(T), p)), //grounding limitation
+    n_c_bp <= not(WindowAtom(SlidingTupleWindow(10), Box, p)),
+    n_c_dp <= not(WindowAtom(SlidingTupleWindow(10), Diamond, p)),
+    n_c_a3p <= not(WindowAtom(SlidingTupleWindow(10), At(3), p)),
+    //qn8b <= not(WindowAtom(SlidingTupleWindow(10), At(T), p)), //grounding limitation
+    UserDefinedLarsRule(n_h_p,Set(),Set(p)),
+    UserDefinedLarsRule(n_h_a3p,Set(),Set(AtAtom(3,p)))
+    //UserDefinedLarsRule(qn11,Set(),Set(AtAtom(T,p))) //grounding limitation
+  )
 
-    val expectModelAtTimes:Map[Atom,Set[Int]] = Map(
+  test("basic propositional S1") {
+
+    val stream = Map[Int,Set[Atom]](3 -> Set(p))
+
+    val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
       p -> Set(3),
-      q1 -> (3 to 13).toSet,
-      q2 -> Set(),
-      q3 -> (3 to 13).toSet,
-      q4 -> (3 to 13).toSet,
-      q5 -> (3 to 20).toSet,
-      q6 -> Set(),
-      q7 -> (3 to 20).toSet,
-      q8 -> (3 to 20).toSet,
-      q10 -> Set(3),
-      q11 -> (3 to 20).toSet,
-      qn1 -> (0 to 20).toSet,
-      qn2 -> ((0 to 2).toSet ++ (14 to 20).toSet),
-      qn3 -> ((0 to 2).toSet ++ (14 to 20).toSet),
-      qn5 -> (0 to 20).toSet,
-      qn6 -> (0 to 2).toSet,
-      qn7 -> (0 to 2).toSet,
-      qn10 -> ((0 to 2).toSet ++ (4 to 20).toSet)
+      t_dp -> (3 to 13).toSet,
+      t_bp -> Set(),
+      t_a3p -> (3 to 13).toSet,
+      t_aTp -> (3 to 13).toSet,
+      c_dp -> (3 to 20).toSet,
+      c_bp -> Set(),
+      c_a3p -> (3 to 20).toSet,
+      c_aTp -> (3 to 20).toSet,
+      h_p -> Set(3),
+      h_a3p -> (3 to 20).toSet,
+      h_aTp -> (3 to 20).toSet,
+      n_t_bp -> (0 to 20).toSet,
+      n_t_dp -> ((0 to 2).toSet ++ (14 to 20).toSet),
+      n_t_a3p -> ((0 to 2).toSet ++ (14 to 20).toSet),
+      n_c_bp -> (0 to 20).toSet,
+      n_c_dp -> (0 to 2).toSet,
+      n_c_a3p -> (0 to 2).toSet,
+      n_h_p -> ((0 to 2).toSet ++ (4 to 20).toSet),
+      n_h_a3p ->(0 to 2).toSet
     )
+
+    checkEntailments(propositionalProgram,expectedEntailmentTimePoints,stream)
+
+  }
+
+  test("basic propositional S2") {
+
+    val stream = Map[Int,Set[Atom]](0 -> Set(p), 1 -> Set(p), 2 -> Set(p), 3 -> Set(p), 4 -> Set(p), 5 -> Set(p))
+
+    val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
+      p -> (0 to 5).toSet,
+      t_dp -> (0 to 15).toSet,
+      t_bp -> (0 to 5).toSet,
+      t_a3p -> (3 to 13).toSet,
+      t_aTp -> (0 to 15).toSet,
+      c_dp -> (0 to 20).toSet,
+      c_bp -> (0 to 5).toSet,
+      c_a3p -> (3 to 20).toSet,
+      c_aTp -> (0 to 20).toSet,
+      h_p -> (0 to 5).toSet,
+      h_a3p -> (3 to 20).toSet,
+      h_aTp -> (0 to 20).toSet,
+      n_t_bp -> (6 to 20).toSet,
+      n_t_dp -> (16 to 20).toSet,
+      n_t_a3p -> ((0 to 2).toSet ++ (14 to 20).toSet),
+      n_c_bp -> (6 to 20).toSet,
+      n_c_dp -> Set(),
+      n_c_a3p -> (0 to 2).toSet,
+      n_h_p -> (6 to 20).toSet,
+      n_h_a3p -> (0 to 2).toSet
+    )
+
+//    var first: Double = 0
+//    var other: Double = 0
+//    var nFirst = 3
+//    var nOther = 10
+//
+//    (-(nFirst-1) to nOther) foreach { x =>
+//      val t = Util.stopTime {
+
+        checkEntailments(propositionalProgram, expectedEntailmentTimePoints, stream)
+
+//      }
+//      if (x <= 0) first = first + (1.0*t)
+//      else other = other + (1.0*t)
+//    }
+//
+//    println("first: "+Util.timeString(first/nFirst))
+//    println("other: "+Util.timeString(other/nOther))
+
+  }
+
+  test("single") {
+    val stream = Map[Int,Set[Atom]](0 -> Set(p), 1 -> Set(p), 2 -> Set(p), 3 -> Set(p), 4 -> Set(p), 5 -> Set(p))
+
+    val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
+      p -> (0 to 5).toSet,
+      n_c_a3p -> (0 to 2).toSet
+    )
+
+    val rule = n_c_a3p <= not(WindowAtom(SlidingTupleWindow(10), At(3), p))
+
+    checkEntailments(LarsProgram.from(rule),expectedEntailmentTimePoints,stream)
+  }
+
+  def checkEntailments(program: LarsProgram, expectedEntailmentTimePoints: Map[Atom,Set[Int]], stream:Map[Int,Set[Atom]]): Unit = {
 
     val engine = defaultEngine(program)
+    IEEConfig.printRules = false
 
-    for (t <- 0 to 20) {
-      if (t==3) {
-        engine.append(TimePoint(t))(p)
+    val maxInt:Int = expectedEntailmentTimePoints.values reduce { (l,r) => l ++ r} reduce Math.max
+    println("timeline: [0,"+maxInt+"]")
+
+    for (t <- 0 to maxInt) {
+
+      stream.get(t) match {
+        case Some(atoms) => atoms foreach (atom => engine.append(TimePoint(t))(atom))
+        case None =>
       }
 
       val model = engine.evaluate(TimePoint(t)).model
 
-      for (a <- atoms) {
-        if (expectModelAtTimes(a) contains t) {
-          assert(model contains a)
+      for (atom <- expectedEntailmentTimePoints.keys) {
+        if (expectedEntailmentTimePoints(atom) contains t) {
+          if (!(model contains atom)) {
+            println(f"t=$t: atom ${atom} not in model ${model}")
+          }
+          assert(model contains atom)
         } else {
-          assert(!(model contains a))
+          if (model contains atom) {
+            println(f"t=$t: atom ${atom} in model ${model}")
+          }
+          assert(!(model contains atom))
         }
       }
 
     }
-
-    /* t=3
-    assert(model contains p)
-    assert(model contains q1)
-    assert(!(model contains q2))
-    assert(model contains q3)
-    assert(model contains q4)
-    assert(model contains q5)
-    assert(model contains q7)
-    assert(model contains q8)
-    assert(model contains q10)
-    assert(model contains q11)
-    assert(!(model contains q6))
-    */
-
-
   }
 
 

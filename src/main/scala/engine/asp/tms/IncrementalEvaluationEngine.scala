@@ -72,12 +72,26 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       if (!rules.isEmpty) expirationHandling.register(e,rules)
       rules
     }
+
+    if (IEEConfig.printRules) {
+      println("rules added at tick " + currentTick)
+      rulesToAdd foreach println
+    }
+
     tmsPolicy.add(currentTick.time)(rulesToAdd)
     val expiredRules = signal match { //logic somewhat implicit...
       case None => expirationHandling.unregisterExpiredByTime()
       case _ => expirationHandling.unregisterExpiredByCount()
     }
     val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
+
+    if (IEEConfig.printRules) {
+      println("\nrules removed at tick " + currentTick)
+      if (rulesToRemove.isEmpty) println("(none)") else {
+        rulesToRemove foreach println
+      }
+    }
+
     grounder.remove(rulesToRemove)
     tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }
@@ -118,25 +132,8 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     
   }
 
-  //
-  //
-  //
+}
 
-  //book keeping for auxiliary signals to handle window logic
-  //var tuplePositions: List[Atom] = List()
-
-  //@deprecated
-  //def asFacts(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
-
-//  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
-//    case p: PinnedAtAtom => p
-//    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => GroundPinnedAtAtom(Atom(p), t)
-//    // in incremental mode we assume that all (resulting) signals are meant to be at T
-//    case a: Atom => PinnedAtom(a, timePoint)
-//  }
-
-  //private def trackSignals(time: TimePoint, signals: Seq[Atom]) = {
-  //  tuplePositions = signals.toList ++ tuplePositions
-  //    stream = stream.updated(time, signals.toSet ++ stream.getOrElse(time, Set()))
-  //}
+object IEEConfig {
+  var printRules = false
 }

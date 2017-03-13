@@ -26,5 +26,9 @@ object Util {
     case _: java.lang.NumberFormatException => None
   }
 
+  def timeString(millis: Long) = ((1.0 * millis) / 1000.0 + " sec")
+  def timeString(millis: Double) = (millis / 1000.0 + " sec")
+
+
 }
 

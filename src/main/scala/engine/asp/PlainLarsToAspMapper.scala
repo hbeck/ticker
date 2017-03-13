@@ -150,10 +150,9 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
     val baseRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
     val expBase: Expiration = Tick(Void,Void)
-    if (length == 0) return Seq((expBase,baseRule))
-
-    val t = tick.time - 1
-    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePoint(t))))
+    val prevT = tick.time - 1
+    if (length == 0 || prevT == -1) return Seq((expBase,baseRule))
+    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePoint(prevT))))
     val expSp: Expiration = Tick(tick.time + length, Void)
     Seq((expBase,baseRule),(expSp,spoilerRule))
   }
