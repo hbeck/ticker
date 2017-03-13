@@ -253,8 +253,43 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       n_t_dp -> c(set(5,15)),
       n_t_bp -> set(0,20),
       n_t_a3p -> set(0,20),
-      n_c_bp -> set(0,20),
       n_c_dp -> set(0,4),
+      n_c_bp -> set(0,20),
+      n_c_a3p -> set(0,20),
+      n_h_p -> c(Set(5)),
+      n_h_a3p -> set(0,20)
+    )
+
+    checkEntailments(propositionalProgram, expectedEntailmentTimePoints, stream)
+
+  }
+
+  test("basic propositional S4") {
+
+    val stream = Map[Int,Set[Atom]](0 -> Set(p1,p2), 1 -> Set(p1,p2), 2 -> Set(p1,p2), 3 -> Set(p1,p2), 5 -> Set(p1,p2,p),
+      6 -> Set(p1), 7 -> Set(p1), 8 -> Set(p1), 9 -> Set(p1), 10 -> Set(p1), 11 -> Set(p1), 12 -> Set(p1), 13 -> Set(p1),
+      14 -> Set(p1), 15 -> Set(p1))
+
+    def c = complement(20) _
+
+    val expectedEntailmentTimePoints:Map[Atom,Set[Int]] = Map(
+      p -> Set(5),
+      t_dp -> set(5,15),
+      t_bp -> Set(),
+      t_a3p -> Set(),
+      t_aTp -> set(5,15),
+      c_dp -> set(5,14), //diff to S3
+      c_bp -> Set(),
+      c_a3p -> Set(),
+      c_aTp -> set(5,14), //diff to S3
+      h_p -> Set(5),
+      h_a3p -> Set(),
+      h_aTp -> set(5,20),
+      n_t_dp -> c(set(5,15)),
+      n_t_bp -> set(0,20),
+      n_t_a3p -> set(0,20),
+      n_c_dp -> c(set(5,14)), //diff to S3
+      n_c_bp -> set(0,20),
       n_c_a3p -> set(0,20),
       n_h_p -> c(Set(5)),
       n_h_a3p -> set(0,20)
