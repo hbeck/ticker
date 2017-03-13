@@ -10,7 +10,7 @@ import engine.asp.tms.policies.TmsPolicy
 
 import scala.collection.immutable.HashMap
 
-/**
+/**en
   * Created by FM, HB on Feb/Mar 2017.
   *
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
@@ -72,19 +72,12 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       if (!rules.isEmpty) expirationHandling.register(e,rules)
       rules
     }
-//    println("\n--- current tick: "+currentTick+" ---")
-//    println("rules added:")
-//    rulesToAdd foreach println
     tmsPolicy.add(currentTick.time)(rulesToAdd)
     val expiredRules = signal match { //logic somewhat implicit...
       case None => expirationHandling.unregisterExpiredByTime()
       case _ => expirationHandling.unregisterExpiredByCount()
     }
     val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
-    //val rulesToRemove = expiredRules
-//    println("\nrules removed:")
-//    if (rulesToRemove.isEmpty) {println ("-")} else { rulesToRemove foreach println }
-//    println
     grounder.remove(rulesToRemove)
     tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }

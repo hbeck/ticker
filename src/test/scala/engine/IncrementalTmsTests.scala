@@ -103,10 +103,22 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     val q6 = Atom(Predicate("q6"))
     val q7 = Atom(Predicate("q7"))
     val q8 = Atom(Predicate("q8"))
-    val q9 = Atom(Predicate("q9"))
     val q10 = Atom(Predicate("q10"))
     val q11 = Atom(Predicate("q11"))
+    val qn1 = Atom(Predicate("qn1"))
+    val qn2 = Atom(Predicate("qn2"))
+    val qn3 = Atom(Predicate("qn3"))
+    //val qn4 = Atom(Predicate("qn4"))
+    val qn5 = Atom(Predicate("qn5"))
+    val qn6 = Atom(Predicate("qn6"))
+    val qn7 = Atom(Predicate("qn7"))
+    //val qn8 = Atom(Predicate("qn8"))
+    val qn10 = Atom(Predicate("qn10"))
+    //val qn11 = Atom(Predicate("qn11"))
     val T = TimeVariableWithOffset("T")
+
+    val heads = Seq(q1,q2,q3,q4,q5,q6,q7,q8,q10,q11,qn1,qn2,qn3,qn5,qn6,qn7,qn10)
+    val atoms = Seq(p)++heads
 
     val program = LarsProgram.from(
       q1 <= WindowAtom(SlidingTimeWindow(10), Diamond, p),
@@ -118,7 +130,17 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       q7 <= WindowAtom(SlidingTupleWindow(10), At(3), p),
       q8 <= WindowAtom(SlidingTupleWindow(10), At(T), p),
       q10 <= p,
-      q11 <= AtAtom(T,p)
+      q11 <= AtAtom(T,p),
+      qn1 <= not(WindowAtom(SlidingTimeWindow(10), Box, p)),
+      qn2 <= not(WindowAtom(SlidingTimeWindow(10), Diamond, p)),
+      qn3 <= not(WindowAtom(SlidingTimeWindow(10), At(3), p)),
+      //qn4 <= not(WindowAtom(SlidingTimeWindow(10), At(T), p)), //grounding limitation
+      qn5 <= not(WindowAtom(SlidingTupleWindow(10), Box, p)),
+      qn6 <= not(WindowAtom(SlidingTupleWindow(10), Diamond, p)),
+      qn7 <= not(WindowAtom(SlidingTupleWindow(10), At(3), p)),
+      //qn8 <= not(WindowAtom(SlidingTupleWindow(10), At(T), p)), //grounding limitation
+      UserDefinedLarsRule(qn10,Set(),Set(p))
+      //UserDefinedLarsRule(qn11,Set(),Set(AtAtom(T,p))) //grounding limitation
     )
 
     val expectModelAtTimes:Map[Atom,Set[Int]] = Map(
@@ -132,7 +154,14 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       q7 -> (3 to 20).toSet,
       q8 -> (3 to 20).toSet,
       q10 -> Set(3),
-      q11 -> (3 to 20).toSet
+      q11 -> (3 to 20).toSet,
+      qn1 -> (0 to 20).toSet,
+      qn2 -> ((0 to 2).toSet ++ (14 to 20).toSet),
+      qn3 -> ((0 to 2).toSet ++ (14 to 20).toSet),
+      qn5 -> (0 to 20).toSet,
+      qn6 -> (0 to 2).toSet,
+      qn7 -> (0 to 2).toSet,
+      qn10 -> ((0 to 2).toSet ++ (4 to 20).toSet)
     )
 
     val engine = defaultEngine(program)
@@ -144,15 +173,13 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
       val model = engine.evaluate(TimePoint(t)).model
 
-      for (a <- Seq(p,q1,q2,q3,q4,q5,q6,q7,q8,q10,q11)) {
+      for (a <- atoms) {
         if (expectModelAtTimes(a) contains t) {
           assert(model contains a)
         } else {
           assert(!(model contains a))
         }
       }
-
-
 
     }
 
