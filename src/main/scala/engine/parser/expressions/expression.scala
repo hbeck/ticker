@@ -73,27 +73,36 @@ case class RuleExpression(rule: String) extends Expression {
   }
 }
 
-case class HeadExpression(head: String) extends Expression {
-  val atom = AtomExpression()
-  //TODO
+case class HeadExpression(headAtom: String) extends Expression {
+  val head:Expression = createHeadAtomExp(headAtom, checkAtAtom(headAtom))
+
+  private def checkAtAtom(head: String): Option[AtAtomExpression] = {
+    if(head.contains(" at ")) return Option(AtAtomExpression(head))
+    None
+  }
+
+  private def createHeadAtomExp(head: String, atatom: Option[AtAtomExpression]): Expression = atatom match {
+    case None => AtomExpression(head)
+    case atomOpt => atomOpt.get
+  }
 }
 
 case class BodyExpression(body: String) extends Expression {
   //TODO
 }
 
-case class AtomExpression() extends Expression {
+case class AtomExpression(atom: String) extends Expression {
   //TODO
 }
 
-case class AtAtomExpression() extends Expression {
+case class AtAtomExpression(atom: String) extends Expression {
 
   //TODO
 }
 
-case class WindowAtomExpression() extends Expression {
-  val atom = AtomExpression()
-  val window = WindowExpression()
+case class WindowAtomExpression(atoms: String) extends Expression {
+//  val atom = AtomExpression()
+//  val window = WindowExpression()
   //TODO
 
 }
