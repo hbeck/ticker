@@ -1,0 +1,10 @@
+import foo as bar
+import haha as hehe
+import withparam(param) as wp
+
+/* this is an example comment*/
+
+a :- b.
+a.
+b :- k at T, h in [bar 5], l always in [hehe 10].
+f :- not r.

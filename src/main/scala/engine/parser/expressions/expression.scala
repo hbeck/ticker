@@ -1,8 +1,8 @@
 package engine.parser.expressions
 
-import java.util.concurrent.atomic.AtomicStampedReference
-
 import engine.parser.utils.Tokenizer
+
+import scala.util.matching.Regex
 
 /**
   * Created by et on 11.03.17.
@@ -52,14 +52,6 @@ case class RuleExpression(rule: String) extends Expression {
   val head: HeadExpression = ruleExp._1
   val body: BodyExpression = ruleExp._2
 
-//  private var tmpHead = HeadExpression("")
-//  private var tmpBody = BodyExpression("")
-//
-//  split.length match {
-//    case 2 => tmpHead = HeadExpression(split(0)); tmpBody = BodyExpression(split(1))
-//    case 1 => tmpHead = HeadExpression(split(0))
-//    case _ => throw new SyntaxException(String.format("%s\n%s","Not a valid rule:",rule))
-//  }
   private def createExp(parts: List[String]): (HeadExpression,BodyExpression) = parts match {
     case Nil  => throw new SyntaxException("Empty rule.")
     case x::xs => (createHead(x),createBody(xs))
@@ -88,6 +80,35 @@ case class HeadExpression(headAtom: String) extends Expression {
 }
 
 case class BodyExpression(body: String) extends Expression {
+  private val atoms = body.split(',').toList
+
+  def findAtoms(atoms: List[String]): List[AtomExpression] = atoms match {
+    case Nil => Nil
+    case x::xs => checkAtom(x) ++ findAtoms(xs)
+  }
+
+  def checkAtom(atom: String): List[AtomExpression] = {
+    val regex = new Regex("""([A-Za-z]\w+)\([A-Z]+\)""")
+    if(regex.findFirstIn(atom).isDefined) List(AtomExpression(atom))
+    Nil
+  }
+
+  def checkAtAtom(atom: String) = {
+    val regex = new Regex("""([A-Za-z]\w+)\([A-Z]+\) at ([A-Z]+|[0-9]+)""")
+  }
+
+//  def findAtAtoms(atoms: List[String]): List[AtAtomExpression] = atoms match {
+//    case Nil => Nil
+//    case x::xs => checkAtAtom(x) ++ findAtoms(xs)
+//  }
+
+  def findWAtoms(atoms: List[String]): List[WindowAtomExpression] = {Nil}
+
+//  private var result:(List[String],List[Expression]) = findWAtoms(atoms)
+
+  val wAtomLst: List[WindowAtomExpression] = findWAtoms(atoms)
+//  val atAtomLst: List[AtAtomExpression] = findAtAtoms(atoms)
+  val atomLst: List[AtomExpression] = findAtoms(atoms)
   //TODO
 }
 
