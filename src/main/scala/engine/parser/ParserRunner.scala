@@ -7,6 +7,7 @@ class ParserRunner() extends SimpleLarsParser {
 
   def parseProgram(input: String): ParseResult[Any] = parseAll(program,input)
 
+  /* These have been implemented to test smaller portions of a lars program. Maybe remove them or comment out. */
   def parseImport(input: String): ParseResult[Any] = parseAll(importN,input)
   def parseRule(input: String): ParseResult[Any] = parseAll(rule,input)
   def parseHead(input: String): ParseResult[Any] = parseAll(head,input)
@@ -16,11 +17,11 @@ class ParserRunner() extends SimpleLarsParser {
   def parseWAtom(input: String): ParseResult[Any] = parseAll(wAtom,input)
   def parseBodyAtom(input: String): ParseResult[Any] = parseAll(bodyAtom,input)
   def parseWindow(input: String): ParseResult[Any] = parseAll(window,input)
-  def parseArithmeticOp(input: String): ParseResult[Any] = parseAll(arithmeticOp,input)
-  def parseLogicOp(input: String): ParseResult[Any] = parseAll(logicOp,input)
+//  def parseArithmeticOp(input: String): ParseResult[Any] = parseAll(arithmeticOp,input)
+//  def parseLogicOp(input: String): ParseResult[Any] = parseAll(logicOp,input)
   def parseOperand(input: String): ParseResult[Any] = parseAll(operand,input)
   def parseArithmetic(input: String): ParseResult[Any] = parseAll(arithmetic,input)
-  def parseBool(input: String): ParseResult[Any] = parseAll(bool,input)
+  def parseBool(input: String): ParseResult[Any] = parseAll(compare,input)
   def parseOperation(input: String): ParseResult[Any] = parseAll(operation,input)
   def parseParam(input: String): ParseResult[Any] = parseAll(param,input)
   def parseNeg(input: String): ParseResult[Any] = parseAll(neg,input)

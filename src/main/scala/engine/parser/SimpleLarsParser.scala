@@ -6,44 +6,49 @@ import scala.util.parsing.combinator.JavaTokenParsers
    */
 class SimpleLarsParser extends JavaTokenParsers {
 
+  /* Possibly remove comments beforehand. See utils.Tokenizer for that. */
+
   override val skipWhitespace = false
 
   def program: Parser[Any] = rep(comment)~rep(importN)~rep(comment)~rule~rep(rule)~rep(comment)
 
-  def importN: Parser[Any] = "import "~str~opt("("~optSpace~str~optSpace~")")~" as "~str
+  def importN: Parser[Any] = "import"~space~str~opt("("~optSpace~str~optSpace~")")~space~"as"~space~str~newline~rep(newline)
 //  def importN: Parser[Any] = "import"~" "~str~" "~"as"~" "~str
 
-  def rule: Parser[Any] = rep(comment)~((opt(head)~":-"~body)|head)~"."~rep(comment)
+  def rule: Parser[Any] = rep(comment)~((opt(head)~optSpace~":-"~optSpace~body)|head)~"."~rep(comment)~rep(newline)
 
-  def head: Parser[Any] = atom | atAtom
+  def head: Parser[Any] = atAtom | atom
 
-  def body: Parser[Any] = bodyAtom~repsep(bodyAtom,",")
+  def body: Parser[Any] = repsep(bodyAtom,",")
 
-  def atom: Parser[Any] = optSpace~lowChar~opt("("~upperChar~repsep(upperChar,",")~")")~optSpace //~opt("at"~(number|upperChar))~opt(opt("alsways")~" in "~window)
+  def atom: Parser[Any] = optSpace~lowChar~opt("("~repsep(upperChar,",")~")")//~optSpace //~opt("at"~(number|upperChar))~opt(opt("alsways")~" in "~window)
 
-  def atAtom: Parser[Any] = atom~" at "~(number|(upperChar~rep(str)))
+  def atAtom: Parser[Any] = atom~space~"at"~space~(number|(upperChar~rep(str)))
 
-  def wAtom: Parser[Any] = head~opt(" always")~" in "~window
+  def wAtom: Parser[Any] = head~opt(" always")~space~"in"~space~window
 
-  def bodyAtom: Parser[Any] = opt(neg)~(head | wAtom | operation)
+  def bodyAtom: Parser[Any] = opt(neg)~( wAtom | head | operation)
 
-  def window: Parser[Any] = "["~str~opt(" "~param~opt(","~param~opt(","~param)))~"]"
+  def window: Parser[Any] = "["~str~opt(space~param~opt(","~param~opt(","~param)))~"]"
 
-  def arithmeticOp: Parser[Any] = operand~arithmetic~operand~rep(arithmetic~operand)
+//  def arithmeticOp: Parser[Any] = operand~arithmetic~operand~rep(arithmetic~operand)
+//
+//  def logicOp: Parser[Any] = operand|arithmeticOp~bool~operand|arithmeticOp
 
-  def logicOp: Parser[Any] = operand|arithmeticOp~bool~operand|arithmeticOp
+  def operand: Parser[Any] = optSpace~(upperChar | number)~optSpace
 
-  def operand: Parser[Any] = upperChar | number
+  def arithmetic: Parser[Any] = "+"|"-"|"/"|"*"
 
-  def arithmetic: Parser[Any] = "+"~"-"~"/"~"*"
+  def compare: Parser[Any] = "=="|">="|"<="|"!="
 
-  def bool: Parser[Any] = "="~">="~"<="~"!="
+//  def operation: Parser[Any] = arithmeticOp | logicOp
+  def operation: Parser[Any] = repsep(operand,operator)~"="~repsep(operand,operator)
 
-  def operation: Parser[Any] = arithmetic | bool
+  def operator: Parser[Any] = arithmetic | compare
 
-  def param: Parser[Any] = optSpace~number~" "~opt(str)
+  def param: Parser[Any] = optSpace~number~opt(space~str)
 
-  def neg: Parser[Any] = optSpace~"not "
+  def neg: Parser[Any] = optSpace~"not"~space
 
   def number: Parser[Any] = floatingPointNumber //digit~rep(digit)
 
@@ -63,10 +68,11 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def comment: Parser[Any] = lineComment | blockComment
 
-  def lineComment: Parser[Any] = "//" | "%"~str~newline
+  def lineComment: Parser[Any] = ("//" | "%")~optSpace~repsep(str,space)~newline
 
-  def blockComment: Parser[Any] = "/*"~str~"*/" | "%*"~str~"*%"
+  def blockComment: Parser[Any] = ("/*"~optSpace~repsep(str,space)~"*/" | "%*"~optSpace~repsep(str,space)~"*%")~rep(newline)
 
   def optSpace: Parser[Any] = rep(" ")
 
+  def space: Parser[Any] = "( )+".r
 }
