@@ -3,7 +3,7 @@ package engine.parser.wrapper
 /**
   * Created by et on 21.03.17.
   */
-case class AtomWrapper(predicate: String, args: List[Any]) {
+case class AtomWrapper(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
 
   /*  {
                 case pre~dicate~None => Atom(pre.toString+dicate.toString)
