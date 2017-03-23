@@ -1,12 +1,17 @@
 package engine.parser.wrapper
 
+import core.{Atom, Predicate}
+import core.lars.ExtendedAtom
+
 /**
   * Created by et on 21.03.17.
   */
 case class AtomWrapper(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
 
-  /*  {
-                case pre~dicate~None => Atom(pre.toString+dicate.toString)
-                case pre~dicate~params => Atom(Predicate(pre.toString+dicate.toString),params.map(a => Argument.convertToArgument(a.toString())).toSeq)
-    }*/
+  val atom: Atom = create(predicate,args)
+  val neg: Boolean = not.isDefined
+
+  def create(predicate: String, args: List[Any]): Atom = {
+    Predicate(predicate).apply(args)
+  }
 }
