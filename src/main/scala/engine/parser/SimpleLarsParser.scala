@@ -29,19 +29,19 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def body: Parser[BodyWrapper] = repsep(bodyAtom,",") ^^ BodyWrapper
 
+  def bodyAtom: Parser[BodyTrait] = wAtom | head | operation
+
   def atom: Parser[AtomWrapper] = opt(neg)~optSpace~lowChar~opt(str)~opt("("~>repsep(upperChar,",")<~")") ^^ {
     case not~_~pre~dicate~params => AtomWrapper(not, pre.toString+dicate.toString,params.get)
   }
 
-  def atAtom: Parser[AtAtomWrapper] = atom~space~"at"~space~(number|(upperChar~rep(str))) ^^ {
-    case atom~_~_~_~time => AtAtomWrapper(atom,time.toString)
+  def atAtom: Parser[AtAtomWrapper] = atom~space~opt(neg)~"at"~space~(number|(upperChar~rep(str))) ^^ {
+    case atom~_~not~_~_~time => AtAtomWrapper(not,atom,time.toString)
   }
 
   def wAtom: Parser[WAtomWrapper] = head~opt(space~>"always"<~optSpace)~opt(space~"in"~space)~window ^^ {
     case headAtom~always~_~win => WAtomWrapper(headAtom,always,win)
   }
-
-  def bodyAtom: Parser[BodyTrait] = wAtom | head | operation
 
   def window: Parser[WindowWrapper] = "["~>str~opt(space~>param~opt(","~>param~opt(","~>param)))<~"]" ^^ {
     case wType~params => WindowWrapper(wType,params.get._1,params.get._2.get._1,params.get._2.get._2.get)
