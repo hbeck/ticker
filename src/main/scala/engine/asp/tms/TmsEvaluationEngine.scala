@@ -21,13 +21,9 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
 
   tmsPolicy.initialize(groundRules.toSeq)
 
-  //book keeping for auxiliary atoms to handle window logic
-  var tuplePositions: List[Atom] = List()
-
   val tracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    trackAuxiliaryAtoms(time, atoms)
     cachedResults(time) = prepare(time, atoms)
     discardOutdatedAuxiliaryAtoms(time)
   }
@@ -35,8 +31,6 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
   private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
-
-
     val tracked = tracker.trackAtoms(time, signalAtoms)
     val pinnedSignals = tracked.flatMap(asFact)
 
@@ -95,31 +89,16 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
       }
     }
 
+    // TODO: model-cleaning is still needed (remote e.g a_at(t), filter only for current timepoint, ..)
     resultingModel match {
       case Some(m) => Result(Some(m))
       case None => NoResult
     }
   }
 
-  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
-    case p: PinnedAtAtom => p
-    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => ConcretePinnedAtAtom(Atom(p), t)
-    // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => PinnedAtom(a, timePoint)
-  }
-
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    //TODO current !!!
-    //val maxWindowTicks = pinnedAspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
-    val maxWindowTicks = 100
-    //TODO
     val atomsToRemove = tracker.discardOutdatedAtoms(time)
 
     atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
-  }
-
-  private def trackAuxiliaryAtoms(time: TimePoint, atoms: Seq[Atom]) = {
-    tuplePositions = atoms.toList ++ tuplePositions
-    //    stream = stream.updated(time, atoms.toSet ++ stream.getOrElse(time, Set()))
   }
 }

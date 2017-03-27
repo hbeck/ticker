@@ -18,12 +18,7 @@ object PlainLarsToReactiveMapper {
   */
 case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) extends LarsToAspMapper {
 
-  def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
-    Seq(
-      //      AspRule[Atom, Atom](a(T), Set(now.apply(T), PinnedAtom(a, T))),
-      //      AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T), a(T)))
-    )
-  }
+  def identityRulesForAtom(a: Atom): Seq[NormalRule] = Seq()
 
   override def encode(rule: LarsRule): NormalRule = {
     AspRule(
@@ -34,16 +29,12 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
   }
 
   def encodeHeadAtom(headAtom: HeadAtom): Atom = headAtom match {
-    //    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
     case AtAtom(_T, a) => PinnedAtom(a, _T)
-    //    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
     case a: Atom => PinnedAtom(a, t)
   }
 
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
-    //    case AtAtom(_T, a) => PinnedAtom(a.appendTimeAsNormalArgument(_T), t)
-    //    case AtAtom(_T: TimeVariableWithOffset, a) => PinnedAtom(a, TimeVariableWithOffset(t.variable, _T.offset))
     case AtAtom(_T, a) => PinnedAtom(a, _T)
     case a: WindowAtom => this.encodedWindowAtom(a)
     case a: Atom => PinnedAtom(a, t)
@@ -93,11 +84,7 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
 }
 
 
-case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = t) extends TimeWindowEncoder {
-  val N = TimeVariableWithOffset("N") //TODO hb review N is not necessarily a time variable! --> distinction between time variable and other useful?
-  //TODO if we want a distinction between arbitrary variables and those with an offset, it should rather be IntVariable (which then always implicitly
-  //allows the use of an offset).
-
+case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, time: Time = t) extends TimeWindowEncoder with AllRulesAtomEncoder {
 
   val parameter = time match {
     case tp: TimePoint => tp
@@ -109,16 +96,7 @@ case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: A
   private val windowAtomArguments = Atom.unapply(windowAtomEncoding).getOrElse(Seq())
   private val unpackedWindowAtom = Atom(windowAtomEncoding.predicate, windowAtomArguments.dropRight(2))
 
-  val rule: NormalRule = AspRule[Atom, Atom](PinnedAtom(windowAtomEncoding, time), Set[Atom](now(N), PinnedAtom(atom, time)))
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](unpackedWindowAtom.apply(parameter - i, parameter), Set[Atom](now(parameter), PinnedAtom(atom, parameter - i))))
-
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-//    val added = rule.assign(Assignment(Map(t -> i, N -> i)))
-//    val removed = rule.assign(Assignment(Map(t -> IntValue(i.int - length.toInt), N -> i)))
-//
-//    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
-    null
-  }
 }
 
 /* EXAMPLE.
@@ -130,26 +108,13 @@ case class ReactiveTimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: A
    atom: Atom ... a
    windowAtomEncoding: w_{range-d-a}
  */
-case class ReactiveTimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
-  val N: Variable = TimeVariableWithOffset("N")
-
-  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](now(N), PinnedAtom(atom, t)))
+case class ReactiveTimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder with AllRulesAtomEncoder {
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](now(t), PinnedAtom(atom, t - i))))
-
-  //TODO hb prepared for later use
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-//    val added = rule.assign(Assignment(Map(t -> i, N -> i)))
-//    val removed = rule.assign(Assignment(Map(t -> IntValue(i.int - length.toInt), N -> i)))
-//
-//    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
-    null
-  }
 }
 
 
-case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder {
+case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TimeWindowEncoder with AllRulesAtomEncoder {
 
-  val N: Variable = TimeVariableWithOffset("N")
   val spoilerPredicate = Predicate(f"spoil_ti_${length}_${atom.predicate.caption}")
 
   val spoilerAtom = PinnedAtom(Atom(spoilerPredicate, Atom.unapply(atom).getOrElse(Seq())), t)
@@ -159,40 +124,16 @@ case class ReactiveTimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: 
 
   override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
 
-
-  val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(N)), Set[Atom](PinnedAtom(atom, t)))
-
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-//    val added = incrementalRule.assign(Assignment(Map(N -> tick, t -> tick)))
-//    val removed = incrementalRule.assign(Assignment(Map(N -> tick, t -> IntValue(tick.int - length.toInt))))
-
-    // TODO: base rule is added every time - shouldn't matter because of set-semantics...
-    //    IncrementalRules(added + baseRule, removed)
-    null
-  }
 }
 
-case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+case class ReactiveTupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder with AllRulesAtomEncoder {
   val C = TimeVariableWithOffset("C")
-  //TODO hb review why time variable?
-  val D = Variable("D") //TODO ... and then why this not?
-
-  val rule: NormalRule = AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, D)))
 
   val allWindowRules = (0 to length.toInt) map (i => AspRule(windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom.asCount(atom, C - i))))
-
-
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-//    val added = rule.assign(Assignment(Map(D -> i, C -> i)))
-//    val removed = rule.assign(Assignment(Map(D -> IntValue(i.int - length.toInt), C -> i)))
-//
-//    IncrementalRules(Seq(AspRule(added.head, added.pos)), Seq(AspRule(removed.head, removed.pos)))
-    null
-  }
 }
 
 
-case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder {
+case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) extends TupleWindowEncoder with AllRulesAtomEncoder {
 
   val C: Variable = TimeVariableWithOffset("C")
   val D: Variable = TimeVariableWithOffset("D")
@@ -244,20 +185,9 @@ case class ReactiveTupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding:
   val spoilerRules: Seq[NormalRule] = cntSpoilerRules_1 :+ cntSpoilerRules_2
 
   override val allWindowRules: Seq[NormalRule] = spoilerRules :+ baseRule
-
-  val incrementalRule: NormalRule = AspRule(spoilerAtom, Set[Atom](atom, now(C)), Set[Atom](PinnedAtom(atom, t)))
-
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-//    val added = incrementalRule.assign(Assignment(Map(C -> tick, t -> tick)))
-//    val removed = incrementalRule.assign(Assignment(Map(C -> tick, t -> IntValue(tick.int - length.toInt))))
-
-    // TODO: base rule is added every time - shouldn't matter because of set-semantics...
-    //    IncrementalRules(added + baseRule, removed)
-    null
-  }
 }
 
-case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = t) extends TupleWindowEncoder {
+case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, timeVariable: Time = t) extends TupleWindowEncoder with AllRulesAtomEncoder {
   val D = TimeVariableWithOffset("D")
   val C = TimeVariableWithOffset("C")
 
@@ -266,7 +196,4 @@ case class ReactiveTupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: 
   // at atoms got their parameter already encoded
   val allWindowRules = (0 to length.toInt) map (i => AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](cnt(C), PinnedAtom(atom, timeVariable, D), Sum(D, IntValue(-i), D))))
 
-  override def incrementalRulesAt(currentPosition: CurrentPosition): IncrementalRules = {
-    null
-  }
 }

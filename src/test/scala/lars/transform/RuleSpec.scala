@@ -18,7 +18,7 @@ class RuleSpec extends TransformLarsSpec {
   it should "contain the fact a(T)." in {
     val f = LarsFact(a)
 
-    DefaultLarsToPinnedProgram.encodeRule(f).ruleEncodings should contain(AspRule[Atom,Atom](PinnedAtom(a, T), Set(now(T))))
+    DefaultLarsToPinnedProgram.encodeRule(f).ruleEncodings should contain(AspRule[Atom, Atom](PinnedAtom(a, T), Set(now(T))))
   }
 
   "A rule containing a window atom wˆ1 b a" should "be transformed into 2 rules" in {
@@ -28,7 +28,7 @@ class RuleSpec extends TransformLarsSpec {
   }
 
   private def encodeRule(rule: LarsRule) = {
-    DefaultLarsToPinnedProgram.encodeRule(rule).windowAtomEncoders.flatMap(_.allWindowRules)
+    DefaultLarsToPinnedProgram.encodeRule(rule).windowAtomEncoders.flatMap(allWindowRules)
   }
 
   it should "contain a rule with head w_1_b_a(T)" in {
@@ -39,7 +39,7 @@ class RuleSpec extends TransformLarsSpec {
   it should "contain a rule with head w_1_b_a(T) mapped from neg." in {
     val r = UserDefinedLarsRule(b, Set(), Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
 
-    encodeRule(r).map(_.head) should contain(PinnedAtom(Atom("w_te_1_b_a"),T))
+    encodeRule(r).map(_.head) should contain(PinnedAtom(Atom("w_te_1_b_a"), T))
   }
 
   "A rule containing a window atom aˆ1 d a" should "be transformed into 3 rules" in {

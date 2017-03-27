@@ -12,7 +12,7 @@ import org.scalatest.Matchers._
 class RuleForAtSpec extends TransformLarsSpec {
   val w_te_1_a_1_a = WindowAtom(SlidingTimeWindow(1), At(t1), a)
 
-  def ruleForAt(windowAtom: WindowAtom) = DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom).allWindowRules
+  def ruleForAt(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom))
 
   "The rule for w^1 at_1 a" should "return two rules" in {
     ruleForAt(w_te_1_a_1_a) should have size (2)

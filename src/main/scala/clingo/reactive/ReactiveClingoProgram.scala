@@ -68,7 +68,7 @@ case class TickDimension(predicate: Predicate, parameter: TickParameter) {
 
 object ReactiveClingoProgram {
   def fromMapped(program: LarsProgramEncoding) = {
-    val rules: Set[NormalRule] = program.rules.toSet ++ program.windowAtomEncoders.flatMap(_.allWindowRules.toSet)
+    val rules: Set[NormalRule] = program.rules.toSet ++ program.oneShotWindowRules.toSet
 
     val volatileRules = rules map (ClingoConversion(_))
 

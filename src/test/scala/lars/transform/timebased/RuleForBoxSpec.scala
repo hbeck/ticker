@@ -11,7 +11,7 @@ import org.scalatest.Matchers._
   */
 class RuleForBoxSpec extends TransformLarsSpec {
 
-  def rulesForBox(windowAtom: WindowAtom) = DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom).allWindowRules
+  def rulesForBox(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom))
 
   val w_te_1_b_a = WindowAtom(SlidingTimeWindow(1), Box, a)
 

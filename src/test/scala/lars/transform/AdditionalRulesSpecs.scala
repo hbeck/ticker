@@ -1,6 +1,7 @@
 package lars.transform
 
 import core.lars._
+import engine.asp.AllRulesAtomEncoder
 
 /**
   * Created by FM on 05.05.16.
@@ -8,12 +9,12 @@ import core.lars._
 class AdditionalRulesSpecs extends TransformLarsSpec {
 
   "A diamond-window atom" should "be transformed into some rule" in {
-    assert(DefaultLarsToPinnedProgram.windowAtomEncoder(WindowAtom(SlidingTimeWindow(1), Diamond, a)).allWindowRules.nonEmpty)
+    assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
   }
   "A box-window atom" should "be transformed into some rule" in {
-    assert(DefaultLarsToPinnedProgram.windowAtomEncoder(WindowAtom(SlidingTimeWindow(1), Box, a)).allWindowRules.nonEmpty)
+    assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
   }
   "A fluent-window atom" should "be transformed into some rule" in {
-    assert(DefaultLarsToPinnedProgram.windowAtomEncoder(Fluent(a)).allWindowRules.nonEmpty)
+    assert(allWindowRules(Fluent(a)).nonEmpty)
   }
 }
