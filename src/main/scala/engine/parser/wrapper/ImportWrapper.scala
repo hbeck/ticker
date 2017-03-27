@@ -1,12 +1,12 @@
 package engine.parser.wrapper
 
-import core.lars.{SlidingTimeWindow, SlidingTupleWindow, WindowFunction}
+import core.lars.WindowFunction
 
 /**
   * Created by et on 22.03.17.
   */
 case class ImportWrapper(importClass: String, params: Option[String], name: String) {
-  ImportWrapper.apply(importClass,params,name)
+  ImportWrapper(importClass,params,name)
 }
 
 object ImportWrapper {

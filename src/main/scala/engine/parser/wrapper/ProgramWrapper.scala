@@ -1,8 +1,5 @@
 package engine.parser.wrapper
 
-import core.Rule
-import core.lars.{ExtendedAtom, HeadAtom, LarsProgramBuilder, UserDefinedLarsRule}
-
 /**
   * Created by et on 22.03.17.
   */
