@@ -8,6 +8,6 @@ case class OperandWrapper() {
 }
 
 object OperandWrapper {
-  def apply(num: Int): OperandWrapper = {OperandWrapper()}
+  def apply(num: Double): OperandWrapper = {OperandWrapper()}
   def apply(variable: Char): OperandWrapper = {OperandWrapper()}
 }

@@ -9,7 +9,7 @@ import core.lars.ExtendedAtom
 case class AtomWrapper(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
 
   val atom: Atom = create(predicate,args)
-  val neg: Boolean = not.isDefined
+  override val neg: Boolean = not.isDefined
 
   def create(predicate: String, args: List[Any]): Atom = {
     Predicate(predicate).apply(args)

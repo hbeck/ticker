@@ -1,5 +1,6 @@
 package engine.parser
 
+import core.lars._
 import engine.parser.wrapper._
 
 import scala.util.parsing.combinator.JavaTokenParsers
@@ -27,9 +28,9 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def head: Parser[AtomTrait] = atAtom | atom
 
-  def body: Parser[BodyWrapper] = repsep(bodyAtom,",") ^^ BodyWrapper
+  def body: Parser[BodyWrapper] = repsep(bodyElement,",") ^^ BodyWrapper
 
-  def bodyAtom: Parser[BodyTrait] = wAtom | head | operation
+  def bodyElement: Parser[BodyTrait] = wAtom | head | operation
 
   def atom: Parser[AtomWrapper] = opt(neg)~optSpace~lowChar~opt(str)~opt("("~>repsep(upperChar,",")<~")") ^^ {
     case not~_~pre~dicate~params => AtomWrapper(not, pre.toString+dicate.toString,params.get)
@@ -39,26 +40,32 @@ class SimpleLarsParser extends JavaTokenParsers {
     case atom~_~not~_~_~time => AtAtomWrapper(not,atom,time.toString)
   }
 
-  def wAtom: Parser[WAtomWrapper] = head~opt(space~>"always"<~optSpace)~opt(space~"in"~space)~window ^^ {
-    case headAtom~always~_~win => WAtomWrapper(headAtom,always,win)
+  def wAtom: Parser[WAtomWrapper] = atom~opt(space~>"always"<~optSpace)~opt(space~"in"~space)~window ^^ {
+    case atom~None~_~win => WAtomWrapper(atom,Option(Diamond),win)
+    case atom~_~_~win => WAtomWrapper(atom,Option(Box),win)
+  } | atAtom~opt(space~"in"~space)~window ^^ {
+    case atAtom~_~win => WAtomWrapper(atAtom,None,win)
   }
 
   def window: Parser[WindowWrapper] = "["~>str~opt(space~>param~opt(","~>param~opt(","~>param)))<~"]" ^^ {
-    case wType~params => WindowWrapper(wType,params.get._1,params.get._2.get._1,params.get._2.get._2.get)
+    case wType~None                                   => WindowWrapper(wType)
+    case wType~params if params.get._2.isEmpty        => WindowWrapper(wType,Option(params.get._1))
+    case wType~params if params.get._2.get._2.isEmpty => WindowWrapper(wType,Option(params.get._1),Option(params.get._2.get._1))
+    case wType~params                                 => WindowWrapper(wType,Option(params.get._1),Option(params.get._2.get._1),Option(params.get._2.get._2.get))
   }
 
   def operand: Parser[OperandWrapper] = optSpace~>(upperChar ^^ { o: Char => OperandWrapper(o) }
-                                                    | number ^^ { o: Int => OperandWrapper(o) })<~optSpace
+                                                    | number ^^ { o: Double => OperandWrapper(o) })<~optSpace
 
   def arithmetic: Parser[String] = "+"|"-"|"/"|"*"
 
   def compare: Parser[String] = "=="|">="|"<="|"!="
 
-  def foo: Parser[List[(String, OperandWrapper)]] = operand~rep(arithmetic~operand) ^^ {
+  def arithOperation: Parser[List[(String, OperandWrapper)]] = operand~rep(arithmetic~operand) ^^ {
     case o~l => List(("", o)) ++ l.flatten
   }
 
-  def operation: Parser[OperationWrapper] = foo~("="|compare)~foo ^^ {
+  def operation: Parser[OperationWrapper] = arithOperation~("="|compare)~arithOperation ^^ {
     case l1~op~l2 => OperationWrapper(l1,op,l2)
   }
 
@@ -70,7 +77,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def neg: Parser[Any] = optSpace~"not"~space
 
-  def number: Parser[Int] = floatingPointNumber ^^ (_.toInt)
+  def number: Parser[Double] = floatingPointNumber ^^ (_.toDouble)
 
   def digit: Parser[Int] = """[0-9]""".r ^^ (_.toInt)
 
