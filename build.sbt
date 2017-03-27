@@ -11,6 +11,7 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 //libraryDependencies += "com.github.wookietreiber" %% "scala-chart" % "latest.integration"
 libraryDependencies += "com.quantifind" %% "wisp" % "0.0.4"
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5"
 
 scalacOptions += "-feature"
 scalacOptions += "-language:postfixOps"
