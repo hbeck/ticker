@@ -67,7 +67,10 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   def  singleOneDimensionalTickIncrement(signal: Option[Atom]=None) {
 
     val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
-    rulesToGround foreach { case (_,r) => grounder.add(r) }
+    rulesToGround foreach { case (e,r) =>
+      grounder.add(r)
+      expirationHandling.register(e,Set(r))
+    }
     val rulesToAdd = rulesToGround flatMap { case (e,r) =>
       val rules = grounder.ground(r)
       if (!rules.isEmpty) expirationHandling.register(e,rules)

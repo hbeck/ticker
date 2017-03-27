@@ -15,25 +15,10 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     ground(rule, possibleVariableValues)
   }
 
-  /*
-  def relationsHold(rule: TRule): Boolean = {
-    (rule.pos map (_.atom) filter isRelationAtom forall (holds(_))) &&
-    (rule.neg map (_.atom) filter isRelationAtom forall (!holds(_)))
-  }
-  */
-
   def relationsHold(rule: TRule): Boolean = {
     (rule.pos map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds())) &&
       (rule.neg map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds()))
   }
-
-  /*
-  def deleteAuxiliaryAtoms(rule: TRule): TRule = {
-    val corePosAtoms: Set[TBody] = rule.pos filter (!isRelationAtom(_))
-    val coreNegAtoms: Set[TBody] = rule.neg filter (!isRelationAtom(_))
-    rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
-  }
-  */
 
   def deleteAuxiliaryAtoms(rule: TRule): TRule = {
     val corePosAtoms: Set[TBody] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
