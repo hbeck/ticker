@@ -1,4 +1,4 @@
-package engine.parser.wrapper
+package engine.parser.factory
 
 import core.Rule
 import core.lars._
@@ -6,7 +6,7 @@ import core.lars._
 /**
   * Created by et on 22.03.17.
   */
-case class RuleWrapper(head: Option[AtomTrait],body: Option[BodyWrapper]) {
+case class RuleFactory(head: Option[AtomTrait], body: Option[BodyFactory]) {
 
   val ruleHead: Option[HeadAtom] = createHead(head)
   val posBody: Option[Set[ExtendedAtom]] = createBody(body,false)
@@ -15,23 +15,23 @@ case class RuleWrapper(head: Option[AtomTrait],body: Option[BodyWrapper]) {
   def createHead(head: Option[AtomTrait]): Option[HeadAtom] = {
     if (head.isDefined) {
       head.get match {
-        case a:AtomWrapper => if (a.neg) {}/*TODO raise error*/ else return Option(a.atom)
-        case at:AtAtomWrapper => if (at.neg) {}/*TODO raise error*/ else return Option(at.atom)
+        case a:AtomFactory => if (a.neg) {}/*TODO raise error*/ else return Option(a.atom)
+        case at:AtAtomFactory => if (at.neg) {}/*TODO raise error*/ else return Option(at.atom)
       }
     }
     None
   }
 
-  def createBody(body: Option[BodyWrapper], neg: Boolean): Option[Set[ExtendedAtom]] = body match {
+  def createBody(body: Option[BodyFactory], neg: Boolean): Option[Set[ExtendedAtom]] = body match {
     case None => None
-    case b: Option[BodyWrapper] =>  Option(wrapperListToAtomSet(b.get.list filter(_.neg == neg)))
+    case b: Option[BodyFactory] =>  Option(wrapperListToAtomSet(b.get.list filter(_.neg == neg)))
   }
 
   def wrapperListToAtomSet(list: List[AtomTrait]): Set[ExtendedAtom] = {
    list collect {
-        case a:AtomWrapper => a.atom
-        case a:AtAtomWrapper => a.atom
-        case a:WAtomWrapper => a.atom
+        case a:AtomFactory => a.atom
+        case a:AtAtomFactory => a.atom
+        case a:WAtomFactory => a.atom
    } toSet
   }
 

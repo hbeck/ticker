@@ -27,12 +27,5 @@ object Tokenizer {
 
     /* This is shorter than the lines below and the associated method */
     regex.replaceAllIn(input,"")
-//    val comments = regex.findAllIn(input).toList
-//    val interm = remCom(input,comments)
   }
-
-//  private def remCom(input: String, comments: List[String]): String = comments match {
-//    case Nil => input
-//    case x::xs => remCom(input.replace(x,""),xs)
-//  }
 }

@@ -1,15 +1,15 @@
-package engine.parser.wrapper
+package engine.parser.factory
 
 import core.lars.WindowFunction
 
 /**
   * Created by et on 22.03.17.
   */
-case class ImportWrapper(importClass: String, params: Option[String], name: String) {
-  ImportWrapper(importClass,params,name)
+case class ImportFactory(importClass: String, params: Option[String], name: String) {
+  ImportFactory(importClass,params,name)
 }
 
-object ImportWrapper {
+object ImportFactory {
   //TODO make val if possible
   private var wfnObjects: Map[String,WindowFunction] = Map()
   private var wfnClasses: Map[String,Class[WindowFunction]] = Map()
@@ -21,9 +21,9 @@ object ImportWrapper {
   //TODO create a method which takes up to three window parameters and creates an object of the specified window function
 
   def getWfnObject(wType: String,
-                      past: Option[ParamWrapper] = Option(ParamWrapper(0,None)),
-                      next: Option[ParamWrapper] = Option(ParamWrapper(0,None)),
-                      step: Option[ParamWrapper] = Option(ParamWrapper(1,None))): WindowFunction = ???
+                   past: Option[ParamFactory] = Option(ParamFactory(0,None)),
+                   next: Option[ParamFactory] = Option(ParamFactory(0,None)),
+                   step: Option[ParamFactory] = Option(ParamFactory(1,None))): WindowFunction = ???
 //TODO implement getnewwfnobject and fill in useful defaults
 
   //  windowFunctions += ("t" -> classOf[SlidingTimeWindow])

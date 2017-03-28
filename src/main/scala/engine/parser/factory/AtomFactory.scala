@@ -1,4 +1,4 @@
-package engine.parser.wrapper
+package engine.parser.factory
 
 import core.{Atom, Predicate}
 import core.lars.ExtendedAtom
@@ -6,7 +6,7 @@ import core.lars.ExtendedAtom
 /**
   * Created by et on 21.03.17.
   */
-case class AtomWrapper(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
+case class AtomFactory(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
 
   val atom: Atom = create(predicate,args)
   override val neg: Boolean = not.isDefined
