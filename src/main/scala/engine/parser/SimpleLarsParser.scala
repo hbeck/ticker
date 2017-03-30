@@ -2,6 +2,7 @@ package engine.parser
 
 import core.lars._
 import engine.parser.factory._
+import engine.parser.wrapper.ArithOperationWrapper
 
 import scala.util.parsing.combinator.JavaTokenParsers
 /**
@@ -71,13 +72,24 @@ class SimpleLarsParser extends JavaTokenParsers {
   def compare: Parser[String] = "="|">="|"<="|"!="|"<"|">"
 
   //TODO do not allow arbitrary 'calculations', only single 'assignments' (like T = A + B, A + B = T) and (binary) relations
-  def arithOperation: Parser[List[(String, OperandFactory)]] = operand ~ rep(arithmetic ~ operand) ^^ {
-    case o ~ l => List(("", o)) ++ l.flatten
+  def arithOperation: Parser[ArithOperationWrapper] = operand ~ opt(arithmetic ~ operand) ^^ {
+    case o ~ None => ArithOperationWrapper(o,None,None)
+    case o ~ l => ArithOperationWrapper(o,Some(l.get._1),Some(l.get._2))
   }
 
-  def operation: Parser[OperationFactory] = arithOperation ~ compare ~ arithOperation ^^ {
-    case l1 ~ op ~ l2 => OperationFactory(l1,op,l2)
+  def leftOperation: Parser[OperationFactory] = arithOperation ~ compare ~ operand ^^ {
+    case ao ~ op ~ o => OperationFactory(ao,op,o)
   }
+
+  def rightOperation: Parser[OperationFactory] = operand ~ compare ~ arithOperation ^^ {
+    case o ~ op ~ ao => OperationFactory(ao,op,o)
+  }
+
+  def operation: Parser[OperationFactory] = leftOperation | rightOperation
+
+/*  def operation: Parser[OperationFactory] = arithOperation ~ compare ~ arithOperation ^^ {
+    case l1 ~ op ~ l2 => OperationFactory(l1,op,l2)
+  }*/
 
   def operator: Parser[String] = arithmetic | compare
 

@@ -1,4 +1,6 @@
-package engine.parser
+package engine.parser.utils
+
+import engine.parser.SimpleLarsParser
 
 /**
   * Created by et on 16.03.17.

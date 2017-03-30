@@ -7,7 +7,6 @@ import core.lars._
   * Created by et on 22.03.17.
   */
 case class RuleFactory(head: Option[AtomTrait], body: Option[BodyFactory]) {
-
   val ruleHead: Option[HeadAtom] = createHead(head)
   val posBody: Option[Set[ExtendedAtom]] = createBody(body,false)
   val negBody: Option[Set[ExtendedAtom]] = createBody(body,true)
@@ -24,10 +23,12 @@ case class RuleFactory(head: Option[AtomTrait], body: Option[BodyFactory]) {
 
   def createBody(body: Option[BodyFactory], neg: Boolean): Option[Set[ExtendedAtom]] = body match {
     case None => None
-    case b: Option[BodyFactory] =>  Option(wrapperListToAtomSet(b.get.list filter(_.neg == neg)))
+    case b: Option[BodyFactory] =>  Option(wrapperListToAtomSet(b.get.list filter {
+                                        case a:AtomTrait => a.neg == neg
+                                    }))
   }
 
-  def wrapperListToAtomSet(list: List[AtomTrait]): Set[ExtendedAtom] = {
+  def wrapperListToAtomSet(list: List[BodyTrait]): Set[ExtendedAtom] = {
    list collect {
         case a:AtomFactory => a.atom
         case a:AtAtomFactory => a.atom
@@ -42,4 +43,7 @@ case class RuleFactory(head: Option[AtomTrait], body: Option[BodyFactory]) {
       }
       UserDefinedLarsRule(head.get, pos, neg)
   }
+
+  def getRule: Rule[HeadAtom,ExtendedAtom] = createRule(ruleHead,posBody.getOrElse(Set()),negBody.getOrElse(Set()))
+
 }

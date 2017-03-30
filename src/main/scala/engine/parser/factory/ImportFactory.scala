@@ -14,7 +14,9 @@ object ImportFactory {
   private var wfnObjects: Map[String,WindowFunction] = Map()
   private var wfnClasses: Map[String,Class[WindowFunction]] = Map()
 
-  def apply(importClass: String, params: Option[String], name: String): Unit = {}
+  def apply(importClass: String, params: Option[String], name: String): Unit = {
+    //TODO add new import to wfn maps
+  }
 
 //  def getWfnObject(wfn: String): Option[WindowFunction] = wfnObjects.get(wfn)
   def getWfnClass(wfn: String): Option[Class[WindowFunction]] = wfnClasses.get(wfn)
