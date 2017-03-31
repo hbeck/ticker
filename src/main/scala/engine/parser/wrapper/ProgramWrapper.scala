@@ -5,6 +5,8 @@ package engine.parser.wrapper
   */
 case class ProgramWrapper(imports: List[ImportWrapper], rules: List[RuleWrapper]) {
 
+  //TODO always provide sliding time/tuple window
+
 /*  def createRules(rules: List[RuleWrapper]): List[Rule[HeadAtom,ExtendedAtom]] = rules match {
     case Nil => Nil
     case x::xs => x.createRule :: createRules(xs)
