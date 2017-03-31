@@ -1,5 +1,6 @@
 package engine.parser
 
+import engine.parser.utils.ParserRunner
 import org.scalatest.FlatSpec
 
 /**

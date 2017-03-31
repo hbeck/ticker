@@ -1,4 +1,4 @@
-package engine.parser.wrapper
+package engine.parser.factory
 
 import core.lars.ExtendedAtom
 
