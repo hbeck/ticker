@@ -42,6 +42,7 @@ object ClingoConversion {
     case Lt(l, r) => f"$l < $r"
     case Gt(l, r) => f"$l > $r"
     case Sum(l, r, e) => f"$l + $r = $e"
+    case Diff(l, r, e) => f"$l - $r = $e"
     case Product(l, r, e) => f"$l * $r = $e"
     case Mod(l, r, e) => f"$l \\ $r = $e"
     case Pow(l, r, e) => f"$l ** $r = $e"

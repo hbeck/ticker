@@ -434,6 +434,12 @@ case class Sum(x: Argument, y: Argument, z: Argument) extends TernaryNumericRela
   override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Sum(nx,ny,nz)
 }
 
+case class Diff(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
+  override val predicate: Predicate = Predicate("diff")
+  override def groundingHolds(): Boolean = int(x) - int(y) == int(z)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Diff(nx,ny,nz)
+}
+
 case class Product(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
   override val predicate: Predicate = Predicate("prod")
   override def groundingHolds(): Boolean = int(x) * int(y) == int(z)
@@ -447,7 +453,7 @@ case class Pow(x: Argument, y: Argument, z: Argument) extends TernaryNumericRela
 }
 
 case class Mod(x: Argument, y: Argument, z: Argument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("pow")
+  override val predicate: Predicate = Predicate("mod")
   override def groundingHolds(): Boolean = int(x) > 0 && (int(x) % int(y) == int(z))
   override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Mod(nx,ny,nz)
 }
