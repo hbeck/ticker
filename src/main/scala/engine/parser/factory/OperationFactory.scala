@@ -11,8 +11,6 @@ import engine.parser.wrapper.ArithOperationWrapper
 case class OperationFactory(left: ArithOperationWrapper, func: String, right: OperandFactory)
   extends BodyTrait {
 
-  /*@Harald: Darf ich in eurem Code rumpfuschen? Dann können wir in der syntax auch sowas wie A + B < C erlauben, ohne dass ich vorher den Ausdruck A + B auswerten muss*/
-
   val operation = create(left,func,right)
 
   def create(left: ArithOperationWrapper, func: String, right: OperandFactory): RelationAtom = {
