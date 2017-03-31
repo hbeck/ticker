@@ -41,11 +41,12 @@ object ClingoConversion {
     case Geq(l, r) => f"$l >= $r"
     case Lt(l, r) => f"$l < $r"
     case Gt(l, r) => f"$l > $r"
-    case Sum(l, r, e) => f"$l + $r = $e"
-    case Diff(l, r, e) => f"$l - $r = $e"
-    case Product(l, r, e) => f"$l * $r = $e"
-    case Mod(l, r, e) => f"$l \\ $r = $e"
-    case Pow(l, r, e) => f"$l ** $r = $e"
+    case Plus(l, r, e) => f"$l + $r = $e"
+    case Minus(l, r, e) => f"$l - $r = $e"
+    case Times(l, r, e) => f"$l * $r = $e"
+    case Divide(l, r, e) => f"$l / $r = $e"
+    case Modulo(l, r, e) => f"$l \\ $r = $e"
+    case Power(l, r, e) => f"$l ** $r = $e"
     case LeqLeq(l, x, u) => f"$x = $l .. $u" // l <= x <= u which has x safe automatically
     case LtLt(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
     case LtLeq(l, x, u) => f"$x = ${l+1} .. $u"

@@ -165,7 +165,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
 
   // at atoms got their parameter already encoded
   val allWindowRules = (0 to length.toInt) map { i =>
-    AspRule[Atom, Atom](windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, atTime, D), Sum(CountPinVariable, IntValue(-i), D)))
+    AspRule[Atom, Atom](windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, atTime, D), Plus(CountPinVariable, IntValue(-i), D)))
   }
 
   override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
