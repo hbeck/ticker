@@ -1,14 +1,13 @@
 package core.asp
 
-import core.{Atom, AtomWithArgument}
-import engine.asp.PinnedRule
+import core.{Atom, Program}
 
 
 /**
   * Created by FM on 25.02.16.
   */
-trait AspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]] {
-  val rules: Seq[TAspRule]
+trait AspProgram[TAtom <: Atom, TRule <: AspRule[TAtom]] extends Program[TRule,TAtom,TAtom] {
+  val rules: Seq[TRule]
   lazy val atoms = this.rules.flatMap(_.atoms).toSet
 }
 
@@ -31,14 +30,15 @@ case class AppendableAspProgram(rules: List[NormalRule]) extends NormalProgram {
   def ++(rules: List[NormalRule]) = AppendableAspProgram(this.rules ++ rules)
 }
 
-case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]](rules: Seq[TAspRule]) extends AspProgram[TAtom, TAspRule]
+////TODO hb what is this?
+//case class FixedAspProgram[TAtom <: Atom, TAspRule <: AspRule[TAtom]](rules: Seq[TAspRule]) extends AspProgram[TAtom, TAspRule]
 
 object AspProgram {
   def apply(rules: NormalRule*): AppendableAspProgram = AppendableAspProgram(rules.toList)
 
   def apply(rules: List[NormalRule]): AppendableAspProgram = AppendableAspProgram(rules)
 
-  def pinned(rules: PinnedRule*): FixedAspProgram[AtomWithArgument, PinnedRule]= FixedAspProgram[AtomWithArgument, PinnedRule](rules.toList)
+  //def pinned(rules: PinnedRule*): FixedAspProgram[AtomWithArgument, PinnedRule]= FixedAspProgram[AtomWithArgument, PinnedRule](rules.toList)
 
-  def pinned(rules: List[PinnedRule]): FixedAspProgram[AtomWithArgument, PinnedRule] = FixedAspProgram[AtomWithArgument, PinnedRule](rules)
+  //def pinned(rules: List[PinnedRule]): FixedAspProgram[AtomWithArgument, PinnedRule] = FixedAspProgram[AtomWithArgument, PinnedRule](rules)
 }

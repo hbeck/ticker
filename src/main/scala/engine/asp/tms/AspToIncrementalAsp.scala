@@ -8,11 +8,11 @@ import engine.asp._
 /**
   * Created by FM on 08.06.16.
   *
-  * Remove temporal information (the pinned part, so to speak) from intensional atoms.
+  * methods to remove tick-based information from mapped program (now, cnt stuff)
   */
-object PinnedAspToIncrementalAsp {
+object TickBasedAspToIncrementalAsp {
 
-  def unpin(atom: AtomWithArgument): Atom = atom match {
+  def unpin(atom: AtomWithArguments): Atom = atom match {
     case p: PinnedAtAtom => unpin(p)
     case _ => atom
   }
@@ -21,7 +21,7 @@ object PinnedAspToIncrementalAsp {
     case p: PinnedAtom => p
     case _ => pinned.arguments match {
       case pinned.time :: Nil => pinned.time match {
-        case t: TimeVariableWithOffset if t.variable == T.variable => pinned.atom
+        case t: TimeVariableWithOffset if t.variable == TimePinVariable.variable => pinned.atom
         case p: TimePoint => pinned.atom
         case _ => pinned
       }
@@ -31,7 +31,7 @@ object PinnedAspToIncrementalAsp {
 
   def apply(rule: PinnedRule, atomsToUnpin: Set[ExtendedAtom]): AspRule[Atom] = {
 
-    def unpinIfNeeded(pinned: AtomWithArgument) = atomsToUnpin.contains(pinned) match {
+    def unpinIfNeeded(pinned: AtomWithArguments) = atomsToUnpin.contains(pinned) match {
       case true => unpin(pinned)
       case false => pinned
     }
@@ -46,18 +46,16 @@ object PinnedAspToIncrementalAsp {
   }
 
   def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
-    val rulesWithoutNowCntPin = larsProgramEncoding.rules.
-      map(stripTickAtoms)
-
+    val rulesWithoutNowCntPin = larsProgramEncoding.rules map stripTickAtoms
     AspProgram(rulesWithoutNowCntPin.toList)
   }
 
-  def stripTickAtoms(r: NormalRule): NormalRule = {
-    r.
+  def stripTickAtoms(rule: NormalRule): NormalRule = {
+    rule.
       from(
-        r.head,
-        r.pos filterNot (a => engine.asp.specialTickPredicates.contains(a.predicate)),
-        r.neg
+        rule.head,
+        rule.pos filterNot (a => engine.asp.specialPinPredicates.contains(a.predicate)),
+        rule.neg
       ).
       asInstanceOf[NormalRule]
   }

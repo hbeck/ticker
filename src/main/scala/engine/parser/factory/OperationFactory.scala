@@ -35,8 +35,8 @@ case class OperationFactory(left: ArithOperationWrapper, func: String, right: Op
   }
 
   def getRelation(op: String, arg11: Argument, arg12: Argument, arg2: OperandFactory): RelationAtom = op match {
-    case "+" => Sum(arg11,arg12,arg2.arg)
-    case "*" => Product(arg11,arg12,arg2.arg)
+    case "+" => Plus(arg11,arg12,arg2.arg)
+    case "*" => Times(arg11,arg12,arg2.arg)
     case _ => ??? //TODO implement :)
   }
 }

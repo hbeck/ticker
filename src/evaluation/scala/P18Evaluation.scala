@@ -1,15 +1,10 @@
-import core.lars._
-import core.{Atom, StringValue}
-import evaluation._
-
-import scala.collection.immutable.HashMap
-import scala.util.Random
 
 /**
   * Created by FM on 21.08.16.
   */
-object P18Evaluation extends P18Program {
-  //TODO note hb: use case(...) instead of ._1, ._2 ...
+object P18Evaluation { //extends P18Program {
+
+  /* TODO HB refactoring problems due to sloppy use of apply operators.
 
   val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
   val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
@@ -143,22 +138,22 @@ trait P18Program {
 
   def tuBo3(atom: Atom) = WindowAtom(SlidingTupleWindow(3), Box, atom)
 
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
+  val a = Predicate("a")
+  val b = Predicate("b")
+  val c = Predicate("c")
+  val d = Predicate("d")
 
-  val e = Atom("e")
-  val f = Atom("f")
+  val e = Predicate("e")
+  val f = Predicate("f")
 
-  val g = Atom("g")
-  val h = Atom("h")
+  val g = Predicate("g")
+  val h = Predicate("h")
 
-  val u = Atom("u")
+  val u = Predicate("u")
 
   // signals
-  val x = Atom("x")
-  val y = Atom("y")
+  val x = Predicate("x")
+  val y = Predicate("y")
 
   // constants
   val i = StringValue("i")
@@ -241,5 +236,7 @@ trait P18Program {
     u(_1) <= c_i(_1) and c_j(_2) not h not u(_1),
     u(_2) <= c_i(_2) and c_j(_1) not h not u(_2)
   )
+
+   */
 
 }

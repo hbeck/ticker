@@ -1,7 +1,7 @@
 package core
 
-import engine.asp.{cnt, now, pin}
 import core.lars.Time
+import engine.asp.{cnt, now}
 
 /**
   * Created by FM on 17.06.16.
@@ -12,52 +12,57 @@ import core.lars.Time
   */
 case class AtomModification(atom: Atom) {
 
-  def apply(time: Time): AtomWithArgument = {
+  //TODO why do we have this in addition to Pinned{Time,At}Atom?
+  def appendTimeAsArgument(time: Time): AtomWithArguments = {
     val timeAsArgument: Argument = time
 
-    // TODO: for these special atoms we don't want them to be mapped as PinnedAtoms
-    // because this would create predicate names like 'now_at'
-    atom match {
-      case `cnt` => this (timeAsArgument)
-      case `now` => this (timeAsArgument)
-      case `pin` => this (timeAsArgument)
-      case _ => PinnedAtom(atom, time)
+    atom.predicate match {
+      case `cnt` => appendArguments(List(timeAsArgument))
+      case `now` => appendArguments(List(timeAsArgument))
+      case _ => PinnedAtom.asPinnedAtAtom(atom, time)
     }
   }
 
-  def apply(arguments: List[Argument]): AtomWithArgument = {
+  /* what is this
+  def apply(arguments: List[Argument]): AtomWithArguments = {
     val (pred, atomArgs): (Predicate, Seq[Argument]) = atom match {
-      case aa: AtomWithArgument => (aa.predicate, aa.arguments)
+      case aa: AtomWithArguments => (aa.predicate, aa.arguments)
       case _ => (atom.predicate, Seq())
     }
     // TODO: is this cast needed?
-    Atom(pred, atomArgs ++ arguments).asInstanceOf[AtomWithArgument]
+    Atom(pred, atomArgs ++ arguments).asInstanceOf[AtomWithArguments]
   }
+  */
 
-  def apply(arguments: Argument*): AtomWithArgument = this.apply(arguments.toList)
+  def apply(arguments: Argument*): AtomWithArguments = appendArguments(arguments.toList)
 
-  def appendTimeAsNormalArgument(time: Time): AtomWithArgument = this.apply(time.asInstanceOf[Argument])
+  def appendArguments(arguments: Seq[Argument]): AtomWithArguments = {
+    atom match {
+      case p:PredicateAtom => AtomWithArguments(p.predicate,arguments)
+      case a:AtomWithArguments => AtomWithArguments(a.predicate,a.arguments ++ arguments)
+    }
+  }
 
   def asTupleReference(position: Long) = {
     GroundAtomWithArguments(Predicate(atom.predicate.toString + "_TUPLE"), Seq(IntValue(position.toInt)))
   }
 
-  def asCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_" + atom.predicate.caption), appendArguments(time, count))
+  def asCountReference(time: Argument, count: Argument): Atom = AtomWithArguments(Predicate("cnt_" + atom.predicate.caption), appendArguments(time, count))
 
-  def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArgument(Predicate("cnt_specific_" + atom.predicate.caption), appendArguments(time, count))
+  def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArguments(Predicate("cnt_specific_" + atom.predicate.caption), appendArguments(time, count))
 
-  def asAtReference(time: Argument): Atom = AtomWithArgument(Predicate("at_" + atom.predicate.caption), appendArguments(time))
+  def asAtReference(time: Argument): Atom = AtomWithArguments(Predicate("at_" + atom.predicate.caption), appendArguments(time))
 
-  def asFluentReference(): AtomWithArgument = {
+  def asFluentReference(): AtomWithArguments = {
     val arguments = atom match {
-      case aa: AtomWithArgument => aa.arguments
+      case aa: AtomWithArguments => aa.arguments
       case a: Atom => Seq()
     }
-    AtomWithArgument(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
+    AtomWithArguments(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
   }
 
   def arguments(): Seq[Argument] = atom match {
-    case aa: AtomWithArgument => aa.arguments
+    case aa: AtomWithArguments => aa.arguments
     case _ => Seq()
   }
 

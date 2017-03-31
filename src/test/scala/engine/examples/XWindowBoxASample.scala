@@ -3,11 +3,8 @@ package engine.examples
 import core.Atom
 import core.asp.AspProgram
 import core.lars._
-import engine.EvaluationEngine
 import engine.asp.now
-import engine.config.BuildEngine
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
-import org.scalatest.FlatSpec
+import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
@@ -43,7 +40,7 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 
-  info ( "Engine " + this.evaluationType)
+  info("Engine " + this.evaluationType)
 
   def engineWithStream = {
     info("Given '{t1 -> a}, {t2 -> a}' ")

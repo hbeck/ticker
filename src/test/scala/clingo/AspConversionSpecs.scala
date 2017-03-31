@@ -112,7 +112,7 @@ class AspConversionSpecs extends FlatSpec with AtomTestFixture {
   }
 
   "The atom Sum(A,B,C)" should "be converted into A + B = C" in {
-    val atom = Sum(A, B, C)
+    val atom = Plus(A, B, C)
 
     assert(ClingoConversion(atom) == "A + B = C")
   }

@@ -49,6 +49,6 @@ class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
 
   def asp = ClingoEvaluation()
 
-  "The AnserUpdateNetwork implementation " should behave like singleHusband(net)
+  "The AnswerUpdateNetwork implementation " should behave like singleHusband(net)
   "The ASP implementation " should behave like singleHusband(asp)
 }

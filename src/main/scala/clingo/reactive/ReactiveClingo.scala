@@ -28,11 +28,11 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
     }
 
     // TODO: pinned atom as argument? TODO hb review
-    def signal(signals: Seq[(GroundAtom, Seq[Tick])]) = {
+    def signal(signals: Seq[(GroundAtom, Seq[ClingoTick])]) = {
       client.sendSignal(convertToSignalArgument(signals))
     }
 
-    private def convertToSignalArgument(signals: Seq[(GroundAtom, Seq[Tick])]) = {
+    private def convertToSignalArgument(signals: Seq[(GroundAtom, Seq[ClingoTick])]) = {
       signals.collect {
         case (groundAtom, ticks) => groundAtom match {
           case GroundAtomWithArguments(p, args) => ReactiveClingoSignal(p.caption, args, ticks)
@@ -41,11 +41,11 @@ class ReactiveClingo(wrapper: ClingoWrapper, port: Int = 5123) {
       }
     }
 
-    def expire(signals: Seq[(GroundAtom, Seq[Tick])]) = {
+    def expire(signals: Seq[(GroundAtom, Seq[ClingoTick])]) = {
       client.sendExpire(convertToSignalArgument(signals))
     }
 
-    def evaluate(ticks: Seq[Tick]) = client.evaluate(ticks)
+    def evaluate(ticks: Seq[ClingoTick]) = client.evaluate(ticks)
   }
 
 }

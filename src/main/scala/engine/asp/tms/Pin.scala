@@ -1,8 +1,8 @@
 package engine.asp.tms
 
-import core.asp._
-import core.lars.{Assignment, T, TimePoint, TimeVariableWithOffset}
 import core._
+import core.asp._
+import core.lars.{Assignment, TimePoint}
 import engine.asp._
 
 /**
@@ -33,6 +33,12 @@ import engine.asp._
   */
 case class Pin(assignment: Assignment) {
 
+  def apply(aa: AtomWithArguments):Atom = {
+    aa.assign(assignment).asInstanceOf[Atom]
+  }
+
+ /*
+  //TODO why do we have to make a case distinction instead of uniformly calling assign on the AtomWithArgument?
   def apply(aa: AtomWithArgument): AtomWithArgument = aa match {
     case tca: PinnedTimeCntAtom => apply(tca)
     case pa: PinnedTimeAtom => apply(pa)
@@ -48,18 +54,20 @@ case class Pin(assignment: Assignment) {
   def apply(pinnedAtom: PinnedTimeAtom): PinnedAtom = {
 
     val groundedBaseAtom = pinnedAtom.atom match {
-      case pa: PinnedAtom => apply(pa) //TODO hb: infinite circle? if all methods are called apply, it is difficult to understand what's happening
+      case pa: PinnedAtom => apply(pa) //TODO
       case a: Atom => a
     }
 
-    val timeVariables = assignment.binding.collect {
+    val timeVariables = assignment.binding collect {
       case (t: TimeVariableWithOffset, time: TimePoint) => (t.variable, time)
     }
 
     val groundedTimePoint = pinnedAtom.time match {
-      case v: TimeVariableWithOffset if timeVariables.contains(v.variable) => v.calculate(timeVariables(v.variable))
-      // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).) ...
-      case v: TimeVariableWithOffset => v //... probably later, i.e., in the actual grounding. this is pinning.
+      case v: TimeVariableWithOffset => {
+        // TODO: how should we ground an unknown time-variable? (e.g. w_1_a_U_a(U,T) :- now(T), a(U), reach(U,T).) ...
+        if (timeVariables.contains(v.variable)) v.calculate(timeVariables(v.variable))
+        else v  //... probably later, i.e., in the actual grounding. this is pinning.
+      }
       case t: TimePoint => t
     }
 
@@ -113,13 +121,10 @@ case class Pin(assignment: Assignment) {
 
     PinnedAtom.asCount(groundedBaseAtom, groundedCount)
   }
+  */
 
-  def ground(atom: Atom): Atom = atom match {
-    case p: PinnedAtom => {
-      val g = this.apply(p)
-      //      ground(g) //TODO hb: why is this commented?
-      g
-    }
+  def groundTickVariables(atom: Atom): Atom = atom match {
+    case p: PinnedAtom => this.apply(p)
     case ng: NonGroundAtomWithArguments => ng.assign(assignment)
     case rel: RelationAtom if !rel.isGround() => rel.assign(assignment).asInstanceOf[Atom]
     case a: GroundAtom => a
@@ -127,13 +132,13 @@ case class Pin(assignment: Assignment) {
     //    case _ => throw new RuntimeException("cannot ground " + atom)
   }
 
-  def ground(fact: NormalFact): NormalFact = AspFact(this.ground(fact.head))
+  def groundTickVariables(fact: NormalFact): NormalFact = AspFact(this.groundTickVariables(fact.head))
 
-  def ground(rule: NormalRule): NormalRule = {
+  def groundTickVariables(rule: NormalRule): NormalRule = {
     AspRule(
-      this.ground(rule.head),
-      rule.pos map this.ground,
-      rule.neg map this.ground
+      this.groundTickVariables(rule.head),
+      rule.pos map this.groundTickVariables,
+      rule.neg map this.groundTickVariables
     )
   }
 
@@ -141,19 +146,53 @@ case class Pin(assignment: Assignment) {
   //    GroundAtom(pinnedAtom.atom.predicate, pinnedAtom.arguments.map(_.asInstanceOf[Value]).toList: _*)
   //  }
 
-  def ground(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
+  def groundTickVariables(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 
-  def ground(rules: Seq[NormalRule]): Seq[NormalRule] = rules map ground
+  def groundTickVariables(rules: Seq[NormalRule]): Seq[NormalRule] = rules map groundTickVariables
 
   def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(ground(this.apply(pinnedFact.head)))
+  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(groundTickVariables(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): NormalRule = {
     AspRule(
-      ground(this.apply(pinnedAspRule.head)),
-      pinnedAspRule.pos map this.apply map this.ground,
-      pinnedAspRule.neg map this.apply map this.ground
+      groundTickVariables(this.apply(pinnedAspRule.head)),
+      pinnedAspRule.pos map this.apply map this.groundTickVariables,
+      pinnedAspRule.neg map this.apply map this.groundTickVariables
+    )
+  }
+}
+
+object Pin {
+
+  def apply(time: TimePoint):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.TimePinVariable -> time
+        )
+      )
+    )
+  }
+
+  def apply(count: Long):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.CountPinVariable -> IntValue(count.toInt)
+        )
+      )
+    )
+  }
+
+  def apply(time: TimePoint, count: Long):Pin = {
+    Pin(
+      Assignment(
+        Map(
+          core.lars.TimePinVariable -> time,
+          core.lars.CountPinVariable -> IntValue(count.toInt)
+        )
+      )
     )
   }
 }

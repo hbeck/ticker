@@ -1,5 +1,6 @@
 package evaluation.bit
 
+import core.grounding.LarsGrounding
 import jtms.evaluation.Util
 import runner.Load._
 import core.lars._
@@ -35,7 +36,7 @@ trait BitProgram {
   val inputProgram = LarsProgram(nonGroundRules ++ facts)
 
   def groundLarsProgram() = {
-    val grounder = Grounder(inputProgram)
+    val grounder = LarsGrounding(inputProgram)
     LarsProgram(grounder.groundRules)
   }
 }

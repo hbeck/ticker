@@ -39,7 +39,7 @@ class LoadingTests extends FlatSpec {
   "w_5t_b_y(1)" should "be parsed into predicate y  with argument 1" in {
     val result = loader.xatom("w_5t_b_y(1)")
 
-    val atom = result.atom.asInstanceOf[AtomWithArgument]
+    val atom = result.atom.asInstanceOf[AtomWithArguments]
 
     atom.predicate.caption should be("y")
     atom.arguments should (have size (1) and contain(IntValue(1)))

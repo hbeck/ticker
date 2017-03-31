@@ -1,19 +1,22 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, NormalFact, NormalRule}
-import core.lars.{Assignment, GroundRule, LarsProgramInspection, TimePoint}
+import core.asp.{AspFact, AspProgram, NormalRule}
+import core.grounding.{GrounderInstance, StaticProgramInspection}
+import core.lars._
+import engine._
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
-import engine._
 
 /**
   * Created by FM on 18.05.16.
+  *
+  * //TODO hb: deprecated?
   */
-case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+@deprecated
+case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val incrementalProgram = PinnedAspToIncrementalAsp(pinnedAspProgram)
-  val convertToPinned = PinnedModelToLarsModel(pinnedAspProgram)
+  val incrementalProgram = TickBasedAspToIncrementalAsp(larsProgramEncoding)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules.toSet.partition(_.isGround)
 
@@ -21,33 +24,40 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
 
   tmsPolicy.initialize(groundRules.toSeq)
 
-  val tracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
+  //book keeping for auxiliary atoms to handle window logic
+  var tuplePositions: List[Atom] = List()
+
+  val tracker = new SignalTracker(larsProgramEncoding.maximumTimeWindowSizeInTicks, larsProgramEncoding.maximumTupleWindowSize, DefaultTrackedSignal.apply)
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {
     cachedResults(time) = prepare(time, atoms)
     discardOutdatedAuxiliaryAtoms(time)
   }
 
-  private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  //private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
+  private def asFact(t: DefaultTrackedSignal): Seq[NormalRule] = Seq(t.timePinned, t.timeCountPinned).map(AspFact[Atom](_))
 
   def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
-    val tracked = tracker.trackAtoms(time, signalAtoms)
+
+    val tracked = tracker.track(time, signalAtoms)
+
     val pinnedSignals = tracked.flatMap(asFact)
 
     // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
     // (we have three iterations over all values instead of a single addition of the new atoms;
     //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
     val allHistoricalSignals: Set[NormalRule] = tracker.allTimePoints(time).flatMap(asFact).toSet
-    val pin = Pin(Assignment(Map(core.lars.T -> time, core.lars.C -> IntValue(tracker.tupleCount.toInt))))
+    val pin = Pin(Assignment(Map(core.lars.TimePinVariable -> time, core.lars.CountPinVariable -> IntValue(tracker.tupleCount.toInt))))
 
     // performs simple pinning-calculations (eg. T + 1)
-    val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
+    val groundTimeVariableCalculations = nonGroundRules map (r => pin.groundTickVariables(r))
 
     val groundHeadsAsFacts: Set[NormalRule] = groundTimeVariableCalculations filter (_.isGround) map (g => AspFact[Atom](g.head))
-    val grounder = new GroundRule[NormalRule, Atom, Atom]()
-    val inspectWithAllSignals = LarsProgramInspection.from((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toSeq)
+
+    val inspectWithAllSignals = StaticProgramInspection.forAsp(AspProgram((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toList))
+    val grounder = GrounderInstance.oneShotAsp(inspectWithAllSignals)
     // TODO: grounding fails here
-    val grounded = groundTimeVariableCalculations flatMap grounder.ground(inspectWithAllSignals) toSeq
+    val grounded = groundTimeVariableCalculations flatMap grounder.ground toSeq
 
     val nowAtom = AspFact[Atom](now(time))
     val cntAtom = AspFact[Atom](cnt(tracker.tupleCount))
@@ -82,7 +92,7 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
       case Some(result) => result.get
       case None => {
         if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
-          return UnknownResult
+          return UnknownResult()
         } else {
           prepare(time, Seq()).get
         }
@@ -96,8 +106,19 @@ case class TmsEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy:
     }
   }
 
+  def asPinnedAtoms(model: Model, timePoint: TimePoint): PinnedModel = model map {
+    case p: PinnedAtAtom => p
+    case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => GroundPinnedAtAtom(Atom(p), t)
+    // in incremental mode we assume that all (resulting) atoms are meant to be at T
+    case a: Atom => PinnedAtom(a, timePoint)
+  }
+
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    val atomsToRemove = tracker.discardOutdatedAtoms(time)
+    //TODO current !!!
+    //val maxWindowTicks = aspProgram.maximumWindowSize.ticks(pinnedAspProgram.tickSize)
+    val maxWindowTicks = 100
+    //TODO
+    val atomsToRemove = tracker.discardOutdatedSignals(time)
 
     atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
   }

@@ -1,16 +1,16 @@
 package evaluation.reachBlocked
 
-import core.{Atom, Variable}
 import core.lars.{Diamond, LarsProgram, LarsRule, W}
+import core.{Predicate, Variable}
 
 /**
   * Created by FM on 15.06.16.
   */
 trait ReachBlockedProgram {
-  val reach = Atom("reach")
-  val blocked = Atom("blocked")
-  val edge = Atom("edge")
-  val obstacle = Atom("obstacle")
+  val reach = Predicate("reach")
+  val blocked = Predicate("blocked")
+  val edge = Predicate("edge")
+  val obstacle = Predicate("obstacle")
 
   val X: Variable = "X"
   val Y: Variable = "Y"

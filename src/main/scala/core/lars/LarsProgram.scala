@@ -1,11 +1,11 @@
 package core.lars
 
-import core.{Atom, Fact, RelationAtom}
+import core._
 
 /**
   * Created by FM on 01.05.16.
   */
-trait LarsBasedProgram {
+trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
   val larsRules: Seq[LarsRule]
 
   lazy val windowAtoms: Set[WindowAtom] = larsRules flatMap {

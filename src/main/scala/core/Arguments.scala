@@ -10,6 +10,20 @@ trait Argument { //TODO offset at too generic position ~> IntVariable etc
   def -(offset: Offset): Argument
 
   def +(offset: Offset): Argument
+
+  override def hashCode(): Int = cachedHash
+
+  lazy val cachedString = this.toString
+
+  lazy val cachedHash = cachedString.hashCode
+
+  override def equals(other: Any): Boolean = other match {
+    case a: Argument => this.cachedHash == a.cachedHash
+    case _ => false
+  }
+
+  def ==(other: Argument): Boolean = this.cachedHash == other.cachedHash
+
 }
 
 
@@ -92,14 +106,34 @@ case class StringValue(value: String) extends Value {
 
   override def +(offset: Offset): Argument = this
 
+  private lazy val precomputedHash = value.toString.hashCode
+
+  override def hashCode(): Int = precomputedHash
+
+  /*
+  override def equals(other: Any) = other match {
+    case StringValue(s) => this.value == s
+    case IntValue(i) => this.value == ""+i
+    case TimePoint(i) => this.value == ""+i
+    case _ => false
+  }
+  */
+
+
 }
 
 case class IntValue(int: Int) extends Value {
+
   override def toString = "" + int
 
   override def -(offset: Offset): Argument = IntValue(int - offset)
 
   override def +(offset: Offset): Argument = IntValue(int + offset)
+
+  private lazy val precomputedHash = (""+int).hashCode
+
+  override def hashCode(): Int = precomputedHash
+
 }
 
 object IntValue {

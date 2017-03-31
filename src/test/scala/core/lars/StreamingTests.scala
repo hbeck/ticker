@@ -9,6 +9,7 @@ import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 import runner.Load
 import Util._
+import core.grounding.LarsGrounding
 
 
 /**
@@ -68,7 +69,7 @@ class StreamingTests extends FunSuite {
 
       //println(inputProgram)
       val grounder = printTime("grounding time") {
-        Grounder(inputProgram)
+        LarsGrounding(inputProgram)
       }
 
       println(LarsProgram(grounder.groundRules))
@@ -250,7 +251,7 @@ class StreamingTests extends FunSuite {
           if (idCount.isEmpty) { //print first model
             println("\t"+timepoint+" -> "+projected(model))
           }
-          val id: Int = Integer.parseInt( projected(model).head.asInstanceOf[AtomWithArgument].arguments(0).toString )
+          val id: Int = Integer.parseInt( projected(model).head.asInstanceOf[AtomWithArguments].arguments(0).toString )
           val count = idCount.getOrElse(id,0)
           idCount = idCount + (id -> (count + 1))
           //end2 = System.currentTimeMillis()

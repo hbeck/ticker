@@ -2,7 +2,7 @@ package lars.transform
 
 import core.asp.NormalRule
 import core.lars.{SlidingTimeWindow, WindowAtom}
-import engine.asp.{AllRulesAtomEncoder, PlainLarsToAspMapper, WindowAtomEncoder}
+import engine.asp.{PlainLarsToAspMapper, WindowAtomEncoder}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 
@@ -19,7 +19,7 @@ class TransformLarsSpec extends FlatSpec with TimeTestFixtures {
 
   def DefaultLarsToPinnedProgram: PlainLarsToAspMapper = engine.asp.PlainLarsToAspMapper(1 second)
 
-  def allWindowRules(encoder: WindowAtomEncoder): Seq[NormalRule] = encoder.asInstanceOf[AllRulesAtomEncoder].allWindowRules
+  def allWindowRules(encoder: WindowAtomEncoder): Seq[NormalRule] = encoder.allWindowRules
 
   def allWindowRules(windowAtom: WindowAtom): Seq[NormalRule] = allWindowRules(DefaultLarsToPinnedProgram.windowAtomEncoder(windowAtom))
 }

@@ -1,7 +1,6 @@
 package lars.transform
 
 import core.lars._
-import engine.asp.AllRulesAtomEncoder
 
 /**
   * Created by FM on 05.05.16.

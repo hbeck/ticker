@@ -1,22 +1,18 @@
 package jtms.evaluation
 
-import java.util.concurrent.TimeUnit
-
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
+import core.grounding.LarsGrounding
 import core.lars._
-import engine.asp.{PlainLarsToAspMapper}
-import engine.asp.tms.{Pin, PinnedAspToIncrementalAsp}
-
-import scala.concurrent.duration.Duration
-import scala.io.{BufferedSource, Source}
+import engine.asp.PlainLarsToAspMapper
+import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 
 /**
   * Created by hb on 8/28/16.
   */
 object Util {
 
-  def inspectGrounder(grounder: Grounder): Unit = {
+  def inspectGrounder(grounder: LarsGrounding): Unit = {
     val i = grounder.inspect
 
     println("facts: atoms:")
@@ -72,19 +68,19 @@ object Util {
 
   def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
 
-  def ground(p: LarsProgram) = Grounder(p).groundProgram
+  def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
 
 
   def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTimeUnit): NormalProgram = {
 
     val aspProgramWithVariables = PlainLarsToAspMapper(tickSize)(groundLarsProgram)
 
-    val incrementalProgram = PinnedAspToIncrementalAsp(aspProgramWithVariables)
+    val incrementalProgram = TickBasedAspToIncrementalAsp(aspProgramWithVariables)
 
     val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
 
-    val pin = Pin(Assignment(Map(T -> TimePoint(time))))
-    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.ground
+    val pin = Pin(Assignment(Map(TimePinVariable -> TimePoint(time))))
+    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.groundTickVariables
 
     AspProgram((groundRules ++ pinnedRules).toList)
   }

@@ -1,131 +1,141 @@
 package engine.asp.tms
 
 import core._
-import core.asp.{AspFact, AspRule, NormalRule}
-import core.lars.{Assignment, GroundRule, LarsProgramInspection, TimePoint}
+import core.asp.NormalRule
+import core.grounding.incremental.IncrementalAspGrounder
+import core.lars.TimePoint
 import engine._
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
+import scala.collection.immutable.HashMap
 
 /**
-  * Created by FM on 18.05.16.
+  * Created by FM, HB on Feb/Mar 2017.
+  *
+  * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
-case class IncrementalEvaluationEngine(pinnedAspProgram: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
+case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val (groundRules, nonGroundRules) = pinnedAspProgram.baseRules.
-    toSet.
-    map(PinnedAspToIncrementalAsp.stripTickAtoms).
-    partition(_.isGround)
+  val grounder = IncrementalAspGrounder()
+  grounder.add(incrementalRuleMaker.staticGroundRules)
+  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
-  val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
+  //time of the truth maintenance network due to previous append and result calls
+  var currentTick = Tick(0,0) //using (-1,0), first + will fail!
+  singleOneDimensionalTickIncrement() //...therefore, surpass the increment and generate groundings for (0,0)
 
-  tmsPolicy.initialize(groundRules.toSeq)
-
-  val atomTracker = new AtomTracking(pinnedAspProgram.maximumTimeWindowSizeInTicks, pinnedAspProgram.maximumTupleWindowSize, DefaultTrackedAtom.apply)
-
-  override def append(time: TimePoint)(atoms: Atom*): Unit = {
-    cachedResults(time) = prepare(time, atoms)
-    discardOutdatedAuxiliaryAtoms(time)
-  }
-
-  private def asFact(t: TrackedAtom): Seq[NormalRule] = Seq(t.timePinned, t.countPinned, t.timeCountPinned).map(AspFact[Atom](_))
-
-  def prepare(time: TimePoint, signalAtoms: Seq[Atom]): Result = {
-
-    val previousTupleCount = atomTracker.tupleCount
-
-    val tracked = atomTracker.trackAtoms(time, signalAtoms)
-    val pinnedSignals = tracked.flatMap(asFact)
-
-    // TODO hb: seems crazy to always create the entire sequence from scratch instead of updating a data structure
-    // (we have three iterations over all values instead of a single addition of the new atoms;
-    //  maybe we should use a data structure that maintains signalStream and allHistoricalSignals?)
-    val allHistoricalSignals: Set[NormalRule] = atomTracker.allTimePoints(time).flatMap(asFact).toSet
-
-    val pin = Pin(
-      Assignment(
-        Map(
-          core.lars.T -> time,
-          core.lars.C -> IntValue(atomTracker.tupleCount.toInt)
-        )
-      )
-    )
-
-    // performs simple pinning-calculations (eg. T + 1)
-    val groundTimeVariableCalculations = nonGroundRules map (r => pin.ground(r))
-
-    // we need to call incremental rules at least one time (if no atoms stream in we use the current tuple-count)
-    val countsToIterate = if (atomTracker.tupleCount == previousTupleCount)
-      Seq(atomTracker.tupleCount)
-    else
-      (previousTupleCount + 1) to atomTracker.tupleCount
-
-    val incrementalRules = pinnedAspProgram.incrementalEncoders.flatMap {
-      encoder => countsToIterate map (c => encoder.incrementalRulesAt(CurrentPosition(time, c)))
+  override def append(time: TimePoint)(atoms: Atom*) {
+    if (time.value < currentTick.time) {
+      throw new RuntimeException("cannot append signal at past time t=" + time + ". system time already at t'=" + currentTick.time)
     }
-
-
-    // TODO: there might be some optimization: for small tuple-based windows and multiple atoms at a single timepoint
-    // 1 -> {a,b,c}
-    // incrementalRulesAt(1, 1), incrementalRulesAt(1,2), incrementalRulesAt(1,3)
-    // d :-  w #2 d a
-
-    val (incrementalAdd, incrementalRemove) = incrementalRules.foldLeft((Set[NormalRule](), Set[NormalRule]()))((v, r) => (v._1 ++ r.toAdd, v._2 ++ r.toRemove))
-
-    // TODO: this hack is needed for grounding @
-    val incrementalFacts = incrementalAdd.filter(_.isGround).map(f => AspFact(f.head))
-
-    val grounder = new GroundRule[NormalRule, Atom, Atom]()
-    val inspectWithAllSignals = LarsProgramInspection.from((groundTimeVariableCalculations ++ allHistoricalSignals ++ incrementalAdd ++ incrementalFacts).toSeq)
-    // TODO: grounding fails here
-    val grounded = (groundTimeVariableCalculations ++ incrementalAdd) flatMap grounder.ground(inspectWithAllSignals)
-
-    val add = tmsPolicy.add(time) _
-    val remove = tmsPolicy.remove(time) _
-
-    // separating the calls ensures maximum on support for rules
-    // facts first
-    add(pinnedSignals)
-    add(grounded toSeq)
-
-
-    remove(incrementalRemove.filter(_.isGround).toSeq)
-
-    val model = tmsPolicy.getModel(time)
-
-    // TODO: this needs to be fixed
-    // grounded contains also the incremental-Rules (because they might need grounding too)
-    // we don't want to remove grounded incremental-Rules, because they are removed later anyway
-    val rulesToRemove = grounded -- incrementalAdd
-
-    remove(rulesToRemove toSeq)
-
-    model
+    updateTimeTo(time)
+    atoms foreach addSignalAtCurrentTime
   }
 
   override def evaluate(time: TimePoint): Result = {
+    if (time.value < currentTick.time) {
+      return new UnknownResult("cannot evaluate past time t=" + time + ". system time already at t'=" + currentTick.time)
+    }
+    updateTimeTo(time)
+    tmsPolicy.getModel(time)
+  }
 
-    val resultingModel = cachedResults.get(time) match {
-      case Some(result) => result.get
-      case None => {
-        if (cachedResults.nonEmpty && time.value < cachedResults.keySet.max.value) {
-          return UnknownResult
-        } else {
-          prepare(time, Seq()).get
-        }
+  //
+  //
+  //
+
+  def updateTimeTo(time: TimePoint) {
+    if (time.value > currentTick.time) {
+      for (t <- (currentTick.time + 1) to (time.value)) {
+        singleTimeIncrementTo(t)
+      }
+    }
+  }
+
+  def singleTimeIncrementTo(time: Long) {
+    currentTick = currentTick.incrementTime()
+    singleOneDimensionalTickIncrement()
+  }
+
+  def addSignalAtCurrentTime(signal: Atom) {
+    currentTick = currentTick.incrementCount()
+    singleOneDimensionalTickIncrement(Some(signal))
+  }
+
+  //method to be called whenever time xor count increases by 1
+  def  singleOneDimensionalTickIncrement(signal: Option[Atom]=None) {
+
+    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
+    rulesToGround foreach { case (e,r) =>
+      grounder.add(r)
+      expirationHandling.register(e,Set(r))
+    }
+    val rulesToAdd = rulesToGround flatMap { case (e,r) =>
+      val rules = grounder.ground(r)
+      if (!rules.isEmpty) expirationHandling.register(e,rules)
+      rules
+    }
+
+    if (IEEConfig.printRules) {
+      println("rules added at tick " + currentTick)
+      rulesToAdd foreach println
+    }
+
+    tmsPolicy.add(currentTick.time)(rulesToAdd)
+    val expiredRules = signal match { //logic somewhat implicit...
+      case None => expirationHandling.unregisterExpiredByTime()
+      case _ => expirationHandling.unregisterExpiredByCount()
+    }
+    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
+
+    if (IEEConfig.printRules) {
+      println("\nrules removed at tick " + currentTick)
+      if (rulesToRemove.isEmpty) println("(none)") else {
+        rulesToRemove foreach println
       }
     }
 
-    // TODO: model-cleaning is still needed (remote e.g a_at(t), filter only for current timepoint, ..)
-    resultingModel match {
-      case Some(m) => Result(Some(m))
-      case None => NoResult
+    grounder.remove(rulesToRemove)
+    tmsPolicy.remove(currentTick.time)(rulesToRemove)
+  }
+
+  object expirationHandling {
+
+    var rulesExpiringAtTime: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
+    var rulesExpiringAtCount: Map[Long,Set[NormalRule]] = HashMap[Long,Set[NormalRule]]()
+
+    def register(expiration: Expiration, rules: Set[NormalRule]) {
+      val t = expiration.time
+      val c = expiration.count
+      if (t != Void) {
+        rulesExpiringAtTime = rulesExpiringAtTime updated(t, rulesExpiringAtTime.getOrElse(t, Set()) ++ rules)
+      }
+      if (c != Void) {
+        rulesExpiringAtCount = rulesExpiringAtCount updated(c, rulesExpiringAtCount.getOrElse(c, Set()) ++ rules)
+      }
     }
-  }
 
-  def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {
-    val atomsToRemove = atomTracker.discardOutdatedAtoms(time)
+    def unregisterExpiredByTime(): Seq[NormalRule] = {
+      if (!rulesExpiringAtTime.contains(currentTick.time)) {
+        return Seq()
+      }
+      val rules: Set[NormalRule] = rulesExpiringAtTime.get(currentTick.time).get
+      rulesExpiringAtTime = rulesExpiringAtTime - currentTick.time
+      rules.toSeq
+    }
 
-    atomsToRemove foreach { atom => tmsPolicy.remove(atom.time)(asFact(atom)) }
+    def unregisterExpiredByCount(): Seq[NormalRule] = {
+      if (!rulesExpiringAtCount.contains(currentTick.count)) {
+        return Seq()
+      }
+      val rules: Set[NormalRule] = rulesExpiringAtCount.get(currentTick.count).get
+      rulesExpiringAtCount = rulesExpiringAtCount - currentTick.count
+      rules.toSeq
+    }
+    
   }
+}
+
+object IEEConfig {
+  var printRules = false
 }

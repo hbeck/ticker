@@ -2,15 +2,13 @@ package runner
 
 import java.util.concurrent.TimeUnit
 
-import core.{Argument, Atom, AtomWithArgument, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
-import core.asp.{AspProgram, UserDefinedAspRule, _}
-import core.lars.{Box, Diamond, ExtendedAtom, Grounder, HeadAtom, LarsFact, LarsProgram, LarsRule, SlidingTimeWindow, TimeWindowSize, WindowAtom, _}
-import jtms.evaluation.Util._
+import core.lars.{Box, Diamond, ExtendedAtom, HeadAtom, LarsFact, LarsProgram, LarsRule, SlidingTimeWindow, TimeWindowSize, WindowAtom, _}
+import core.{Argument, Atom, AtomWithArguments$, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
+import runner.Load._
+import unfiltered.util.Of.Int
 
 import scala.concurrent.duration.Duration
 import scala.io.{BufferedSource, Source}
-import Load._
-import unfiltered.util.Of.Int
 
 /**
   * Created by FM on 19.11.16.
@@ -157,10 +155,10 @@ case class Load(timeUnit: TimeUnit) {
   }
 
   def groundSignal(s: String): LarsRule = {
-    val aa: AtomWithArgument = xatom(s).asInstanceOf[AtomWithArgument]
+    val aa: AtomWithArguments = xatom(s).asInstanceOf[AtomWithArguments]
     val timeArg = Integer.parseInt(aa.arguments.last.toString)
     val otherArgs = aa.arguments.take(aa.arguments.size - 1)
-    LarsFact(PinnedAtom(AtomWithArgument(aa.predicate, otherArgs), timeArg))
+    LarsFact(PinnedAtom(AtomWithArguments(aa.predicate, otherArgs), timeArg))
   }
 
 

@@ -28,7 +28,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   lazy val variables: Set[Variable] = {
     atoms flatMap {
-      case a: AtomWithArgument => a.arguments collect {
+      case a: AtomWithArguments => a.arguments collect {
         case t: TimeVariableWithOffset => t.variable
         case vv: VariableWithOffset => vv.variable
         case v: Variable => v

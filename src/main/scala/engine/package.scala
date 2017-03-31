@@ -14,7 +14,7 @@ package object engine {
 
   type Stream = Set[StreamEntry]
 
-  type SignalStream = Set[TrackedAtom]
+  type SignalStream = Set[DefaultTrackedSignal]
 
 }
 

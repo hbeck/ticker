@@ -1,7 +1,7 @@
 package core.lars
 
 import core.Argument.Offset
-import core.{Argument, ArgumentWithOffset, Value, Variable}
+import core._
 
 /**
   * Created by FM on 05.04.16.
@@ -17,6 +17,7 @@ object Time {
 }
 
 case class TimePoint(value: Long) extends Time with Value {
+
   def -(duration: Offset) = TimePoint(value - duration)
 
   def +(duration: Offset) = TimePoint(value + duration)
@@ -24,6 +25,15 @@ case class TimePoint(value: Long) extends Time with Value {
   override def toString = {
     value.toString
   }
+
+  override def equals(other: Any) = other match {
+    case v:Value => this.toString == v.toString
+    case _ => false
+  }
+
+  private lazy val precomputedHash = (""+value).hashCode //uniformity with IntValue and StringValue
+
+  override def hashCode(): Int = precomputedHash
 }
 
 object TimePoint {

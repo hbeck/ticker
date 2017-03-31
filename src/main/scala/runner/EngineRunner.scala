@@ -31,7 +31,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   var resultCallbacks: Seq[ResultCallback] = List()
 
-  @volatile private var ticks: TimePoint = TimePoint(0)
+  @volatile private var ticks: TimePoint = TimePoint(0) //TODO hb "tick" has different meanings now. consolidate vocabulary.
 
   def convertToTicks(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
 
@@ -46,7 +46,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
     val currentTicks = ticks
 
     val model = engine.evaluate(currentTicks)
-    resultCallbacks.foreach(callback => callback(model, currentTicks))
+    resultCallbacks.foreach(callback => callback(model, currentTicks)) //TODO hb looks weird
   }
 
   def append(enteredTick: Option[TimePoint], atoms: Seq[Atom]): Unit = {

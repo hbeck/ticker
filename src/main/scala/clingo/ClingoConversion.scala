@@ -41,15 +41,23 @@ object ClingoConversion {
     case Geq(l, r) => f"$l >= $r"
     case Lt(l, r) => f"$l < $r"
     case Gt(l, r) => f"$l > $r"
-    case Sum(l, r, e) => f"$l + $r = $e"
-    case Product(l, r, e) => f"$l * $r = $e"
+    case Plus(l, r, e) => f"$l + $r = $e"
+    case Minus(l, r, e) => f"$l - $r = $e"
+    case Times(l, r, e) => f"$l * $r = $e"
+    case Divide(l, r, e) => f"$l / $r = $e"
+    case Modulo(l, r, e) => f"$l \\ $r = $e"
+    case Power(l, r, e) => f"$l ** $r = $e"
+    case LeqLeq(l, x, u) => f"$x = $l .. $u" // l <= x <= u which has x safe automatically
+    case LtLt(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
+    case LtLeq(l, x, u) => f"$x = ${l+1} .. $u"
+    case LeqLt(l, x, u) => f"$x = $l .. ${u-1}"
   }
 
   def apply[TAtom](atom: TAtom): ClingoAtom = {
     val (atomName, argumentNames) = atom match {
       case x: ContradictionAtom => return ""
       case r: RelationAtom => return this.apply(r)
-      case aa: AtomWithArgument => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
+      case aa: AtomWithArguments => (aa.predicate.toString, aa.arguments.map(apply).mkString("(", ",", ")"))
       case x: GroundAtom => (x.predicate.caption, "")
       case _ => (atom.toString, "")
     }
@@ -79,7 +87,7 @@ object ClingoConversion {
   }
 }
 
-trait ClingoProgram {
+trait ClingoProgram { //extends Program... not so easy
   val rules: Set[ClingoExpression]
 }
 

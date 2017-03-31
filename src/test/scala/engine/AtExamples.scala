@@ -1,11 +1,10 @@
 package engine
 
-import core.{Atom, Variable}
+import core.Atom
 import core.lars._
+import fixtures.{ClingoPullEngine, TimeTestFixtures}
 import org.scalatest.FlatSpec
-import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
-import fixtures.{ClingoPullEngine, ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 
 /**
   * Created by FM on 11.12.16.
@@ -36,7 +35,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullEngine {
 
   it should "hold w 3m @37m busG at all time points t ∈ [37.2m, 40.2m]." in {
 
-    // TODO: discuss if we should use lookahead for concrete timepoints???
+    // TODO: discuss if we should use lookahead for concrete time points???
     val program = LarsProgram.from(
       temp <= WindowAtom(TimeW(3), At(t37), busG)
     )

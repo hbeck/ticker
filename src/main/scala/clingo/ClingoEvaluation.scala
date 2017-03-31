@@ -18,16 +18,15 @@ object ClingoEvaluation {
 
   def apply() = new ClingoEvaluation(ClingoWrapper())
 
-
   private val TimeAtomPattern = "(.+)_at".r
-  private val CntAtomPattern = "(.+)_cnt".r
+  //private val CntAtomPattern = "(.+)_cnt".r
   private val TimeCntAtomPattern = "(.+)_at_cnt".r
 
   //string to Atom
   def convert(result: ClingoAtom): Atom = {
-    if (!result.contains('('))
+    if (!result.contains('(')) {
       return Atom(result)
-
+    }
 
     val nameParts = result.split('(')
 
@@ -40,9 +39,8 @@ object ClingoEvaluation {
       toSeq
 
     val atom = (predicateName, arguments) match {
-      case (TimeCntAtomPattern(predicate), Seq(IntValue(t), tick: IntValue)) => PinnedAtom(Atom(predicate), TimePoint(t), tick)
-      case (CntAtomPattern(predicate), Seq(i: IntValue)) => PinnedAtom.asCount(Atom(predicate), i)
-      case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom(Atom(predicate), TimePoint(t))
+      case (TimeCntAtomPattern(predicate), Seq(IntValue(t), cnt: IntValue)) => PinnedAtom.asPinnedAtCntAtom(Atom(predicate), TimePoint(t), cnt) //TODO hb? what is "Atom(predicate)"?
+      case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom.asPinnedAtAtom(Atom(predicate), TimePoint(t))
       case _ => GroundAtom(Predicate(predicateName), arguments)
     }
 

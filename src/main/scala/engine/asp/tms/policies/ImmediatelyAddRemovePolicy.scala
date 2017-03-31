@@ -13,11 +13,11 @@ import jtms.{TruthMaintenanceNetwork$, JtmsUpdateAlgorithm}
 //TODO hb: maybe better call "ImmediateAddRemovePolicy"
 case class ImmediatelyAddRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm()) extends TmsPolicy {
 
-  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => tms.add(x))
+  override def initialize(rules: Seq[NormalRule]) = rules foreach (tms.add(_))
 
-  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.add(x))
+  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (tms.add(_))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (x => tms.remove(x))
+  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (tms.remove(_))
 
   override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
 }

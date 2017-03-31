@@ -1,5 +1,5 @@
 import core.lars._
-import core.{Atom, not}
+import core.{Atom, Not}
 
 
 val a = Atom("a")

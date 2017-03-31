@@ -1,14 +1,13 @@
 package engine.config
 
-import clingo.reactive.ReactiveClingoProgram
 import clingo.{ClingoConversion, ClingoProgramWithLars, ClingoWrapper}
 import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.reactive.ReactiveEvaluationEngine
-import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
+import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsUpdateAlgorithm
@@ -39,8 +38,8 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 //TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
 case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
 
-  private val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
-  private val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
+  private lazy val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
+  private lazy val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
 
@@ -52,20 +51,20 @@ case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: 
 
 }
 
-case class TmsConfiguration(pinnedProgram: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
 
-  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(pinnedProgram, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
-  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(pinnedProgram, tmsPolicy)
+  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
 
-  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(pinnedProgram, policy))
+  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy))
 
 }
 
 object TmsConfiguration {
-  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.pinnedProgram, config.policy))
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.larsProgramEncoding, config.policy))
 }
 
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
@@ -101,5 +100,5 @@ object ReactiveClingoConfiguration {
 
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {
-  def start() = evaluationEngine
+  def start() = evaluationEngine //TODO hb? why is called start?
 }
