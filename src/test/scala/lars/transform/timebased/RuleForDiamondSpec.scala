@@ -33,7 +33,7 @@ class RuleForDiamondSpec extends TransformLarsSpec {
   }
 
   "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3), a(T)" in {
-    rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T - 1), a(T - 2), a(T + -3))
+    rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T - 1), a(T - 2), a(T - 3))
   }
 
   "The rule for w^1s d a at tick size of 1ms" should "return 1001 rules" in {

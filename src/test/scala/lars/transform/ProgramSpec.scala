@@ -9,7 +9,7 @@ import org.scalatest.Matchers._
   */
 class ProgramSpec extends TransformLarsSpec {
 
-  "A program with one Fact a." should "be tranformed into one rule" in {
+  "A program with one Fact a." should "be transformed into one rule" in {
     val p = LarsProgram.from(LarsFact(a))
 
     DefaultLarsToPinnedProgram(p).rules should have size 1
