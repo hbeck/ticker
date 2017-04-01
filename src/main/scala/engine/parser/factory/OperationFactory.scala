@@ -1,42 +1,54 @@
 package engine.parser.factory
 
 import core._
-import engine.parser.wrapper.ArithOperationWrapper
+import engine.parser.wrapper.OperationWrapper
 
 /**
   * Created by et on 22.03.17.
   *
-  * This class still needs lots of implementation!!!
   */
-case class OperationFactory(left: ArithOperationWrapper, func: String, right: OperandFactory)
+case class OperationFactory(left: OperationWrapper, func: String, right: OperandFactory)
   extends BodyTrait {
 
-  val operation = create(left,func,right)
+  val operation:RelationAtom = create(left,func,right)
 
-  def create(left: ArithOperationWrapper, func: String, right: OperandFactory): RelationAtom = {
-    val op1 = left.op1
-    val op2 = left.op2
-    val arith = left.arith
-
-    func match {
-      case "=" =>
-        op2 match {
-          case o if op2.isDefined => arith match {
-            case a if arith.isDefined => getRelation(arith.get, op1.arg, op2.get.arg, right)
-          }
-          case None => Eq(op1.arg,right.arg)
-        }
-      case ">" => if(op2.isDefined) {??? /*TODO throw exception*/} else Gt(op1.arg,right.arg)
-      case "<" => if(op2.isDefined) {??? /*TODO throw exception*/} else Lt(op1.arg,right.arg)
-      case ">=" => if(op2.isDefined) {??? /*TODO throw exception*/} else Geq(op1.arg,right.arg)
-      case "<=" => if(op2.isDefined) {??? /*TODO throw exception*/} else Leq(op1.arg,right.arg)
-      case "!=" => if(op2.isDefined) {??? /*TODO throw exception*/} else Neq(op1.arg,right.arg)
+  def create(left: OperationWrapper, func: String, right: OperandFactory): RelationAtom = {
+    if (isTernaryRelation(left)) {
+      if (func == "=") getTernaryRelation(left, right.arg)
+      else ???
+    } else {
+      getBinaryRelation(func, left.op1.arg, right.arg)
     }
   }
 
-  def getRelation(op: String, arg11: Argument, arg12: Argument, arg2: OperandFactory): RelationAtom = op match {
-    case "+" => Plus(arg11,arg12,arg2.arg)
-    case "*" => Times(arg11,arg12,arg2.arg)
-    case _ => ??? //TODO implement :)
+  def isTernaryRelation(left: OperationWrapper): Boolean = left.op2 match {
+    case None => false
+    case _ => true
+  }
+
+  def getTernaryRelation(arg1: OperationWrapper, arg2: Argument): TernaryNumericRelationAtom =
+    arg1.arith.get match {
+    case "+" => Plus(arg1.op1.arg,arg1.op2.get.arg,arg2)
+    case "-" => Minus(arg1.op1.arg,arg1.op2.get.arg,arg2)
+    case "*" => Times(arg1.op1.arg,arg1.op2.get.arg,arg2)
+    case "/" => Divide(arg1.op1.arg,arg1.op2.get.arg,arg2)
+    case "%" => Modulo(arg1.op1.arg,arg1.op2.get.arg,arg2)
+    case "^" => Power(arg1.op1.arg,arg1.op2.get.arg,arg2)
+  }
+
+  def getBinaryRelation(func: String, arg: Argument, arg2: Argument): BinaryRelationAtom = func match {
+    case "=" => Eq(arg,arg2)
+    case ">" => Gt(arg,arg2)
+    case "<" => Lt(arg,arg2)
+    case ">=" => Geq(arg,arg2)
+    case "<=" => Leq(arg,arg2)
+    case "!=" => Neq(arg,arg2)
+    case _ => ??? //TODO throw exception
+  }
+}
+
+object OperationFactory {
+  def apply(left: OperandFactory, func: String, right: OperandFactory): OperationFactory = {
+    OperationFactory(OperationWrapper(left,None,None),func,right)
   }
 }
