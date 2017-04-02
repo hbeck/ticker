@@ -1,6 +1,7 @@
 package engine.parser.factory
 
 import core.lars.WindowFunction
+import engine.parser.wrapper.ParamWrapper
 
 /**
   * Created by et on 22.03.17.
@@ -8,26 +9,20 @@ import core.lars.WindowFunction
 case class ImportFactory(importClass: String, params: Option[String], name: String)
 
 object ImportFactory {
-  //TODO make val if possible
-  private var wfnObjects: Map[String,WindowFunction] = Map()
-  private var wfnClasses: Map[String,Class[WindowFunction]] = Map()
 
-//  def getWfnObject(wfn: String): Option[WindowFunction] = wfnObjects.get(wfn)
-  def getWfnClass(wfn: String): Option[Class[WindowFunction]] = wfnClasses.get(wfn)
-  //TODO create a method which takes up to three window parameters and creates an object of the specified window function
 
-  def getWfnObject(wType: String,
-                   past: Option[ParamFactory] = Option(ParamFactory(0,None)),
-                   next: Option[ParamFactory] = Option(ParamFactory(0,None)),
-                   step: Option[ParamFactory] = Option(ParamFactory(1,None))): WindowFunction = ???
-//TODO implement getnewwfnobject and fill in useful defaults
+  private var wfnObjects: Map[String,WindowFactory] = Map()
 
-  //  windowFunctions += ("t" -> classOf[SlidingTimeWindow])
-//  windowFunctions += ("#" -> classOf[SlidingTupleWindow])
-//
-//    private val foo = classOf[SlidingTupleWindow]
-//    private val bar = foo.newInstance()
-//    private val tar = bar.
-//
-//    def window(importClass: String, params: Option[String]): = ???
+  def apply(importClass: String, params: Option[String], name: String) = {
+    if(params.isDefined) ??? //TODO implement this as soon as it can be actually useful
+
+    if(!wfnObjects.contains(name)) {
+      //This should work for classes with paramterless constructors
+      wfnObjects += (name -> Class.forName(importClass).asInstanceOf[WindowFactory])
+    }
+  }
+
+  def registerWinfowFunction(name: String, wfn: WindowFactory): Unit = wfnObjects += (name -> wfn)
+
+  def getWindowFunction(name: String): Option[WindowFactory] = wfnObjects.get(name)
 }

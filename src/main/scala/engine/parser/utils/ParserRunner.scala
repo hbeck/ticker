@@ -1,11 +1,11 @@
 package engine.parser.utils
 
-import engine.parser.SimpleLarsParser
+import engine.parser.AbstractLarsParser
 
 /**
   * Created by et on 16.03.17.
   */
-class ParserRunner() extends SimpleLarsParser {
+class ParserRunner() extends AbstractLarsParser {
 
   def parseProgram(input: String): ParseResult[Any] = parseAll(program,input)
 

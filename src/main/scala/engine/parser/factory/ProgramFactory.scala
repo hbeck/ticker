@@ -16,7 +16,7 @@ case class ProgramFactory(imports: List[ImportFactory], ruleLst: List[RuleFactor
 
   def createRules(rules: List[RuleFactory]): List[Rule[HeadAtom,ExtendedAtom]] = rules match {
     case Nil => Nil
-    case x::xs => x.getRule :: createRules(xs)
+    case x::xs => x.rule :: createRules(xs)
   }
 
   def createProgram(rules: List[Rule[HeadAtom, ExtendedAtom]]): LarsProgram = LarsProgram(rules)
