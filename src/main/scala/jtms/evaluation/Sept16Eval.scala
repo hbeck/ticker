@@ -18,7 +18,7 @@ import scala.util.Random
 /**
   * Created by hb on 9/14/16.
   */
-object AAAI17Eval {
+object Sept16Eval {
 
   val loader = Load(TimeUnit.SECONDS)
 
