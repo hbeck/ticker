@@ -4,11 +4,10 @@ import java.io.{File, PrintWriter}
 import java.util.concurrent.TimeUnit
 
 import common.Util.stopTime
-import core.{Atom, Predicate}
 import core.asp._
 import jtms._
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.evaluation.instances.MMediaInstance
+import jtms.evaluation.instances.{MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.OptimizedNetwork
 import runner.Load
 
@@ -31,8 +30,8 @@ object StreamingTmsEval {
     var warmUps = 0
     var iterations = 1
     var windowSize = 10
-    var timePoints = 360
-    var instanceNames = Seq("mmedia")
+    var timePoints = 3600
+    var instanceNames = Seq("mmediaNonDet")
     //var dir = "src/test/resources/ground-programs/"
     if (args.nonEmpty) {
       try {
@@ -45,7 +44,7 @@ object StreamingTmsEval {
       } catch {
         case e: Exception => {
           println("args: impl warmUps iterations windowSize timePoints inst1 inst2 ...")
-          println("eg: doyle 2 10 30 180 mmedia")
+          println("eg: doyle 2 10 30 180 mmediaDet")
           System.exit(1)
         }
       }
@@ -56,7 +55,7 @@ object StreamingTmsEval {
 
   def run(impl: String, warmUps: Int, iterations: Int, windowSize: Int, timePoints: Int, instanceNames: Seq[String]) {
     for (instanceName <- instanceNames) {
-      println("mmedia")
+      println(instanceName)
       val inst = makeInstance(instanceName,windowSize,timePoints)
       runImplementation(impl, warmUps, iterations, inst)
     }
@@ -64,7 +63,8 @@ object StreamingTmsEval {
 
   def makeInstance(instanceName: String, windowSize: Int, timePoints: Int): StreamingTmsEvalInstance = {
     instanceName match {
-      case "mmedia" => MMediaInstance(windowSize, timePoints)
+      case "mmediaDet" => MMediaDeterministicEvalInst(windowSize, timePoints)
+      case "mmediaNonDet" => MMediaNonDeterministicEvalInst(windowSize, timePoints)
       case _ => println(f"unknown instance name $instanceName"); throw new RuntimeException
     }
   }
@@ -91,8 +91,8 @@ object StreamingTmsEval {
       print(" " + i)
 
       val tms = impl match {
-        case "doyle" => new JtmsDoyle(new OptimizedNetwork())
-        case "greedy" => new JtmsGreedy(new OptimizedNetwork())
+        case "doyle" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
+        case "greedy" => new JtmsGreedy(new OptimizedNetwork(), instance.random)
         case "learn" => new JtmsLearn()
       }
 

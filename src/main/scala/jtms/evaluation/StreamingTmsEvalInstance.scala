@@ -4,10 +4,14 @@ import core.Atom
 import core.asp.{NormalRule, UserDefinedAspFact, UserDefinedAspRule}
 import jtms.JtmsUpdateAlgorithm
 
+import scala.util.Random
+
 /**
   * Created by hb on 04.04.17.
   */
 trait StreamingTmsEvalInstance {
+
+  def random: Random
 
   def timePoints: Int
   def staticRules(): Seq[NormalRule]
