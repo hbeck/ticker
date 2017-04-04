@@ -26,20 +26,20 @@ trait AtomValidation {
 
   class AtomValidator(tmn: JtmsDoyle, atom: Atom) {
 
-    val net = tmn.jtms
+    val net = tmn.net
 
     info(atom.toString)
 
     def state(status: Status) = {
       it should "have the state " + status in {
-        assert(tmn.jtms.status(atom) == status)
+        assert(tmn.net.status(atom) == status)
       }
     }
 
     def Rules(rules: NormalRule*) = {
       val ruleSet = rules.toList
       it should "have the rules " + ruleSet in {
-        assert(tmn.jtms.justifications(atom).toSet == ruleSet.toSet)
+        assert(tmn.net.justifications(atom).toSet == ruleSet.toSet)
       }
     }
 

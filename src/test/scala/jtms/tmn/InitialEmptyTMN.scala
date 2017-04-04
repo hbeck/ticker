@@ -22,12 +22,12 @@ class InitialEmptyTMN extends FlatSpec {
     JtmsDoyle(program)
   }
 
-  val net = tmn.jtms
+  val net = tmn.net
 
   "An empty TMN" should "have no rules and no status values set" in {
     val empty = EmptyTMN
-    assert(empty.jtms.rules.size == 0)
-    assert(empty.jtms.status.size == 0)
+    assert(empty.net.rules.size == 0)
+    assert(empty.net.status.size == 0)
   }
 
   "A TMN with one assumption" should "generate a status entry after update" in {

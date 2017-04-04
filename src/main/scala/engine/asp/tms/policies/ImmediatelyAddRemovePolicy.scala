@@ -10,7 +10,6 @@ import jtms.{TruthMaintenanceNetwork$, JtmsUpdateAlgorithm}
 /**
   * Created by FM on 12.06.16.
   */
-//TODO hb: maybe better call "ImmediateAddRemovePolicy"
 case class ImmediatelyAddRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm()) extends TmsPolicy {
 
   override def initialize(rules: Seq[NormalRule]) = rules foreach (tms.add(_))
