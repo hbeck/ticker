@@ -27,10 +27,10 @@ object MMediaEval {
 
   def evaluate(args: Array[String]): Unit = {
     var impl = "doyle"
-    var warmUps = 2
-    var iterations = 10
-    var windowSize = 30
-    var timePoints = 1
+    var warmUps = 0
+    var iterations = 1
+    var windowSize = 10
+    var timePoints = 360
     //var instanceNames = Seq("p1")
     //var dir = "src/test/resources/ground-programs/"
     if (args.nonEmpty) {
@@ -65,6 +65,7 @@ object MMediaEval {
     var totalRetractions = 0L
     var totalModels = 0L
     var totalFailures = 0L
+    var totalRuleGenTime = 0L
 
     for (i <- (1 + (warmUps * -1)) to iterations) {
 
@@ -82,6 +83,7 @@ object MMediaEval {
         totalTime += result(_time)
         totalModels += result(_models)
         totalFailures += result(_failures)
+        totalRuleGenTime += result(_ruleGenTime)
       }
 
       if (impl == "doyle") {
@@ -91,11 +93,13 @@ object MMediaEval {
     }
 
     val avgTime = (1.0 * totalTime) / (1.0 * iterations) / (1000.0)
+    val avgRuleGenTime = (1.0 * totalRuleGenTime) / (1.0 * iterations) / (1000.0)
     val totalUpdates = totalModels + totalFailures
     val ratioModels = (1.0 * totalModels) / (1.0 * totalUpdates)
     val ratioFailures = (1.0 * totalFailures) / (1.0 * totalUpdates)
 
     println(f"\navg time: $avgTime sec")
+    println(f"avg rule gen time: $avgRuleGenTime sec")
     println(f"ratio models: $ratioModels")
     println(f"ratio failures: $ratioFailures")
 
@@ -108,6 +112,7 @@ object MMediaEval {
   val _time = "time"
   val _models = "models"
   val _failures = "failures"
+  val _ruleGenTime = "ruleGenTime" //only internal info
 
   def runIteration(inst: MMediaInstance, tms: JtmsUpdateAlgorithm): Map[String, Long] = {
 
@@ -118,15 +123,30 @@ object MMediaEval {
     inst.staticRules foreach tms.add
 
     var iterationTime = 0L
+    var ruleGenTime = 0L
 
     for (t <- 0 to inst.timePoints) {
 
-      //TODO data stream
+      var factsToAdd = Seq[NormalRule]()
+      var rulesToAdd = Seq[NormalRule]()
+      var rulesToRemove = Seq[NormalRule]()
+      var factsToRemove = Seq[NormalRule]()
 
-      val rulesToAdd = inst.rulesToAddAt(t)
-      val rulesToRemove = inst.rulesToRemoveAt(t)
+      ruleGenTime = ruleGenTime + stopTime {
+        factsToAdd = inst.factsToAddAt(t)
+        rulesToAdd = inst.rulesToAddAt(t)
+        rulesToRemove = inst.rulesToRemoveAt(t)
+        factsToRemove = inst.factsToRemoveAt(t)
+      }
 
       val loopTime = stopTime {
+
+        factsToAdd foreach { r =>
+          //println("add "+r)
+          tms.add(r)
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
 
         rulesToAdd foreach { r =>
           //println("add "+r)
@@ -142,9 +162,18 @@ object MMediaEval {
           else failures += 1
         }
 
+        factsToRemove foreach { r =>
+          //println("remove "+r)
+          tms.remove(r)
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
+
       } // end stopTime
 
       iterationTime += loopTime
+
+      inst.verifyModel(tms,t)
 
     }
 
@@ -158,7 +187,7 @@ object MMediaEval {
       jtms.checkSelfSupport()
     }
 
-    Map() + (_time -> iterationTime) + (_models -> models) + (_failures -> failures)
+    Map() + (_time -> iterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime)
   }
 
   def readProgramFromFile(filename: String): NormalProgram = {
@@ -251,6 +280,49 @@ random :- not done.
 //    (0 to timePoints) map (t => (t,rulesToRemoveAt(t))) toMap
 //  }
 
+  def factsToAddAt(t: Int): Seq[NormalRule] = {
+    var rules = Seq[NormalRule]()
+    rules = rules :+ fact(alpha_at(alphaValueFor(t),t))
+    rules
+  }
+
+  def factsToRemoveAt(t: Int): Seq[NormalRule] = {
+    var rules = Seq[NormalRule]()
+    rules = rules :+ fact(alpha_at(alphaValueFor(t-windowSize-1),t-windowSize-1))
+    rules
+  }
+
+  def alphaValueFor(t: Int): Int = {
+    val q = t%180
+    var v = 0
+    if (0 <= q && q < 60) {
+      v = 5
+    } else if (q >= 60 && q < 120) {
+      v = 15
+    } else {
+      v = 25
+    }
+    v
+  }
+
+  def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {
+    val model = tms.getModel().get
+    val q = t % 180
+    if (q >= 0 && q < windowSize) {
+      assert(model.contains(random))
+    } else if (q >= windowSize && q < 60) {
+      assert(model.contains(random)) //low, if also rtm holds
+    } else if (q >= 60 && q < 60 + windowSize) {
+      assert(model.contains(random))
+    } else if (q >= (60 + windowSize) && q < 120) {
+      assert(model.contains(lru)) //mid
+    } else if (q >= 120 && q < (120 + windowSize)) {
+      assert(model.contains(random))
+    } else if (q >= (120 + windowSize) && q < 180) {
+      assert(model.contains(lfu)) //high
+    }
+  }
+
   def rulesToAddAt(t: Int) = immediatelyExpiringRulesFor(t) ++ rulesExpiringAfterWindow(t)
   def rulesToRemoveAt(t: Int) = immediatelyExpiringRulesFor(t-1) ++ rulesExpiringAfterWindow(t - windowSize - 1)
 
@@ -296,6 +368,7 @@ random :- not done.
     UserDefinedAspRule[Atom](head, Set(posBody), Set(negBody))
   }
 
+  def fact(head: Atom): NormalRule = UserDefinedAspFact[Atom](head)
   def fact(head: String): NormalRule = UserDefinedAspFact[Atom](Atom(head))
 
 }
