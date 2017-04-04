@@ -67,6 +67,15 @@ object MMediaEval {
     var totalFailures = 0L
     var totalRuleGenTime = 0L
 
+    var totalTimeAddFact = 0L
+    var totalTimeAddRule = 0L
+    var totalTimeRemoveRule = 0L
+    var totalTimeRemoveFact = 0L
+    var totalNrAddFact = 0L
+    var totalNrAddRule = 0L
+    var totalNrRemoveRule = 0L
+    var totalNrRemoveFact = 0L
+
     for (i <- (1 + (warmUps * -1)) to iterations) {
 
       print(" " + i)
@@ -84,6 +93,14 @@ object MMediaEval {
         totalModels += result(_models)
         totalFailures += result(_failures)
         totalRuleGenTime += result(_ruleGenTime)
+        totalTimeAddFact += result(_timeAddFacts)
+        totalTimeAddRule += result(_timeAddRules)
+        totalTimeRemoveRule += result(_timeRemoveRules)
+        totalTimeRemoveFact += result(_timeRemoveFacts)
+        totalNrAddFact += result(_nrOfAddedFacts)
+        totalNrAddRule += result(_nrOfAddedRules)
+        totalNrRemoveRule += result(_nrOfRemovedRules)
+        totalNrRemoveFact += result(_nrOfRemovedFacts)
       }
 
       if (impl == "doyle") {
@@ -93,12 +110,20 @@ object MMediaEval {
     }
 
     val avgTime = (1.0 * totalTime) / (1.0 * iterations) / (1000.0)
+    val avgTimeAddFact = (1.0 * totalTimeAddFact) / (1.0 * totalNrAddFact) / (1000.0)
+    val avgTimeAddRule = (1.0 * totalTimeAddRule) / (1.0 * totalNrAddRule) / (1000.0)
+    val avgTimeRemoveRule = (1.0 * totalTimeRemoveRule) / (1.0 * totalNrRemoveRule) / (1000.0)
+    val avgTimeRemoveFact = (1.0 * totalTimeRemoveFact) / (1.0 * totalNrRemoveFact) / (1000.0)
     val avgRuleGenTime = (1.0 * totalRuleGenTime) / (1.0 * iterations) / (1000.0)
     val totalUpdates = totalModels + totalFailures
     val ratioModels = (1.0 * totalModels) / (1.0 * totalUpdates)
     val ratioFailures = (1.0 * totalFailures) / (1.0 * totalUpdates)
 
     println(f"\navg time: $avgTime sec")
+    println(f"avg time add fact: $avgTimeAddFact sec")
+    println(f"avg time add rule: $avgTimeAddRule sec")
+    println(f"avg time remove rule: $avgTimeRemoveRule sec")
+    println(f"avg time remove fact: $avgTimeRemoveFact sec")
     println(f"avg rule gen time: $avgRuleGenTime sec")
     println(f"ratio models: $ratioModels")
     println(f"ratio failures: $ratioFailures")
@@ -113,6 +138,14 @@ object MMediaEval {
   val _models = "models"
   val _failures = "failures"
   val _ruleGenTime = "ruleGenTime" //only internal info
+  val _timeAddFacts = "timeAddFact"
+  val _timeAddRules = "timeAddRule"
+  val _timeRemoveRules = "timeRemoveRule"
+  val _timeRemoveFacts = "timeRemoveFact"
+  val _nrOfAddedFacts = "nrAddFact"
+  val _nrOfAddedRules = "nrAddRule"
+  val _nrOfRemovedRules = "nrRemoveRule"
+  val _nrOfRemovedFacts = "nrRemoveFact"
 
   def runIteration(inst: MMediaInstance, tms: JtmsUpdateAlgorithm): Map[String, Long] = {
 
@@ -124,6 +157,14 @@ object MMediaEval {
 
     var iterationTime = 0L
     var ruleGenTime = 0L
+    var timeAddFacts = 0L
+    var timeAddRules = 0L
+    var timeRemoveRules = 0L
+    var timeRemoveFacts = 0L
+    var nrOfAddedFacts = 0L
+    var nrOfAddedRules = 0L
+    var nrOfRemovedRules = 0L
+    var nrOfRemovedFacts = 0L
 
     for (t <- 0 to inst.timePoints) {
 
@@ -137,41 +178,52 @@ object MMediaEval {
         rulesToAdd = inst.rulesToAddAt(t)
         rulesToRemove = inst.rulesToRemoveAt(t)
         factsToRemove = inst.factsToRemoveAt(t)
+        nrOfAddedFacts += factsToAdd.size
+        nrOfAddedRules += rulesToAdd.size
+        nrOfRemovedRules += rulesToRemove.size
+        nrOfRemovedFacts += factsToRemove.size
       }
 
-      val loopTime = stopTime {
+      var loopTimeAddFacts = 0L
+      var loopTimeAddRules = 0L
+      var loopTimeRemoveRules = 0L
+      var loopTimeRemoveFacts = 0L
 
-        factsToAdd foreach { r =>
-          //println("add "+r)
-          tms.add(r)
-          if (tms.getModel.isDefined) models += 1
-          else failures += 1
-        }
+      factsToAdd foreach { r =>
+        //println("add "+r)
+        loopTimeAddFacts += stopTime { tms.add(r) }
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
 
-        rulesToAdd foreach { r =>
-          //println("add "+r)
-          tms.add(r)
-          if (tms.getModel.isDefined) models += 1
-          else failures += 1
-        }
+      rulesToAdd foreach { r =>
+        //println("add "+r)
+        loopTimeAddRules += stopTime { tms.add(r) }
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
 
-        rulesToRemove foreach { r =>
-          //println("remove "+r)
-          tms.remove(r)
-          if (tms.getModel.isDefined) models += 1
-          else failures += 1
-        }
+      rulesToRemove foreach { r =>
+        //println("remove "+r)
+        loopTimeRemoveRules += stopTime { tms.remove(r) }
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
 
-        factsToRemove foreach { r =>
-          //println("remove "+r)
-          tms.remove(r)
-          if (tms.getModel.isDefined) models += 1
-          else failures += 1
-        }
+      factsToRemove foreach { r =>
+        //println("remove "+r)
+        loopTimeRemoveFacts += stopTime { tms.remove(r) }
+        if (tms.getModel.isDefined) models += 1
+        else failures += 1
+      }
 
-      } // end stopTime
+      val loopTime = loopTimeAddFacts + loopTimeAddRules + loopTimeRemoveRules + loopTimeRemoveFacts
 
       iterationTime += loopTime
+      timeAddFacts += loopTimeAddFacts
+      timeAddRules += loopTimeAddRules
+      timeRemoveRules += loopTimeRemoveRules
+      timeRemoveFacts += loopTimeRemoveFacts
 
       inst.verifyModel(tms,t)
 
@@ -187,7 +239,11 @@ object MMediaEval {
       jtms.checkSelfSupport()
     }
 
-    Map() + (_time -> iterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime)
+    Map() + (_time -> iterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime) +
+      (_timeAddFacts -> timeAddFacts) + (_timeAddRules -> timeAddRules) + (_timeRemoveRules -> timeRemoveRules) +
+      (_timeRemoveFacts -> timeRemoveFacts) + (_nrOfAddedFacts -> nrOfAddedFacts) + (_nrOfAddedRules -> nrOfAddedRules) +
+      (_nrOfRemovedRules -> nrOfRemovedRules) + (_nrOfRemovedFacts -> nrOfRemovedFacts)
+
   }
 
   def readProgramFromFile(filename: String): NormalProgram = {
