@@ -8,7 +8,7 @@ import core.asp._
 import jtms._
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.evaluation.instances.{MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
-import jtms.networks.OptimizedNetwork
+import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 import runner.Load
 
 import scala.io.Source
@@ -26,7 +26,7 @@ object StreamingTmsEval {
   }
 
   def evaluate(args: Array[String]): Unit = {
-    var impl = "doyle"
+    var impl = "DoyleOpt"
     var warmUps = 0
     var iterations = 1
     var windowSize = 10
@@ -44,7 +44,7 @@ object StreamingTmsEval {
       } catch {
         case e: Exception => {
           println("args: impl warmUps iterations windowSize timePoints inst1 inst2 ...")
-          println("eg: doyle 2 10 30 180 mmediaDet")
+          println("eg: DoyleOpt 2 10 30 180 mmediaDet")
           System.exit(1)
         }
       }
@@ -91,9 +91,10 @@ object StreamingTmsEval {
       print(" " + i)
 
       val tms = impl match {
-        case "doyle" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
-        case "greedy" => new JtmsGreedy(new OptimizedNetwork(), instance.random)
-        case "learn" => new JtmsLearn()
+        case "DoyleSimple" => new JtmsDoyle(new SimpleNetwork(), instance.random)
+        case "DoyleOpt" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
+        case "Greedy" => new JtmsGreedy(new OptimizedNetwork(), instance.random)
+        case "Learn" => new JtmsLearn()
       }
 
       val result: Map[String, Long] = runIteration(instance, tms)

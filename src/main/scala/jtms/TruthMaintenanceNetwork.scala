@@ -41,20 +41,6 @@ trait TruthMaintenanceNetwork {
 
   def underivableAtoms = allAtoms diff ruleHeads
 
-  def dataIndependentRules: Set[NormalRule] = rules filter dataIndependentRule
-
-  def dataIndependentRule(r: NormalRule): Boolean = {
-    !r.atoms.exists(pinned(_)) //include testing head for facts
-  }
-
-  def signals = allAtoms filter isSignal
-
-  //note: this is implementation specific due to use case
-  //(PinnedAtoms obtained after grounding, and only signals (i.e., stream atoms) are pinned)
-  def isSignal(a: Atom) = pinned(a)
-
-  def pinned(atom: Atom) = atom.isInstanceOf[PinnedAtom]
-
   //def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
 
   //def inactiveRules() = (rules filter (r => !(r.pos intersect underivableAtoms).isEmpty)).toSet

@@ -7,7 +7,7 @@ import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.TruthMaintenanceNetwork
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.networks.OptimizedNetwork
+import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 
 import scala.util.Random
 
@@ -32,7 +32,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
 
   def buildEngine(evaluationType: EvaluationTypes,
                   evaluationModifier: EvaluationModifier,
-                  jtms: TruthMaintenanceNetwork = new OptimizedNetwork(),
+                  network: TruthMaintenanceNetwork = new OptimizedNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     //TODO hb: before this class was called, the following chain was already used.
@@ -41,15 +41,15 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
 
     if (evaluationType == EvaluationTypes.Tms) {
       if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
-        return Some(greedyTms(config, jtms, random))
+        return Some(greedyTms(config, network, random))
       } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
-        return Some(greedyTmsIncremental(config, jtms, random)) //TODO
+        return Some(greedyTmsIncremental(config, network, random)) //TODO
       } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
-        return Some(doyleTms(config, jtms, random))
+        return Some(doyleTms(config, network, random))
       } else if (evaluationModifier == EvaluationModifier.Learn) {
-        return Some(learnTms(config, new OptimizedNetwork(), random))
+        return Some(learnTms(config, new OptimizedNetworkForLearn(), random))
       } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
-        return Some(incrementalTms(config, jtms, random))
+        return Some(incrementalTms(config, network, random))
       }
     } else if (evaluationType == EvaluationTypes.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
@@ -62,8 +62,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     None
   }
 
-  def greedyTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(jtms, random)
+  def greedyTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
+    val tms = JtmsGreedy(network, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -72,8 +72,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def greedyTmsIncremental(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(jtms, random)
+  def greedyTmsIncremental(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
+    val tms = JtmsGreedy(network, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -82,16 +82,16 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
   }
 
-  def doyleTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsDoyle(jtms, random)
+  def doyleTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
+    val tms = JtmsDoyle(network, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def learnTms(config: EngineEvaluationConfiguration, jtms: OptimizedNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(jtms, random)
+  def learnTms(config: EngineEvaluationConfiguration, network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), random: Random = new Random(1)) = {
+    val tms = new JtmsLearn(network, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -100,8 +100,8 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
     config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
   }
 
-  def incrementalTms(config: EngineEvaluationConfiguration, jtms: TruthMaintenanceNetwork, random: Random) = {
-    val tms = JtmsDoyle(jtms, random)
+  def incrementalTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork, random: Random) = {
+    val tms = JtmsDoyle(network, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
     tms.doSelfSupportCheck = false

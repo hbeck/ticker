@@ -27,7 +27,9 @@ class SimpleNetwork extends TruthMaintenanceNetwork {
     supp = supp.updated(a, supp(a) + newAtom)
   }
 
-  override def updateStatus(a: Atom, newStatus: Status): Unit = status = status.updated(a, newStatus)
+  override def updateStatus(a: Atom, newStatus: Status): Unit = {
+    status = status.updated(a, newStatus)
+  }
 
   override def register(rule: NormalRule): Boolean = {
     if (rules contains rule) return false //list representation!

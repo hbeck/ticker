@@ -236,7 +236,7 @@ class StreamingTests extends FunSuite {
         println(timepoint+" -> "+projected(tms.getModel.get))
       }
 
-      if (!addedNewFact && tms.jtms.inconsistent) tms.recompute()
+      if (!addedNewFact && tms.network.inconsistent) tms.recompute()
 
       if (tms.getModel.isEmpty) {
         lastFailed = true

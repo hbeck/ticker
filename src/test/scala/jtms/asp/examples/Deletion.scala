@@ -5,9 +5,9 @@ import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms.algorithms.JtmsLearn
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import jtms.tmn.examples.TweetyBehavior
 import jtms.in
-import jtms.networks.OptimizedNetwork
+import jtms.networks.OptimizedNetworkForLearn
+import jtms.tmn.examples.TweetyBehavior
 import org.scalatest.FlatSpec
 
 /**
@@ -19,7 +19,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
 
   "A model with only one rule" should "have no rules and atoms after deletion" in {
 
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.add(AspFact(a))
@@ -40,7 +40,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
   }
 
   it should "have clean caches after deletion" in {
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.add(AspFact(a))
@@ -64,11 +64,11 @@ class Deletion extends FlatSpec with AtomTestFixture {
 
     val net = JtmsLearn(program)
 
-    assume(net.jtms.cons(c) == Set(a))
+    assume(net.network.cons(c) == Set(a))
 
     net.remove(r1)
 
-    assert(net.jtms.cons(c) == Set(a))
+    assert(net.network.cons(c) == Set(a))
   }
 
   "A stable TMN with 2 atoms and two rules" should "have an empty model after deletion of a supporting Premise" in {
@@ -76,7 +76,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r0 = AspRule(b, a)
     val r1 = AspRule(a, none, none)
 
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.add(r0)
@@ -104,7 +104,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r1 = AspRule(b, a)
     val r2 = AspFact(a)
 
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.add(r1)
@@ -132,7 +132,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r1 = AspFact(a)
     val r2 = AspRule.pos(b).head(c)
 
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.add(r0)
@@ -160,7 +160,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
     val r2 = AspRule.pos(b).head(c)
     val r3 = AspRule.pos(a).head(c)
 
-    val net = new OptimizedNetwork()
+    val net = new OptimizedNetworkForLearn()
     val update = new JtmsLearn(net)
 
     update.doForceChoiceOrder = true

@@ -534,7 +534,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
     var failures = 0
 
-    assert(tms.jtms.dataIndependentRules.toSet ==
+    assert(tms.network.dataIndependentRules.toSet ==
        Set(AspRule(b, none, Set(c)),
            AspRule(c, none, Set(b)),
            AspRule(x, Set(a,b), Set(x)), // x :- a,b, not x
@@ -568,8 +568,8 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
         val fact: NormalFact = AspFact(d(t))
         tms.add(fact)
         lastD = fact.head
-        assert(!tms.jtms.dataIndependentRules.contains(fact))
-        assert(tms.jtms.facts.toSet.contains(fact))
+        assert(!tms.network.dataIndependentRules.contains(fact))
+        assert(tms.network.facts.toSet.contains(fact))
       } else if (t % (10 / 2) == 0) {
         val fact: NormalFact = AspFact(e(t))
         tms.add(fact)
@@ -666,7 +666,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       def m = tms.getModel
       assert(m.get == Set(b) || m.get == Set(c))
 
-      assert(tms.jtms.dataIndependentRules.toSet ==
+      assert(tms.network.dataIndependentRules.toSet ==
         Set(AspRule(b, none, Set(c)),
           AspRule(c, none, Set(b)),
           AspRule(x, Set(a, b), Set(x)), // x :- a,b, not x
@@ -1042,7 +1042,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
       if (m == None) {
         if (lastC.isDefined && getTime(lastC).get >= (t-5)) {
           val bSet: Set[Atom] = Set(b(t),b(t-1),b(t-2))
-          if (bSet.forall(a => tms.jtms.factAtoms.contains(a))) {
+          if (bSet.forall(a => tms.network.factAtoms.contains(a))) {
             noModel += 1
             //println("\n\t"+tms.factAtoms)
           } else {

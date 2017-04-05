@@ -22,14 +22,6 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
-  var __stateHash: Long = IncrementalHashCode.emptyHash
-
-  var __lightweightStateHash: Long = IncrementalHashCode.emptyHash
-
-  //atoms from streaming; specific logic beyond tms
-  var __signals: Set[Atom] = Set()
-
-  var __suppHash: Map[Atom, Long] = Map()
 
   override def inAtoms = __atomsWithStatus(in)
 
@@ -39,14 +31,11 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   override def hasUnknown: Boolean = unknownAtoms.nonEmpty
 
-  override def signals: Set[Atom] = __signals
-
   //return true iff rule is new
   def register(rule: NormalRule): Boolean = {
     if (rules contains rule) return false //list representation!
 
     rules = rules + rule
-
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
@@ -57,50 +46,28 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
     rule.body foreach { atom =>
       cons = cons updated(atom, cons(atom) + rule.head)
     }
+
     true
   }
 
   def register(a: Atom) {
     if (!status.isDefinedAt(a)) {
-      //use this immediately as test whether the atom exists; all atoms need to have a status
-      // TODO: do we need this?      if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "register")
-
       __allAtoms = __allAtoms + a
-
       status = status.updated(a, out)
-
-      if (isSignal(a)) {
-        __signals = __signals + a
-      } else {
-        __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, out))
-      }
-
       __atomsWithStatus = __atomsWithStatus.updated(out, __atomsWithStatus(out) + a)
-
       cons = cons.updated(a, Set[Atom]())
       clearSupport(a)
     }
   }
 
   def updateStatus(a: Atom, newStatus: Status): Unit = {
-
     val oldStatus = status(a)
-
     if (oldStatus != newStatus) {
-      if (!signals.contains(a)) {
-        if (oldStatus == in || oldStatus == out) {
-          __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
-        }
-        if (newStatus == in || newStatus == out) {
-          __stateHash = IncrementalHashCode.addHashCode(__stateHash, (a, newStatus))
-        }
-      }
       status = status.updated(a, newStatus)
       __atomsWithStatus = __atomsWithStatus.updated(newStatus, __atomsWithStatus(newStatus) + a)
       __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
     }
   }
-
 
   //
   // remove
@@ -129,24 +96,18 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
   }
 
   def unregister(a: Atom): Unit = {
+
     __allAtoms = __allAtoms - a
 
     val oldStatus = status(a)
 
     __atomsWithStatus = __atomsWithStatus.updated(oldStatus, __atomsWithStatus(oldStatus) - a)
 
-    if (!signals.contains(a) && (oldStatus == in || oldStatus == out)) {
-      __stateHash = IncrementalHashCode.removeHashCode(__stateHash, (a, oldStatus))
-    }
-
     status = status - a
     cons = cons - a
     supp = supp - a
-    __suppHash = __suppHash - a
     suppRule = suppRule - a
 
-    if (isSignal(a))
-      __signals = __signals - a
   }
 
   var __cleanup = 0;
@@ -168,46 +129,22 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   def clearSupport(a: Atom): Unit = {
     supp = supp.updated(a, Set())
-    __suppHash = __suppHash.updated(a, IncrementalHashCode.emptyHash)
     suppRule = suppRule.updated(a, None)
   }
 
   def setOutSupport(a: Atom, atoms: Set[Atom]): Unit = {
     supp = supp.updated(a, atoms)
-    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(atoms diff signals))
     suppRule = suppRule.updated(a, None)
   }
 
   def setInSupport(a: Atom, rule: NormalRule): Unit = {
     suppRule = suppRule.updated(rule.head, Some(rule))
     supp = supp.updated(a, rule.body)
-    __suppHash = __suppHash.updated(a, IncrementalHashCode.hash(rule.body diff signals))
   }
 
   def addSupport(a: Atom, newAtom: Atom): Unit = {
     supp = supp.updated(a, supp(a) + newAtom)
-    if (!signals.contains(newAtom))
-      __suppHash = __suppHash.updated(a, IncrementalHashCode.addHashCode(__suppHash(a), newAtom))
   }
 
 }
 
-object IncrementalHashCode {
-
-  val emptyHash: Long = Set().hashCode()
-
-  def hash(atoms: Set[Atom]) = atoms.foldLeft(emptyHash)(addHashCode)
-
-  def addHashCode(hash: Long, item: Any): Long = {
-
-    val newHash = (hash) + item.hashCode()
-
-    newHash
-  }
-
-  def removeHashCode(hash: Long, element: Any): Long = {
-    //    val newHash = (hash - element.hashCode()) / 16777619
-    val newHash = hash - element.hashCode()
-    newHash
-  }
-}

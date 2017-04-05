@@ -14,7 +14,7 @@ trait AtomValidationAsp {
   this: FlatSpec =>
 
   def atomValidation(net: JtmsGreedy, n: Atom): ((AtomValidatorAsp) => Any) => Any = {
-    val nc = new AtomValidatorAsp(net.jtms, n)
+    val nc = new AtomValidatorAsp(net.network, n)
 
     def atomCheckTestCallback(check: (AtomValidatorAsp) => Any) = {
       check(nc)
