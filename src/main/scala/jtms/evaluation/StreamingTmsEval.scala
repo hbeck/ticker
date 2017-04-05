@@ -25,12 +25,19 @@ object StreamingTmsEval {
     evaluate(args)
   }
 
+  //implementations:
+  val DOYLE_SIMPLE = "DoyleSimple"
+  val DOYLE = "Doyle"
+  val GREEDY = "Greedy"
+  val LEARN = "Learn"
+
   def evaluate(args: Array[String]): Unit = {
-    var impl = "DoyleOpt"
+    var impl = DOYLE
     var warmUps = 0
     var iterations = 1
     var windowSize = 10
-    var timePoints = 3600
+    var timePoints = 100
+    var countModels = false
     var instanceNames = Seq("mmediaNonDet")
     //var dir = "src/test/resources/ground-programs/"
     if (args.nonEmpty) {
@@ -40,24 +47,25 @@ object StreamingTmsEval {
         iterations = Integer.parseInt(args(2))
         windowSize = Integer.parseInt(args(3))
         timePoints = Integer.parseInt(args(4))
-        instanceNames = args.drop(5).toSeq
+        countModels = args(5) match { case "true" => true; case _ => false }
+        instanceNames = args.drop(6).toSeq
       } catch {
         case e: Exception => {
-          println("args: impl warmUps iterations windowSize timePoints inst1 inst2 ...")
-          println("eg: DoyleOpt 2 10 30 180 mmediaDet")
+          println("args: impl warmUps iterations windowSize timePoints false inst1 inst2 ...")
+          println(f"eg: $DOYLE 2 10 30 180 false mmediaDet")
           System.exit(1)
         }
       }
     }
-    println(f"impl: $impl, warmUps: $warmUps, iterations: $iterations, windowSize: $windowSize, timePoints: $timePoints")
-    run(impl, warmUps, iterations, windowSize, timePoints, instanceNames)
+    println(f"impl: $impl, warmUps: $warmUps, iterations: $iterations, windowSize: $windowSize, timePoints: $timePoints, countModels: "+countModels)
+    run(impl, warmUps, iterations, windowSize, timePoints, countModels, instanceNames)
   }
 
-  def run(impl: String, warmUps: Int, iterations: Int, windowSize: Int, timePoints: Int, instanceNames: Seq[String]) {
+  def run(impl: String, warmUps: Int, iterations: Int, windowSize: Int, timePoints: Int, countModels: Boolean, instanceNames: Seq[String]) {
     for (instanceName <- instanceNames) {
       println(instanceName)
       val inst = makeInstance(instanceName,windowSize,timePoints)
-      runImplementation(impl, warmUps, iterations, inst)
+      runImplementation(impl, warmUps, iterations, countModels, inst)
     }
   }
 
@@ -69,13 +77,13 @@ object StreamingTmsEval {
     }
   }
 
-  def runImplementation(impl: String, warmUps: Int, iterations: Int, instance: StreamingTmsEvalInstance): Unit = {
+  def runImplementation(impl: String, warmUps: Int, iterations: Int, countModels: Boolean, instance: StreamingTmsEvalInstance): Unit = {
 
     var totalTime = 0L
     var totalRetractions = 0L
     var totalModels = 0L
     var totalFailures = 0L
-    var totalRuleGenTime = 0L
+    var totalTimeRuleGen = 0L
 
     var totalTimeStaticRules = 0L
     var totalTimeAllTimePoints = 0L
@@ -95,19 +103,19 @@ object StreamingTmsEval {
       print(" " + i)
 
       val tms = impl match {
-        case "DoyleSimple" => new JtmsDoyle(new SimpleNetwork(), instance.random)
-        case "Doyle" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
-        case "Greedy" => new JtmsGreedy(new OptimizedNetwork(), instance.random)
-        case "Learn" => new JtmsLearn()
+        case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), instance.random)
+        case DOYLE => new JtmsDoyle(new OptimizedNetwork(), instance.random)
+        case GREEDY => new JtmsGreedy(new OptimizedNetwork(), instance.random)
+        case LEARN => new JtmsLearn()
       }
 
-      val result: Map[String, Long] = runIteration(instance, tms)
+      val result: Map[String, Long] = runIteration(instance, tms, countModels)
 
       if (i >= 1) {
         totalTime += result(_evaluationIterationTime)
         totalModels += result(_models)
         totalFailures += result(_failures)
-        totalRuleGenTime += result(_ruleGenTime)
+        totalTimeRuleGen += result(_timeRuleGen)
         totalTimeAllTimePoints += result(_timeAllTimePoints)
         totalTimeStaticRules += result(_timeStaticRules)
         totalTimeAddFact += result(_timeAddFacts)
@@ -122,7 +130,7 @@ object StreamingTmsEval {
         totalNrRemoveFact += result(_nrOfRemovedFacts)
       }
 
-      if (impl == "Doyle") {
+      if (impl == DOYLE || impl == DOYLE_SIMPLE) {
         totalRetractions = totalRetractions + tms.asInstanceOf[JtmsDoyle].retractionsAffected
       }
 
@@ -140,6 +148,7 @@ object StreamingTmsEval {
     implicit def double2sec(d: Double) = DoubleSec(d)
 
     val avgTimeIteration = totalTime %% iterations sec
+    val avgTimeRuleGen = totalTimeRuleGen %% iterations sec
     val avgTimeStaticRules = totalTimeStaticRules %% iterations sec
     val avgTimeAllTimePoints = totalTimeAllTimePoints %% (iterations * instance.timePoints) sec
     val avgTimeAddFact = totalTimeAddFact %% totalNrAddFact sec
@@ -147,12 +156,12 @@ object StreamingTmsEval {
     val avgTimeRemoveRule = totalTimeRemoveRule %% totalNrRemoveRule sec
     val avgTimeRemoveFact = totalTimeRemoveFact %% totalNrRemoveFact sec
     val avgTimeGetModel = totalTimeGetModel %% (iterations * instance.timePoints) sec
-    val avgRuleGenTime = totalRuleGenTime %% iterations sec
     val totalUpdates = totalModels + totalFailures
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
 
     println(f"\navg time per iteration: $avgTimeIteration sec")
+    println(f"avg time rule gen (not included): $avgTimeRuleGen sec")
     println(f"avg time add static rules: $avgTimeStaticRules sec")
     println(f"avg time per time point: $avgTimeAllTimePoints sec")
     println(f"avg time add fact: $avgTimeAddFact sec")
@@ -160,11 +169,10 @@ object StreamingTmsEval {
     println(f"avg time remove rule: $avgTimeRemoveRule sec")
     println(f"avg time remove fact: $avgTimeRemoveFact sec")
     println(f"avg time get model: $avgTimeGetModel sec")
-    println(f"avg rule gen time: $avgRuleGenTime sec")
     println(f"ratio models: $ratioModels")
     println(f"ratio failures: $ratioFailures")
 
-    if (impl == "Doyle") {
+    if (impl == DOYLE || impl == DOYLE_SIMPLE) {
       val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations)
       println(f"avg retractions: $avgRetractions")
     }
@@ -174,7 +182,7 @@ object StreamingTmsEval {
   val _evaluationIterationTime = "evaluationIterationTime"
   val _models = "models"
   val _failures = "failures"
-  val _ruleGenTime = "ruleGenTime" //only internal info
+  val _timeRuleGen = "timeRuleGen" //only internal info
   val _timeStaticRules = "timeStaticRules"
   val _timeAllTimePoints = "timeAllTimePoints"
   val _timeAddFacts = "timeAddFact"
@@ -188,7 +196,7 @@ object StreamingTmsEval {
   val _nrOfRemovedRules = "nrRemoveRule"
   val _nrOfRemovedFacts = "nrRemoveFact"
 
-  def runIteration(inst: StreamingTmsEvalInstance, tms: JtmsUpdateAlgorithm): Map[String, Long] = {
+  def runIteration(inst: StreamingTmsEvalInstance, tms: JtmsUpdateAlgorithm, countModels: Boolean): Map[String, Long] = {
 
     var models = 0L
     var failures = 0L
@@ -199,7 +207,7 @@ object StreamingTmsEval {
     val nrOfStaticRules: Long = inst.staticRules.size
 
     var timeAllTimePoints = 0L
-    var ruleGenTime = 0L
+    var timeRuleGen = 0L
     var timeAddFacts = 0L
     var timeAddRules = 0L
     var timeRemoveRules = 0L
@@ -217,7 +225,7 @@ object StreamingTmsEval {
       var rulesToRemove = Seq[NormalRule]()
       var factsToRemove = Seq[NormalRule]()
 
-      ruleGenTime = ruleGenTime + stopTime {
+      timeRuleGen = timeRuleGen + stopTime {
         factsToAdd = inst.factsToAddAt(t)
         rulesToAdd = inst.rulesToAddAt(t)
         rulesToRemove = inst.rulesToRemoveAt(t)
@@ -237,29 +245,37 @@ object StreamingTmsEval {
       factsToAdd foreach { r =>
         //println("add "+r)
         loopTimeAddFacts += stopTime { tms.add(r) }
-        if (tms.getModel.isDefined) models += 1
-        else failures += 1
+        if (countModels) {
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
       }
 
       rulesToAdd foreach { r =>
         //println("add "+r)
         loopTimeAddRules += stopTime { tms.add(r) }
-        if (tms.getModel.isDefined) models += 1
-        else failures += 1
+        if (countModels) {
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
       }
 
       rulesToRemove foreach { r =>
         //println("remove "+r)
         loopTimeRemoveRules += stopTime { tms.remove(r) }
-        if (tms.getModel.isDefined) models += 1
-        else failures += 1
+        if (countModels) {
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
       }
 
       factsToRemove foreach { r =>
         //println("remove "+r)
         loopTimeRemoveFacts += stopTime { tms.remove(r) }
-        if (tms.getModel.isDefined) models += 1
-        else failures += 1
+        if (countModels) {
+          if (tms.getModel.isDefined) models += 1
+          else failures += 1
+        }
       }
 
       loopTimeGetModel += stopTime { tms.getModel }
@@ -291,12 +307,12 @@ object StreamingTmsEval {
     }
     */
 
-    Map() + (_evaluationIterationTime -> evaluationIterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime) +
-      (_timeStaticRules -> timeStaticRules) + (_timeAllTimePoints -> timeAllTimePoints) +
-      (_timeAddFacts -> timeAddFacts) + (_timeAddRules -> timeAddRules) +
-      (_timeRemoveRules -> timeRemoveRules) + (_timeRemoveFacts -> timeRemoveFacts) + (_timeGetModel -> timeGetModel) +
-      (_nrOfStaticRules -> nrOfStaticRules) + (_nrOfAddedFacts -> nrOfAddedFacts) + (_nrOfAddedRules -> nrOfAddedRules) +
-      (_nrOfRemovedRules -> nrOfRemovedRules) + (_nrOfRemovedFacts -> nrOfRemovedFacts)
+    Map() + (_evaluationIterationTime -> evaluationIterationTime) + (_models -> models) + (_failures -> failures) + (_timeRuleGen -> timeRuleGen) +
+        (_timeStaticRules -> timeStaticRules) + (_timeAllTimePoints -> timeAllTimePoints) +
+        (_timeAddFacts -> timeAddFacts) + (_timeAddRules -> timeAddRules) +
+        (_timeRemoveRules -> timeRemoveRules) + (_timeRemoveFacts -> timeRemoveFacts) + (_timeGetModel -> timeGetModel) +
+        (_nrOfStaticRules -> nrOfStaticRules) + (_nrOfAddedFacts -> nrOfAddedFacts) + (_nrOfAddedRules -> nrOfAddedRules) +
+        (_nrOfRemovedRules -> nrOfRemovedRules) + (_nrOfRemovedFacts -> nrOfRemovedFacts)
 
   }
 
