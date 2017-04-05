@@ -77,10 +77,14 @@ object StreamingTmsEval {
     var totalFailures = 0L
     var totalRuleGenTime = 0L
 
+    var totalTimeStaticRules = 0L
+    var totalTimeAllTimePoints = 0L
     var totalTimeAddFact = 0L
     var totalTimeAddRule = 0L
     var totalTimeRemoveRule = 0L
     var totalTimeRemoveFact = 0L
+    var totalTimeGetModel = 0L
+    var totalNrStaticRules = 0L
     var totalNrAddFact = 0L
     var totalNrAddRule = 0L
     var totalNrRemoveRule = 0L
@@ -92,7 +96,7 @@ object StreamingTmsEval {
 
       val tms = impl match {
         case "DoyleSimple" => new JtmsDoyle(new SimpleNetwork(), instance.random)
-        case "DoyleOpt" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
+        case "Doyle" => new JtmsDoyle(new OptimizedNetwork(), instance.random)
         case "Greedy" => new JtmsGreedy(new OptimizedNetwork(), instance.random)
         case "Learn" => new JtmsLearn()
       }
@@ -100,59 +104,85 @@ object StreamingTmsEval {
       val result: Map[String, Long] = runIteration(instance, tms)
 
       if (i >= 1) {
-        totalTime += result(_time)
+        totalTime += result(_evaluationIterationTime)
         totalModels += result(_models)
         totalFailures += result(_failures)
         totalRuleGenTime += result(_ruleGenTime)
+        totalTimeAllTimePoints += result(_timeAllTimePoints)
+        totalTimeStaticRules += result(_timeStaticRules)
         totalTimeAddFact += result(_timeAddFacts)
         totalTimeAddRule += result(_timeAddRules)
         totalTimeRemoveRule += result(_timeRemoveRules)
         totalTimeRemoveFact += result(_timeRemoveFacts)
+        totalTimeGetModel += result(_timeGetModel)
+        totalNrStaticRules += result(_nrOfStaticRules)
         totalNrAddFact += result(_nrOfAddedFacts)
         totalNrAddRule += result(_nrOfAddedRules)
         totalNrRemoveRule += result(_nrOfRemovedRules)
         totalNrRemoveFact += result(_nrOfRemovedFacts)
       }
 
-      if (impl == "doyle") {
+      if (impl == "Doyle") {
         totalRetractions = totalRetractions + tms.asInstanceOf[JtmsDoyle].retractionsAffected
       }
 
     }
 
-    val avgTime = (1.0 * totalTime) / (1.0 * iterations) / (1000.0)
-    val avgTimeAddFact = (1.0 * totalTimeAddFact) / (1.0 * totalNrAddFact) / (1000.0)
-    val avgTimeAddRule = (1.0 * totalTimeAddRule) / (1.0 * totalNrAddRule) / (1000.0)
-    val avgTimeRemoveRule = (1.0 * totalTimeRemoveRule) / (1.0 * totalNrRemoveRule) / (1000.0)
-    val avgTimeRemoveFact = (1.0 * totalTimeRemoveFact) / (1.0 * totalNrRemoveFact) / (1000.0)
-    val avgRuleGenTime = (1.0 * totalRuleGenTime) / (1.0 * iterations) / (1000.0)
-    val totalUpdates = totalModels + totalFailures
-    val ratioModels = (1.0 * totalModels) / (1.0 * totalUpdates)
-    val ratioFailures = (1.0 * totalFailures) / (1.0 * totalUpdates)
+    case class LongDiv(l: Long) {
+      def %% (other: Long): Double = (1.0*l) / (1.0*other)
+    }
 
-    println(f"\navg time: $avgTime sec")
+    case class DoubleSec(d: Double) {
+      def sec(): Double = d / 1000.0
+    }
+
+    implicit def long2div(l: Long) = LongDiv(l)
+    implicit def double2sec(d: Double) = DoubleSec(d)
+
+    val avgTimeIteration = totalTime %% iterations sec
+    val avgTimeStaticRules = totalTimeStaticRules %% iterations sec
+    val avgTimeAllTimePoints = totalTimeAllTimePoints %% (iterations * instance.timePoints) sec
+    val avgTimeAddFact = totalTimeAddFact %% totalNrAddFact sec
+    val avgTimeAddRule = totalTimeAddRule %% totalNrAddRule sec
+    val avgTimeRemoveRule = totalTimeRemoveRule %% totalNrRemoveRule sec
+    val avgTimeRemoveFact = totalTimeRemoveFact %% totalNrRemoveFact sec
+    val avgTimeGetModel = totalTimeGetModel %% (iterations * instance.timePoints) sec
+    val avgRuleGenTime = totalRuleGenTime %% iterations sec
+    val totalUpdates = totalModels + totalFailures
+    val ratioModels = totalModels %% totalUpdates
+    val ratioFailures = totalFailures %% totalUpdates
+
+    println(f"\navg time per iteration: $avgTimeIteration sec")
+    println(f"avg time add static rules: $avgTimeStaticRules sec")
+    println(f"avg time per time point: $avgTimeAllTimePoints sec")
     println(f"avg time add fact: $avgTimeAddFact sec")
     println(f"avg time add rule: $avgTimeAddRule sec")
     println(f"avg time remove rule: $avgTimeRemoveRule sec")
     println(f"avg time remove fact: $avgTimeRemoveFact sec")
+    println(f"avg time get model: $avgTimeGetModel sec")
     println(f"avg rule gen time: $avgRuleGenTime sec")
     println(f"ratio models: $ratioModels")
     println(f"ratio failures: $ratioFailures")
 
-    if (impl == "doyle") {
+    if (impl == "Doyle") {
       val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations)
       println(f"avg retractions: $avgRetractions")
     }
+
   }
 
-  val _time = "time"
+  val _evaluationIterationTime = "evaluationIterationTime"
   val _models = "models"
   val _failures = "failures"
   val _ruleGenTime = "ruleGenTime" //only internal info
+  val _timeStaticRules = "timeStaticRules"
+  val _timeAllTimePoints = "timeAllTimePoints"
   val _timeAddFacts = "timeAddFact"
   val _timeAddRules = "timeAddRule"
   val _timeRemoveRules = "timeRemoveRule"
   val _timeRemoveFacts = "timeRemoveFact"
+  val _timeGetModel = "timeGetModel"
+  val _nrOfStaticRules = "nrOfInitRules"
   val _nrOfAddedFacts = "nrAddFact"
   val _nrOfAddedRules = "nrAddRule"
   val _nrOfRemovedRules = "nrRemoveRule"
@@ -163,15 +193,18 @@ object StreamingTmsEval {
     var models = 0L
     var failures = 0L
 
-    //init
-    inst.staticRules foreach tms.add
+    val timeStaticRules: Long = stopTime {
+      inst.staticRules foreach tms.add
+    }
+    val nrOfStaticRules: Long = inst.staticRules.size
 
-    var iterationTime = 0L
+    var timeAllTimePoints = 0L
     var ruleGenTime = 0L
     var timeAddFacts = 0L
     var timeAddRules = 0L
     var timeRemoveRules = 0L
     var timeRemoveFacts = 0L
+    var timeGetModel = 0L
     var nrOfAddedFacts = 0L
     var nrOfAddedRules = 0L
     var nrOfRemovedRules = 0L
@@ -199,6 +232,7 @@ object StreamingTmsEval {
       var loopTimeAddRules = 0L
       var loopTimeRemoveRules = 0L
       var loopTimeRemoveFacts = 0L
+      var loopTimeGetModel = 0L
 
       factsToAdd foreach { r =>
         //println("add "+r)
@@ -228,18 +262,24 @@ object StreamingTmsEval {
         else failures += 1
       }
 
-      val loopTime = loopTimeAddFacts + loopTimeAddRules + loopTimeRemoveRules + loopTimeRemoveFacts
+      loopTimeGetModel += stopTime { tms.getModel }
 
-      iterationTime += loopTime
+      val loopTime = loopTimeAddFacts + loopTimeAddRules + loopTimeRemoveRules + loopTimeRemoveFacts + loopTimeGetModel
+
+      timeAllTimePoints += loopTime
       timeAddFacts += loopTimeAddFacts
       timeAddRules += loopTimeAddRules
       timeRemoveRules += loopTimeRemoveRules
       timeRemoveFacts += loopTimeRemoveFacts
+      timeGetModel += loopTimeGetModel
 
       inst.verifyModel(tms,t)
 
     }
 
+    val evaluationIterationTime = timeStaticRules + timeAllTimePoints
+
+    /*
     if (tms.isInstanceOf[JtmsDoyle]) {
       val jtms = tms.asInstanceOf[JtmsDoyle]
       jtms.doConsistencyCheck = true
@@ -249,10 +289,13 @@ object StreamingTmsEval {
       jtms.checkJtmsSemantics()
       jtms.checkSelfSupport()
     }
+    */
 
-    Map() + (_time -> iterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime) +
-      (_timeAddFacts -> timeAddFacts) + (_timeAddRules -> timeAddRules) + (_timeRemoveRules -> timeRemoveRules) +
-      (_timeRemoveFacts -> timeRemoveFacts) + (_nrOfAddedFacts -> nrOfAddedFacts) + (_nrOfAddedRules -> nrOfAddedRules) +
+    Map() + (_evaluationIterationTime -> evaluationIterationTime) + (_models -> models) + (_failures -> failures) + (_ruleGenTime -> ruleGenTime) +
+      (_timeStaticRules -> timeStaticRules) + (_timeAllTimePoints -> timeAllTimePoints) +
+      (_timeAddFacts -> timeAddFacts) + (_timeAddRules -> timeAddRules) +
+      (_timeRemoveRules -> timeRemoveRules) + (_timeRemoveFacts -> timeRemoveFacts) + (_timeGetModel -> timeGetModel) +
+      (_nrOfStaticRules -> nrOfStaticRules) + (_nrOfAddedFacts -> nrOfAddedFacts) + (_nrOfAddedRules -> nrOfAddedRules) +
       (_nrOfRemovedRules -> nrOfRemovedRules) + (_nrOfRemovedFacts -> nrOfRemovedFacts)
 
   }
@@ -292,4 +335,3 @@ object StreamingTmsEval {
   */
 
 }
-

@@ -10,7 +10,7 @@ import scala.util.Random
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy(new OptimizedNetwork()) //TODO hb: why don't we use "TruthMaintenanceNetwork()" here (as below)?
+    val net = new JtmsGreedy(new OptimizedNetwork())
     P.rules foreach net.add
     net
   }
