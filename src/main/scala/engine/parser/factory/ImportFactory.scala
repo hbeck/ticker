@@ -1,6 +1,7 @@
 package engine.parser.factory
 
 import core.lars.WindowFunction
+import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
 import engine.parser.wrapper.ParamWrapper
 
 /**
@@ -11,18 +12,25 @@ case class ImportFactory(importClass: String, params: Option[String], name: Stri
 object ImportFactory {
 
 
-  private var wfnObjects: Map[String,WindowFactory] = Map()
+  private var wfnObjects: Map[String,WindowFunctionFactory] = Map()
 
-  def apply(importClass: String, params: Option[String], name: String) = {
-    if(params.isDefined) ??? //TODO implement this as soon as it can be actually useful
+  def apply(importClass: String, paramStr: Option[String], name: String): ImportFactory = {
+
+    wfnObjects ++= defaultWfnFactories
+
+    val params = paramStr.getOrElse("").split(",")
+    val constructor = Class.forName(importClass).getConstructor(Class[Array[String]])
 
     if(!wfnObjects.contains(name)) {
-      //This should work for classes with paramterless constructors
-      wfnObjects += (name -> Class.forName(importClass).asInstanceOf[WindowFactory])
+      wfnObjects += (name -> constructor.newInstance(params))
     }
+    ImportFactory(importClass, paramStr, name)
   }
 
-  def registerWinfowFunction(name: String, wfn: WindowFactory): Unit = wfnObjects += (name -> wfn)
+  private def defaultWfnFactories: Map[String,WindowFunctionFactory] = {
+    Map("t" -> SlidingTimeWindowFactory(List())) + ("#" -> SlidingTupleWindowFactory(List()))
+  }
 
-  def getWindowFunction(name: String): Option[WindowFactory] = wfnObjects.get(name)
+  //TODO throw exception if name is not in wfnobjects
+  def getWindowFunctionFactory(name: String): Option[WindowFunctionFactory] = wfnObjects.get(name)
 }

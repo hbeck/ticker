@@ -2,7 +2,7 @@ package engine.parser
 
 import core.lars._
 import engine.parser.factory._
-import engine.parser.wrapper.ArithOperationWrapper
+import engine.parser.wrapper.{OperationWrapper, BodyWrapper, ParamWrapper}
 
 import scala.util.parsing.combinator.JavaTokenParsers
 /**
@@ -19,9 +19,8 @@ class SimpleLarsParser extends JavaTokenParsers {
   }
 
   def importN: Parser[ImportFactory] = "import"~>space ~ str ~ opt("("~>optSpace ~ str ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str ~ newline <~ rep(newline) ^^ {
-    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 ~ _ => {
-      ImportFactory(str1,None,str2)
-    }
+    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 ~ _ => ImportFactory(str1,None,str2)
+
     case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 ~ _ => {
       val parameter = params.get._2 + params.get._1._1 + params.get._1._2
       ImportFactory(str1,Some(parameter.trim),str2)
@@ -35,11 +34,12 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def head: Parser[AtomTrait] = atAtom | atom
 
-  def body: Parser[BodyFactory] = repsep(bodyElement,",") ^^ BodyFactory
+  def body: Parser[BodyWrapper] = repsep(bodyElement,",") ^^ BodyWrapper
 
   def bodyElement: Parser[BodyTrait] = wAtom | head | operation
 
-  def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(upperChar,",") <~ ")") ^^ {
+  def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(upperChar|number,",") <~ ")") ^^ {
+    case not ~ _ ~ pred ~ None => AtomFactory(not,pred,List())
     case not ~ _ ~ pred ~ params => AtomFactory(not, pred, params.get)
   }
 
@@ -50,18 +50,17 @@ class SimpleLarsParser extends JavaTokenParsers {
   }
 
   def wAtom: Parser[WAtomFactory] = atom ~ opt(space ~> "always" <~ optSpace) ~ opt(space ~ "in" ~ space) ~ window ^^ {
-    case atom ~ None ~ _ ~ win => WAtomFactory(atom,Some(Diamond),win)
-    case atom ~ _ ~ _ ~ win => WAtomFactory(atom,Some(Box),win)
+    case atom ~ None ~ _ ~ win  => WAtomFactory(atom,Some(Diamond),win)
+    case atom ~ _ ~ _ ~ win     => WAtomFactory(atom,Some(Box),win)
   } | atAtom ~ opt(space ~ "in" ~ space) ~ window ^^ {
     case atAtom ~ _ ~ win => WAtomFactory(atAtom,None,win)
   }
 
   //TODO can we abstract this and plug in?
-  def window: Parser[WindowFactory] = "[" ~> str ~ opt(space ~> param ~ opt("," ~> param ~ opt("," ~> param))) <~ "]" ^^ {
-    case wType ~ None                                   => WindowFactory(wType)
-    case wType ~ params if params.get._2.isEmpty        => WindowFactory(wType,Some(params.get._1))
-    case wType ~ params if params.get._2.get._2.isEmpty => WindowFactory(wType,Some(params.get._1),Some(params.get._2.get._1))
-    case wType ~ params                                 => WindowFactory(wType,Some(params.get._1),Some(params.get._2.get._1),Some(params.get._2.get._2.get))
+//  def window: Parser[WindowFactory] = "[" ~> str ~ opt(defaultWindow) <~ "]"
+  def window: Parser[WindowFactory] = "[" ~> str ~ opt(space ~> repsep(param,",")) <~ "]" ^^ {
+    case wType ~ None => WindowFactory(wType,List())
+    case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
   def operand: Parser[OperandFactory] = optSpace ~> (upperChar ^^ { o: Char => OperandFactory(o) }
@@ -72,9 +71,9 @@ class SimpleLarsParser extends JavaTokenParsers {
   def compare: Parser[String] = "="|">="|"<="|"!="|"<"|">"
 
   //TODO do not allow arbitrary 'calculations', only single 'assignments' (like T = A + B, A + B = T) and (binary) relations
-  def arithOperation: Parser[ArithOperationWrapper] = operand ~ opt(arithmetic ~ operand) ^^ {
-    case o ~ None => ArithOperationWrapper(o,None,None)
-    case o ~ l => ArithOperationWrapper(o,Some(l.get._1),Some(l.get._2))
+  def arithOperation: Parser[OperationWrapper] = operand ~ opt(arithmetic ~ operand) ^^ {
+    case o ~ None => OperationWrapper(o,None,None)
+    case o ~ l => OperationWrapper(o,Some(l.get._1),Some(l.get._2))
   }
 
   def leftOperation: Parser[OperationFactory] = arithOperation ~ compare ~ operand ^^ {
@@ -85,16 +84,16 @@ class SimpleLarsParser extends JavaTokenParsers {
     case o ~ op ~ ao => OperationFactory(ao,op,o)
   }
 
-  def operation: Parser[OperationFactory] = leftOperation | rightOperation
+  def logicOperation: Parser[OperationFactory] = operand ~ compare ~ operand ^^ {
+    case left ~ func ~ right => OperationFactory(left,func,right)
+  }
 
-/*  def operation: Parser[OperationFactory] = arithOperation ~ compare ~ arithOperation ^^ {
-    case l1 ~ op ~ l2 => OperationFactory(l1,op,l2)
-  }*/
+  def operation: Parser[OperationFactory] = leftOperation | rightOperation | logicOperation
 
   def operator: Parser[String] = arithmetic | compare
 
-  def param: Parser[ParamFactory] = optSpace ~> number ~ opt(space ~> str) ^^ {
-    case num ~ str => ParamFactory(num,str)
+  def param: Parser[ParamWrapper] = optSpace ~> number ~ opt(space ~> str) ^^ {
+    case num ~ str => ParamWrapper(num,str)
   }
 
   def neg: Parser[Any] = optSpace ~ "not" ~ space
