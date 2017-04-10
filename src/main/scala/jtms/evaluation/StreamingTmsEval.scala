@@ -19,6 +19,11 @@ import scala.io.Source
   */
 object StreamingTmsEval {
 
+  //known instances:
+  val MMEDIA_DET = "mmediaDet"
+  val MMEDIA_NONDET = "mmediaNonDet"
+  val CACHE_HOPS_SIMPLE = "chSimple"
+
   val loader = Load(TimeUnit.SECONDS)
 
   def main(args: Array[String]): Unit = {
@@ -31,53 +36,92 @@ object StreamingTmsEval {
   val GREEDY = "Greedy"
   val LEARN = "Learn"
 
+  var INSTANCE_NAME = "inst"
+  var TMS = "tms"
+  var PRE_RUNS = "pre"
+  var RUNS = "runs"
+  var TIMEPOINTS = "tp"
+  var MODEL_RATIO = "ratio"
+  var WINDOW_SIZE = "winsize"
+
   def evaluate(args: Array[String]): Unit = {
-    var impl = DOYLE
-    var warmUps = 0
-    var iterations = 1
-    var windowSize = 10
-    var timePoints = 100
-    var countModels = false
-    var instanceNames = Seq("mmediaNonDet")
-    //var dir = "src/test/resources/ground-programs/"
-    if (args.nonEmpty) {
-      try {
-        impl = args(0)
-        warmUps = Integer.parseInt(args(1))
-        iterations = Integer.parseInt(args(2))
-        windowSize = Integer.parseInt(args(3))
-        timePoints = Integer.parseInt(args(4))
-        countModels = args(5) match { case "true" => true; case _ => false }
-        instanceNames = args.drop(6).toSeq
-      } catch {
-        case e: Exception => {
-          println("args: impl warmUps iterations windowSize timePoints false inst1 inst2 ...")
-          println(f"eg: $DOYLE 2 10 30 180 false mmediaDet")
-          System.exit(1)
-        }
-      }
+
+    var argMap = buildArgMap(args)
+
+    if (!argMap.contains(INSTANCE_NAME)) {
+      argMap = argMap + (INSTANCE_NAME -> CACHE_HOPS_SIMPLE)
     }
-    println(f"impl: $impl, warmUps: $warmUps, iterations: $iterations, windowSize: $windowSize, timePoints: $timePoints, countModels: "+countModels)
-    run(impl, warmUps, iterations, windowSize, timePoints, countModels, instanceNames)
+    if (!argMap.contains(TMS)) {
+      argMap = argMap + (TMS -> DOYLE)
+    }
+    if (!argMap.contains(PRE_RUNS)) {
+      argMap = argMap + (PRE_RUNS -> "2")
+    }
+    if (!argMap.contains(RUNS)) {
+      argMap = argMap + (RUNS -> "5")
+    }
+    if (!argMap.contains(TIMEPOINTS)) {
+      argMap = argMap + (TIMEPOINTS -> "10")
+    }
+    if (!argMap.contains(MODEL_RATIO)) {
+      argMap = argMap + (MODEL_RATIO -> "false")
+    }
+    if (!argMap.contains(WINDOW_SIZE)) {
+      argMap = argMap + (WINDOW_SIZE -> "10")
+    }
+
+    run(argMap)
+
   }
 
-  def run(impl: String, warmUps: Int, iterations: Int, windowSize: Int, timePoints: Int, countModels: Boolean, instanceNames: Seq[String]) {
-    for (instanceName <- instanceNames) {
-      println(instanceName)
-      val inst = makeInstance(instanceName,windowSize,timePoints)
-      runImplementation(impl, warmUps, iterations, countModels, inst)
+  def buildArgMap(args: Array[String]): Map[String,String] = {
+
+    if (args.length % 2 == 1) {
+      println("need even number of args. given: "+args)
+      System.exit(1)
+    }
+    if (args.length == 0) {
+      return Map()
+    }
+
+    var argMap = Map[String,String]()
+    for (i <- 0 to args.length/2-1) {
+      argMap = argMap + (args(2*i) -> args(2*i+1))
+    }
+    argMap
+
+  }
+
+  def run(argMap: Map[String,String]) {
+    //impl: String, warmUps: Int, iterations: Int, windowSize: Int, timePoints: Int, countModels: Boolean, instanceNames: Seq[String]
+    val inst = makeInstance(argMap)
+    val tms = argMap(TMS) match {
+      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
+      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
+      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
+      case LEARN => new JtmsLearn()
+    }
+    val preRuns = Integer.parseInt(argMap(PRE_RUNS))
+    val runs = Integer.parseInt(argMap(RUNS))
+    val modelRatio:Boolean = if (argMap(MODEL_RATIO) == "true") true else false
+
+    runImplementation(inst, tms, preRuns, runs, modelRatio)
+  }
+
+  def makeInstance(argMap: Map[String,String]): StreamingTmsEvalInstance = {
+
+    val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
+    val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
+
+    argMap(INSTANCE_NAME) match {
+      case CACHE_HOPS_SIMPLE => MMediaDeterministicEvalInst(windowSize, timePoints)
+      case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints)
+      case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints)
+      case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
   }
 
-  def makeInstance(instanceName: String, windowSize: Int, timePoints: Int): StreamingTmsEvalInstance = {
-    instanceName match {
-      case "mmediaDet" => MMediaDeterministicEvalInst(windowSize, timePoints)
-      case "mmediaNonDet" => MMediaNonDeterministicEvalInst(windowSize, timePoints)
-      case _ => println(f"unknown instance name $instanceName"); throw new RuntimeException
-    }
-  }
-
-  def runImplementation(impl: String, warmUps: Int, iterations: Int, countModels: Boolean, instance: StreamingTmsEvalInstance): Unit = {
+  def runImplementation(instance: StreamingTmsEvalInstance, tms: JtmsUpdateAlgorithm, preRuns: Int, runs: Int, modelRatio: Boolean): Unit = {
 
     var totalTime = 0L
     var totalRetractions = 0L
@@ -98,18 +142,11 @@ object StreamingTmsEval {
     var totalNrRemoveRule = 0L
     var totalNrRemoveFact = 0L
 
-    for (i <- (1 + (warmUps * -1)) to iterations) {
+    for (i <- (1 + (preRuns * -1)) to runs) {
 
       print(" " + i)
 
-      val tms = impl match {
-        case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), instance.random)
-        case DOYLE => new JtmsDoyle(new OptimizedNetwork(), instance.random)
-        case GREEDY => new JtmsGreedy(new OptimizedNetwork(), instance.random)
-        case LEARN => new JtmsLearn()
-      }
-
-      val result: Map[String, Long] = runIteration(instance, tms, countModels)
+      val result: Map[String, Long] = runIteration(instance, tms, modelRatio)
 
       if (i >= 1) {
         totalTime += result(_evaluationIterationTime)
@@ -130,7 +167,7 @@ object StreamingTmsEval {
         totalNrRemoveFact += result(_nrOfRemovedFacts)
       }
 
-      if (impl == DOYLE || impl == DOYLE_SIMPLE) {
+      if (instance.isInstanceOf[JtmsDoyle]) { //TODO revisit later when optimized version is there
         totalRetractions = totalRetractions + tms.asInstanceOf[JtmsDoyle].retractionsAffected
       }
 
@@ -147,15 +184,15 @@ object StreamingTmsEval {
     implicit def long2div(l: Long) = LongDiv(l)
     implicit def double2sec(d: Double) = DoubleSec(d)
 
-    val avgTimeIteration = totalTime %% iterations sec
-    val avgTimeRuleGen = totalTimeRuleGen %% iterations sec
-    val avgTimeStaticRules = totalTimeStaticRules %% iterations sec
-    val avgTimeAllTimePoints = totalTimeAllTimePoints %% (iterations * instance.timePoints) sec
+    val avgTimeIteration = totalTime %% runs sec
+    val avgTimeRuleGen = totalTimeRuleGen %% runs sec
+    val avgTimeStaticRules = totalTimeStaticRules %% runs sec
+    val avgTimeAllTimePoints = totalTimeAllTimePoints %% (runs * instance.timePoints) sec
     val avgTimeAddFact = totalTimeAddFact %% totalNrAddFact sec
     val avgTimeAddRule = totalTimeAddRule %% totalNrAddRule sec
     val avgTimeRemoveRule = totalTimeRemoveRule %% totalNrRemoveRule sec
     val avgTimeRemoveFact = totalTimeRemoveFact %% totalNrRemoveFact sec
-    val avgTimeGetModel = totalTimeGetModel %% (iterations * instance.timePoints) sec
+    val avgTimeGetModel = totalTimeGetModel %% (runs * instance.timePoints) sec
     val totalUpdates = totalModels + totalFailures
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
@@ -172,8 +209,8 @@ object StreamingTmsEval {
     println(f"ratio models: $ratioModels")
     println(f"ratio failures: $ratioFailures")
 
-    if (impl == DOYLE || impl == DOYLE_SIMPLE) {
-      val avgRetractions = (1.0 * totalRetractions) / (1.0 * iterations)
+    if (instance.isInstanceOf[JtmsDoyle]) {
+      val avgRetractions = (1.0 * totalRetractions) / (1.0 * runs)
       println(f"avg retractions: $avgRetractions")
     }
 
