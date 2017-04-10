@@ -11,10 +11,11 @@ import scala.util.Random
 /**
   * Created by hb on 10.04.17.
   */
-abstract class CacheHopsInstance extends StreamingTmsEvalInstance {
+abstract class CacheHopsEvalInst(random: Random = new Random()) extends StreamingTmsEvalInstance {
 
-  def nrOfItems: Int
   def windowSize: Int
+  def timePoints: Int
+  def nrOfItems: Int
   def edges: Set[Atom]
 
   final def nodes(): Set[Value] = edges collect { case a:GroundAtomWithArguments => a.arguments } flatten
@@ -74,6 +75,7 @@ abstract class CacheHopsInstance extends StreamingTmsEvalInstance {
    w_error(N,M) :- error(N,M,T)
    */
 
+  var rulesPrinted = false
 
   override def staticRules(): Seq[NormalRule] = {
 
@@ -85,12 +87,13 @@ abstract class CacheHopsInstance extends StreamingTmsEvalInstance {
     val _0=Set[Atom]()
 
     var rules = Seq[NormalRule]()
-    rules = rules :+ rule(sat(I,N),Set[Atom](item(I),w_req(I,N),w_cache(I,N)),_0)
+    rules = rules :+ rule(sat(I,N),Set[Atom](item(I),node(N),w_req(I,N),w_cache(I,N)),_0)
 
     for (i <- 1 to nrOfItems) {
       rules = rules :+ fact(item("i"+i))
     }
     rules = rules ++ (nodeAtoms() map (fact(_)))
+    //println(rules)
 
     //
 
@@ -98,13 +101,21 @@ abstract class CacheHopsInstance extends StreamingTmsEvalInstance {
     val inspect = StaticProgramInspection.forAsp(program)
     val grounder = GrounderInstance.oneShotAsp(inspect)
 
-    rules flatMap (grounder.ground(_))
+    val groundRules = rules flatMap (grounder.ground(_))
+
+    if (!rulesPrinted) {
+      println()
+      groundRules foreach println
+      rulesPrinted = true
+    }
+
+    groundRules
 
   }
 
 }
 
-case class SimpleCacheHopInstance(random: Random, timePoints: Int, windowSize: Int, nrOfItems: Int, edges: Set[Atom]) extends CacheHopsInstance {
+case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], random: Random = new Random()) extends CacheHopsEvalInst(random) {
 
   override def factsToAddAt(t: Int): Seq[NormalRule] = Seq()
   override def rulesToAddAt(t: Int): Seq[NormalRule] = Seq()
@@ -112,4 +123,17 @@ case class SimpleCacheHopInstance(random: Random, timePoints: Int, windowSize: I
   override def factsToRemoveAt(t: Int): Seq[NormalRule] = Seq()
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {}
 
+}
+
+object CacheHopsEvalInst {
+  def loadEdges(dir: String, filename: String): Set[Atom] = {
+    val _edge = Predicate("edge")
+    val source = scala.io.Source.fromFile(dir + filename)
+    val atoms = source.getLines map { l =>
+      val line = l.trim
+      val arr = line.split(" ")
+      GroundAtomWithArguments(_edge, Seq(arr(0), arr(1)))
+    }
+    atoms.toSet
+  }
 }

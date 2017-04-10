@@ -4,10 +4,11 @@ import java.io.{File, PrintWriter}
 import java.util.concurrent.TimeUnit
 
 import common.Util.stopTime
+import core.Atom
 import core.asp._
 import jtms._
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.evaluation.instances.{MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
+import jtms.evaluation.instances.{CacheHopsEvalInst, CacheHopsStandardEvalInst, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 import runner.Load
 
@@ -22,7 +23,7 @@ object StreamingTmsEval {
   //known instances:
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
-  val CACHE_HOPS_SIMPLE = "chSimple"
+  val CACHE_HOPS = "cacheHops"
 
   val loader = Load(TimeUnit.SECONDS)
 
@@ -43,13 +44,17 @@ object StreamingTmsEval {
   var TIMEPOINTS = "tp"
   var MODEL_RATIO = "ratio"
   var WINDOW_SIZE = "winsize"
+  //
+  var ITEMS = "items"
+  var EDGE_DIR = "edgedir"
+  var EDGE_FILE = "edgeset"
 
   def evaluate(args: Array[String]): Unit = {
 
     var argMap = buildArgMap(args)
 
     if (!argMap.contains(INSTANCE_NAME)) {
-      argMap = argMap + (INSTANCE_NAME -> CACHE_HOPS_SIMPLE)
+      argMap = argMap + (INSTANCE_NAME -> CACHE_HOPS)
     }
     if (!argMap.contains(TMS)) {
       argMap = argMap + (TMS -> DOYLE)
@@ -68,6 +73,16 @@ object StreamingTmsEval {
     }
     if (!argMap.contains(WINDOW_SIZE)) {
       argMap = argMap + (WINDOW_SIZE -> "10")
+    }
+    //
+    if (!argMap.contains(ITEMS)) {
+      argMap = argMap + (ITEMS -> "10")
+    }
+    if (!argMap.contains(EDGE_DIR)) {
+      argMap = argMap + (EDGE_DIR -> "src/test/resources/edge-sets/")
+    }
+    if (!argMap.contains(EDGE_FILE)) {
+      argMap = argMap + (EDGE_FILE -> "edges1.txt")
     }
 
     run(argMap)
@@ -112,9 +127,13 @@ object StreamingTmsEval {
 
     val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
     val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
+    val nrOfItems = Integer.parseInt(argMap(ITEMS))
 
     argMap(INSTANCE_NAME) match {
-      case CACHE_HOPS_SIMPLE => MMediaDeterministicEvalInst(windowSize, timePoints)
+      case CACHE_HOPS => {
+        val edges: Set[Atom] = CacheHopsEvalInst.loadEdges(argMap(EDGE_DIR),argMap(EDGE_FILE))
+        CacheHopsStandardEvalInst(windowSize,timePoints,nrOfItems,edges)
+      }
       case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints)
       case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints)
       case s => println(f"unknown instance name $s"); throw new RuntimeException

@@ -90,6 +90,8 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
       neg.tail foreach (sb.append(", not ").append(_))
     }
 
+    sb.append(".")
+
     return result
   }
 }
