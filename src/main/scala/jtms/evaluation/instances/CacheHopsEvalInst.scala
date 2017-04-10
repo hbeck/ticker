@@ -22,13 +22,9 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
   final def nodeAtoms(): Set[Atom] = nodes map (node(_))
 
   val _node = Predicate("node")
-  def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
   val _sat = Predicate("sat")
-  def sat(arg1: Variable, arg2: Variable) = AtomWithArguments(_sat,Seq(arg1,arg2))
   val _item = Predicate("item")
-  def item(arg1: Argument) = AtomWithArguments(_item,Seq(arg1))
   val _getFrom = Predicate("getFrom")
-  def getFrom(arg1: Variable, arg2: Variable, arg3: Variable) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
   val _n_getFrom = Predicate("n_getFrom")
   val _needAt = Predicate("needAt")
   val _conn = Predicate("conn")
@@ -38,22 +34,40 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
   val _itemReach = Predicate("itemReach")
   val _reach = Predicate("reach")
 
-  val _neq = Predicate("neq")
-  val _lt = Predicate("lt")
-  val _plus = Predicate("plus")
-
+  //do not use predicates used in grounding since we do not want to re-ground here
+  val _notEq = Predicate("notEq") //corresponds to neq
+  val _lowerThan = Predicate("lowerThan") //corresponds to lt
+  val _incr = Predicate("incr") //inr(K0,K) corresponds to plus(K0,1,K)
   //windows
   val _w_req = Predicate("w_req")
-  def w_req(arg1: Variable, arg2: Variable) = AtomWithArguments(_w_req,Seq(arg1,arg2))
   val _w_cache = Predicate("w_cache")
-  def w_cache(arg1: Variable, arg2: Variable) = AtomWithArguments(_w_cache,Seq(arg1,arg2))
   val _w_error = Predicate("w_error")
-  def w_error(arg1: Variable, arg2: Variable) = AtomWithArguments(_w_error,Seq(arg1,arg2))
-
   //signals
   val _req = Predicate("req")
   val _cache = Predicate("cache")
   val _error = Predicate("error")
+
+  def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
+  def sat(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  def getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
+  def item(arg1: Argument) = AtomWithArguments(_item,Seq(arg1))
+  def n_getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_n_getFrom,Seq(arg1,arg2,arg3))
+  def needAt(arg1: Argument, arg2: Argument) = AtomWithArguments(_needAt,Seq(arg1,arg2))
+  def conn(arg1: Argument, arg2: Argument) = AtomWithArguments(_conn,Seq(arg1,arg2))
+  def edge(arg1: Argument, arg2: Argument) = AtomWithArguments(_edge,Seq(arg1,arg2))
+  def minReach(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_minReach,Seq(arg1,arg2,arg3))
+  def n_minReach(arg1: Argument, arg2: Argument, arg3: Argument, arg4: Argument) = AtomWithArguments(_n_minReach,Seq(arg1,arg2,arg3,arg4))
+  def itemReach(arg1: Argument, arg2: Argument, arg3: Argument, arg4: Argument) = AtomWithArguments(_itemReach,Seq(arg1,arg2,arg3,arg4))
+  def reach(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_reach,Seq(arg1,arg2,arg3))
+  def notEq(arg1: Argument, arg2: Argument) = AtomWithArguments(_notEq,Seq(arg1,arg2))
+  def lowerThan(arg1: Argument, arg2: Argument) = AtomWithArguments(_lowerThan,Seq(arg1,arg2))
+  def incr(arg1: Argument, arg2: Argument) = AtomWithArguments(_incr,Seq(arg1,arg2))
+  def w_req(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_req,Seq(arg1,arg2))
+  def w_cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_cache,Seq(arg1,arg2))
+  def w_error(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_error,Seq(arg1,arg2))
+  def req(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_req,Seq(arg1,arg2,arg3))
+  def cache(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
+  def error(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
 
   /*
    % STATIC:
@@ -76,24 +90,71 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
    */
 
   var rulesPrinted = false
+  var postProcessGroundRules = true
 
   override def staticRules(): Seq[NormalRule] = {
 
     val I:Variable = StringVariable("I")
     val N:Variable = StringVariable("N")
     val M:Variable = StringVariable("M")
-    val K:Variable = StringVariable("K")
-
-    val _0=Set[Atom]()
+    val M0:Variable = StringVariable("M0")
+    val M2:Variable = StringVariable("M2")
+    val K:Variable = Variable("K")
+    val K0:Variable = Variable("K0")
+    val K2:Variable = Variable("K2")
 
     var rules = Seq[NormalRule]()
-    rules = rules :+ rule(sat(I,N),Set[Atom](item(I),node(N),w_req(I,N),w_cache(I,N)),_0)
+    def s(ats: Atom*) = ats.toSet[Atom]
 
+    //sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
+    rules = rules :+ rule(sat(I,N), s(item(I),node(N),w_req(I,N),w_cache(I,N)), s())
+    //sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
+    rules = rules :+ rule(sat(I,N), s(item(I),node(N),w_req(I,N),getFrom(I,N,M)), s())
+    //needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
+    rules = rules :+ rule(needAt(I,N), s(item(I),node(N),w_req(I,N)), s(w_cache(I,N)) )
+    //conn(N,M) :- edge(N,M), not w_error(N,M).
+    rules = rules :+ rule(conn(N,M), s(edge(N,M)), s(w_error(N,M)))
+    //getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
+    rules = rules :+ rule(getFrom(I,N,M), s(needAt(I,N),minReach(I,N,M)), s(n_getFrom(I,N,M)))
+    //n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
+    rules = rules :+ rule(n_getFrom(I,N,M2), s(getFrom(I,N,M),minReach(I,N,M2), notEq(M,M2)), s())
+    //minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
+    rules = rules :+ rule(minReach(I,N,M), s(itemReach(I,N,M,K)), s(n_minReach(I,N,M,K)))
+    //n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), K2 < K.
+    rules = rules :+ rule(n_minReach(I,N,M,K), s(itemReach(I,N,M,K),itemReach(I,N,M2,K2),lowerThan(K2,K)), s())
+    //itemReach(I,N,M,K) :- needAt(I,N), w_cache(I,M), reach(N,M,K).
+    rules = rules :+ rule(itemReach(I,N,M,K), s(needAt(I,N), w_cache(I,M), reach(N,M,K)), s())
+    //reach(N,M,1) :- conn(N,M).
+    rules = rules :+ rule(reach(N,M,IntValue(1)), s(conn(N,M)), s())
+    //reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, incr(K0,K).
+    rules = rules :+ rule(reach(N,M0,K0), s(conn(M0,M), notEq(N,M), incr(K0,K)), s()) //do not use 'plus(K0,1,K)' instead of incr. grounder cannot resolve
+
+    /* facts */
+
+    rules = rules ++ (edges map (fact(_)))
+    rules = rules ++ (nodeAtoms map (fact(_)))
     for (i <- 1 to nrOfItems) {
       rules = rules :+ fact(item("i"+i))
     }
-    rules = rules ++ (nodeAtoms() map (fact(_)))
-    //println(rules)
+
+
+    /* auxiliary relations lowerThan, incr, notEq */
+
+    for (i <- 0 to (nodes.size - 1)) { //maximum reachability is for number of nodes
+      for (j <- (i+1) to (nodes.size)) {
+        rules = rules :+ fact(lowerThan(IntValue(i),IntValue(j)))
+      }
+    }
+    for (i <- 0 to nodes.size) {
+      rules = rules :+ fact(incr(IntValue(i),IntValue(i+1)))
+    }
+    for (n <- nodes) {
+      for (m <- nodes) {
+        if (n != m) {
+          rules = rules :+ fact(notEq(n,m)) :+ fact(notEq(m,n))
+        }
+      }
+    }
 
     //
 
@@ -101,7 +162,11 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
     val inspect = StaticProgramInspection.forAsp(program)
     val grounder = GrounderInstance.oneShotAsp(inspect)
 
-    val groundRules = rules flatMap (grounder.ground(_))
+    var groundRules = rules flatMap (grounder.ground(_))
+
+    if (postProcessGroundRules) {
+      groundRules = postProcess(groundRules)
+    }
 
     if (!rulesPrinted) {
       println()
@@ -111,6 +176,40 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
 
     groundRules
 
+  }
+
+  //delete aux relation atoms, as facts and from rules where they hold
+  //delete rules where they do not hold
+  def postProcess(groundRules: Seq[NormalRule]): Seq[NormalRule] = {
+    groundRules collect {
+      case r if (!isRelation(r.head) && !unsatisfiedRelation(r)) => removeRelations(r)
+    }
+  }
+
+  def unsatisfiedRelation(r: NormalRule): Boolean = {
+    val relations = r.body filter (isRelation(_))
+    relations exists (a => !(satisfied(a)))
+  }
+
+  def satisfied(relation: Atom): Boolean = {
+    val args = relation.arguments()
+    relation.predicate match {
+      case `_notEq` => args(0) != args(1)
+      case `_lowerThan` => Integer.parseInt(""+args(0)) < Integer.parseInt(""+args(1))
+      case `_incr` => Integer.parseInt(""+args(0)) + 1 == Integer.parseInt(""+args(1))
+    }
+  }
+
+  def isRelation(a: Atom): Boolean = {
+    val h = a.predicate
+    h == _notEq || h == _lowerThan || h == _incr
+  }
+
+  def removeRelations(r: NormalRule): NormalRule = {
+    val h = r.head
+    val p = r.pos filter (a => !(isRelation(a)))
+    val n = r.neg
+    rule(h,p,n)
   }
 
 }
