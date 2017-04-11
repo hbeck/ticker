@@ -1,0 +1,6 @@
+/* this is an example comment*/
+
+a :- b.
+a.
+b :- k at T, h in [t 5], l always in [# 10].
+f :- not r.
