@@ -17,6 +17,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
   def timePoints: Int
   def nrOfItems: Int
   def edges: Set[Atom]
+  def postProcessGrounding: Boolean
 
   final def nodes(): Set[Value] = edges collect { case a:GroundAtomWithArguments => a.arguments } flatten
   final def nodeAtoms(): Set[Atom] = nodes map (node(_))
@@ -89,8 +90,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
    w_error(N,M) :- error(N,M,T)
    */
 
-  var rulesPrinted = false
-  var postProcessGroundRules = true
+  var rulesPrinted = true
 
   override def staticRules(): Seq[NormalRule] = {
 
@@ -106,28 +106,30 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
     var rules = Seq[NormalRule]()
     def s(ats: Atom*) = ats.toSet[Atom]
 
-    //sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
-    rules = rules :+ rule(sat(I,N), s(item(I),node(N),w_req(I,N),w_cache(I,N)), s())
-    //sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
-    rules = rules :+ rule(sat(I,N), s(item(I),node(N),w_req(I,N),getFrom(I,N,M)), s())
-    //needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
-    rules = rules :+ rule(needAt(I,N), s(item(I),node(N),w_req(I,N)), s(w_cache(I,N)) )
-    //conn(N,M) :- edge(N,M), not w_error(N,M).
-    rules = rules :+ rule(conn(N,M), s(edge(N,M)), s(w_error(N,M)))
-    //getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
-    rules = rules :+ rule(getFrom(I,N,M), s(needAt(I,N),minReach(I,N,M)), s(n_getFrom(I,N,M)))
-    //n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
-    rules = rules :+ rule(n_getFrom(I,N,M2), s(getFrom(I,N,M),minReach(I,N,M2), notEq(M,M2)), s())
-    //minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
-    rules = rules :+ rule(minReach(I,N,M), s(itemReach(I,N,M,K)), s(n_minReach(I,N,M,K)))
-    //n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), K2 < K.
-    rules = rules :+ rule(n_minReach(I,N,M,K), s(itemReach(I,N,M,K),itemReach(I,N,M2,K2),lowerThan(K2,K)), s())
-    //itemReach(I,N,M,K) :- needAt(I,N), w_cache(I,M), reach(N,M,K).
-    rules = rules :+ rule(itemReach(I,N,M,K), s(needAt(I,N), w_cache(I,M), reach(N,M,K)), s())
-    //reach(N,M,1) :- conn(N,M).
-    rules = rules :+ rule(reach(N,M,IntValue(1)), s(conn(N,M)), s())
-    //reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, incr(K0,K).
-    rules = rules :+ rule(reach(N,M0,K0), s(conn(M0,M), notEq(N,M), incr(K0,K)), s()) //do not use 'plus(K0,1,K)' instead of incr. grounder cannot resolve
+
+    rules = rules :+
+    //   sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
+    rule(sat(I,N), s(item(I), node(N), w_req(I,N), w_cache(I,N)), s()) :+
+    //   sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
+    rule(sat(I,N), s(item(I), node(N), w_req(I,N), getFrom(I,N,M)), s()) :+
+    //  needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
+    rule(needAt(I,N), s(item(I), node(N), w_req(I,N)),  s(w_cache(I,N)) ) :+
+    //   conn(N,M) :- edge(N,M), not w_error(N,M).
+    rule(conn(N,M), s(edge(N,M)),  s(w_error(N,M))) :+
+    //   getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
+    rule(getFrom(I,N,M), s(needAt(I,N), minReach(I,N,M)),  s(n_getFrom(I,N,M))) :+
+    //   n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
+    rule(n_getFrom(I,N,M2), s(getFrom(I,N,M), minReach(I,N,M2), notEq(M,M2)), s()) :+
+    //   minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
+    rule(minReach(I,N,M), s(itemReach(I,N,M,K)),  s(n_minReach(I,N,M,K))) :+
+    //   n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), K2 < K.
+    rule(n_minReach(I,N,M,K), s(itemReach(I,N,M,K), itemReach(I,N,M2,K2), lowerThan(K2,K)), s()) :+
+    //   itemReach(I,N,M,K) :- needAt(I,N), w_cache(I,M), reach(N,M,K).
+    rule(itemReach(I,N,M,K), s(needAt(I,N), w_cache(I,M), reach(N,M,K)), s()) :+
+    //   reach(N,M,1) :- conn(N,M).
+    rule(reach(N,M,IntValue(1)), s(conn(N,M)), s()) :+
+    //   reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, incr(K0,K).
+    rule(reach(N,M,K), s(reach(N,M0,K0), conn(M0,M), notEq(N,M), incr(K0,K)), s()) //do not use 'plus(K0,1,K)' instead of incr. grounder cannot resolve
 
     /* facts */
 
@@ -162,9 +164,11 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
     val inspect = StaticProgramInspection.forAsp(program)
     val grounder = GrounderInstance.oneShotAsp(inspect)
 
+    //TODO curr inspect how reach(N,M,1) rules fails in grounding
     var groundRules = rules flatMap (grounder.ground(_))
 
-    if (postProcessGroundRules) {
+    //TODO also remove facts item, nodes and their occurrences in rule bodies
+    if (postProcessGrounding) {
       groundRules = postProcess(groundRules)
     }
 
@@ -173,6 +177,8 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
       groundRules foreach println
       rulesPrinted = true
     }
+
+    println(f"\n${groundRules.size} ground rules")
 
     groundRules
 
@@ -214,7 +220,11 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
 
 }
 
-case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], random: Random = new Random()) extends CacheHopsEvalInst(random) {
+case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random()) extends CacheHopsEvalInst(random) {
+
+  if (printRules) {
+    rulesPrinted = false
+  }
 
   override def factsToAddAt(t: Int): Seq[NormalRule] = Seq()
   override def rulesToAddAt(t: Int): Seq[NormalRule] = Seq()

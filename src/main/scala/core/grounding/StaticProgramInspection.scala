@@ -160,7 +160,8 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
     values
   }
 
-  var triedSources: Map[Predicate,Set[Predicate]] = HashMap[Predicate,Set[Predicate]]()
+  // TODO use type LookupSource = (Predicate,Int)
+  var triedSources: Map[(Predicate,Int),Set[(Predicate,Int)]] = HashMap[(Predicate,Int),Set[(Predicate,Int)]]()
 
   def findValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {
 
@@ -217,9 +218,14 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
     }
 
     val nonGroundIntensional: Set[Value] = variableSources collect {
-      case (pred, idx) if (!triedSources.getOrElse(predicate,Set()).contains(pred)) => {
-        triedSources = triedSources + (predicate -> (triedSources.getOrElse(predicate,Set()) + pred))
-        lookupOrFindValuesForPredicateArg(pred, idx)
+      case (pred, idx) => {
+        val set = triedSources.getOrElse((predicate,argumentIdx),Set())
+        if (!set.contains((pred,idx))) {
+          triedSources = triedSources + ((predicate,argumentIdx) -> (set + ((pred,idx))))
+          lookupOrFindValuesForPredicateArg(pred, idx)
+        } else {
+          Set()
+        }
       }
     } flatten
 

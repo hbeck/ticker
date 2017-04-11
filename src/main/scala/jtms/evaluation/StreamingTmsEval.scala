@@ -48,42 +48,34 @@ object StreamingTmsEval {
   var ITEMS = "items"
   var EDGE_DIR = "edgedir"
   var EDGE_FILE = "edgeset"
+  //
+  var POST_PROCESS_GROUNDING = "postProcess"
+  var PRINT_RULES = "printRules"
 
   def evaluate(args: Array[String]): Unit = {
 
     var argMap = buildArgMap(args)
 
-    if (!argMap.contains(INSTANCE_NAME)) {
-      argMap = argMap + (INSTANCE_NAME -> CACHE_HOPS)
+    def defaultArg(key: String, value: String) = {
+      if (!argMap.contains(key)) {
+        argMap = argMap + (key -> value)
+      }
     }
-    if (!argMap.contains(TMS)) {
-      argMap = argMap + (TMS -> DOYLE)
-    }
-    if (!argMap.contains(PRE_RUNS)) {
-      argMap = argMap + (PRE_RUNS -> "2")
-    }
-    if (!argMap.contains(RUNS)) {
-      argMap = argMap + (RUNS -> "5")
-    }
-    if (!argMap.contains(TIMEPOINTS)) {
-      argMap = argMap + (TIMEPOINTS -> "10")
-    }
-    if (!argMap.contains(MODEL_RATIO)) {
-      argMap = argMap + (MODEL_RATIO -> "false")
-    }
-    if (!argMap.contains(WINDOW_SIZE)) {
-      argMap = argMap + (WINDOW_SIZE -> "10")
-    }
+
+    defaultArg(INSTANCE_NAME,CACHE_HOPS)
+    defaultArg(TMS,DOYLE)
+    defaultArg(PRE_RUNS,"2")
+    defaultArg(RUNS,"5")
+    defaultArg(TIMEPOINTS,"10")
+    defaultArg(MODEL_RATIO,"false")
+    defaultArg(WINDOW_SIZE,"10")
     //
-    if (!argMap.contains(ITEMS)) {
-      argMap = argMap + (ITEMS -> "10")
-    }
-    if (!argMap.contains(EDGE_DIR)) {
-      argMap = argMap + (EDGE_DIR -> "src/test/resources/edge-sets/")
-    }
-    if (!argMap.contains(EDGE_FILE)) {
-      argMap = argMap + (EDGE_FILE -> "edges1.txt")
-    }
+    defaultArg(ITEMS,"10")
+    defaultArg(EDGE_DIR,"src/test/resources/edge-sets/")
+    defaultArg(EDGE_FILE,"edges1.txt")
+    //    
+    defaultArg(POST_PROCESS_GROUNDING,"true")
+    defaultArg(PRINT_RULES,"false")
 
     run(argMap)
 
@@ -118,7 +110,7 @@ object StreamingTmsEval {
     }
     val preRuns = Integer.parseInt(argMap(PRE_RUNS))
     val runs = Integer.parseInt(argMap(RUNS))
-    val modelRatio:Boolean = if (argMap(MODEL_RATIO) == "true") true else false
+    val modelRatio:Boolean = (argMap(MODEL_RATIO) == "true")
 
     runImplementation(inst, tms, preRuns, runs, modelRatio)
   }
@@ -128,11 +120,13 @@ object StreamingTmsEval {
     val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
     val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
     val nrOfItems = Integer.parseInt(argMap(ITEMS))
+    val postProcessGrounding = (argMap(POST_PROCESS_GROUNDING) == "true")
 
     argMap(INSTANCE_NAME) match {
       case CACHE_HOPS => {
         val edges: Set[Atom] = CacheHopsEvalInst.loadEdges(argMap(EDGE_DIR),argMap(EDGE_FILE))
-        CacheHopsStandardEvalInst(windowSize,timePoints,nrOfItems,edges)
+        val printRules: Boolean = (argMap(PRINT_RULES) == "true")
+        CacheHopsStandardEvalInst(windowSize,timePoints,nrOfItems,edges,postProcessGrounding,printRules)
       }
       case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints)
       case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints)
