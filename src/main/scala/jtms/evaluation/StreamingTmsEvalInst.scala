@@ -9,7 +9,7 @@ import scala.util.Random
 /**
   * Created by hb on 04.04.17.
   */
-trait StreamingTmsEvalInstance {
+trait StreamingTmsEvalInst {
 
   def random: Random
 
@@ -21,8 +21,9 @@ trait StreamingTmsEvalInstance {
   def factsToRemoveAt(t: Int): Seq[NormalRule]
   def verifyModel(tms: JtmsUpdateAlgorithm, t: Int)
 
-
+  //
   //helper methods
+  //
 
   def rule(head: Atom, posBody: Set[Atom], negBody: Set[Atom]): NormalRule = {
     UserDefinedAspRule[Atom](head, posBody, negBody)
@@ -37,7 +38,6 @@ trait StreamingTmsEvalInstance {
   }
 
   def fact(head: Atom): NormalRule = UserDefinedAspFact[Atom](head)
-  def fact(head: String): NormalRule = UserDefinedAspFact[Atom](Atom(head))
 
 }
 

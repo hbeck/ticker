@@ -1,5 +1,5 @@
-import core.{Atom, Model}
 import core.lars._
+import core.{Atom, Model}
 import evaluation._
 
 import scala.collection.immutable.HashMap

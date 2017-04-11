@@ -4,14 +4,14 @@ import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import jtms.JtmsUpdateAlgorithm
-import jtms.evaluation.StreamingTmsEvalInstance
+import jtms.evaluation.StreamingTmsStandardEvalInst
 
 import scala.util.Random
 
 /**
   * Created by hb on 10.04.17.
   */
-abstract class CacheHopsEvalInst(random: Random = new Random()) extends StreamingTmsEvalInstance {
+abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends StreamingTmsStandardEvalInst {
 
   def windowSize: Int
   def timePoints: Int
@@ -105,7 +105,6 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
 
     var rules = Seq[NormalRule]()
     def s(ats: Atom*) = ats.toSet[Atom]
-
 
     rules = rules :+
     //   sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
@@ -218,18 +217,105 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
 
 }
 
-case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random()) extends CacheHopsEvalInst(random) {
+case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random(1)) extends CacheHopsEvalInst(random) {
 
   if (printRules) {
-    printRulesOnce = false
+    printRulesOnce = true
   }
 
-  override def factsToAddAt(t: Int): Seq[NormalRule] = Seq()
-  override def rulesToAddAt(t: Int): Seq[NormalRule] = Seq()
-  override def rulesToRemoveAt(t: Int): Seq[NormalRule] = Seq()
-  override def factsToRemoveAt(t: Int): Seq[NormalRule] = Seq()
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {}
+  override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
 
+  override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
+    /*
+       w_req(I,N) :- req(I,N,T)
+       w_cache(I,N) :- cache(I,N,T)
+       w_error(N,M) :- error(N,M,T)
+    */
+    var rules = Seq[NormalRule]()
+    def it(i:Int) = StringValue("i"+i)
+    for (i <- 1 to nrOfItems; n <- nodes()) {
+      rules = rules :+
+        rule(w_req(it(i),n), req(it(i),n,IntValue(t))) :+
+        rule(w_cache(it(i),n), cache(it(i),n,IntValue(t)))
+    }
+    for (e <- edges) {
+      val args = e.asInstanceOf[AtomWithArguments].arguments
+      val n = args(0)
+      val m = args(1)
+      rules = rules :+ rule(w_error(n,m), error(n,m,IntValue(t)))
+    }
+    rules
+  }
+
+  val i1 = StringValue("i1")
+  val n1 = StringValue("n1")
+  val n4 = StringValue("n4")
+  val n7 = StringValue("n7")
+  val m = StringValue("m")
+
+  def sig_req(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
+  def sig_cache(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
+  def sig_error(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
+
+  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
+    val q = t % 100
+    if (q == 0) {
+      Seq() :+ sig_req(i1,n1,t) :+ sig_cache(i1,n4,t)//-> single model getFrom(i1,n1,n4)
+    } else if (q == 10) {
+      Seq() :+ sig_cache(i1,n7,t) //-> model shouldn't change to getFrom(i1,n1,n7)
+    } else if (q == 20) {
+      Seq() :+ sig_error(m,n4,t) //-> model must change to getFrom(i1,n1,n4)
+    } else if (q == 30) {
+      Seq() :+ sig_cache(i1,n1,t) //-> getFrom(i1,n1,n4) must vanish, only sat(i1,n1) remains
+    } else if (q == 40) {
+      Seq() :+ sig_req(i1,n1,t) //-> sat(i1,n1) remains (no getFrom)
+    } else if (q == 45) {
+      Seq() :+ sig_cache(i1,n7,t) //-> sat(i1,n1) remains (no getFrom)
+    } else {
+      Seq()
+    }
+  }
+
+  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
+    val model = tms.getModel.get
+    val q = t % 100
+    if (q >= 0 && q < 10) {
+      assert(model.contains(getFrom(i1,n1,n4)))
+      assert(model.contains(sat(i1,n1)))
+      assert(model.contains(itemReach(i1,n1,n4,IntValue(2))))
+      assert(model.contains(itemReach(i1,n1,n4,IntValue(3))))
+      assert(model.contains(minReach(i1,n1,n4)))
+    } else if (q >= 10 && q < 20) {
+      //from before:
+      if (!model.contains(getFrom(i1,n1,n4))) {
+        println(f"\nt=$t, q=$q")
+        model filter {a =>
+          a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
+          a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
+        } foreach println
+      }
+      assert(model.contains(getFrom(i1,n1,n4))) //keep
+      assert(model.contains(sat(i1,n1)))
+      assert(model.contains(itemReach(i1,n1,n4,IntValue(2))))
+      assert(model.contains(itemReach(i1,n1,n4,IntValue(3))))
+      assert(model.contains(minReach(i1,n1,n4)))
+      //new:
+      assert(model.contains(itemReach(i1,n1,n7,IntValue(2))))
+      assert(model.contains(itemReach(i1,n1,n7,IntValue(5))))
+      assert(model.contains(itemReach(i1,n1,n7,IntValue(6))))
+      assert(model.contains(minReach(i1,n1,n7)))
+    } else if (q >= 20 && q < 30) {
+      assert(model.contains(getFrom(i1,n1,n7))) //switch
+    } else if (q >= 30 && q < 40) {
+      assert(!model.contains(getFrom(i1,n1,n4)))
+      assert(!model.contains(getFrom(i1,n1,n7)))
+      assert(model.contains(sat(i1,n1)))
+    } else if (q >= 40 && q < 90) {
+      assert(model.contains(sat(i1,n1)))
+    } else {
+      assert(!model.contains(sat(i1,n1)))
+    }
+  }
 }
 
 object CacheHopsEvalInst {

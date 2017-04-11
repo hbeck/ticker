@@ -3,7 +3,7 @@ package runner
 import java.util.concurrent.TimeUnit
 
 import core.lars.{Box, Diamond, ExtendedAtom, HeadAtom, LarsFact, LarsProgram, LarsRule, SlidingTimeWindow, TimeWindowSize, WindowAtom, _}
-import core.{Argument, Atom, AtomWithArguments$, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
+import core.{Argument, Atom, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
 import runner.Load._
 import unfiltered.util.Of.Int
 

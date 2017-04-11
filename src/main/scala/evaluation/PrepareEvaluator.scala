@@ -56,7 +56,6 @@ object PrepareEvaluator {
     }
   }
 
-
   def selectAtoms(random: Random)(probabilities: Map[Atom, Double]): Set[Atom] = {
     val atoms = probabilities filter {
       case (_, probability) => random.nextDouble() <= probability

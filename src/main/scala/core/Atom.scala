@@ -311,7 +311,7 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
+  def apply(caption:String):Atom = PredicateAtom(Predicate(caption))
 
   def apply(predicate: Predicate) = PredicateAtom(predicate)
 
