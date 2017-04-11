@@ -1,6 +1,6 @@
 package engine.parser.factory
 
-import core.Atom
+import core.{Atom, Variable}
 import core.lars._
 
 /**
@@ -20,7 +20,8 @@ case class WAtomFactory(predicate: AtomTrait, tempMod: Option[TemporalModality],
 
   private def matchAtom(predicate: AtomTrait, mod: Option[TemporalModality], window: WindowFactory): WindowAtom =
     predicate match {
-      case at: AtAtom => WindowAtom(window.wfn,At(at.time),at.atom)
-      case a: Atom => WindowAtom(window.wfn,mod.get,a)
+      case at: AtAtomFactory => WindowAtom(window.wfn,At(Variable(at.time)),at.atom.atom)
+      case a: AtomFactory => WindowAtom(window.wfn,mod.get,a.atom)
+      case c => println(c); ???
     }
 }

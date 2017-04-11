@@ -33,14 +33,12 @@ case class RuleFactory(head: Option[AtomTrait], body: List[BodyTrait]) {
     None
   }
 
-  private def listToAtomSet(list: List[BodyTrait]): Set[ExtendedAtom] = {
-   list collect {
+  private def listToAtomSet(list: List[BodyTrait]): Set[ExtendedAtom] = list collect {
         case a:AtomFactory => a.atom
         case a:AtAtomFactory => a.atom
         case a:WAtomFactory => a.atom
         case a:OperationFactory => a.operation
-   } toSet
-  }
+  } toSet
 
   private def createRule(head: Option[HeadAtom], pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): Rule[HeadAtom, ExtendedAtom] = {
     //TODO handling of head == None

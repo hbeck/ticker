@@ -11,8 +11,7 @@ import scala.io.Source
 class SimpleParserTest extends FlatSpec {
 
 
-  //TODO hardcoded
-
+/*
   val filename = "/parser-programs/DummyProgram.lars"
   val source = Source.fromURL(getClass.getResource(filename))
   private val lines = try source.mkString finally source.close()
@@ -79,11 +78,12 @@ class SimpleParserTest extends FlatSpec {
   }
 
   "A rule body" should "recognize atoms, @-atoms and window atoms" in {
+    println(parser.parseBody("a, b at T, c in [t 5], T=3+4"))
     assert(parser.parseBody("a, b at T, c in [t 5], T=3+4").successful)
   }
 
   "A rule body" should "recognize atoms, @-atoms, window atoms (all possibly with a preceding not) " +
     "and operations" in {
     assert(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4").successful)
-  }
+  }*/
 }

@@ -3,6 +3,7 @@ package engine.parser.factory
 import java.lang.reflect.Constructor
 
 import core.lars.WindowFunction
+import engine.parser.InvalidSyntaxException
 import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
 import engine.parser.wrapper.ParamWrapper
 
@@ -15,8 +16,7 @@ case class ImportFactory(importClass: String, params: Option[String], name: Stri
 
 object ImportFactory {
 
-
-  private var wfnObjects: Map[String,WindowFunctionFactory] = Map()
+  private var wfnObjects: Map[String,WindowFunctionFactory] = defaultWfnFactories
 
   def apply(factory: ImportFactory, importClass: String, params: List[String], name: String): Unit = {
 
@@ -34,5 +34,10 @@ object ImportFactory {
   }
 
   //TODO throw exception if name is not in wfnobjects
-  def getWindowFunctionFactory(name: String): Option[WindowFunctionFactory] = wfnObjects.get(name)
+  def getWindowFunctionFactory(name: String): WindowFunctionFactory = {
+    val wff = wfnObjects.get(name)
+
+    if(wff.isDefined) return wff.get
+    throw new InvalidSyntaxException("The specified window function is invalid")
+  }
 }

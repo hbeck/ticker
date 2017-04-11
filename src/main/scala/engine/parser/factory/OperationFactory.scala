@@ -16,7 +16,7 @@ case class OperationFactory(left: OperationWrapper, func: String, right: Operand
   def create(left: OperationWrapper, func: String, right: OperandFactory): RelationAtom = {
     if (isTernaryRelation(left)) {
       if (func == "=") getTernaryRelation(left, right.arg)
-      else ???
+      else throw new InvalidSyntaxException("Invalid relation. For arithmetic operations only '=' is a valid relation.")
     } else {
       getBinaryRelation(func, left.op1.arg, right.arg)
     }

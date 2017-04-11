@@ -38,7 +38,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def body: Parser[List[BodyTrait]] = repsep(bodyElement,",")
 
-  def bodyElement: Parser[BodyTrait] = wAtom | head | operation
+  def bodyElement: Parser[BodyTrait] = operation | wAtom | head
 
   def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(upperChar|number,",") <~ ")") ^^ {
     case not ~ _ ~ pred ~ None => AtomFactory(not.getOrElse(false),pred,List())
@@ -54,7 +54,7 @@ class SimpleLarsParser extends JavaTokenParsers {
     case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not.getOrElse(false),atom,time.toString)
   }
 
-  def wAtom: Parser[WAtomFactory] = atom ~ opt(space ~> "always" <~ optSpace) ~ opt(space ~ "in" ~ space) ~ window ^^ {
+  def wAtom: Parser[WAtomFactory] = atom ~ opt(space ~ "always" ~ optSpace) ~ opt(space ~ "in" ~ space) ~ window ^^ {
     case atom ~ None ~ _ ~ win  => WAtomFactory(atom,Some(Diamond),win)
     case atom ~ _ ~ _ ~ win     => WAtomFactory(atom,Some(Box),win)
   } | atAtom ~ opt(space ~ "in" ~ space) ~ window ^^ {
@@ -93,9 +93,9 @@ class SimpleLarsParser extends JavaTokenParsers {
     case left ~ func ~ right => OperationFactory(left,func,right)
   }
 
-  def operation: Parser[OperationFactory] = leftOperation | rightOperation | logicOperation
+  def operation: Parser[OperationFactory] = (leftOperation | rightOperation) | logicOperation
 
-  def operator: Parser[String] = arithmetic | compare
+//  def operator: Parser[String] = arithmetic | compare
 
   def param: Parser[ParamWrapper] = optSpace ~> number ~ opt(space ~> str) ^^ {
     case num ~ str => ParamWrapper(num,str)
@@ -109,7 +109,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def newline: Parser[String] = "\n" | "\r"
 
-  def str: Parser[String] = rep1(char, char | digit) ^^ (str => str.toString)
+  def str: Parser[String] = rep1(char, char | digit) ^^ (str => str.mkString)
 
   def char: Parser[Char] = lowChar | upperChar
 
