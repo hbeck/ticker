@@ -64,13 +64,13 @@ object StreamingTmsEval {
 
     defaultArg(INSTANCE_NAME,CACHE_HOPS)
     defaultArg(TMS,DOYLE)
-    defaultArg(PRE_RUNS,"2")
-    defaultArg(RUNS,"5")
-    defaultArg(TIMEPOINTS,"10")
+    defaultArg(PRE_RUNS,"0")
+    defaultArg(RUNS,"1")
+    defaultArg(TIMEPOINTS,"2")
     defaultArg(MODEL_RATIO,"false")
-    defaultArg(WINDOW_SIZE,"10")
+    defaultArg(WINDOW_SIZE,"2")
     //
-    defaultArg(ITEMS,"10")
+    defaultArg(ITEMS,"1")
     defaultArg(EDGE_DIR,"src/test/resources/edge-sets/")
     defaultArg(EDGE_FILE,"edges1.txt")
     //    

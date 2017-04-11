@@ -90,7 +90,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
    w_error(N,M) :- error(N,M,T)
    */
 
-  var rulesPrinted = true
+  var printRulesOnce = false
 
   override def staticRules(): Seq[NormalRule] = {
 
@@ -164,21 +164,18 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
     val inspect = StaticProgramInspection.forAsp(program)
     val grounder = GrounderInstance.oneShotAsp(inspect)
 
-    //TODO curr inspect how reach(N,M,1) rules fails in grounding
     var groundRules = rules flatMap (grounder.ground(_))
 
-    //TODO also remove facts item, nodes and their occurrences in rule bodies
     if (postProcessGrounding) {
       groundRules = postProcess(groundRules)
     }
 
-    if (!rulesPrinted) {
+    if (printRulesOnce) {
       println()
       groundRules foreach println
-      rulesPrinted = true
+      println(f"\n${groundRules.size} ground rules")
+      printRulesOnce = false
     }
-
-    println(f"\n${groundRules.size} ground rules")
 
     groundRules
 
@@ -188,7 +185,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
   //delete rules where they do not hold
   def postProcess(groundRules: Seq[NormalRule]): Seq[NormalRule] = {
     groundRules collect {
-      case r if (!isRelation(r.head) && !unsatisfiedRelation(r)) => removeRelations(r)
+      case r if (!isRelation(r.head) && !unsatisfiedRelation(r)) => removeAuxiliary(r)
     }
   }
 
@@ -211,9 +208,10 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
     h == _notEq || h == _lowerThan || h == _incr
   }
 
-  def removeRelations(r: NormalRule): NormalRule = {
+  def removeAuxiliary(r: NormalRule): NormalRule = {
     val h = r.head
-    val p = r.pos filter (a => !(isRelation(a)))
+    //item and node predicates only needed for grounding
+    val p = r.pos filter (a => (!isRelation(a) && a.predicate !=_item && a != _node))
     val n = r.neg
     rule(h,p,n)
   }
@@ -223,7 +221,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random()) extends Streamin
 case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random()) extends CacheHopsEvalInst(random) {
 
   if (printRules) {
-    rulesPrinted = false
+    printRulesOnce = false
   }
 
   override def factsToAddAt(t: Int): Seq[NormalRule] = Seq()
