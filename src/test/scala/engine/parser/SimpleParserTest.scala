@@ -1,16 +1,20 @@
 package engine.parser
 
+import engine.parser.utils.ParserRunner
 import org.scalatest.FlatSpec
+
+import scala.io.Source
 
 /**
   * Created by et on 16.03.17.
   */
 class SimpleParserTest extends FlatSpec {
 
-  /*
 
   //TODO hardcoded
-  private val source = scala.io.Source.fromFile("/home/nechtan/Dropbox/Informatik/Projekt/steen/src/test/scala/engine/parser/InputFiles/SimpleProgram")
+
+  val filename = "/parser-programs/DummyProgram.lars"
+  val source = Source.fromURL(getClass.getResource(filename))
   private val lines = try source.mkString finally source.close()
   private val parser = new ParserRunner
 
@@ -38,6 +42,7 @@ class SimpleParserTest extends FlatSpec {
   }
 
   "The parser" should "recognize simple positive rules with regular atoms" in {
+    println(parser.parseRule("a :- b."))
     assert(parser.parseRule("a :- b.").successful)
   }
 
@@ -81,7 +86,4 @@ class SimpleParserTest extends FlatSpec {
     "and operations" in {
     assert(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4").successful)
   }
-
-  */
-
 }

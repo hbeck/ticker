@@ -1,17 +1,18 @@
 package engine.parser.factory.slidingWindowFunctionFactory
 
 import core.lars.{SlidingTupleWindow, WindowFunction}
+import engine.parser.InvalidSyntaxException
 import engine.parser.factory.WindowFunctionFactory
 import engine.parser.wrapper.ParamWrapper
 
 /**
   * Created by et on 10.04.17.
   */
-case class SlidingTupleWindowFactory(override val params: List[ParamWrapper]) extends WindowFunctionFactory(params) {
+case class SlidingTupleWindowFactory(params: List[ParamWrapper]) extends WindowFunctionFactory(params) {
 
   override protected def create(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) return SlidingTupleWindow(5)
-    else if (params.length > 1) ??? //TODO throw new InvalidSyntaxException
+    else if (params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.") //TODO throw new InvalidSyntaxException
 
     SlidingTupleWindow(params.head.value.toLong)
   }

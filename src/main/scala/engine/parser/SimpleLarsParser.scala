@@ -2,7 +2,7 @@ package engine.parser
 
 import core.lars._
 import engine.parser.factory._
-import engine.parser.wrapper.{OperationWrapper, BodyWrapper, ParamWrapper}
+import engine.parser.wrapper.{OperationWrapper, ParamWrapper}
 
 import scala.util.parsing.combinator.JavaTokenParsers
 /**
@@ -14,14 +14,14 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   override val skipWhitespace = false
 
-  def program: Parser[ProgramFactory] = rep(comment) ~> rep(importN) ~ rep(comment) ~ rule ~ rep(rule) <~ rep(comment) ^^ {
-    case imp ~_ ~ r ~ lr => ProgramFactory(imp,List(r)++lr)
+  def program: Parser[ProgramFactory] = rep(comment) ~> rep(importN) ~ rep(comment) ~ rep1(rule) <~ rep(comment) ^^ {
+    case imp ~_ ~ rl => ProgramFactory(imp,rl)
   }
 
-  def importN: Parser[ImportFactory] = "import"~>space ~ str ~ opt("("~>optSpace ~ str ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str ~ newline <~ rep(newline) ^^ {
-    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 ~ _ => ImportFactory(str1,None,str2)
+  def importN: Parser[ImportFactory] = "import"~>space ~ str ~ opt("("~>optSpace ~ str ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
+    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,None,str2)
 
-    case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 ~ _ => {
+    case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => {
       val parameter = params.get._2 + params.get._1._1 + params.get._1._2
       ImportFactory(str1,Some(parameter.trim),str2)
     }
@@ -29,24 +29,29 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def rule: Parser[RuleFactory] = rep(comment) ~> ruleBase ~ "." <~ rep(comment) ~> rep(newline) ^^ {case r ~ _ => r}
 
-  def ruleBase: Parser[RuleFactory] = (opt(head) ~ optSpace ~ ":-" ~ optSpace ~ body ^^ {case h ~ _ ~ _ ~ _ ~ b => RuleFactory(h,Some(b))}
-    | head ^^ (h => RuleFactory(Some(h), None)))
+  def ruleBase: Parser[RuleFactory] = (opt(head) ~ optSpace ~ ":-" ~ optSpace ~ body ^^ {
+    case h ~ _ ~ _ ~ _ ~ b => RuleFactory(h,b)
+  }
+    | head ^^ (h => RuleFactory(Some(h), List())))
 
   def head: Parser[AtomTrait] = atAtom | atom
 
-  def body: Parser[BodyWrapper] = repsep(bodyElement,",") ^^ BodyWrapper
+  def body: Parser[List[BodyTrait]] = repsep(bodyElement,",")
 
   def bodyElement: Parser[BodyTrait] = wAtom | head | operation
 
   def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(upperChar|number,",") <~ ")") ^^ {
-    case not ~ _ ~ pred ~ None => AtomFactory(not,pred,List())
-    case not ~ _ ~ pred ~ params => AtomFactory(not, pred, params.get)
+    case not ~ _ ~ pred ~ None => AtomFactory(not.getOrElse(false),pred,List())
+    case not ~ _ ~ pred ~ params => AtomFactory(not.getOrElse(false), pred, params.get)
   }
 
-  def predicate: Parser[String] = lowChar ~ opt(str) ^^ { case l ~ r => ""+l+r }
+  def predicate: Parser[String] = lowChar ~ opt(str) ^^ {
+    case l ~ None => l.toString
+    case l ~ r => ""+l+r
+  }
 
-  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ opt(neg) ~ "at" ~ space ~ (number|(upperChar ~ rep(str))) ^^ {
-    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not,atom,time.toString)
+  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ opt(neg) ~ "at" ~ space ~ (number|rep1(upperChar, str)) ^^ {
+    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not.getOrElse(false),atom,time.toString)
   }
 
   def wAtom: Parser[WAtomFactory] = atom ~ opt(space ~> "always" <~ optSpace) ~ opt(space ~ "in" ~ space) ~ window ^^ {
@@ -96,7 +101,7 @@ class SimpleLarsParser extends JavaTokenParsers {
     case num ~ str => ParamWrapper(num,str)
   }
 
-  def neg: Parser[Any] = optSpace ~ "not" ~ space
+  def neg: Parser[Boolean] = optSpace ~> "not" <~ space ^^ (_ => true)
 
   def number: Parser[Double] = floatingPointNumber ^^ (_.toDouble)
 
@@ -104,9 +109,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def newline: Parser[String] = "\n" | "\r"
 
-  def str: Parser[String] = char ~ rep(char|digit) ^^ {
-    case c ~ str => c.toString+str.toString()
-  }
+  def str: Parser[String] = rep1(char, char | digit) ^^ (str => str.toString)
 
   def char: Parser[Char] = lowChar | upperChar
 

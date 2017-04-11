@@ -5,10 +5,9 @@ import core.{Argument, Atom, Predicate}
 /**
   * Created by et on 21.03.17.
   */
-case class AtomFactory(not: Option[Any], predicate: String, args: List[Any]) extends AtomTrait {
+case class AtomFactory(override val neg: Boolean, predicate: String, args: List[Any]) extends AtomTrait {
 
   val atom: Atom = create(predicate,args)
-  override val neg: Boolean = not.isDefined
 
   private def create(predicateStr: String, args: List[Any]): Atom = {
     val predicate = Predicate(predicateStr)

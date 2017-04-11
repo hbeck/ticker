@@ -3,19 +3,20 @@ package engine.parser.factory.slidingWindowFunctionFactory
 import java.util.concurrent.TimeUnit
 
 import core.lars.{SlidingTimeWindow, TimeWindowSize, WindowFunction}
+import engine.parser.InvalidSyntaxException
 import engine.parser.factory.WindowFunctionFactory
 import engine.parser.wrapper.ParamWrapper
 
 /**
-  * Created by et on 10.04.17.
+  * Created by et on 10.04.17.wff
   */
-case class SlidingTimeWindowFactory(override val params: List[ParamWrapper]) extends WindowFunctionFactory(params) {
+case class SlidingTimeWindowFactory(params: List[ParamWrapper]) extends WindowFunctionFactory(params) {
 
 
   override protected def create(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) return SlidingTimeWindow(5*60)
 
-    if(params.length > 1) ??? //TODO throw new InvalidSyntaxException
+    if(params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.") //TODO throw new InvalidSyntaxException
 
     val value = params.head.value.toLong
     if(params.head.unit.isDefined) {
@@ -30,7 +31,8 @@ case class SlidingTimeWindowFactory(override val params: List[ParamWrapper]) ext
     }
   }
 
-  override def updateWindowParams(params: List[ParamWrapper]): Unit = {
+  override def updateWindowParams(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) wfn = create(params)
+    wfn
   }
 }

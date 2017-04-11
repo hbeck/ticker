@@ -1,8 +1,8 @@
-package engine.parser.expressions
+package engine.parser
 
 /**
   * Created by et on 14.03.17.
   */
-class SyntaxException(s: String) extends Exception {
+class InvalidSyntaxException(s: String) extends Exception {
 
 }

@@ -1,5 +1,6 @@
 package engine.parser.expressions
 
+import engine.parser.InvalidSyntaxException
 import engine.parser.utils.Tokenizer
 
 import scala.util.matching.Regex
@@ -45,7 +46,7 @@ case class ProgramExpression(rows: List[String]) extends Expression {
 
 case class RuleExpression(rule: String) extends Expression {
   private val msg = String.format("%s\n%s","Cannot find end of rule.",rule)
-  if(!rule.last.equals('.')) throw new SyntaxException(msg)
+  if(!rule.last.equals('.')) throw new InvalidSyntaxException(msg)
 
   private val ruleExp = createExp(rule.split(":-").toList)
 
@@ -53,7 +54,7 @@ case class RuleExpression(rule: String) extends Expression {
   val body: BodyExpression = ruleExp._2
 
   private def createExp(parts: List[String]): (HeadExpression,BodyExpression) = parts match {
-    case Nil  => throw new SyntaxException("Empty rule.")
+    case Nil  => throw new InvalidSyntaxException("Empty rule.")
     case x::xs => (createHead(x),createBody(xs))
   }
 

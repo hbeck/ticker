@@ -3,10 +3,13 @@ package engine.parser
 
 import java.util.StringTokenizer
 
+import core.lars.LarsProgram
 import engine.parser.expressions.Expression
+import engine.parser.factory.ProgramFactory
 
 import scala.util.parsing.combinator._
 import scala.collection.immutable.TreeMap
+import scala.io.Source
 
 /**
   * Created by et on 10.03.17.
@@ -17,35 +20,27 @@ import scala.collection.immutable.TreeMap
   *
   * This class is a scala object, because i don't think there is any need for more than one instance of a parser.
   */
-object LarsParser extends RegexParsers {
+object LarsParser extends SimpleLarsParser {
 
-  def apply(inputPath: String): Boolean = {
-    val program = readFile(inputPath)
-    doTheThing(program)
-  }
+  def apply(input: String, isPath: Boolean = true): Option[LarsProgram] = {
+    var program = input
+    if(isPath) program = readFile(input)
 
-  def readFile(inputPath: String): String = {
-    //TODO
-    ""
-  }
-
-  def doTheThing(program:String): Boolean = {
-    val tokens = tokenize(program)
-    //TODO
-    false
-  }
-
-  def tokenize(program: String): Option[TreeMap[String,Expression]] = {
-    val token = new StringTokenizer(program,"\n")
-    //TODO
+    val parsedProgram: ParseResult[ProgramFactory] = doTheThing(program)
+    if(parsedProgram.successful) return Some(parsedProgram.get.program)
     None
   }
 
+  def readFile(path: String): String = {
+    val source = Source.fromURL(getClass.getResource(path))
+    try source.mkString finally source.close()
+  }
 
-  /* This is an example method for parsing strings. I took this from a tutorial as a starting point. */
-  /* Grammatik: word -> [a-z]+ */
-  /* By using three triple double-quotes we don't need to worry about escaping characters */
-  def word: Parser[String]  = """[a-z]+""".r ^^ { _.toString }
+  def doTheThing(input:String): ParseResult[ProgramFactory] = parseAll(program,input)
 
-
+/*  def tokenize(program: String): Option[TreeMap[String,Expression]] = {
+    val token = new StringTokenizer(program,"\n")
+    //TODO
+    None
+  }*/
 }

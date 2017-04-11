@@ -1,6 +1,7 @@
 package engine.parser.factory
 
 import core._
+import engine.parser.InvalidSyntaxException
 import engine.parser.wrapper.OperationWrapper
 
 /**
@@ -43,7 +44,7 @@ case class OperationFactory(left: OperationWrapper, func: String, right: Operand
     case ">=" => Geq(arg,arg2)
     case "<=" => Leq(arg,arg2)
     case "!=" => Neq(arg,arg2)
-    case _ => ??? //TODO throw exception
+    case _ => throw new InvalidSyntaxException("Relation "+func+" is not in the set {=,>,<,>=,<=,!=}") //TODO throw exception
   }
 }
 

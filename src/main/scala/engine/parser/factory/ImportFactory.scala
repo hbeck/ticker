@@ -1,5 +1,7 @@
 package engine.parser.factory
 
+import java.lang.reflect.Constructor
+
 import core.lars.WindowFunction
 import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
 import engine.parser.wrapper.ParamWrapper
@@ -7,24 +9,24 @@ import engine.parser.wrapper.ParamWrapper
 /**
   * Created by et on 22.03.17.
   */
-case class ImportFactory(importClass: String, params: Option[String], name: String)
+case class ImportFactory(importClass: String, params: Option[String], name: String) {
+  ImportFactory.apply(this,importClass,params.getOrElse("").split(",").toList,name)
+}
 
 object ImportFactory {
 
 
   private var wfnObjects: Map[String,WindowFunctionFactory] = Map()
 
-  def apply(importClass: String, paramStr: Option[String], name: String): ImportFactory = {
+  def apply(factory: ImportFactory, importClass: String, params: List[String], name: String): Unit = {
 
     wfnObjects ++= defaultWfnFactories
 
-    val params = paramStr.getOrElse("").split(",")
-    val constructor = Class.forName(importClass).getConstructor(Class[Array[String]])
+    val constructor = Class.forName(importClass).getConstructor(params.getClass)
 
     if(!wfnObjects.contains(name)) {
-      wfnObjects += (name -> constructor.newInstance(params))
+      wfnObjects += (name -> constructor.newInstance(params).asInstanceOf[WindowFunctionFactory])
     }
-    ImportFactory(importClass, paramStr, name)
   }
 
   private def defaultWfnFactories: Map[String,WindowFunctionFactory] = {

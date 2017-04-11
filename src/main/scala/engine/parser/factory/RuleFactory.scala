@@ -2,12 +2,12 @@ package engine.parser.factory
 
 import core.Rule
 import core.lars._
-import engine.parser.wrapper.BodyWrapper
+import engine.parser.InvalidSyntaxException
 
 /**
   * Created by et on 22.03.17.
   */
-case class RuleFactory(head: Option[AtomTrait], body: Option[BodyWrapper]) {
+case class RuleFactory(head: Option[AtomTrait], body: List[BodyTrait]) {
   val ruleHead: Option[HeadAtom] = createHead(head)
   val posBody: Option[Set[ExtendedAtom]] = createBody(body,false)
   val negBody: Option[Set[ExtendedAtom]] = createBody(body,true)
@@ -16,25 +16,29 @@ case class RuleFactory(head: Option[AtomTrait], body: Option[BodyWrapper]) {
   private def createHead(head: Option[AtomTrait]): Option[HeadAtom] = {
     if (head.isDefined) {
       head.get match {
-        case a:AtomFactory => if (a.neg) {}/*TODO raise error*/ else return Option(a.atom)
-        case at:AtAtomFactory => if (at.neg) {}/*TODO raise error*/ else return Option(at.atom)
+        case a:AtomFactory => if (a.neg) {throw new InvalidSyntaxException("Only positive head atoms are allowed.")}/*TODO raise error*/ else return Option(a.atom)
+        case at:AtAtomFactory => if (at.neg) {throw new InvalidSyntaxException("Only positive head atoms are allowed.")}/*TODO raise error*/ else return Option(at.atom)
       }
     }
     None
   }
 
-  private def createBody(body: Option[BodyWrapper], neg: Boolean): Option[Set[ExtendedAtom]] = body match {
-    case None => None
-    case b: Option[BodyWrapper] =>  Option(wrapperListToAtomSet(b.get.list filter {
-                                        case a:AtomTrait => a.neg == neg
-                                    }))
+  private def createBody(body: List[BodyTrait], neg: Boolean): Option[Set[ExtendedAtom]] = {
+    if(body.nonEmpty) {
+      return Option(listToAtomSet(body filter {
+        case a:AtomTrait => a.neg == neg
+        case _:OperationFactory => neg
+      }))
+    }
+    None
   }
 
-  private def wrapperListToAtomSet(list: List[BodyTrait]): Set[ExtendedAtom] = {
+  private def listToAtomSet(list: List[BodyTrait]): Set[ExtendedAtom] = {
    list collect {
         case a:AtomFactory => a.atom
         case a:AtAtomFactory => a.atom
         case a:WAtomFactory => a.atom
+        case a:OperationFactory => a.operation
    } toSet
   }
 
