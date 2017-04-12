@@ -1,3 +1,4 @@
+import common.Plot
 import core.lars._
 import core.{Atom, Model}
 import evaluation._
@@ -51,6 +52,12 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
       dumpToCsv(allResults)
 
+      val plot = Plot("diamondbox")
+
+      val results = allResults.map { r => (r.caption, r.runs.map { run => (run.instanceCaption, run.appendResult.median.toMillis.toDouble) }) }
+      val r = plot.groupedBarChart("Perfomance-Diamond-Box-Sample", results).png()
+      println(r.renderedFile)
+
     } else {
       val results = evaluateTimings(args)
       dump.plot(Seq(results))
@@ -58,7 +65,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
     }
   }
 
-  def semantics(timePoints: Long = 5000): Unit = {
+  def semantics(timePoints: Long = 100): Unit = {
     val random = new Random(1)
 
     val evaluationOptions = generateEvaluationOptions
@@ -109,7 +116,7 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
   }
 
 
-  def evaluateTimings(args: Array[String], timePoints: Long = 1000) = {
+  def evaluateTimings(args: Array[String], timePoints: Long = 100) = {
 
     val random = new Random(1)
 

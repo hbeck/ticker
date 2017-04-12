@@ -51,7 +51,7 @@ case class Plot(outputDirectory: String, generateRandomFilename: Boolean = true)
 
   def simpleBarChart(title: String, bars: Seq[(String, Double)], options: Options = Options()): Plotter = {
     val series = new MemBarSeries(bars.map(_._2))
-    val data = new BarData(i => bars(i)._1, Seq(series))
+    val data = new BarData(i => "\"%s\"" format (bars(i)._1), Seq(series))
 
     val chart = new BarChart(title, data)
 
@@ -70,7 +70,7 @@ case class Plot(outputDirectory: String, generateRandomFilename: Boolean = true)
     }
     val axisCaptions = groups.map(_._2).head
 
-    val data = new BarData(i => axisCaptions(i)._1, series)
+    val data = new BarData(i => "\"%s\"" format (axisCaptions(i)._1), series)
 
     data.serieses.foreach { s =>
       s.fillStyle = FillStyle.Pattern
