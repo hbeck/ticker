@@ -15,11 +15,11 @@ object JtmsGreedy {
     net
   }
 
-  def apply(): JtmsGreedy = JtmsGreedy(TruthMaintenanceNetwork())
+  def apply(): JtmsGreedy = new JtmsGreedy(TruthMaintenanceNetwork())
 
 }
 
-case class JtmsGreedy(network: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
+class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
@@ -35,7 +35,7 @@ case class JtmsGreedy(network: TruthMaintenanceNetwork, random: Random = new Ran
     if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     try {
-      updateGreedy(atoms)
+      updateImplementation(atoms)
 
       checkJtmsSemantics()
       checkSelfSupport()
@@ -51,7 +51,7 @@ case class JtmsGreedy(network: TruthMaintenanceNetwork, random: Random = new Ran
 
   }
 
-  def updateGreedy(atoms: Set[Atom]) {
+  def updateImplementation(atoms: Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
     while (network.hasUnknown) {
@@ -68,7 +68,7 @@ case class JtmsGreedy(network: TruthMaintenanceNetwork, random: Random = new Ran
     //TODO improve
 
     //val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
-    val atomSet = network.unknownAtoms filter (_.isInstanceOf[PinnedAtom])
+    val atomSet = network.unknownAtoms filter (!_.isInstanceOf[PinnedAtom])
 
     if (atomSet.isEmpty) return None
     if (atomSet.size == 1) return Some(atomSet.head)

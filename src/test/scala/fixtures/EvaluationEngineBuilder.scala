@@ -53,7 +53,7 @@ trait ReactiveClingoEngine extends EvaluationEngineBuilder {
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = JtmsGreedy(new OptimizedNetwork(), new Random(1))
+    val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).start()
@@ -63,7 +63,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = JtmsGreedy(new OptimizedNetwork(), new Random(1))
+    val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()

@@ -289,7 +289,7 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
     if (tms.getModel.isEmpty) {
-      println(f"t=$t")
+      print("x")
       return
     }
     val model = tms.getModel.get

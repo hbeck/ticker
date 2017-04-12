@@ -63,7 +63,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
   }
 
   def greedyTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(network, random)
+    val tms = new JtmsGreedy(network, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
@@ -73,7 +73,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
   }
 
   def greedyTmsIncremental(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsGreedy(network, random)
+    val tms = new JtmsGreedy(network, random)
     tms.doConsistencyCheck = false
     tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false

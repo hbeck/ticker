@@ -7,7 +7,7 @@ import common.Util.stopTime
 import core.Atom
 import core.asp._
 import jtms._
-import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
+import jtms.algorithms._
 import jtms.evaluation.instances.{CacheHopsEvalInst, CacheHopsStandardEvalInst, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 import runner.Load
@@ -37,6 +37,7 @@ object StreamingTmsEval {
   val DOYLE = "Doyle"
   val DOYLE_HEURISTICS = "DoyleHeur"
   val GREEDY = "Greedy"
+  val GREEDY_HEURISTICS = "GreedyHeur"
   val LEARN = "Learn"
 
   var INSTANCE_NAME = "inst"
@@ -54,6 +55,7 @@ object StreamingTmsEval {
   var POST_PROCESS_GROUNDING = "postProcess"
   var PRINT_RULES = "printRules"
   var INDICATE_TIMEPOINTS = "dots"
+  var SEMANTICS_CHECKS = "checks"
 
   var argMap = Map[String,String]() //make accessible globally for faster dev access
 
@@ -82,6 +84,7 @@ object StreamingTmsEval {
     defaultArg(POST_PROCESS_GROUNDING,"true")
     defaultArg(PRINT_RULES,"false")
     defaultArg(INDICATE_TIMEPOINTS,"false")
+    defaultArg(SEMANTICS_CHECKS,"false")
 
     run(argMap)
 
@@ -259,7 +262,14 @@ object StreamingTmsEval {
       case DOYLE => new JtmsDoyle(new OptimizedNetwork(), new Random(iterationNr))
       case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), new Random(iterationNr))
       case GREEDY => new JtmsGreedy(new OptimizedNetwork(), new Random(iterationNr))
+      case GREEDY_HEURISTICS => new JtmsGreedyHeuristics(new OptimizedNetwork(), new Random(iterationNr))
       case LEARN => new JtmsLearn()
+    }
+
+    if ((tms.isInstanceOf[JtmsDoyle]) && argMap(SEMANTICS_CHECKS) == "true") {
+      tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
+      tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
+      tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
     }
 
     var models = 0L

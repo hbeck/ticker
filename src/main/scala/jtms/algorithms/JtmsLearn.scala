@@ -57,7 +57,7 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
   }
   */
 
-  override def updateGreedy(atoms: Set[Atom]) {
+  override def updateImplementation(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
     var firstLoop = true
