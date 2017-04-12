@@ -44,7 +44,7 @@ object Sept16Eval {
     while (attempt < 100 && !ranThrough) {
       attempt += 1
       try {
-        val tms = JtmsDoyle(new OptimizedNetwork())
+        val tms = new JtmsDoyle(new OptimizedNetwork())
         tms.doConsistencyCheck = true
         tms.doJtmsSemanticsCheck = true
         tms.doSelfSupportCheck = true

@@ -7,12 +7,13 @@ import common.Util.stopTime
 import core.Atom
 import core.asp._
 import jtms._
-import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
 import jtms.evaluation.instances.{CacheHopsEvalInst, CacheHopsStandardEvalInst, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 import runner.Load
 
 import scala.io.Source
+import scala.util.Random
 
 
 /**
@@ -34,6 +35,7 @@ object StreamingTmsEval {
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
   val DOYLE = "Doyle"
+  val DOYLE_HEURISTICS = "DoyleHeur"
   val GREEDY = "Greedy"
   val LEARN = "Learn"
 
@@ -66,7 +68,7 @@ object StreamingTmsEval {
     }
 
     defaultArg(INSTANCE_NAME,CACHE_HOPS)
-    defaultArg(TMS,DOYLE)
+    defaultArg(TMS,DOYLE_HEURISTICS)
     defaultArg(PRE_RUNS,"0")
     defaultArg(RUNS,"1")
     defaultArg(TIMEPOINTS,"2")
@@ -160,7 +162,7 @@ object StreamingTmsEval {
 
       print(" " + i)
 
-      val result: Map[String, Long] = runIteration(instance, tmsKey, modelRatio)
+      val result: Map[String, Long] = runIteration(i, instance, tmsKey, modelRatio)
 
       if (i >= 1) {
         totalTime += result(_evaluationIterationTime)
@@ -211,8 +213,8 @@ object StreamingTmsEval {
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
 
-    println("f\niteration avg:")
-    println(f"\ntotal time: $avgTimeIteration sec")
+    println(f"\niteration avg:")
+    println(f"total time: $avgTimeIteration sec")
     println(f"rule generation (not included): $avgTimeRuleGen sec")
     println(f"add static rules: $avgTimeStaticRules sec")
     println(f"avg per time point: $avgTimeAllTimePoints sec")
@@ -249,13 +251,14 @@ object StreamingTmsEval {
   val _nrOfRemovedFacts = "nrOfRemoveFact"
   val _nrOfRetractionsAffected = "nrOfRetractionsAffected"
 
-  def runIteration(inst: StreamingTmsEvalInst, tmsKey: String, countModels: Boolean): Map[String, Long] = {
+  def runIteration(iterationNr: Int, inst: StreamingTmsEvalInst, tmsKey: String, countModels: Boolean): Map[String, Long] = {
 
     //note that tms must be instantiated within iteration!
     val tms = tmsKey match {
-      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
-      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
-      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
+      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), new Random(iterationNr))
+      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), new Random(iterationNr))
+      case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), new Random(iterationNr))
+      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), new Random(iterationNr))
       case LEARN => new JtmsLearn()
     }
 

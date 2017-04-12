@@ -267,7 +267,7 @@ class JtmsConsistency extends FunSuite {
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
     val net1 = new OptimizedNetwork()
-    val update = JtmsDoyle(net1)
+    val update = new JtmsDoyle(net1)
 
     update.add(AspRule(a,b)) //a :- b
     assert(update.getModel.get == Set())
@@ -319,7 +319,7 @@ class JtmsConsistency extends FunSuite {
     //TODO
     //other insertion order
     val net2 = new OptimizedNetwork()
-    val update2 = JtmsDoyle(net2)
+    val update2 = new JtmsDoyle(net2)
 
     update2.add(AspRule(a,b)) //a :- b
     update2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}

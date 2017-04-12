@@ -28,11 +28,11 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
   }
 
   def findStatus(a: Atom): Unit = {
-    if (network.status(a) != unknown)
-      return
+    if (network.status(a) != unknown) return
 
-    if (validation(a) || invalidation(a))
+    if (validation(a) || invalidation(a)) {
       network.unknownCons(a) foreach findStatus
+    }
   }
 
   def validation(a: Atom): Boolean = {

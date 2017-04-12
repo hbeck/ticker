@@ -83,7 +83,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
   }
 
   def doyleTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = JtmsDoyle(network, random)
+    val tms = new JtmsDoyle(network, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 
@@ -101,7 +101,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
   }
 
   def incrementalTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork, random: Random) = {
-    val tms = JtmsDoyle(network, random)
+    val tms = new JtmsDoyle(network, random)
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
     tms.doSelfSupportCheck = false

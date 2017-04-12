@@ -252,31 +252,35 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
   val n7 = StringValue("n7")
   val m = StringValue("m")
 
-  def sig_req(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
-  def sig_cache(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
-  def sig_error(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
+  def req_sig(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
+  def cache_sig(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
+  def error_sig(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
 
   override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    val q = t % 20
+    val q = t % 30
     if (q == 0) {
-      Seq() :+ sig_req(i1,n1,t) :+ sig_cache(i1,n4,t)//-> single model getFrom(i1,n1,n4)
+      Seq() :+ req_sig(i1,n1,t) :+ cache_sig(i1,n4,t)//-> single model getFrom(i1,n1,n4)
     } else if (q == 2) {
-      Seq() :+ sig_cache(i1,n7,t) //-> model shouldn't change to getFrom(i1,n1,n7)
+      Seq() :+ cache_sig(i1,n7,t) //-> model shouldn't change to getFrom(i1,n1,n7)
     } else if (q == 4) {
-      Seq() :+ sig_error(m,n4,t) //-> model must change to getFrom(i1,n1,n4)
+      Seq() :+ error_sig(m,n4,t) //-> model must change to getFrom(i1,n1,n4)
     } else if (q == 6) {
-      Seq() :+ sig_cache(i1,n1,t) //-> getFrom(i1,n1,n4) must vanish, only sat(i1,n1) remains
+      Seq() :+ cache_sig(i1,n1,t) //-> getFrom(i1,n1,n4) must vanish, only sat(i1,n1) remains
     } else if (q == 8) {
-      Seq() :+ sig_req(i1,n1,t) //-> sat(i1,n1) remains (no getFrom)
-    } else if (q == 9) {
-      Seq() :+ sig_cache(i1,n7,t) //-> sat(i1,n1) remains (no getFrom)
+      Seq() :+ req_sig(i1,n1,t) //-> sat(i1,n1) remains (no getFrom)
+    } else if (q == 10) {
+      Seq() :+ cache_sig(i1,n7,t) //-> sat(i1,n1) remains (no getFrom)
+    } else if (q == 16) {
+      Seq() :+ cache_sig(i1,n7,t)
+    } else if (q == 20) {
+      Seq() :+ req_sig(i1,n1,t)
     } else {
       Seq()
     }
   }
 
   def printModel(t:Int, model: Set[Atom]): Unit = {
-    println(f"\nt=$t, q=${t%20}")
+    println(f"\nt=$t, q=${t%30}")
     model filter { a =>
       a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
         a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
@@ -284,8 +288,12 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
   }
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
+    if (tms.getModel.isEmpty) {
+      println(f"t=$t")
+      return
+    }
     val model = tms.getModel.get
-    val q = t % 20
+    val q = t % 30
     if (q >= 0 && q < 2) {
       assert(model.contains(getFrom(i1,n1,n4)))
       assert(model.contains(sat(i1,n1)))
@@ -294,9 +302,6 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
       assert(model.contains(minReach(i1,n1,n4)))
     } else if (q >= 2 && q < 4) {
       //from before:
-      if (!model.contains(getFrom(i1,n1,n4))) {
-        printModel(t,model)
-      }
       assert(model.contains(getFrom(i1,n1,n4))) //keep
       assert(model.contains(sat(i1,n1)))
       assert(model.contains(itemReach(i1,n1,n4,IntValue(2))))
@@ -313,9 +318,23 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
       assert(!model.contains(getFrom(i1,n1,n4)))
       assert(!model.contains(getFrom(i1,n1,n7)))
       assert(model.contains(sat(i1,n1)))
-    } else if (q >= 8 && q < 9) {
+    } else if (q >= 8 && q < 10) {
       assert(model.contains(sat(i1,n1)))
+    } else if (q >= 10 && q <= 16) {
+      assert(!model.contains(getFrom(i1,n1,n4)))
+      assert(!model.contains(getFrom(i1,n1,n7)))
+      assert(model.contains(sat(i1,n1)))
+    } else if (q >= 17 && q <= 18) {
+      assert(model.contains(getFrom(i1,n1,n7)))
+    } else if (q == 19) {
+      assert(!model.contains(getFrom(i1,n1,n4)))
+      assert(!model.contains(getFrom(i1,n1,n7)))
+      assert(!model.contains(sat(i1,n1)))
+    } else if (q >= 20 && q <= 26) {
+      assert(model.contains(getFrom(i1,n1,n7)))
     } else {
+      assert(!model.contains(getFrom(i1,n1,n4)))
+      assert(!model.contains(getFrom(i1,n1,n7)))
       assert(!model.contains(sat(i1,n1)))
     }
   }
