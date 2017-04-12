@@ -51,10 +51,13 @@ object StreamingTmsEval {
   //
   var POST_PROCESS_GROUNDING = "postProcess"
   var PRINT_RULES = "printRules"
+  var INDICATE_TIMEPOINTS = "dots"
+
+  var argMap = Map[String,String]() //make accessible globally for faster dev access
 
   def evaluate(args: Array[String]): Unit = {
 
-    var argMap = buildArgMap(args)
+    argMap = buildArgMap(args)
 
     def defaultArg(key: String, value: String) = {
       if (!argMap.contains(key)) {
@@ -76,6 +79,7 @@ object StreamingTmsEval {
     //    
     defaultArg(POST_PROCESS_GROUNDING,"true")
     defaultArg(PRINT_RULES,"false")
+    defaultArg(INDICATE_TIMEPOINTS,"false")
 
     run(argMap)
 
@@ -207,17 +211,18 @@ object StreamingTmsEval {
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
 
-    println(f"\navg time per iteration: $avgTimeIteration sec")
-    println(f"avg time rule gen (not included): $avgTimeRuleGen sec")
-    println(f"avg time add static rules: $avgTimeStaticRules sec")
-    println(f"avg time per time point: $avgTimeAllTimePoints sec")
-    println(f"avg time add fact: $avgTimeAddFact sec")
-    println(f"avg time add rule: $avgTimeAddRule sec")
-    println(f"avg time remove rule: $avgTimeRemoveRule sec")
-    println(f"avg time remove fact: $avgTimeRemoveFact sec")
-    println(f"avg time get model: $avgTimeGetModel sec")
+    println("f\niteration avg:")
+    println(f"\ntotal time: $avgTimeIteration sec")
+    println(f"rule generation (not included): $avgTimeRuleGen sec")
+    println(f"add static rules: $avgTimeStaticRules sec")
+    println(f"avg per time point: $avgTimeAllTimePoints sec")
+    //println(f"avg time to add fact: $avgTimeAddFact sec")
+    //println(f"avg time to add rule: $avgTimeAddRule sec")
+    //println(f"avg time to remove rule: $avgTimeRemoveRule sec")
+    //println(f"avg time to remove fact: $avgTimeRemoveFact sec")
+    //println(f"avg time to get model: $avgTimeGetModel sec")
     println(f"ratio models: $ratioModels")
-    println(f"ratio failures: $ratioFailures")
+    //println(f"ratio failures: $ratioFailures")
 
     if (tmsKey.toLowerCase().contains("doyle")) {
       val avgRetractions = (1.0 * totalRetractions) / (1.0 * runs)
@@ -276,6 +281,8 @@ object StreamingTmsEval {
     var nrOfRetractionsAffected = 0L
 
     for (t <- 0 to inst.timePoints) {
+
+      if (argMap(INDICATE_TIMEPOINTS) == "true") print(".")
 
       var factsToAdd = Seq[NormalRule]()
       var rulesToAdd = Seq[NormalRule]()
