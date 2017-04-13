@@ -177,13 +177,15 @@ object StreamingTmsEval {
     var totalNrRemoveRule = 0L
     var totalNrRemoveFact = 0L
 
+    var instance: Option[StreamingTmsEvalInst] = None
+
     for (i <- (1 + (cfg.preRuns * -1)) to cfg.runs) {
 
       print(" " + i)
 
-      val instance: StreamingTmsEvalInst = cfg.makeInstance(i) //init only here for having different random seeds
+      instance = Some(cfg.makeInstance(i)) //init only here for having different random seeds
 
-      val result: Map[String, Long] = runIteration(instance,cfg)
+      val result: Map[String, Long] = runIteration(instance.get,cfg)
 
       if (i >= 1) {
         totalTime += result(_evaluationIterationTime)
@@ -237,7 +239,8 @@ object StreamingTmsEval {
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
 
-    println(f"\niteration avg:")
+    println(f"\nnr of static rules: ${instance.get.staticRules.size}")
+    println(f"iteration avg:")
     println(f"total time: $avgTimeIteration sec")
     println(f"rule generation (not included): $avgTimeRuleGen sec")
     println(f"add static rules: $avgTimeStaticRules sec")

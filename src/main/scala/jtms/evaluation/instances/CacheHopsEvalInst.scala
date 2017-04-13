@@ -438,7 +438,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, postProcessGround
   }
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
-    
+
     if (tms.getModel.isEmpty) {
       print(f"x($t)")
       return
