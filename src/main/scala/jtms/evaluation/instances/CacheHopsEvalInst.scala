@@ -17,8 +17,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def windowSize: Int
   def timePoints: Int
   def nrOfItems: Int
-  def edges: Set[Atom]
   def postProcessGrounding: Boolean
+
+  def edges: Set[Atom]
 
   final def nodes(): Set[Value] = edges collect { case a:GroundAtomWithArguments => a.arguments } flatten
   final def nodeAtoms(): Set[Atom] = nodes map (node(_))
@@ -59,6 +60,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def needAt(arg1: Argument, arg2: Argument) = AtomWithArguments(_needAt,Seq(arg1,arg2))
   def conn(arg1: Argument, arg2: Argument) = AtomWithArguments(_conn,Seq(arg1,arg2))
   def edge(arg1: Argument, arg2: Argument) = AtomWithArguments(_edge,Seq(arg1,arg2))
+  def edge(arg1: Int, arg2: Int) = AtomWithArguments(_edge,Seq(IntValue(arg1),IntValue(arg2)))
   def minReach(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_minReach,Seq(arg1,arg2,arg3))
   def n_minReach(arg1: Argument, arg2: Argument, arg3: Argument, arg4: Argument) = AtomWithArguments(_n_minReach,Seq(arg1,arg2,arg3,arg4))
   def itemReach(arg1: Argument, arg2: Argument, arg3: Argument, arg4: Argument) = AtomWithArguments(_itemReach,Seq(arg1,arg2,arg3,arg4))
@@ -231,6 +233,30 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
 
     groundRules
 
+  } //end staticRules
+
+  override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
+
+  override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
+    /*
+       w_req(I,N) :- req(I,N,T)
+       w_cache(I,N) :- cache(I,N,T)
+       w_error(N,M) :- error(N,M,T)
+    */
+    var rules = Seq[NormalRule]()
+    def it(i:Int) = StringValue("i"+i)
+    for (i <- 1 to nrOfItems; n <- nodes()) {
+      rules = rules :+
+        rule(w_req(it(i),n), req(it(i),n,IntValue(t))) :+
+        rule(w_cache(it(i),n), cache(it(i),n,IntValue(t)))
+    }
+    for (e <- edges) {
+      val args = e.asInstanceOf[AtomWithArguments].arguments
+      val n = args(0)
+      val m = args(1)
+      rules = rules :+ rule(w_error(n,m), error(n,m,IntValue(t)))
+    }
+    rules
   }
 
   //delete aux relation atoms, as facts and from rules where they hold
@@ -268,9 +294,31 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     rule(h,p,n)
   }
 
+  // helper for fact generation
+
+  def req_sig(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
+  def cache_sig(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
+  def error_sig(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
+
+  def req_sig(item: StringValue, node: Int, t: Int) = fact(req(item,IntValue(node),IntValue(t)))
+  def cache_sig(item: StringValue, node: Int, t: Int) = fact(cache(item,IntValue(node),IntValue(t)))
+  def error_sig(fromNode: Int, toNode: Int, t: Int) = fact(error(IntValue(fromNode),IntValue(toNode),IntValue(t)))
+
+  //
+
+  def printModel(t:Int, model: Set[Atom]): Unit = {
+    println(f"\nt=$t, q=${t%30}")
+    model filter { a =>
+      a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
+        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
+    } foreach println
+  }
+
 }
 
-case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+
+  override val windowSize = 10
 
   if (printRules) {
     printRulesOnce = true
@@ -281,39 +329,11 @@ case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, 
         ("n1","m"),("m","n4"),("n1","n6")) map { case (x,y) => edge(x,y) }
   }
 
-  override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
-
-  override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
-    /*
-       w_req(I,N) :- req(I,N,T)
-       w_cache(I,N) :- cache(I,N,T)
-       w_error(N,M) :- error(N,M,T)
-    */
-    var rules = Seq[NormalRule]()
-    def it(i:Int) = StringValue("i"+i)
-    for (i <- 1 to nrOfItems; n <- nodes()) {
-      rules = rules :+
-        rule(w_req(it(i),n), req(it(i),n,IntValue(t))) :+
-        rule(w_cache(it(i),n), cache(it(i),n,IntValue(t)))
-    }
-    for (e <- edges) {
-      val args = e.asInstanceOf[AtomWithArguments].arguments
-      val n = args(0)
-      val m = args(1)
-      rules = rules :+ rule(w_error(n,m), error(n,m,IntValue(t)))
-    }
-    rules
-  }
-
   val i1 = StringValue("i1")
   val n1 = StringValue("n1")
   val n4 = StringValue("n4")
   val n7 = StringValue("n7")
   val m = StringValue("m")
-
-  def req_sig(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
-  def cache_sig(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
-  def error_sig(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
 
   override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
     val q = t % 30
@@ -336,14 +356,6 @@ case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, 
     } else {
       Seq()
     }
-  }
-
-  def printModel(t:Int, model: Set[Atom]): Unit = {
-    println(f"\nt=$t, q=${t%30}")
-    model filter { a =>
-      a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
-        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
-    } foreach println
   }
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
@@ -400,80 +412,41 @@ case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, 
   }
 }
 
-case class CacheHopsEvalInst2(windowSize: Int, timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+
+  override val windowSize = 15
 
   if (printRules) {
     printRulesOnce = true
   }
 
   override lazy val edges: Set[Atom] = {
-    Set(("n1","n2"),("n2","n3"),("n3","n4"),("n4","n5"),("n5","n6"),("n6","n7"),
-      ("n1","m"),("m","n4"),("n1","n6")) map { case (x,y) => edge(x,y) }
-  }
-
-  override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
-
-  override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
-    /*
-       w_req(I,N) :- req(I,N,T)
-       w_cache(I,N) :- cache(I,N,T)
-       w_error(N,M) :- error(N,M,T)
-    */
-    var rules = Seq[NormalRule]()
-    def it(i:Int) = StringValue("i"+i)
-    for (i <- 1 to nrOfItems; n <- nodes()) {
-      rules = rules :+
-        rule(w_req(it(i),n), req(it(i),n,IntValue(t))) :+
-        rule(w_cache(it(i),n), cache(it(i),n,IntValue(t)))
-    }
-    for (e <- edges) {
-      val args = e.asInstanceOf[AtomWithArguments].arguments
-      val n = args(0)
-      val m = args(1)
-      rules = rules :+ rule(w_error(n,m), error(n,m,IntValue(t)))
-    }
-    rules
+    val consecutive = for (i <- 1 to 15) yield (i,i+1)
+    val pairs = Set((8,1),(16,1)) ++ consecutive
+    pairs map { case (x,y) => edge(x,y) }
   }
 
   val i1 = StringValue("i1")
-  val n1 = StringValue("n1")
-  val n4 = StringValue("n4")
-  val n7 = StringValue("n7")
-  val m = StringValue("m")
-
-  def req_sig(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
-  def cache_sig(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
-  def error_sig(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
 
   override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    val q = t % 30
-    if (q == 0) {
-      Seq() :+ req_sig(i1,n1,t) :+ cache_sig(i1,n4,t)//-> single model getFrom(i1,n1,n4)
-    } else if (q == 2) {
-      Seq() :+ cache_sig(i1,n7,t) //-> model shouldn't change to getFrom(i1,n1,n7)
-    } else if (q == 4) {
-      Seq() :+ error_sig(m,n4,t) //-> model must change to getFrom(i1,n1,n4)
-    } else if (q == 6) {
-      Seq() :+ cache_sig(i1,n1,t) //-> getFrom(i1,n1,n4) must vanish, only sat(i1,n1) remains
-    } else if (q == 8) {
-      Seq() :+ req_sig(i1,n1,t) //-> sat(i1,n1) remains (no getFrom)
-    } else if (q == 10) {
-      Seq() :+ cache_sig(i1,n7,t) //-> sat(i1,n1) remains (no getFrom)
-    } else if (q == 16) {
-      Seq() :+ cache_sig(i1,n7,t)
-    } else if (q == 20) {
-      Seq() :+ req_sig(i1,n1,t)
-    } else {
-      Seq()
+    def ch(i: StringValue, n: Int) = cache_sig(i,n,t)
+    def rq(i: StringValue, n: Int) = req_sig(i,n,t)
+    def err(n: Int, m: Int) = error_sig(n,m,t)
+    t % 40 match {
+      case 0 => Seq(ch(i1,16),rq(i1,1))
+      case 2 => Seq(ch(i1,9))
+      case 4 => Seq(rq(i1,2))
+      case 6 => Seq(rq(i1,10))
+      case 8 => Seq(ch(i1,4))
+      case 10 => Seq(rq(i1,1),rq(i1,7))
+      case 12 => Seq(ch(i1,9),ch(i1,1))
+      case 14 => Seq(err(8,9))
+      //nothing at 16; where cache(i1,16,1) expires
+      case 18 => Seq(rq(i1,2),ch(i1,1),ch(i1,9))
+      case 20 => Seq(rq(i1,10))
+      case 22 => Seq(rq(i1,1),rq(i1,7))
+      case _=> Seq()
     }
-  }
-
-  def printModel(t:Int, model: Set[Atom]): Unit = {
-    println(f"\nt=$t, q=${t%30}")
-    model filter { a =>
-      a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
-        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
-    } foreach println
   }
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
@@ -482,50 +455,10 @@ case class CacheHopsEvalInst2(windowSize: Int, timePoints: Int, nrOfItems: Int, 
       return
     }
     val model = tms.getModel.get
+    //TODO
     val q = t % 30
     if (q >= 0 && q < 2) {
       assert(model.contains(getFrom(i1,n1,n4)))
-      assert(model.contains(sat(i1,n1)))
-      assert(model.contains(itemReach(i1,n1,n4,IntValue(2))))
-      assert(model.contains(itemReach(i1,n1,n4,IntValue(3))))
-      assert(model.contains(minReach(i1,n1,n4)))
-    } else if (q >= 2 && q < 4) {
-      //from before:
-      assert(model.contains(getFrom(i1,n1,n4))) //keep
-      assert(model.contains(sat(i1,n1)))
-      assert(model.contains(itemReach(i1,n1,n4,IntValue(2))))
-      assert(model.contains(itemReach(i1,n1,n4,IntValue(3))))
-      assert(model.contains(minReach(i1,n1,n4)))
-      //new:
-      assert(model.contains(itemReach(i1,n1,n7,IntValue(2))))
-      assert(model.contains(itemReach(i1,n1,n7,IntValue(5))))
-      assert(model.contains(itemReach(i1,n1,n7,IntValue(6))))
-      assert(model.contains(minReach(i1,n1,n7)))
-    } else if (q >= 4 && q < 6) {
-      assert(model.contains(getFrom(i1,n1,n7))) //switch
-    } else if (q >= 6 && q < 8) {
-      assert(!model.contains(getFrom(i1,n1,n4)))
-      assert(!model.contains(getFrom(i1,n1,n7)))
-      assert(model.contains(sat(i1,n1)))
-    } else if (q >= 8 && q < 10) {
-      assert(model.contains(sat(i1,n1)))
-    } else if (q >= 10 && q <= 16) {
-      assert(!model.contains(getFrom(i1,n1,n4)))
-      assert(!model.contains(getFrom(i1,n1,n7)))
-      assert(model.contains(sat(i1,n1)))
-    } else if (q >= 17 && q <= 18) {
-      assert(model.contains(getFrom(i1,n1,n7)))
-    } else if (q == 19) {
-      assert(!model.contains(getFrom(i1,n1,n4)))
-      assert(!model.contains(getFrom(i1,n1,n7)))
-      assert(!model.contains(sat(i1,n1)))
-    } else if (q >= 20 && q <= 26) {
-      assert(model.contains(getFrom(i1,n1,n7)))
-    } else {
-      assert(!model.contains(getFrom(i1,n1,n4)))
-      assert(!model.contains(getFrom(i1,n1,n7)))
-      assert(!model.contains(sat(i1,n1)))
-      assert(model.contains(unsat(i1,n1)))
     }
   }
 }

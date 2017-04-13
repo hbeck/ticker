@@ -7,7 +7,7 @@ import common.Util.stopTime
 import core.asp._
 import jtms._
 import jtms.algorithms._
-import jtms.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
+import jtms.evaluation.instances.{CacheHopsEvalInst1, CacheHopsEvalInst2, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 import runner.Load
 
@@ -23,7 +23,8 @@ object StreamingTmsEval {
   //known instances:
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
-  val CACHE_HOPS = "cacheHops"
+  val CACHE_HOPS1 = "cacheHops1"
+  val CACHE_HOPS2 = "cacheHops2"
 
   val loader = Load(TimeUnit.SECONDS)
 
@@ -65,7 +66,7 @@ object StreamingTmsEval {
       }
     }
 
-    defaultArg(INSTANCE_NAME,CACHE_HOPS)
+    defaultArg(INSTANCE_NAME,CACHE_HOPS2)
     defaultArg(TMS,DOYLE_HEURISTICS)
     defaultArg(PRE_RUNS,"0")
     defaultArg(RUNS,"1")
@@ -115,9 +116,13 @@ object StreamingTmsEval {
     def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
       val random = new Random(iterationNr)
       argMap(INSTANCE_NAME) match {
-        case CACHE_HOPS => {
+        case CACHE_HOPS1 => {
           val printRules: Boolean = (argMap(PRINT_RULES) == "true")
           CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules,random)
+        }
+        case CACHE_HOPS2 => {
+          val printRules: Boolean = (argMap(PRINT_RULES) == "true")
+          CacheHopsEvalInst2(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules,random)
         }
         case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
         case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
