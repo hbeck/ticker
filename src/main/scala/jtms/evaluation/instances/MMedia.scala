@@ -11,7 +11,7 @@ import scala.util.Random
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random = new Random()) extends StreamingTmsStandardEvalInst {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -147,7 +147,7 @@ random :- not done.
 
 }
 
-case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random = new Random(1)) extends MMedia(windowSize,timePoints,random) {
+case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints,random) {
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {
     val model = tms.getModel().get
@@ -179,7 +179,7 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
   }
 }
 
-case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random = new Random(1)) extends MMedia(windowSize,timePoints, random) {
+case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints, random) {
 
   abstract class Mode
   case object High extends Mode

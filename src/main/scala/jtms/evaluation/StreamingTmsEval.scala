@@ -8,7 +8,7 @@ import core.asp._
 import jtms._
 import jtms.algorithms._
 import jtms.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
-import jtms.networks.{OptimizedNetwork, SimpleNetwork}
+import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 import runner.Load
 
 import scala.io.Source
@@ -80,7 +80,7 @@ object StreamingTmsEval {
     defaultArg(INDICATE_TIMEPOINTS,"false")
     defaultArg(SEMANTICS_CHECKS,"false")
 
-    run(argMap)
+    run(Config(argMap))
 
   }
 
@@ -102,38 +102,56 @@ object StreamingTmsEval {
 
   }
 
-  def run(argMap: Map[String,String]) {
+  case class Config(args: Map[String,String]) {
 
-    println("run with args: "+argMap)
-
-    val inst = makeInstance(argMap)
-    val tmsKey = argMap(TMS) //must be instantiated for each iteration
     val preRuns = Integer.parseInt(argMap(PRE_RUNS))
     val runs = Integer.parseInt(argMap(RUNS))
     val modelRatio:Boolean = (argMap(MODEL_RATIO) == "true")
-
-    runImplementation(inst, tmsKey, preRuns, runs, modelRatio)
-  }
-
-  def makeInstance(argMap: Map[String,String]): StreamingTmsEvalInst = {
-
     val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
     val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
     val nrOfItems = Integer.parseInt(argMap(ITEMS))
     val postProcessGrounding = (argMap(POST_PROCESS_GROUNDING) == "true")
 
-    argMap(INSTANCE_NAME) match {
-      case CACHE_HOPS => {
-        val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-        CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules)
+    def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
+      val random = new Random(iterationNr)
+      argMap(INSTANCE_NAME) match {
+        case CACHE_HOPS => {
+          val printRules: Boolean = (argMap(PRINT_RULES) == "true")
+          CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules,random)
+        }
+        case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
+        case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+        case s => println(f"unknown instance name $s"); throw new RuntimeException
       }
-      case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints)
-      case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints)
-      case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
+
+    def makeTms(inst: StreamingTmsEvalInst): JtmsUpdateAlgorithm = {
+      val tms = argMap(TMS) match {
+        case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
+        case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
+        case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), inst.random)
+        case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
+        case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), inst.random)
+      }
+
+      if ((tms.isInstanceOf[JtmsDoyle]) && argMap(SEMANTICS_CHECKS) == "true") {
+        tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
+        tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
+        tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
+      }
+
+      tms
+    }
+
+    def isSomeDoyle() = {
+      argMap(TMS).toLowerCase().contains("doyle")
+    }
+
   }
 
-  def runImplementation(instance: StreamingTmsEvalInst, tmsKey: String, preRuns: Int, runs: Int, modelRatio: Boolean): Unit = {
+  def run(cfg: Config): Unit = {
+
+    println("run with args: "+cfg.args)
 
     var totalTime = 0L
     var totalRetractions = 0L
@@ -154,11 +172,13 @@ object StreamingTmsEval {
     var totalNrRemoveRule = 0L
     var totalNrRemoveFact = 0L
 
-    for (i <- (1 + (preRuns * -1)) to runs) {
+    for (i <- (1 + (cfg.preRuns * -1)) to cfg.runs) {
 
       print(" " + i)
 
-      val result: Map[String, Long] = runIteration(i, instance, tmsKey, modelRatio)
+      val instance: StreamingTmsEvalInst = cfg.makeInstance(i) //init only here for having different random seeds
+
+      val result: Map[String, Long] = runIteration(instance,cfg)
 
       if (i >= 1) {
         totalTime += result(_evaluationIterationTime)
@@ -179,7 +199,7 @@ object StreamingTmsEval {
         totalNrRemoveFact += result(_nrOfRemovedFacts)
       }
 
-      if (tmsKey.toLowerCase().contains("doyle")) {
+      if (cfg.isSomeDoyle()) {
         totalRetractions += result(_nrOfRetractionsAffected)
       }
 
@@ -196,15 +216,18 @@ object StreamingTmsEval {
     implicit def long2div(l: Long) = LongDiv(l)
     implicit def double2sec(d: Double) = DoubleSec(d)
 
+    val runs = cfg.runs
+    val tp = cfg.timePoints
+
     val avgTimeIteration = totalTime %% runs sec
     val avgTimeRuleGen = totalTimeRuleGen %% runs sec
     val avgTimeStaticRules = totalTimeStaticRules %% runs sec
-    val avgTimeAllTimePoints = totalTimeAllTimePoints %% (runs * instance.timePoints) sec
+    val avgTimeAllTimePoints = totalTimeAllTimePoints %% (runs * tp) sec
     val avgTimeAddFact = totalTimeAddFact %% totalNrAddFact sec
     val avgTimeAddRule = totalTimeAddRule %% totalNrAddRule sec
     val avgTimeRemoveRule = totalTimeRemoveRule %% totalNrRemoveRule sec
     val avgTimeRemoveFact = totalTimeRemoveFact %% totalNrRemoveFact sec
-    val avgTimeGetModel = totalTimeGetModel %% (runs * instance.timePoints) sec
+    val avgTimeGetModel = totalTimeGetModel %% (runs * tp) sec
     val totalUpdates = totalModels + totalFailures
     val ratioModels = totalModels %% totalUpdates
     val ratioFailures = totalFailures %% totalUpdates
@@ -222,7 +245,7 @@ object StreamingTmsEval {
     println(f"ratio models: $ratioModels")
     //println(f"ratio failures: $ratioFailures")
 
-    if (tmsKey.toLowerCase().contains("doyle")) {
+    if (cfg.isSomeDoyle()) {
       val avgRetractions = (1.0 * totalRetractions) / (1.0 * runs)
       println(f"avg retractions: $avgRetractions")
     }
@@ -247,22 +270,9 @@ object StreamingTmsEval {
   val _nrOfRemovedFacts = "nrOfRemoveFact"
   val _nrOfRetractionsAffected = "nrOfRetractionsAffected"
 
-  def runIteration(iterationNr: Int, inst: StreamingTmsEvalInst, tmsKey: String, countModels: Boolean): Map[String, Long] = {
+  def runIteration(inst: StreamingTmsEvalInst, cfg: Config): Map[String, Long] = {
 
-    //note that tms must be instantiated within iteration!
-    val tms = tmsKey match {
-      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), new Random(iterationNr))
-      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), new Random(iterationNr))
-      case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), new Random(iterationNr))
-      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), new Random(iterationNr))
-      case LEARN => new JtmsLearn()
-    }
-
-    if ((tms.isInstanceOf[JtmsDoyle]) && argMap(SEMANTICS_CHECKS) == "true") {
-      tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
-      tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
-      tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
-    }
+    val tms = cfg.makeTms(inst)
 
     var models = 0L
     var failures = 0L
@@ -314,7 +324,7 @@ object StreamingTmsEval {
       factsToAdd foreach { r =>
         //println("add "+r)
         loopTimeAddFacts += stopTime { tms.add(r) }
-        if (countModels) {
+        if (cfg.modelRatio) {
           if (tms.getModel.isDefined) models += 1
           else failures += 1
         }
@@ -323,7 +333,7 @@ object StreamingTmsEval {
       rulesToAdd foreach { r =>
         //println("add "+r)
         loopTimeAddRules += stopTime { tms.add(r) }
-        if (countModels) {
+        if (cfg.modelRatio) {
           if (tms.getModel.isDefined) models += 1
           else failures += 1
         }
@@ -332,7 +342,7 @@ object StreamingTmsEval {
       rulesToRemove foreach { r =>
         //println("remove "+r)
         loopTimeRemoveRules += stopTime { tms.remove(r) }
-        if (countModels) {
+        if (cfg.modelRatio) {
           if (tms.getModel.isDefined) models += 1
           else failures += 1
         }
@@ -341,7 +351,7 @@ object StreamingTmsEval {
       factsToRemove foreach { r =>
         //println("remove "+r)
         loopTimeRemoveFacts += stopTime { tms.remove(r) }
-        if (countModels) {
+        if (cfg.modelRatio) {
           if (tms.getModel.isDefined) models += 1
           else failures += 1
         }
@@ -375,7 +385,7 @@ object StreamingTmsEval {
       jtms.checkSelfSupport()
     }
     */
-    if (tmsKey.toLowerCase().contains("doyle")) {
+    if (cfg.isSomeDoyle()) {
       nrOfRetractionsAffected = tms.asInstanceOf[JtmsDoyle].retractionsAffected
     }
 
