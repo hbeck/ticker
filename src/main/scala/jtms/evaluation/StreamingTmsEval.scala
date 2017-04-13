@@ -4,11 +4,10 @@ import java.io.{File, PrintWriter}
 import java.util.concurrent.TimeUnit
 
 import common.Util.stopTime
-import core.Atom
 import core.asp._
 import jtms._
 import jtms.algorithms._
-import jtms.evaluation.instances.{CacheHopsEvalInst, CacheHopsStandardEvalInst, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
+import jtms.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
 import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 import runner.Load
 
@@ -37,7 +36,6 @@ object StreamingTmsEval {
   val DOYLE = "Doyle"
   val DOYLE_HEURISTICS = "DoyleHeur"
   val GREEDY = "Greedy"
-  val GREEDY_HEURISTICS = "GreedyHeur"
   val LEARN = "Learn"
 
   var INSTANCE_NAME = "inst"
@@ -49,8 +47,6 @@ object StreamingTmsEval {
   var WINDOW_SIZE = "winsize"
   //
   var ITEMS = "items"
-  var EDGE_DIR = "edgedir"
-  var EDGE_FILE = "edgeset"
   //
   var POST_PROCESS_GROUNDING = "postProcess"
   var PRINT_RULES = "printRules"
@@ -78,9 +74,7 @@ object StreamingTmsEval {
     defaultArg(WINDOW_SIZE,"2")
     //
     defaultArg(ITEMS,"1")
-    defaultArg(EDGE_DIR,"src/test/resources/edge-sets/")
-    defaultArg(EDGE_FILE,"edges1.txt")
-    //    
+    //
     defaultArg(POST_PROCESS_GROUNDING,"true")
     defaultArg(PRINT_RULES,"false")
     defaultArg(INDICATE_TIMEPOINTS,"false")
@@ -130,9 +124,8 @@ object StreamingTmsEval {
 
     argMap(INSTANCE_NAME) match {
       case CACHE_HOPS => {
-        val edges: Set[Atom] = CacheHopsEvalInst.loadEdges(argMap(EDGE_DIR),argMap(EDGE_FILE))
         val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-        CacheHopsStandardEvalInst(windowSize,timePoints,nrOfItems,edges,postProcessGrounding,printRules)
+        CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules)
       }
       case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints)
       case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints)
@@ -262,7 +255,6 @@ object StreamingTmsEval {
       case DOYLE => new JtmsDoyle(new OptimizedNetwork(), new Random(iterationNr))
       case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), new Random(iterationNr))
       case GREEDY => new JtmsGreedy(new OptimizedNetwork(), new Random(iterationNr))
-      case GREEDY_HEURISTICS => new JtmsGreedyHeuristics(new OptimizedNetwork(), new Random(iterationNr))
       case LEARN => new JtmsLearn()
     }
 

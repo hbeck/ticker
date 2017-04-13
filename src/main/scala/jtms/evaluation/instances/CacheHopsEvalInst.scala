@@ -270,10 +270,15 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
 
 }
 
-case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, edges: Set[Atom], postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random(1)) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random = new Random(1)) extends CacheHopsEvalInst(random) {
 
   if (printRules) {
     printRulesOnce = true
+  }
+
+  override lazy val edges: Set[Atom] = {
+    Set(("n1","n2"),("n2","n3"),("n3","n4"),("n4","n5"),("n5","n6"),("n6","n7"),
+        ("n1","m"),("m","n4"),("n1","n6")) map { case (x,y) => edge(x,y) }
   }
 
   override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
@@ -343,7 +348,7 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
 
   override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
     if (tms.getModel.isEmpty) {
-      print("x")
+      print(f"x($t)")
       return
     }
     val model = tms.getModel.get

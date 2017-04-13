@@ -70,6 +70,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
 
   def unregister(rule: NormalRule) = network.unregister(rule)
 
+  //TODO recompute only old and current repercussions in case of inconsistency
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
     register(rule)

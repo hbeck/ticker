@@ -21,6 +21,10 @@ object JtmsGreedy {
 
 class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
 
+  var prevModel = network.inAtoms
+
+  //
+
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
 
@@ -30,6 +34,8 @@ class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new 
   var shuffle = true
 
   override def update(atoms: Set[Atom]) {
+
+    prevModel = network.inAtoms
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
@@ -65,6 +71,13 @@ class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new 
   }
 
   def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = {
+
+    if (!prevModel.isEmpty) {
+      val a = prevModel.head
+      prevModel = prevModel.tail
+      return Some(a)
+    }
+
     //TODO improve
 
     //val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
