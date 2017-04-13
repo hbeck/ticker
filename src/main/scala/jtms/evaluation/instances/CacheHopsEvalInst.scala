@@ -163,6 +163,8 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
     rule(sat(I,N), s(item(I), node(N), w_req(I,N), w_cache(I,N)), s()) :+
     //   sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
     rule(sat(I,N), s(item(I), node(N), w_req(I,N), getFrom(I,N,M)), s()) :+
+    //  unsat(I,N) :- item(I), node(N), w_req(I,N), not sat(I,N).
+    rule(unsat(I,N), s(item(I), node(N), w_req(I,N)), s(sat(I,N))) :+
     //  needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
     rule(needAt(I,N), s(item(I), node(N), w_req(I,N)),  s(w_cache(I,N)) ) :+
     //   conn(N,M) :- edge(N,M), not w_error(N,M).
@@ -388,6 +390,7 @@ case class CacheHopsStandardEvalInst(windowSize: Int, timePoints: Int, nrOfItems
       assert(!model.contains(getFrom(i1,n1,n4)))
       assert(!model.contains(getFrom(i1,n1,n7)))
       assert(!model.contains(sat(i1,n1)))
+      assert(model.contains(unsat(i1,n1)))
     }
   }
 }
