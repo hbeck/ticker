@@ -17,12 +17,13 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def windowSize: Int
   def timePoints: Int
   def nrOfItems: Int
-  def postProcessGrounding: Boolean
 
   def edges: Set[Atom]
 
   final def nodes(): Set[Value] = edges collect { case a:GroundAtomWithArguments => a.arguments } flatten
   final def nodeAtoms(): Set[Atom] = nodes map (node(_))
+
+  def maxPathLength: Int = nodes.size //at most number of nodes
 
   val _node = Predicate("node")
   val _sat = Predicate("sat")
@@ -37,11 +38,8 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   val _n_minReach = Predicate("n_minReach")
   val _itemReach = Predicate("itemReach")
   val _reach = Predicate("reach")
+  val _length = Predicate("length")
 
-  //do not use predicates used in grounding since we do not want to re-ground here
-//  val _notEq = Predicate("notEq") //corresponds to neq
-//  val _lowerThan = Predicate("lowerThan") //corresponds to lt
-//  val _incr = Predicate("incr") //inr(K0,K) corresponds to plus(K0,1,K)
   //windows
   val _w_req = Predicate("w_req")
   val _w_cache = Predicate("w_cache")
@@ -73,15 +71,14 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def itemReach(arg1: Argument, arg2: Argument, arg3: Argument, arg4: Argument) = AtomWithArguments(_itemReach,Seq(arg1,arg2,arg3,arg4))
   def itemReach(arg1: Argument, arg2: Int, arg3: Int, arg4: Int) = AtomWithArguments(_itemReach,Seq(arg1,iVal(arg2),iVal(arg3),iVal(arg4)))
   def reach(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_reach,Seq(arg1,arg2,arg3))
-//  def notEq(arg1: Argument, arg2: Argument) = AtomWithArguments(_notEq,Seq(arg1,arg2))
-//  def lowerThan(arg1: Argument, arg2: Argument) = AtomWithArguments(_lowerThan,Seq(arg1,arg2))
-//  def incr(arg1: Argument, arg2: Argument) = AtomWithArguments(_incr,Seq(arg1,arg2))
   def w_req(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_req,Seq(arg1,arg2))
   def w_cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_cache,Seq(arg1,arg2))
   def w_error(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_error,Seq(arg1,arg2))
   def req(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_req,Seq(arg1,arg2,arg3))
   def cache(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
   def error(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
+  def length(arg1: Argument) = AtomWithArguments(_length,Seq(arg1))
+  def length(arg1: Int) = AtomWithArguments(_length,Seq(iVal(arg1)))
 
   //LARS:
   val _neq = Predicate("neq")
@@ -91,10 +88,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2))
   def error(arg1: Argument, arg2: Argument) = AtomWithArguments(_error,Seq(arg1,arg2))
   def reach(arg1: Argument, arg2: Argument, arg3: Int) = AtomWithArguments(_reach,Seq(arg1,arg2,iVal(arg3)))
-//  def neq(arg1: Argument, arg2: Argument) = AtomWithArguments(_neq,Seq(arg1,arg2))
-//  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
-//  def plus(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_plus,Seq(arg1,arg2,arg3))
-//  def plus(arg1: Int, arg2: Argument, arg3: Argument) = AtomWithArguments(_plus,Seq(iv(arg1),arg2,arg3))
 
   /*
    % STATIC:
@@ -147,8 +140,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
       n_minReach(I,N,M,K) <= itemReach(I,N,M,K) and itemReach(I,N,M2,K2) and Lt(K2,K), //!
       itemReach(I,N,M,K) <= needAt(I,N) and wD(n,cache(I,M)) and reach(N,M,K),
       reach(N,M,1) <= conn(N,M),
-      reach(N,M,K) <= reach(N,M0,K0) and conn(M0,M) and Neq(N,M) and Incr(K0,K) and node(K0) and node(K)//!
-      /* note: K0 and K can at most be the number of nodes. using numbers for nodes, we do not have to add additional number predicates */
+      reach(N,M,K) <= reach(N,M0,K0) and conn(M0,M) and Neq(N,M) and Incr(K0,K) and length(K0) and length(K)//!
     )
 
   }
@@ -193,8 +185,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     //   reach(N,M,1) :- conn(N,M).
     rule(reach(N,M,iVal(1)), s(conn(N,M)), s()) :+
     //   reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, incr(K0,K).
-    rule(reach(N,M,K), s(reach(N,M0,K0), conn(M0,M), Neq(N,M), Incr(K0,K), node(K0), node(K)), s())
-    /* note: K0 and K can at most be the number of nodes. using numbers for nodes, we do not have to add additional number predicates */
+    rule(reach(N,M,K), s(reach(N,M0,K0), conn(M0,M), Neq(N,M), Incr(K0,K), length(K0), length(K)), s())
 
     /* facts */
 
@@ -203,26 +194,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     for (i <- 1 to nrOfItems) {
       rules = rules :+ fact(item("i"+i))
     }
-
-    /* auxiliary relations lowerThan, incr, notEq */
-
-    /*
-    for (i <- 0 to (nodes.size - 1)) { //maximum reachability is for number of nodes
-      for (j <- (i+1) to (nodes.size)) {
-        rules = rules :+ fact(lowerThan(iv(i),iv(j)))
-      }
+    for (k <- 1 to maxPathLength) {
+      rules = rules :+ fact(length(k))
     }
-    for (i <- 0 to nodes.size) {
-      rules = rules :+ fact(incr(iv(i),iv(i+1)))
-    }
-    for (n <- nodes) {
-      for (m <- nodes) {
-        if (n != m) {
-          rules = rules :+ fact(notEq(n,m)) :+ fact(notEq(m,n))
-        }
-      }
-    }
-    */
 
     //
 
@@ -232,12 +206,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
 
     val groundRules = rules flatMap (grounder.ground(_))
 
-    /*
-    if (postProcessGrounding) {
-      groundRules = postProcess(groundRules)
-    }
-    */
-
     if (printRulesOnce) {
       println()
       groundRules foreach println
@@ -248,97 +216,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     groundRules
 
   } //end staticRules
-
-  /*
-  override lazy val staticRules: Seq[NormalRule] = {
-
-    val I:Variable = StringVariable("I")
-    val N:Variable = StringVariable("N")
-    val M:Variable = StringVariable("M")
-    val M0:Variable = StringVariable("M0")
-    val M2:Variable = StringVariable("M2")
-    val K:Variable = Variable("K")
-    val K0:Variable = Variable("K0")
-    val K2:Variable = Variable("K2")
-
-    var rules = Seq[NormalRule]()
-    def s(ats: Atom*) = ats.toSet[Atom]
-
-    rules = rules :+
-      //   sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
-      rule(sat(I,N), s(item(I), node(N), w_req(I,N), w_cache(I,N)), s()) :+
-      //   sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
-      rule(sat(I,N), s(item(I), node(N), w_req(I,N), getFrom(I,N,M)), s()) :+
-      //  unsat(I,N) :- item(I), node(N), w_req(I,N), not sat(I,N).
-      rule(unsat(I,N), s(item(I), node(N), w_req(I,N)), s(sat(I,N))) :+
-      //  needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
-      rule(needAt(I,N), s(item(I), node(N), w_req(I,N)),  s(w_cache(I,N)) ) :+
-      //   conn(N,M) :- edge(N,M), not w_error(N,M).
-      rule(conn(N,M), s(edge(N,M)),  s(w_error(N,M))) :+
-      //   getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
-      rule(getFrom(I,N,M), s(needAt(I,N), minReach(I,N,M)),  s(n_getFrom(I,N,M))) :+
-      //   n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
-      rule(n_getFrom(I,N,M2), s(getFrom(I,N,M), minReach(I,N,M2), notEq(M,M2)), s()) :+
-      //   minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
-      rule(minReach(I,N,M), s(itemReach(I,N,M,K)),  s(n_minReach(I,N,M,K))) :+
-      //   n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), K2 < K.
-      rule(n_minReach(I,N,M,K), s(itemReach(I,N,M,K), itemReach(I,N,M2,K2), lowerThan(K2,K)), s()) :+
-      //   itemReach(I,N,M,K) :- needAt(I,N), w_cache(I,M), reach(N,M,K).
-      rule(itemReach(I,N,M,K), s(needAt(I,N), w_cache(I,M), reach(N,M,K)), s()) :+
-      //   reach(N,M,1) :- conn(N,M).
-      rule(reach(N,M,iv(1)), s(conn(N,M)), s()) :+
-      //   reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, incr(K0,K).
-      rule(reach(N,M,K), s(reach(N,M0,K0), conn(M0,M), notEq(N,M), incr(K0,K)), s()) //do not use 'plus(K0,1,K)' instead of incr. grounder cannot resolve
-
-    /* facts */
-
-    rules = rules ++ (edges map (fact(_)))
-    rules = rules ++ (nodeAtoms map (fact(_)))
-    for (i <- 1 to nrOfItems) {
-      rules = rules :+ fact(item("i"+i))
-    }
-
-    /* auxiliary relations lowerThan, incr, notEq */
-
-    for (i <- 0 to (nodes.size - 1)) { //maximum reachability is for number of nodes
-      for (j <- (i+1) to (nodes.size)) {
-        rules = rules :+ fact(lowerThan(iv(i),iv(j)))
-      }
-    }
-    for (i <- 0 to nodes.size) {
-      rules = rules :+ fact(incr(iv(i),iv(i+1)))
-    }
-    for (n <- nodes) {
-      for (m <- nodes) {
-        if (n != m) {
-          rules = rules :+ fact(notEq(n,m)) :+ fact(notEq(m,n))
-        }
-      }
-    }
-
-    //
-
-    val program = AspProgram(rules.toList)
-    val inspect = StaticProgramInspection.forAsp(program)
-    val grounder = GrounderInstance.oneShotAsp(inspect)
-
-    var groundRules = rules flatMap (grounder.ground(_))
-
-    if (postProcessGrounding) {
-      groundRules = postProcess(groundRules)
-    }
-
-    if (printRulesOnce) {
-      println()
-      groundRules foreach println
-      println(f"\n${groundRules.size} ground rules")
-      printRulesOnce = false
-    }
-
-    groundRules
-
-  } //end staticRules
-  */
 
   override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
 
@@ -364,43 +241,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     rules
   }
 
-  /*
-  //delete aux relation atoms, as facts and from rules where they hold
-  //delete rules where they do not hold
-  def postProcess(groundRules: Seq[NormalRule]): Seq[NormalRule] = {
-    groundRules collect {
-      case r if (!isRelation(r.head) && !unsatisfiedRelation(r)) => removeAuxiliary(r)
-    }
-  }
-
-  def unsatisfiedRelation(r: NormalRule): Boolean = {
-    val relations = r.body filter (isRelation(_))
-    relations exists (a => !(satisfied(a)))
-  }
-
-  def satisfied(relation: Atom): Boolean = {
-    val args = relation.arguments()
-    relation.predicate match {
-      case `_notEq` => args(0) != args(1)
-      case `_lowerThan` => Integer.parseInt(""+args(0)) < Integer.parseInt(""+args(1))
-      case `_incr` => Integer.parseInt(""+args(0)) + 1 == Integer.parseInt(""+args(1))
-    }
-  }
-
-  def isRelation(a: Atom): Boolean = {
-    val h = a.predicate
-    h == _notEq || h == _lowerThan || h == _incr
-  }
-
-  def removeAuxiliary(r: NormalRule): NormalRule = {
-    val h = r.head
-    //item and node predicates only needed for grounding
-    val p = r.pos filter (a => (!isRelation(a) && a.predicate !=_item && a != _node))
-    val n = r.neg
-    rule(h,p,n)
-  }
-  */
-
   //
 
   def printModel(t:Int, model: Set[Atom]): Unit = {
@@ -413,7 +253,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
 
 }
 
-case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
 
   override val windowSize = 10
 
@@ -499,7 +339,7 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, postProcessGround
   }
 }
 
-case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, postProcessGrounding: Boolean, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
 
   override val windowSize = 15
 

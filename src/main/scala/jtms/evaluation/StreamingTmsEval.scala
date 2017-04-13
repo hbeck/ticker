@@ -49,7 +49,6 @@ object StreamingTmsEval {
   //
   var ITEMS = "items"
   //
-  var POST_PROCESS_GROUNDING = "postProcess"
   var PRINT_RULES = "printRules"
   var INDICATE_TIMEPOINTS = "dots"
   var SEMANTICS_CHECKS = "checks"
@@ -76,7 +75,6 @@ object StreamingTmsEval {
     //
     defaultArg(ITEMS,"1")
     //
-    defaultArg(POST_PROCESS_GROUNDING,"true")
     defaultArg(PRINT_RULES,"false")
     defaultArg(INDICATE_TIMEPOINTS,"false")
     defaultArg(SEMANTICS_CHECKS,"false")
@@ -111,18 +109,17 @@ object StreamingTmsEval {
     val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
     val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
     val nrOfItems = Integer.parseInt(argMap(ITEMS))
-    val postProcessGrounding = (argMap(POST_PROCESS_GROUNDING) == "true")
 
     def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
       val random = new Random(iterationNr)
       argMap(INSTANCE_NAME) match {
         case CACHE_HOPS1 => {
           val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst1(timePoints,nrOfItems,postProcessGrounding,printRules,random)
+          CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random)
         }
         case CACHE_HOPS2 => {
           val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst2(timePoints,nrOfItems,postProcessGrounding,printRules,random)
+          CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random)
         }
         case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
         case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
