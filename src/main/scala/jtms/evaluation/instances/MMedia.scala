@@ -2,6 +2,7 @@ package jtms.evaluation.instances
 
 import core.asp.NormalRule
 import core._
+import core.lars._
 import jtms.JtmsUpdateAlgorithm
 import jtms.evaluation.StreamingTmsStandardEvalInst
 
@@ -39,6 +40,26 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random = new Ran
   def rtm_at(arg1: Int) = AtomWithArguments(_rtm_at,Seq(IntValue(arg1)))
   def lt(arg1: Int, arg2: Int) = AtomWithArguments(_lt,Seq(IntValue(arg1),IntValue(arg2)))
   def leq(arg1: Int, arg2: Int) = AtomWithArguments(_leq,Seq(IntValue(arg1),IntValue(arg2)))
+
+  // LARS:
+  val _alpha = Predicate("alpha")
+  val high = Atom("high")
+  val mid = Atom("mid")
+  val low = Atom("low")
+  val rtm50 = Atom("rtm50")
+
+  def alpha_at(arg1: Argument, arg2: Argument) = AtomWithArguments(_alpha_at,Seq(arg1,arg2))
+  def high_at(arg1: Argument) = AtomWithArguments(_high_at,Seq(arg1))
+  def mid_at(arg1: Argument) = AtomWithArguments(_mid_at,Seq(arg1))
+  def low_at(arg1: Argument) = AtomWithArguments(_low_at,Seq(arg1))
+  def rtm_at(arg1: Argument) = AtomWithArguments(_rtm_at,Seq(arg1))
+  def lt(arg1: Int, arg2: Argument) = AtomWithArguments(_lt,Seq(IntValue(arg1),arg2))
+  def lt(arg1: Argument, arg2: Int) = AtomWithArguments(_lt,Seq(arg1,IntValue(arg2)))
+  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
+  def leq(arg1: Int, arg2: Argument) = AtomWithArguments(_leq,Seq(IntValue(arg1),arg2))
+  def leq(arg1: Argument, arg2: Int) = AtomWithArguments(_leq,Seq(arg1,IntValue(arg2)))
+  def leq(arg1: Argument, arg2: Argument) = AtomWithArguments(_leq,Seq(arg1,arg2))
+
 
   /*
 done :- lfu.
@@ -96,6 +117,34 @@ random :- not done.
     rules
   }
 
+  def larsProgram(windowSize: Int): LarsProgram = {
+
+    val T:Variable = StringVariable("T")
+    val V:Variable = StringVariable("V")
+
+    def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
+    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
+    def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
+    
+    def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
+
+    val n = windowSize
+
+    LarsProgram.from(
+      AtAtom(T,high) <= wAt(n,T,_alpha(V)) and leq(18,V),
+      AtAtom(T,mid) <= wAt(n,T,_alpha(V)) and leq(12,V) and lt(V,18),
+      AtAtom(T,low) <= wAt(n,T,_alpha(V)) and lt(V,12),
+      lfu <= wB(n,high),
+      lru <= wB(n,mid),
+      fifo <= wB(n,low) and wD(n,rtm50),
+      done <= lfu,
+      done <= lru,
+      done <= fifo,
+      UserDefinedLarsRule(randomAtom,s(),s(done))
+    )
+
+  }
+
 }
 
 case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random = new Random(1)) extends MMedia(windowSize,timePoints,random) {
@@ -122,23 +171,11 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
     Seq[NormalRule]() :+ fact(alpha_at(alphaValueFor(t),t))
   }
 
-//  override def factsToRemoveAt(t: Int): Seq[NormalRule] = {
-//    var rules = Seq[NormalRule]()
-//    rules = rules :+ fact(alpha_at(alphaValueFor(t-windowSize-1),t-windowSize-1))
-//    rules
-//  }
-
   def alphaValueFor(t: Int): Int = {
     val q = t%180
-    var v = 0
-    if (0 <= q && q < 60) {
-      v = 5
-    } else if (q >= 60 && q < 120) {
-      v = 15
-    } else {
-      v = 25
-    }
-    v
+    if (0 <= q && q < 60) 5
+    else if (q >= 60 && q < 120) 15
+    else 25
   }
 }
 
@@ -172,7 +209,7 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
     var rules = Seq[NormalRule]() :+ fact(alpha_at(v,t))
     if (mode == Low) {
       if ((t-lastRtm > windowSize) || (random.nextDouble() < (1.0/(1.0*windowSize/2.0)))) {
-        rules = rules :+ fact(rtm_at(t))
+        rules = rules :+ fact(rtm_at(t)) //TODO in engine use atom rtm50
         lastRtm = t
       }
     }

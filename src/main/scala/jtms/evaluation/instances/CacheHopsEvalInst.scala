@@ -3,6 +3,7 @@ package jtms.evaluation.instances
 import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
+import core.lars._
 import jtms.JtmsUpdateAlgorithm
 import jtms.evaluation.StreamingTmsStandardEvalInst
 
@@ -24,6 +25,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
 
   val _node = Predicate("node")
   val _sat = Predicate("sat")
+  val _unsat = Predicate("unsat")
   val _item = Predicate("item")
   val _getFrom = Predicate("getFrom")
   val _n_getFrom = Predicate("n_getFrom")
@@ -50,6 +52,7 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
 
   def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
   def sat(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  def unsat(arg1: Argument, arg2: Argument) = AtomWithArguments(_unsat,Seq(arg1,arg2))
   def getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
   def item(arg1: Argument) = AtomWithArguments(_item,Seq(arg1))
   def n_getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_n_getFrom,Seq(arg1,arg2,arg3))
@@ -70,6 +73,19 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
   def cache(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
   def error(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
 
+  //LARS:
+  val _neq = Predicate("neq")
+  val _lt = Predicate("lt")
+  val _plus = Predicate("plus")
+  def req(arg1: Argument, arg2: Argument) = AtomWithArguments(_req,Seq(arg1,arg2))
+  def cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2))
+  def error(arg1: Argument, arg2: Argument) = AtomWithArguments(_error,Seq(arg1,arg2))
+  def reach(arg1: Argument, arg2: Argument, arg3: Int) = AtomWithArguments(_reach,Seq(arg1,arg2,IntValue(arg3)))
+  def neq(arg1: Argument, arg2: Argument) = AtomWithArguments(_neq,Seq(arg1,arg2))
+  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
+  def plus(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_plus,Seq(arg1,arg2,arg3))
+  def plus(arg1: Int, arg2: Argument, arg3: Argument) = AtomWithArguments(_plus,Seq(IntValue(arg1),arg2,arg3))
+
   /*
    % STATIC:
    sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
@@ -89,6 +105,42 @@ abstract class CacheHopsEvalInst(random: Random = new Random(1)) extends Streami
    w_cache(I,N) :- cache(I,N,T)
    w_error(N,M) :- error(N,M,T)
    */
+
+  def larsProgram(windowSize: Int): LarsProgram = {
+
+    val I:Variable = StringVariable("I")
+    val N:Variable = StringVariable("N")
+    val M:Variable = StringVariable("M")
+    val M0:Variable = StringVariable("M0")
+    val M2:Variable = StringVariable("M2")
+    val K:Variable = Variable("K")
+    val K0:Variable = Variable("K0")
+    val K2:Variable = Variable("K2")
+
+    def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
+    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
+    def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
+
+    def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
+
+    val n = windowSize
+
+    LarsProgram.from(
+      sat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and wD(n,cache(I,N)),
+      sat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and getFrom(I,N,M),
+      unsat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not sat(I,N),
+      needAt(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not wD(n,cache(I,N)),
+      conn(N,M) <= edge(N,M) not wD(n,error(N,M)),
+      getFrom(I,N,M) <= needAt(I,N) and minReach(I,N,M) not n_getFrom(I,N,M),
+      n_getFrom(I,N,M2) <= getFrom(I,N,M) and minReach(I,N,M2) and neq(M,M2), //!
+      minReach(I,N,M) <= itemReach(I,N,M,K) not n_minReach(I,N,M,K),
+      n_minReach(I,N,M,K) <= itemReach(I,N,M,K) and itemReach(I,N,M2,K2) and lt(K2,K), //!
+      itemReach(I,N,M,K) <= needAt(I,N) and wD(n,cache(I,M)) and reach(N,M,K),
+      reach(N,M,1) <= conn(N,M),
+      reach(N,M,K) <= reach(N,M0,K0) and conn(M0,M) and neq(N,M) and plus(1,K0,K) //!
+    )
+
+  }
 
   var printRulesOnce = false
 
