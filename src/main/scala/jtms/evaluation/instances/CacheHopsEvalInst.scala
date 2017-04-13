@@ -294,16 +294,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     rule(h,p,n)
   }
 
-  // helper for fact generation
-
-  def req_sig(item: StringValue, node: StringValue, t: Int) = fact(req(item,node,IntValue(t)))
-  def cache_sig(item: StringValue, node: StringValue, t: Int) = fact(cache(item,node,IntValue(t)))
-  def error_sig(fromNode: StringValue, toNode: StringValue, t: Int) = fact(error(fromNode,toNode,IntValue(t)))
-
-  def req_sig(item: StringValue, node: Int, t: Int) = fact(req(item,IntValue(node),IntValue(t)))
-  def cache_sig(item: StringValue, node: Int, t: Int) = fact(cache(item,IntValue(node),IntValue(t)))
-  def error_sig(fromNode: Int, toNode: Int, t: Int) = fact(error(IntValue(fromNode),IntValue(toNode),IntValue(t)))
-
   //
 
   def printModel(t:Int, model: Set[Atom]): Unit = {
@@ -336,25 +326,19 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, postProcessGround
   val m = StringValue("m")
 
   override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    val q = t % 30
-    if (q == 0) {
-      Seq() :+ req_sig(i1,n1,t) :+ cache_sig(i1,n4,t)//-> single model getFrom(i1,n1,n4)
-    } else if (q == 2) {
-      Seq() :+ cache_sig(i1,n7,t) //-> model shouldn't change to getFrom(i1,n1,n7)
-    } else if (q == 4) {
-      Seq() :+ error_sig(m,n4,t) //-> model must change to getFrom(i1,n1,n4)
-    } else if (q == 6) {
-      Seq() :+ cache_sig(i1,n1,t) //-> getFrom(i1,n1,n4) must vanish, only sat(i1,n1) remains
-    } else if (q == 8) {
-      Seq() :+ req_sig(i1,n1,t) //-> sat(i1,n1) remains (no getFrom)
-    } else if (q == 10) {
-      Seq() :+ cache_sig(i1,n7,t) //-> sat(i1,n1) remains (no getFrom)
-    } else if (q == 16) {
-      Seq() :+ cache_sig(i1,n7,t)
-    } else if (q == 20) {
-      Seq() :+ req_sig(i1,n1,t)
-    } else {
-      Seq()
+    def req_(item: StringValue, node: StringValue) = fact(req(item,node,IntValue(t)))
+    def cache_(item: StringValue, node: StringValue) = fact(cache(item,node,IntValue(t)))
+    def err_(fromNode: StringValue, toNode: StringValue) = fact(error(fromNode,toNode,IntValue(t)))
+    t % 30 match {
+      case 0 => Seq(req_(i1,n1),cache_(i1,n4))
+      case 2 => Seq(cache_(i1,n7))
+      case 4 => Seq(err_(m,n4))
+      case 6 => Seq(cache_(i1,n1))
+      case 8 => Seq(req_(i1,n1))
+      case 10 => Seq(cache_(i1,n7))
+      case 16 => Seq(cache_(i1,n7))
+      case 20 => Seq(req_(i1,n1))
+      case _ => Seq()
     }
   }
 
@@ -429,22 +413,22 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, postProcessGround
   val i1 = StringValue("i1")
 
   override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    def ch(i: StringValue, n: Int) = cache_sig(i,n,t)
-    def rq(i: StringValue, n: Int) = req_sig(i,n,t)
-    def err(n: Int, m: Int) = error_sig(n,m,t)
+    def cache_(i: StringValue, n: Int) = fact(cache(i,IntValue(n),IntValue(t)))
+    def req_(i: StringValue, n: Int) = fact(req(i,IntValue(n),IntValue(t)))
+    def err_(n: Int, m: Int) = fact(error(IntValue(n),IntValue(m),IntValue(t)))
     t % 40 match {
-      case 0 => Seq(ch(i1,16),rq(i1,1))
-      case 2 => Seq(ch(i1,9))
-      case 4 => Seq(rq(i1,2))
-      case 6 => Seq(rq(i1,10))
-      case 8 => Seq(ch(i1,4))
-      case 10 => Seq(rq(i1,1),rq(i1,7))
-      case 12 => Seq(ch(i1,9),ch(i1,1))
-      case 14 => Seq(err(8,9))
+      case 0 => Seq(cache_(i1,16),req_(i1,1))
+      case 2 => Seq(cache_(i1,9))
+      case 4 => Seq(req_(i1,2))
+      case 6 => Seq(req_(i1,10))
+      case 8 => Seq(cache_(i1,4))
+      case 10 => Seq(req_(i1,1),req_(i1,7))
+      case 12 => Seq(cache_(i1,9),cache_(i1,1))
+      case 14 => Seq(err_(8,9))
       //nothing at 16; where cache(i1,16,1) expires
-      case 18 => Seq(rq(i1,2),ch(i1,1),ch(i1,9))
-      case 20 => Seq(rq(i1,10))
-      case 22 => Seq(rq(i1,1),rq(i1,7))
+      case 18 => Seq(req_(i1,2),cache_(i1,1),cache_(i1,9))
+      case 20 => Seq(req_(i1,10))
+      case 22 => Seq(req_(i1,1),req_(i1,7))
       case _=> Seq()
     }
   }
