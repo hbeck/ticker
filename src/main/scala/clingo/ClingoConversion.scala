@@ -51,6 +51,7 @@ object ClingoConversion {
     case LtLt(l, x, u) => f"$x = ${l+1} .. ${u-1}" //l < x < u
     case LtLeq(l, x, u) => f"$x = ${l+1} .. $u"
     case LeqLt(l, x, u) => f"$x = $l .. ${u-1}"
+    case Incr(l, r) => f"$l + 1 = $r"
   }
 
   def apply[TAtom](atom: TAtom): ClingoAtom = {

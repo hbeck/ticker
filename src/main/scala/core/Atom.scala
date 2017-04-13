@@ -488,6 +488,12 @@ case class LeqLt(x: Argument, y: Argument, z: Argument) extends TernaryNumericRe
   override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLt(nx,ny,nz)
 }
 
+case class Incr(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
+  override val predicate: Predicate = Predicate("incr")
+  override def groundingHolds(): Boolean = int(x) + 1 == int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Incr(nx,ny)
+}
+
 
 
 
