@@ -244,11 +244,13 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   //
 
   def printModel(t:Int, model: Set[Atom]): Unit = {
-    println(f"\nt=$t, q=${t%30}")
+    println(f"\nt=$t")
     model filter { a =>
       a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
-        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item && a.predicate != _n_getFrom
+        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item &&
+        a.predicate != _length && a.predicate != _sat && a.predicate != _n_getFrom
     } foreach println
+    model filter (a => a.predicate == _reach) foreach println
   }
 
 }
@@ -347,9 +349,16 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     printRulesOnce = true
   }
 
+  /*
   override lazy val edges: Set[Atom] = {
     val consecutive = for (i <- 1 to 15) yield (i,i+1)
     val pairs = Set((8,1),(16,1)) ++ consecutive
+    pairs map { case (x,y) => edge(x,y) }
+  }
+  */
+
+  override lazy val edges: Set[Atom] = {
+    val pairs = Set((1,2),(2,4),(4,7),(7,8),(8,9),(9,10),(10,16),(16,1),(8,1),(16,9))
     pairs map { case (x,y) => edge(x,y) }
   }
 
@@ -372,6 +381,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
       case 18 => Seq(req_(i1,2),cache_(i1,1),cache_(i1,9))
       case 20 => Seq(req_(i1,10))
       case 22 => Seq(req_(i1,1),req_(i1,7))
+      case 32 => Seq(err_(16,1))
       case _=> Seq()
     }
   }
@@ -388,87 +398,132 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
       if (!model.contains(a)) {
         printModel(t,model)
         println(f"does not contain $a")
+        assert(false)
       }
-      assert(false)
     }
     def notContains(a: Atom) = {
       if (model.contains(a)) {
         printModel(t,model)
         println(f"contains $a")
+        assert(false)
       }
-      assert(false)
     }
+    def containsSomeOf(ats: Atom*) = {
+      if (!(ats.exists(model.contains(_)))) {
+        printModel(t,model)
+        println(f"contained none of $ats")
+        assert(false)
+      }
+    }
+
+    val ensureModelMaintenance = false
 
     val q = t % 40
     if (q >= 0 && q < 2) {
       contains(getFrom(i1,1,16))
-    } else if (q <= 2 && q < 4) {
+    } else if (q >= 2 && q < 4) {
       contains(getFrom(i1,1,9))
-    } else if (q <= 4 && q < 6) {
+    } else if (q >= 4 && q < 6) {
       contains(getFrom(i1,1,9))
       contains(getFrom(i1,2,9))
-    } else if (q <= 6 && q < 8) {
+    } else if (q >= 6 && q < 8) {
       contains(getFrom(i1,1,9))
       contains(getFrom(i1,2,9))
       contains(getFrom(i1,10,16))
-    } else if (q <= 8 && q < 10) {
+    } else if (q >= 8 && q < 10) {
       contains(getFrom(i1,1,4))
       contains(getFrom(i1,2,4))
       contains(getFrom(i1,10,16))
-    } else if (q <= 10 && q < 12) {
+    } else if (q >= 10 && q < 12) {
       contains(getFrom(i1,1,4))
       contains(getFrom(i1,2,4))
       contains(getFrom(i1,7,9))
       contains(getFrom(i1,10,16))
-    } else if (q <= 12 && q < 14) {
+    } else if (q >= 12 && q < 14) {
       notContains(getFrom(i1,1,4))
       notContains(needAt(i1,1))
       contains(sat(i1,1))
       contains(getFrom(i1,2,4))
-      contains(getFrom(i1,7,9))
       contains(getFrom(i1,10,16))
-    } else if (q <= 14 && q < 16) {
+      if (ensureModelMaintenance) {
+        contains(getFrom(i1,7,9))
+      } else {
+        containsSomeOf(getFrom(i1,7,9),getFrom(i1,7,1))
+      }
+    } else if (q >= 14 && q < 16) {
       notContains(getFrom(i1,1,4))
       notContains(needAt(i1,1))
       contains(sat(i1,1))
       contains(getFrom(i1,2,4))
       contains(getFrom(i1,7,1))
       contains(getFrom(i1,10,16))
-    } else if (q <= 16 && q < 24) {
+    } else if (q >= 16 && q < 18) {
       notContains(getFrom(i1,1,4))
       notContains(needAt(i1,1))
       contains(sat(i1,1))
       contains(getFrom(i1,2,4))
       contains(getFrom(i1,7,1))
       contains(getFrom(i1,10,1))
-    } else if (q <= 24 && q < 32) {
+    } else if (q >= 18 && q < 24) {
+      notContains(getFrom(i1,1,4))
+      notContains(needAt(i1,1))
+      contains(sat(i1,1))
+      contains(getFrom(i1,2,4))
+      contains(getFrom(i1,7,1))
+      if (ensureModelMaintenance) {
+        contains(getFrom(i1,10,1))
+      } else {
+        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+      }
+    } else if (q >= 24 && q < 30) {
       notContains(getFrom(i1,1,4))
       notContains(needAt(i1,1))
       contains(sat(i1,1))
       contains(getFrom(i1,2,1))
       contains(getFrom(i1,7,1))
-      contains(getFrom(i1,10,1))
-    } else if (q <= 32 && q < 34) {
+      if (ensureModelMaintenance) {
+        contains(getFrom(i1,10,1))
+      } else {
+        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+      }
+    } else if (q >= 30 && q < 32) {
+      notContains(getFrom(i1,1,4))
+      notContains(needAt(i1,1))
+      contains(sat(i1,1))
+      if (ensureModelMaintenance) {
+        contains(getFrom(i1,2,1))
+        contains(getFrom(i1,7,1))
+        contains(getFrom(i1,10,1))
+      } else {
+        containsSomeOf(getFrom(i1,2,1),getFrom(i1,2,9))
+        containsSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
+        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+      }
+    } else if (q >= 32 && q < 34) {
       notContains(getFrom(i1,1,4))
       notContains(needAt(i1,1))
       contains(sat(i1,1))
       contains(getFrom(i1,2,1))
-      contains(getFrom(i1,7,9))
       contains(getFrom(i1,10,9))
-    } else if (q <= 34 && q < 36) {
+      if (ensureModelMaintenance) {
+        contains(getFrom(i1,7,1))
+      } else {
+        containsSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
+      }
+    } else if (q >= 34 && q < 36) {
       contains(unsat(i1,1))
       notContains(sat(i1,2))
       notContains(unsat(i1,2))
       contains(unsat(i1,7))
       contains(unsat(i1,10))
-    } else if (q <= 36 && q < 38) {
+    } else if (q >= 36 && q < 38) {
       contains(unsat(i1,1))
       notContains(sat(i1,2))
       notContains(unsat(i1,2))
       contains(unsat(i1,7))
       notContains(sat(i1,10))
       notContains(unsat(i1,10))
-    } else if (q <= 38 && q < 40) {
+    } else if (q >= 38 && q < 40) {
       notContains(sat(i1,1))
       notContains(unsat(i1,1))
       notContains(sat(i1,2))
