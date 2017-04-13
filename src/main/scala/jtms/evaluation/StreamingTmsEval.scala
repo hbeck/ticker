@@ -118,11 +118,11 @@ object StreamingTmsEval {
       argMap(INSTANCE_NAME) match {
         case CACHE_HOPS1 => {
           val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules,random)
+          CacheHopsEvalInst1(timePoints,nrOfItems,postProcessGrounding,printRules,random)
         }
         case CACHE_HOPS2 => {
           val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst2(windowSize,timePoints,nrOfItems,postProcessGrounding,printRules,random)
+          CacheHopsEvalInst2(timePoints,nrOfItems,postProcessGrounding,printRules,random)
         }
         case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
         case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)

@@ -458,7 +458,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, postProcessGround
     //TODO
     val q = t % 30
     if (q >= 0 && q < 2) {
-      assert(model.contains(getFrom(i1,n1,n4)))
+      //assert(model.contains(getFrom(i1,n1,n4)))
     }
   }
 }
