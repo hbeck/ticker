@@ -52,4 +52,15 @@ object OperationFactory {
   def apply(left: OperandFactory, func: String, right: OperandFactory): OperationFactory = {
     OperationFactory(OperationWrapper(left,None,None),func,right)
   }
+  def apply(left: OperandFactory, func: String, right: OperationWrapper): OperationFactory = {
+    var notFunc = ""
+    func match {
+      case ">" => notFunc = "<"
+      case "<" => notFunc = ">"
+      case ">=" => notFunc = "<="
+      case "<=" => notFunc = ">="
+      case _ => return OperationFactory(right,func,left)
+    }
+    OperationFactory(right,notFunc,left)
+  }
 }

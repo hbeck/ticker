@@ -10,10 +10,10 @@ import engine.parser.wrapper.ParamWrapper
 /**
   * Created by et on 10.04.17.wff
   */
-case class SlidingTimeWindowFactory(params: List[ParamWrapper]) extends WindowFunctionFactory(params) {
+case class SlidingTimeWindowFactory(params: List[ParamWrapper] = List()) extends WindowFunctionFactory(params) {
 
 
-  override protected def create(params: List[ParamWrapper]): WindowFunction = {
+  override def create(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) return SlidingTimeWindow(5*60)
 
     if(params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.") //TODO throw new InvalidSyntaxException
@@ -35,4 +35,5 @@ case class SlidingTimeWindowFactory(params: List[ParamWrapper]) extends WindowFu
     if(params.isEmpty) wfn = create(params)
     wfn
   }
+
 }

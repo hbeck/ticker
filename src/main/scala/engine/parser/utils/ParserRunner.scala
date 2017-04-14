@@ -1,6 +1,7 @@
 package engine.parser.utils
 
 import engine.parser.SimpleLarsParser
+import engine.parser.factory.OperationFactory
 
 /**
   * Created by et on 16.03.17.
@@ -24,7 +25,7 @@ class ParserRunner() extends SimpleLarsParser {
   def parseOperand(input: String): ParseResult[Any] = parseAll(operand,input)
   def parseArithmetic(input: String): ParseResult[Any] = parseAll(arithmetic,input)
   def parseBool(input: String): ParseResult[Any] = parseAll(compare,input)
-  def parseOperation(input: String): ParseResult[Any] = parseAll(operation,input)
+  def parseOperation(input: String): ParseResult[OperationFactory] = parseAll(operation,input)
   def parseParam(input: String): ParseResult[Any] = parseAll(param,input)
   def parseNeg(input: String): ParseResult[Any] = parseAll(neg,input)
   def parseComment(input: String): ParseResult[Any] = parseAll(comment,input)

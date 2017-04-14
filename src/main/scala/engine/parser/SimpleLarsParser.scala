@@ -18,14 +18,15 @@ class SimpleLarsParser extends JavaTokenParsers {
     case imp ~_ ~ rl => ProgramFactory(imp,rl)
   }
 
-  def importN: Parser[ImportFactory] = "import"~>space ~ str ~ opt("("~>optSpace ~ str ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
-    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,None,str2)
-
+  def importN: Parser[ImportFactory] = "import"~>space ~ fqdn ~ opt("("~> rep1sep(param,",") ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
+    case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,List(),str2)
     case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => {
-      val parameter = params.get._2 + params.get._1._1 + params.get._1._2
-      ImportFactory(str1,Some(parameter.trim),str2)
+      val parameter = /*params.get._2 + params.get._1._1 + */params.get._1
+      ImportFactory(str1,params.get._1,str2)
     }
   }
+
+  def fqdn: Parser[String] = rep1(str,"."|str) ^^ (str => str.mkString)
 
   def rule: Parser[RuleFactory] = rep(comment) ~> ruleBase ~ "." <~ rep(comment) ~> rep(newline) ^^ {case r ~ _ => r}
 
@@ -71,29 +72,27 @@ class SimpleLarsParser extends JavaTokenParsers {
   def operand: Parser[OperandFactory] = optSpace ~> (upperChar ^^ { o: Char => OperandFactory(o) }
                                                     | number ^^ { o: Double => OperandFactory(o) }) <~ optSpace
 
-  def arithmetic: Parser[String] = "+"|"-"|"/"|"*"
+  def arithmetic: Parser[String] = optSpace ~> ("+"|"-"|"/"|"*") <~ optSpace
 
-  def compare: Parser[String] = "="|">="|"<="|"!="|"<"|">"
+  def compare: Parser[String] = optSpace ~> ("="|">="|"<="|"!="|"<"|">") <~ optSpace
 
-  //TODO do not allow arbitrary 'calculations', only single 'assignments' (like T = A + B, A + B = T) and (binary) relations
-  def arithOperation: Parser[OperationWrapper] = operand ~ opt(arithmetic ~ operand) ^^ {
-    case o ~ None => OperationWrapper(o,None,None)
-    case o ~ l => OperationWrapper(o,Some(l.get._1),Some(l.get._2))
-  }
+  def arithOperation: Parser[OperationWrapper] = operand ~ arithmetic ~ operand ^^ {
+    case l ~ op ~ r => OperationWrapper(l,Some(op),Some(r))
+  } //| operand ^^ { o => println("none"); OperationWrapper(o, None, None)}
 
-  def leftOperation: Parser[OperationFactory] = arithOperation ~ compare ~ operand ^^ {
+  def leftOperation: Parser[OperationFactory] = (arithOperation | operand ^^ (o => OperationWrapper(o,None,None))) ~ compare ~ operand ^^ {
     case ao ~ op ~ o => OperationFactory(ao,op,o)
   }
 
-  def rightOperation: Parser[OperationFactory] = operand ~ compare ~ arithOperation ^^ {
-    case o ~ op ~ ao => OperationFactory(ao,op,o)
+  def rightOperation: Parser[OperationFactory] = operand ~ compare ~ (arithOperation | operand ^^ (o => OperationWrapper(o,None,None))) ^^ {
+    case o ~ op ~ ao => OperationFactory(o,op,ao)
   }
 
   def logicOperation: Parser[OperationFactory] = operand ~ compare ~ operand ^^ {
     case left ~ func ~ right => OperationFactory(left,func,right)
   }
 
-  def operation: Parser[OperationFactory] = (leftOperation | rightOperation) | logicOperation
+  def operation: Parser[OperationFactory] = rightOperation | leftOperation  //| logicOperation
 
 //  def operator: Parser[String] = arithmetic | compare
 
@@ -125,5 +124,5 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def optSpace: Parser[String] = rep(" ") ^^ (_.toString)
 
-  def space: Parser[String] = "( )+".r
+  def space: Parser[String] = rep1(" ") ^^ (_.toString)
 }

@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
   * Created by et on 11.04.17.
   */
 class LarsParserTest extends FlatSpec {
-/*
+
   "The simple one-rule program" should "be accepted" in {
     val program: Option[LarsProgram] = LarsParser("a :- b.",false)
     assert(program.isDefined)
@@ -16,6 +16,12 @@ class LarsParserTest extends FlatSpec {
 
   "The one-rule program with two body atoms" should "be accepted" in {
     val program: Option[LarsProgram] = LarsParser("a :- b,c.",false)
+    assert(program.isDefined)
+    println(program.get.toString())
+  }
+
+  "Left-hand operations with a variable" should "be accepted" in {
+    val program: Option[LarsProgram] = LarsParser("a :- 3+5=T.",false)
     assert(program.isDefined)
     println(program.get.toString())
   }
@@ -48,5 +54,5 @@ class LarsParserTest extends FlatSpec {
     val program: Option[LarsProgram] = LarsParser("a :- A=3+5.",false)
     assert(program.isDefined)
     println(program.get.toString())
-  }*/
+  }
 }

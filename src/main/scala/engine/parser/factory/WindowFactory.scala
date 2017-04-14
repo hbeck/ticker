@@ -1,6 +1,7 @@
 package engine.parser.factory
 
 import core.lars.{SlidingTimeWindow, WindowFunction}
+import engine.parser.WindowFunctionRegistry
 import engine.parser.wrapper.ParamWrapper
 
 /**
@@ -13,7 +14,7 @@ case class WindowFactory(w: String, params: List[ParamWrapper]) {
 
 
   def create(wType: String, params: List[ParamWrapper]): WindowFunction = {
-    val wfc = ImportFactory.getWindowFunctionFactory(wType)
+    val wfc = WindowFunctionRegistry.getWindowFunctionFactory(wType)
     wfc.updateWindowParams(params)
   }
 
