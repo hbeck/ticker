@@ -35,23 +35,23 @@ object StreamingTmsEval {
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
   val DOYLE = "Doyle"
-  val DOYLE_HEURISTICS = "DoyleHeur"
+  val DOYLE_HEURISTICS = "DoyleHeur" //*
   val GREEDY = "Greedy"
   val LEARN = "Learn"
 
   var INSTANCE_NAME = "inst"
   var TMS = "tms"
-  var PRE_RUNS = "pre"
-  var RUNS = "runs"
-  var TIMEPOINTS = "tp"
+  var PRE_RUNS = "pre" //*
+  var RUNS = "runs" //*
+  var TIMEPOINTS = "tp" //*
   var MODEL_RATIO = "ratio"
-  var WINDOW_SIZE = "winsize"
+  var WINDOW_SIZE = "winsize" //*
   //
-  var ITEMS = "items"
+  var ITEMS = "items" //* (for cache hops)
   //
   var PRINT_RULES = "printRules"
   var INDICATE_TIMEPOINTS = "dots"
-  var SEMANTICS_CHECKS = "checks"
+  var SEMANTICS_CHECKS = "checks" //*
 
   var argMap = Map[String,String]() //make accessible globally for faster dev access
 

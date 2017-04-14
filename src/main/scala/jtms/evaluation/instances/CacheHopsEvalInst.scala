@@ -27,6 +27,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
 
   val _node = Predicate("node")
   val _sat = Predicate("sat")
+  val _hit = Predicate("hit")
+  val _get = Predicate("get")
+  val _fail = Predicate("fail")
   val _unsat = Predicate("unsat")
   val _item = Predicate("item")
   val _getFrom = Predicate("getFrom")
@@ -54,6 +57,12 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
   def sat(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
   def sat(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
+  def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
+  def get(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  def get(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
+  def fail(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  def fail(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
   def unsat(arg1: Argument, arg2: Argument) = AtomWithArguments(_unsat,Seq(arg1,arg2))
   def unsat(arg1: Argument, arg2: Int) = AtomWithArguments(_unsat,Seq(arg1,iVal(arg2)))
   def getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
@@ -81,9 +90,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def length(arg1: Int) = AtomWithArguments(_length,Seq(iVal(arg1)))
 
   //LARS:
-  val _neq = Predicate("neq")
-  val _lt = Predicate("lt")
-  val _plus = Predicate("plus")
   def req(arg1: Argument, arg2: Argument) = AtomWithArguments(_req,Seq(arg1,arg2))
   def cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2))
   def error(arg1: Argument, arg2: Argument) = AtomWithArguments(_error,Seq(arg1,arg2))
@@ -129,9 +135,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
     val n = windowSize
 
     LarsProgram.from(
-      sat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and wD(n,cache(I,N)),
-      sat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and getFrom(I,N,M),
-      unsat(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not sat(I,N),
+      hit(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and wD(n,cache(I,N)),
+      get(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and getFrom(I,N,M),
+      fail(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not hit(I,N) not get(I,N),
       needAt(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not wD(n,cache(I,N)),
       conn(N,M) <= edge(N,M) not wD(n,error(N,M)),
       getFrom(I,N,M) <= needAt(I,N) and minReach(I,N,M) not n_getFrom(I,N,M),
@@ -263,7 +269,7 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
     printRulesOnce = true
   }
 
-  override lazy val edges: Set[Atom] = {
+  override lazy val edges: Set[Atom] = { //part of initialization
     Set((1,2),(2,3),(3,4),(4,5),(5,6),(6,7),
         (1,8),(8,4),(1,6)) map { case (x,y) => edge(x,y) }
   }
@@ -359,6 +365,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
 
   override lazy val edges: Set[Atom] = {
     val pairs = Set((1,2),(2,4),(4,7),(7,8),(8,9),(9,10),(10,16),(16,1),(8,1),(16,9))
+    //val pairs = Set((1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,10),(10,11),(11,12),(12,16),(16,1),(8,1),(16,9))
     pairs map { case (x,y) => edge(x,y) }
   }
 
