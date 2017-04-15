@@ -10,10 +10,11 @@ import scala.concurrent.duration.Duration
   * Created by FM on 21.07.16.
   */
 case class StatisticResult(executionTimes: Seq[Duration]) {
-  val max = executionTimes.max
-  val min = executionTimes.min
-  val avg = executionTimes.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / executionTimes.length.toDouble
-  val median = executionTimes.sorted.drop(executionTimes.length / 2).head
+  val max: Duration = executionTimes.max
+  val min: Duration = executionTimes.min
+  val avg: Duration = executionTimes.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / executionTimes.length.toDouble
+  val median: Duration = executionTimes.sorted.drop(executionTimes.length / 2).head
+  val total: Duration = Duration.create(executionTimes.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
 
   override def toString = {
     val unit = TimeUnit.MILLISECONDS
@@ -47,6 +48,10 @@ object StatisticResult {
     } else
       StatisticResult(executionTimes)
   }
+
+  def fromMillis(executionTimes: Seq[Long]): StatisticResult = fromExecutionTimes(executionTimes.map(toDuration))
+
+  private def toDuration(millis: Long) = Duration.create(millis, TimeUnit.MILLISECONDS)
 }
 
 trait ConfigurationResult {
@@ -62,3 +67,4 @@ case class ModelsResult(instanceCaption: String, models: Seq[(Int, Option[Model]
 case class UnequalResult(instanceCaption: String, unequalModels: Seq[(Int, Option[Model], Option[Model])]) extends ConfigurationResult
 
 case class AlgorithmResult[TResult <: ConfigurationResult](caption: String, runs: Seq[TResult])
+

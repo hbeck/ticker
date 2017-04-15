@@ -16,6 +16,7 @@ trait EvaluationEngine {
 
 trait Result {
   def get: Option[Model]
+
   def model: Model = get.get
 }
 
@@ -27,8 +28,8 @@ object NoResult extends Result {
   override def get: Option[Model] = None
 }
 
-case class UnknownResult(info:String="") extends Result {
-  override def get: Option[Model] = throw new IllegalStateException("No model was derived. "+info)
+case class UnknownResult(info: String = "") extends Result {
+  override def get: Option[Model] = throw new IllegalStateException("No model was derived. " + info)
 }
 
 object Result {
