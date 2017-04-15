@@ -1,25 +1,15 @@
-import java.io.File
-import java.util.concurrent.TimeUnit
+package jtms.evaluation
 
 import common.Util.stopTime
-import Program.InputTypes.InputTypes
-import StreamingEvaluation.EvaluationTypes.Type
-import StreamingEvaluation.Instance.Type
-import common.{Plot, Util}
-import core.lars._
 import core._
-import core.asp.{AspFact, NormalRule}
-import engine.{EvaluationEngine, Result}
+import core.lars._
 import engine.asp.tms.policies.LazyRemovePolicy
-import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes, StartableEngineConfiguration}
-import engine.config.EvaluationModifier.{EvaluationModifier, Value}
-import engine.config.EvaluationTypes.{EvaluationTypes, Value}
+import engine.config.BuildEngine
+import engine.{EvaluationEngine, Result}
 import evaluation._
-import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.JtmsDoyleHeuristics
 import jtms.networks.OptimizedNetwork
 
-import scala.collection.immutable.HashMap
 import scala.concurrent.duration.Duration
 import scala.util.Random
 
@@ -34,7 +24,7 @@ object StreamingEvaluation {
       "--runs", "4"
     ).toArray
 
-    
+
     timings(args)
   }
 
@@ -55,7 +45,7 @@ object StreamingEvaluation {
   }
 
   def evaluate(config: Config) = {
-    val configWithParam = Util.prettyPrint(config)
+    val configWithParam = common.Util.prettyPrint(config)
 
     // we want '#' before each line
     if (config.withDebug)
@@ -64,7 +54,8 @@ object StreamingEvaluation {
 
     val executionTimes = BatchExecutionTimes(run(config))
 
-    val outputValues = Map(
+    val outputValues = Seq(
+      "config" -> config.title.getOrElse(f"CFG: ${config.windowSize} ${config.runs}"),
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
@@ -72,17 +63,16 @@ object StreamingEvaluation {
     )
 
     // TODO: can we use .keys / .values? - Not sure if they keep the order
-    val separator = ";"
+    val separator = "\t"
     if (config.withHeader) {
-      print("# config" + separator)
       println(outputValues.map(_._1).mkString(separator))
     }
 
     val values = outputValues.collect {
       case (_, d: Duration) => d.toMillis
+      case (_, s: String )=> f"\"$s\""
     }
 
-    print(config.title.getOrElse(f"CFG: ${config.windowSize} ${config.runs}"))
     println(values.mkString(separator))
   }
 
@@ -257,6 +247,8 @@ object StreamingEvaluation {
       opt[Boolean]('d', "debug").optional().valueName("<value>").
         action((x, c) => c.copy(withDebug = x))
 
+      opt[Boolean]('h', "header").optional().valueName("<value>").
+        action((x, c) => c.copy(withHeader = x))
 
       help("help").text("Specify init parameters for running the evaluation")
     }
