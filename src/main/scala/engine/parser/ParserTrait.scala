@@ -4,8 +4,9 @@ package engine.parser
 import java.util.StringTokenizer
 
 import core.lars.LarsProgram
-import engine.parser.expressions.Expression
-import engine.parser.factory.ProgramFactory
+import engine.parser.fromScratch.expressions.Expression
+import engine.parser.factory.{ProgramFactory, WindowFunctionFactory}
+import engine.parser.utils.WindowFunctionRegistry
 
 import scala.util.parsing.combinator._
 import scala.collection.immutable.TreeMap
@@ -23,11 +24,12 @@ import scala.io.Source
 trait ParserTrait extends SimpleLarsParser {
 
   def apply(input: String, isPath: Boolean = true): Option[LarsProgram] = {
-    register
+    register()
     var program = input
     if(isPath) program = readFile(input)
 
     val parsedProgram: ParseResult[ProgramFactory] = doTheThing(program)
+    println(parsedProgram)
     if(parsedProgram.successful) return Some(parsedProgram.get.program)
     None
   }
@@ -39,11 +41,7 @@ trait ParserTrait extends SimpleLarsParser {
 
   def doTheThing(input:String): ParseResult[ProgramFactory] = parseAll(program,input)
 
-  def register
+  def register()
 
-/*  def tokenize(program: String): Option[TreeMap[String,Expression]] = {
-    val token = new StringTokenizer(program,"\n")
-    //TODO
-    None
-  }*/
+  def register(factory: WindowFunctionFactory): Unit = WindowFunctionRegistry.register(factory)
 }

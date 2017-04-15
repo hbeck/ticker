@@ -12,8 +12,8 @@ class SimpleParserTest extends FlatSpec {
 
 
 
-  val filename = "/parser-programs/DummyProgram.lars"
-  val source = Source.fromURL(getClass.getResource(filename))
+  private val filename = "/parser-programs/DummyProgram.lars"
+  private val source = Source.fromURL(getClass.getResource(filename))
   private val lines = try source.mkString finally source.close()
   private val parser = new ParserRunner
 
@@ -90,6 +90,11 @@ class SimpleParserTest extends FlatSpec {
     assert(parser.parseOperation("7=3+4").successful)
   }
 
+  "Rules" should "also parse numbers only, in a left sided operation" in {
+//    assert(parser.parseRule("a :- 3+5=8.").successful)
+    println(parser.parseRule("a :- 3+5=8."))
+  }
+
   "A rule body" should "recognize atoms, @-atoms and window atoms" in {
     println(parser.parseBody("a, b at T, c in [t 5], T=3+4"))
     assert(parser.parseBody("a, b at T, c in [t 5], T=3+4").successful)
@@ -97,7 +102,6 @@ class SimpleParserTest extends FlatSpec {
 
   "A rule body" should "recognize atoms, @-atoms, window atoms (all possibly with a preceding not) " +
     "and operations" in {
-//    assert(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4").successful)
-    println(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4"))
+    assert(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4").successful)
   }
 }

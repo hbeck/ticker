@@ -6,11 +6,11 @@ import engine.parser.wrapper.ParamWrapper
 /**
   * Created by et on 10.04.17.
   */
-class WindowFunctionFactory(params: List[ParamWrapper]) {
+abstract class WindowFunctionFactory(params: List[ParamWrapper] = List()) {
 
   protected var wfn: WindowFunction = create(params)
 
-  def create(params: List[ParamWrapper]): WindowFunction = ???
-  def updateWindowParams(params: List[ParamWrapper]): WindowFunction = ???
+  def create(params: List[ParamWrapper]): WindowFunction //= ???
+  def updateWindowParams(params: List[ParamWrapper]): WindowFunction //= ???
   def getWindowFunction: WindowFunction = wfn
 }
