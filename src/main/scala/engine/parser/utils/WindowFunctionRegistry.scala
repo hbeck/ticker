@@ -1,5 +1,6 @@
-package engine.parser
+package engine.parser.utils
 
+import engine.parser.InvalidSyntaxException
 import engine.parser.factory.WindowFunctionFactory
 import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
 
@@ -8,30 +9,26 @@ import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFact
   */
 object WindowFunctionRegistry {
 
-  private var wfnObjects: Map[String,WindowFunctionFactory] = defaultWfnFactories
+  private var factories: Map[String,WindowFunctionFactory] = defaultWfnFactories
 
-  def register(name: String, factory: WindowFunctionFactory): Unit = {
-    wfnObjects += (name -> factory)
+  def register(factory: WindowFunctionFactory): Unit = {
+    factories += (getFQDN(factory) -> factory)
   }
 
-  def getWindowFunctionFactory(name: String, importClass: String = ""): WindowFunctionFactory = {
-    var wff = wfnObjects.get(name)
+  def getFactory(importClass: String): WindowFunctionFactory = {
+    val wff = factories.get(importClass)
 
     if(wff.isDefined) return wff.get
-
-    wff = findByFQDN(importClass)
-    if(wff.isDefined) return  wff.get
-
     throw new InvalidSyntaxException("The specified window function is invalid")
   }
 
-  private def findByFQDN(fqdn: String): Option[WindowFunctionFactory] = {
-    val wfnf = wfnObjects.find(entry => entry._2.getClass.toString.split(" ")(1) == fqdn)
-    if (wfnf.isDefined) return Some(wfnf.get._2)
-    None
+  private def defaultWfnFactories: Map[String,WindowFunctionFactory] = {
+    val time = SlidingTimeWindowFactory(List())
+    val tuple = SlidingTupleWindowFactory(List())
+    Map(getFQDN(time) -> time) + (getFQDN(tuple) -> tuple)
   }
 
-  private def defaultWfnFactories: Map[String,WindowFunctionFactory] = {
-    Map("t" -> SlidingTimeWindowFactory(List())) + ("#" -> SlidingTupleWindowFactory(List()))
+  private def getFQDN(factory: WindowFunctionFactory): String = {
+    factory.getClass.toString.split(" ")(1)
   }
 }
