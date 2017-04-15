@@ -30,6 +30,10 @@ object ImportFactory {
   def register(importClass: String, params: List[ParamWrapper], name: String): Unit = {
     val factory = WindowFunctionRegistry.getFactory(importClass)
     importFactories += (name -> factory)
+
+//    val clazz = Class.forName(importClass)
+//    val constructor = clazz.getConstructor(List.getClass)
+//    val foo = constructor.newInstance(List[ParamWrapper]()).asInstanceOf[WindowFunctionFactory]
   }
 
   def getWinfowFunction(name: String): WindowFunctionFactory = {
