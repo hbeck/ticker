@@ -83,8 +83,8 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
 
     tmsPolicy.add(currentTick.time)(rulesToAdd)
     val expiredRules = signal match { //logic somewhat implicit...
-      case None => expirationHandling.unregisterExpiredByTime()
-      case _ => expirationHandling.unregisterExpiredByCount()
+      case None => expirationHandling.deregisterExpiredByTime()
+      case _ => expirationHandling.deregisterExpiredByCount()
     }
     val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
 
@@ -115,7 +115,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       }
     }
 
-    def unregisterExpiredByTime(): Seq[NormalRule] = {
+    def deregisterExpiredByTime(): Seq[NormalRule] = {
       if (!rulesExpiringAtTime.contains(currentTick.time)) {
         return Seq()
       }
@@ -124,7 +124,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       rules.toSeq
     }
 
-    def unregisterExpiredByCount(): Seq[NormalRule] = {
+    def deregisterExpiredByCount(): Seq[NormalRule] = {
       if (!rulesExpiringAtCount.contains(currentTick.count)) {
         return Seq()
       }

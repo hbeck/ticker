@@ -68,7 +68,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     false
   }
 
-  def unregister(rule: NormalRule) = network.unregister(rule)
+  def deregister(rule: NormalRule) = network.deregister(rule)
 
   //TODO recompute only old and current repercussions in case of inconsistency
   //based on JTMS update algorithm
@@ -104,7 +104,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
   }
 
   override def remove(rule: NormalRule): Unit = {
-    unregister(rule)
+    deregister(rule)
     if (network.inconsistent) {
       val h = if (network.allAtoms contains rule.head) Set(rule.head) else Set()
       update(network.unknownAtoms ++ h)

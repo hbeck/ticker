@@ -314,8 +314,8 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
     true
   }
 
-  override def unregister(rule: NormalRule): Boolean = {
-    val ruleExisted = super.unregister(rule)
+  override def deregister(rule: NormalRule): Boolean = {
+    val ruleExisted = super.deregister(rule)
     if (!ruleExisted) {
       return false
     } else if (network.dataIndependentRule(rule)) {

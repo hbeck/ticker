@@ -74,7 +74,7 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
   //
 
   //return true iff rules was present (and deleted)
-  def unregister(rule: NormalRule): Boolean = {
+  def deregister(rule: NormalRule): Boolean = {
     if (!(rules contains rule)) return false
 
     rules = rules - rule
@@ -89,13 +89,13 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     __cleanupSupportingData()
 
-    atomsToBeRemoved foreach unregister
+    atomsToBeRemoved foreach deregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
 
     true
   }
 
-  def unregister(a: Atom): Unit = {
+  def deregister(a: Atom): Unit = {
 
     __allAtoms = __allAtoms - a
 

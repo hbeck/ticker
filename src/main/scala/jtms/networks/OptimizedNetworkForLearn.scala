@@ -71,7 +71,7 @@ class OptimizedNetworkForLearn extends OptimizedNetwork {
     }
   }
 
-  override def unregister(a: Atom): Unit = {
+  override def deregister(a: Atom): Unit = {
     __allAtoms = __allAtoms - a
 
     val oldStatus = status(a)
