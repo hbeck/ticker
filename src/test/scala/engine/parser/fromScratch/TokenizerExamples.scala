@@ -1,4 +1,4 @@
-package engine.parser.utils
+package engine.parser.fromScratch
 
 import org.scalatest.FlatSpec
 

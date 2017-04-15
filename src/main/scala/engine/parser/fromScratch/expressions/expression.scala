@@ -1,7 +1,7 @@
-package engine.parser.expressions
+package engine.parser.fromScratch.expressions
 
 import engine.parser.InvalidSyntaxException
-import engine.parser.utils.Tokenizer
+import engine.parser.fromScratch.Tokenizer
 
 import scala.util.matching.Regex
 

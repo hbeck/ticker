@@ -1,6 +1,6 @@
-package engine.parser.utils
+package engine.parser.fromScratch
 
-import engine.parser.expressions.ProgramExpression
+import engine.parser.fromScratch.expressions.ProgramExpression
 
 import scala.util.matching.Regex
 
