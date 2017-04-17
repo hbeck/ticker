@@ -254,9 +254,6 @@ object StreamingTmsEval {
       timeGetModel += loopTimeGetModel
 
       if (cfg.verifyModel) {
-        if (t==32) {
-          tms.rules foreach println
-        }
         inst.verifyModel(tms.getModel, t)
       }
 
