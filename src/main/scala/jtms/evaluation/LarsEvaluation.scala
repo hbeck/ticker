@@ -34,17 +34,32 @@ object LarsEvaluation {
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
-      "eval_time" -> executionTimes.evaluateTimes.avg
+      "eval_time" -> executionTimes.evaluateTimes.avg,
+      "add_time_per_tp" -> executionTimes.appendTimes.avg/(1.0*config.timePoints),
+      "eval_time_per_tp" -> executionTimes.evaluateTimes.avg/(1.0*config.timePoints)
     )
+
+    def timeOutput(a: Any) = a match {
+      case d: Duration => ((1.0)*d.toMillis)/1000.0 //sec
+      //case d: Duration => d.toMillis
+      case _ => a
+    }
+
+    if (config.withDebug) {
+      println()
+      outputValues foreach {
+        case (k,v) => println(f"$k -> ${timeOutput(v)}")
+      }
+      println()
+    }
 
     val separator = ";"
     if (config.withHeader) {
-      println()
       println(outputValues.map(_._1).mkString(separator))
     }
 
     val values = outputValues.collect {
-      case (_, d: Duration) => ((1.0) * d.toMillis) / (1000.0)
+      case (_, d: Duration) => timeOutput(d)
       case (_, s: String) => f"$s"
     }
 
