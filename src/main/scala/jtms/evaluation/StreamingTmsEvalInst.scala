@@ -11,23 +11,17 @@ trait StreamingTmsEvalInst extends LarsEvaluationInstance {
 
   val windowSize: Int
 
-  //manual TMS:
+  //<manual TMS>
   def staticRules(): Seq[NormalRule]
-  def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule]
-  def rulesExpiringAfterWindow(t: Int): Seq[NormalRule]
-  def rulesToAddAt(t: Int) = immediatelyExpiringRulesFor(t) ++ rulesExpiringAfterWindow(t)
-  def rulesToRemoveAt(t: Int) = immediatelyExpiringRulesFor(t-1) ++ rulesExpiringAfterWindow(t - windowSize - 1)
-  def generateFactsToAddAt(t: Int): Seq[NormalRule] = generateSignalsToAddAt(t) map (pinnedFact(_,t))
 
   var addedFacts = Map[Int,Seq[NormalRule]]()
 
-  def factsToAddAt(t: Int): Seq[NormalRule] = {
+  def manualTmsFactsToAddAt(t: Int): Seq[NormalRule] = {
     val rules = generateFactsToAddAt(t)
     addedFacts = addedFacts + (t -> rules)
     rules
   }
-
-  def factsToRemoveAt(t: Int): Seq[NormalRule] = {
+  def manualTmsFactsToRemoveAt(t: Int): Seq[NormalRule] = {
     val u = t - windowSize - 1
     addedFacts.get(u) match {
       case Some(seq) => {
@@ -37,6 +31,16 @@ trait StreamingTmsEvalInst extends LarsEvaluationInstance {
       case None => Seq()
     }
   }
+
+  def manualTmsRulesToAddAt(t: Int) = immediatelyExpiringRulesFor(t) ++ rulesExpiringAfterWindow(t)
+  def manualTmsRulesToRemoveAt(t: Int) = immediatelyExpiringRulesFor(t-1) ++ rulesExpiringAfterWindow(t - windowSize - 1)
+
+  def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule]
+  def rulesExpiringAfterWindow(t: Int): Seq[NormalRule]
+
+  def generateFactsToAddAt(t: Int): Seq[NormalRule] = generateSignalsToAddAt(t) map (pinnedFact(_,t))
+  //</manual TMS>
+
 
   def contains(model: Model, t: Int, a: Atom) = {
     if (!model.contains(a)) {

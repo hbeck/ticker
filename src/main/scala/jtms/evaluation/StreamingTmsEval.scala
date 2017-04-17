@@ -190,10 +190,10 @@ object StreamingTmsEval {
       var factsToRemove = Seq[NormalRule]()
 
       timeRuleGen = timeRuleGen + stopTime {
-        factsToAdd = inst.factsToAddAt(t)
-        rulesToAdd = inst.rulesToAddAt(t)
-        rulesToRemove = inst.rulesToRemoveAt(t)
-        factsToRemove = inst.factsToRemoveAt(t)
+        factsToAdd = inst.manualTmsFactsToAddAt(t)
+        rulesToAdd = inst.manualTmsRulesToAddAt(t)
+        rulesToRemove = inst.manualTmsRulesToRemoveAt(t)
+        factsToRemove = inst.manualTmsFactsToRemoveAt(t)
         nrOfAddedFacts += factsToAdd.size
         nrOfAddedRules += rulesToAdd.size
         nrOfRemovedRules += rulesToRemove.size
