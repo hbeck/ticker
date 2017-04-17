@@ -4,6 +4,7 @@ import java.io.{File, PrintWriter}
 import java.util.concurrent.TimeUnit
 
 import common.Util.stopTime
+import core.Atom
 import core.asp._
 import jtms._
 import jtms.algorithms._
@@ -277,6 +278,8 @@ object StreamingTmsEval {
   val _nrOfRemovedFacts = "nrOfRemoveFact"
   val _nrOfRetractionsAffected = "nrOfRetractionsAffected"
 
+  def fact(head: Atom): NormalRule = UserDefinedAspFact[Atom](head)
+
   def runIteration(inst: StreamingTmsEvalInst, cfg: Config): Map[String, Long] = {
 
     val tms = cfg.makeTms(inst)
@@ -312,10 +315,10 @@ object StreamingTmsEval {
       var factsToRemove = Seq[NormalRule]()
 
       timeRuleGen = timeRuleGen + stopTime {
-        factsToAdd = inst.factsToAddAt(t)
+        factsToAdd = inst.factAtomsToAddAt(t) map (fact(_))
         rulesToAdd = inst.rulesToAddAt(t)
         rulesToRemove = inst.rulesToRemoveAt(t)
-        factsToRemove = inst.factsToRemoveAt(t)
+        factsToRemove = inst.factAtomsToRemoveAt(t) map (fact(_))
         nrOfAddedFacts += factsToAdd.size
         nrOfAddedRules += rulesToAdd.size
         nrOfRemovedRules += rulesToRemove.size
@@ -375,7 +378,7 @@ object StreamingTmsEval {
       timeRemoveFacts += loopTimeRemoveFacts
       timeGetModel += loopTimeGetModel
 
-      inst.verifyModel(tms,t)
+      inst.verifyModel(tms.getModel,t)
 
     }
 

@@ -1,8 +1,7 @@
 package jtms.evaluation
 
-import core.Atom
+import core.{Atom, Model}
 import core.asp.{NormalRule, UserDefinedAspFact, UserDefinedAspRule}
-import jtms.JtmsUpdateAlgorithm
 
 import scala.util.Random
 
@@ -15,11 +14,15 @@ trait StreamingTmsEvalInst {
 
   def timePoints: Int
   def staticRules(): Seq[NormalRule]
-  def factsToAddAt(t: Int): Seq[NormalRule]
+  def factAtomsToAddAt(t: Int): Seq[Atom]
+  def factAtomsToRemoveAt(t: Int): Seq[Atom]
   def rulesToAddAt(t: Int): Seq[NormalRule]
   def rulesToRemoveAt(t: Int): Seq[NormalRule]
-  def factsToRemoveAt(t: Int): Seq[NormalRule]
-  def verifyModel(tms: JtmsUpdateAlgorithm, t: Int)
+
+  def verifyModel(model: Option[Model], t: Int)
+
+  def factsToAddAt(t: Int): Seq[NormalRule] = factAtomsToAddAt(t) map (fact(_))
+  def factsToRemoveAt(t: Int): Seq[NormalRule] = factAtomsToRemoveAt(t) map (fact(_))
 
   //
   //helper methods

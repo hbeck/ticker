@@ -9,6 +9,7 @@ import engine.{EvaluationEngine, Result}
 import evaluation._
 import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
+import jtms.evaluation.instances.MMediaDeterministicEvalInst
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 
 import scala.concurrent.duration.Duration
@@ -53,6 +54,10 @@ object StreamingEvaluation {
   var PRINT_RULES = "printRules"
   var INDICATE_TIMEPOINTS = "dots"
   var SEMANTICS_CHECKS = "checks"
+  var VERIFY_MODEL = "verify"
+  //
+  var HEADER = "header"
+  var DEBUG_MSG = "debugMsg"
 
   def timings(args: Array[String]): Unit = {
 
@@ -77,6 +82,10 @@ object StreamingEvaluation {
     defaultArg(PRINT_RULES, "false")
     defaultArg(INDICATE_TIMEPOINTS, "false")
     defaultArg(SEMANTICS_CHECKS, "false")
+    defaultArg(VERIFY_MODEL, "true")
+    //
+    defaultArg(HEADER, "true")
+    defaultArg(DEBUG_MSG, "true")
 
     evaluate(Config(argMap))
 
@@ -109,12 +118,12 @@ object StreamingEvaluation {
     val timePoints = Integer.parseInt(args(TIMEPOINTS))
     val windowSize = Integer.parseInt(args(WINDOW_SIZE))
     val nrOfItems = Integer.parseInt(args(ITEMS))
-    val withDebug = true
-    val withHeader = true
+    val withDebug = (args(DEBUG_MSG) == "true")
+    val withHeader = (args(HEADER) == "true")
     val implementation = args(IMPL)
-    val verifyModel = true
+    val verifyModel = (args(VERIFY_MODEL) == "true")
 
-    def makeInstance(iterationNr: Int): EvaluationInstance = {
+    def makeInstance(iterationNr: Int): LarsEvaluationInstance = {
       val random = new Random(iterationNr)
       args(INSTANCE_NAME) match {
         //        case CACHE_HOPS1 => {
@@ -125,13 +134,13 @@ object StreamingEvaluation {
         //          val printRules: Boolean = (args(PRINT_RULES) == "true")
         //          CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random)
         //        }
-        case MMEDIA_DET => MMediaDeterministic(windowSize, timePoints, random)
+        case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
         //        case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
         case s => println(f"unknown instance name $s"); throw new RuntimeException
       }
     }
 
-    def makeTms(inst: EvaluationInstance): JtmsUpdateAlgorithm = {
+    def makeTms(inst: LarsEvaluationInstance): JtmsUpdateAlgorithm = {
       val tms = args(IMPL) match {
         case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
         case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
@@ -158,7 +167,7 @@ object StreamingEvaluation {
 
   def evaluate(config: Config) = {
 
-    val executionTimes = BatchExecutionTimes(run(config))
+    val executionTimes = BatchExecution(run(config))
 
     val outputValues = Seq(
       "instance" -> config.instanceName,
@@ -182,30 +191,22 @@ object StreamingEvaluation {
   }
 
   def run(config: Config): List[ExecutionTimePerRun] = {
-
-    val runResults:Seq[ExecutionTimePerRun] = ((-1 * config.preRuns) to config.runs) map { i =>
-      if (config.withDebug) {
-        if (i < 0) { println(f"# pre-run $i") }
-        else { println(f"# run $i") }
-      }
-      evaluateRun(i, config)
-    }
-
-    runResults.toList
-
+    val runIndexes = ((-1 * config.preRuns) to config.runs)
+    runIndexes map (evaluateRun(_,config)) toList
   }
-
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
 
+    if (config.withDebug) {
+      if (iterationNr < 0) { println(f"# pre-run $iterationNr") }
+      else { println(f"# run $iterationNr") }
+    }
+
     val instance = config.makeInstance(iterationNr)
-
     val builder = BuildEngine.withProgram(instance.program)
-
     var engine: EvaluationEngine = null
 
     val initializationTime = stopTime {
-
       val startableEngine: StartableEngineConfiguration = config.implementation match {
         case CLINGO_PUSH => builder.configure().withClingo().use().usePush()
         case DOYLE_HEURISTICS => {
@@ -215,29 +216,26 @@ object StreamingEvaluation {
       }
 
       engine = startableEngine.start()
-
     }
-
-    val timepoints = Seq.range(0, config.timePoints)
 
     val runSingleTimepoint = runTimepoint(instance, engine, config.verifyModel) _
 
-    val timings: List[ExecutionTimePerTimePoint] = timepoints.map(runSingleTimepoint).toList
+    val timings: List[ExecutionTimePerTimePoint] = (0 to config.timePoints) map (runSingleTimepoint) toList
 
-    val append = StatisticResult.fromMillis(timings.map(_.appendTime))
-    val evaluate = StatisticResult.fromMillis(timings.map(_.evaluateTime))
+    val appendStats = StatisticResult.fromMillis(timings.map(_.appendTime))
+    val evaluateStats = StatisticResult.fromMillis(timings.map(_.evaluateTime))
 
-    ExecutionTimePerRun(initializationTime, append, evaluate)
+    ExecutionTimePerRun(initializationTime, appendStats, evaluateStats)
   }
 
 
-  def runTimepoint(instance: EvaluationInstance, engine: EvaluationEngine, verifyModel: Boolean)(t: Int): ExecutionTimePerTimePoint = {
+  def runTimepoint(instance: LarsEvaluationInstance, engine: EvaluationEngine, verifyModel: Boolean)(t: Int): ExecutionTimePerTimePoint = {
 
-    val facts = instance.generateFactsToAddAt(t)
+    val signals = instance.generateFactAtomsToAddAt(t)
     val time = TimePoint(t)
 
     val appendTime = stopTime {
-      engine.append(time)(facts: _*)
+      engine.append(time)(signals: _*)
     }
 
     var result: Result = null
@@ -263,7 +261,7 @@ case class ExecutionTimePerRun(initializationTime: Long, appendTime: StatisticRe
   val totalRunTime: Long = initializationTime + appendTime.total.toMillis + evaluateTime.total.toMillis
 }
 
-case class BatchExecutionTimes(runs: List[ExecutionTimePerRun]) {
+case class BatchExecution(runs: List[ExecutionTimePerRun]) {
   val initializationTimes: StatisticResult = StatisticResult.fromMillis(runs.map(_.initializationTime))
   val appendTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.executionTimes))
   val evaluateTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.executionTimes))
@@ -273,7 +271,7 @@ case class BatchExecutionTimes(runs: List[ExecutionTimePerRun]) {
   val avgTimePerRun: Duration = totalTime / runs.size
 }
 
-trait EvaluationInstance {
+trait LarsEvaluationInstance {
 
   val timePoints: Int
 
@@ -281,83 +279,83 @@ trait EvaluationInstance {
 
   def verifyModel(model: Option[Model], t: Int)
 
-  def generateFactsToAddAt(t: Int): Seq[Atom]
+  def generateFactAtomsToAddAt(t: Int): Seq[Atom]
 
   def random: Random
 }
 
-trait MMedia {
-  val done = Atom("done")
-  val lfu = Atom("lfu")
-  val lru = Atom("lru")
-  val fifo = Atom("fifo")
-  val randomAtom = Atom("random")
-
-  val _alpha = Predicate("alpha")
-  val high = Atom("high")
-  val mid = Atom("mid")
-  val low = Atom("low")
-  val rtm50 = Atom("rtm50")
-
-  def larsProgram(windowSize: Int): LarsProgram = {
-
-    val T: Variable = StringVariable("T")
-    val V: Variable = StringVariable("V")
-
-    def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
-    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
-    def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
-
-    def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
-
-    val n = windowSize
-
-    LarsProgram.from(
-      AtAtom(T, high) <= wAt(n, T, _alpha(V)) and Leq(IntValue(18), V),
-      AtAtom(T, mid) <= wAt(n, T, _alpha(V)) and Leq(IntValue(12), V) and Lt(V, IntValue(18)),
-      AtAtom(T, low) <= wAt(n, T, _alpha(V)) and Lt(V, IntValue(12)),
-      lfu <= wB(n, high),
-      lru <= wB(n, mid),
-      fifo <= wB(n, low) and wD(n, rtm50),
-      done <= lfu,
-      done <= lru,
-      done <= fifo,
-      UserDefinedLarsRule(randomAtom, s(), s(done))
-    )
-
-  }
-}
-
-case class MMediaDeterministic(windowSize: Int, timePoints: Int, random: Random) extends MMedia with EvaluationInstance {
-
-  val program = larsProgram(windowSize)
-
-  def verifyModel(model: Option[Model], t: Int) = {
-    val q = t % 180
-    if (q >= 0 && q < windowSize) {
-      assert(model.contains(randomAtom))
-    } else if (q >= windowSize && q < 60) {
-      assert(model.contains(randomAtom)) //low, if also rtm holds
-    } else if (q >= 60 && q < 60 + windowSize) {
-      assert(model.contains(randomAtom))
-    } else if (q >= (60 + windowSize) && q < 120) {
-      assert(model.contains(lru)) //mid
-    } else if (q >= 120 && q < (120 + windowSize)) {
-      assert(model.contains(randomAtom))
-    } else if (q >= (120 + windowSize) && q < 180) {
-      assert(model.contains(lfu)) //high
-    }
-  }
-
-  def generateFactsToAddAt(t: Int): Seq[Atom] = {
-    Seq(_alpha(alphaValueFor(t)))
-  }
-
-  def alphaValueFor(t: Int): Int = {
-    val q = t % 180
-    if (0 <= q && q < 60) 5
-    else if (q >= 60 && q < 120) 15
-    else 25
-  }
-
-}
+//trait MMedia {
+//  val done = Atom("done")
+//  val lfu = Atom("lfu")
+//  val lru = Atom("lru")
+//  val fifo = Atom("fifo")
+//  val randomAtom = Atom("random")
+//
+//  val _alpha = Predicate("alpha")
+//  val high = Atom("high")
+//  val mid = Atom("mid")
+//  val low = Atom("low")
+//  val rtm50 = Atom("rtm50")
+//
+//  def larsProgram(windowSize: Int): LarsProgram = {
+//
+//    val T: Variable = StringVariable("T")
+//    val V: Variable = StringVariable("V")
+//
+//    def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
+//    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
+//    def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
+//
+//    def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
+//
+//    val n = windowSize
+//
+//    LarsProgram.from(
+//      AtAtom(T, high) <= wAt(n, T, _alpha(V)) and Leq(IntValue(18), V),
+//      AtAtom(T, mid) <= wAt(n, T, _alpha(V)) and Leq(IntValue(12), V) and Lt(V, IntValue(18)),
+//      AtAtom(T, low) <= wAt(n, T, _alpha(V)) and Lt(V, IntValue(12)),
+//      lfu <= wB(n, high),
+//      lru <= wB(n, mid),
+//      fifo <= wB(n, low) and wD(n, rtm50),
+//      done <= lfu,
+//      done <= lru,
+//      done <= fifo,
+//      UserDefinedLarsRule(randomAtom, s(), s(done))
+//    )
+//
+//  }
+//}
+//
+//case class MMediaDeterministic(windowSize: Int, timePoints: Int, random: Random) extends MMedia with EvaluationInstance {
+//
+//  val program = larsProgram(windowSize)
+//
+//  def verifyModel(model: Option[Model], t: Int) = {
+//    val q = t % 180
+//    if (q >= 0 && q < windowSize) {
+//      assert(model.contains(randomAtom))
+//    } else if (q >= windowSize && q < 60) {
+//      assert(model.contains(randomAtom)) //low, if also rtm holds
+//    } else if (q >= 60 && q < 60 + windowSize) {
+//      assert(model.contains(randomAtom))
+//    } else if (q >= (60 + windowSize) && q < 120) {
+//      assert(model.contains(lru)) //mid
+//    } else if (q >= 120 && q < (120 + windowSize)) {
+//      assert(model.contains(randomAtom))
+//    } else if (q >= (120 + windowSize) && q < 180) {
+//      assert(model.contains(lfu)) //high
+//    }
+//  }
+//
+//  def generateFactsToAddAt(t: Int): Seq[Atom] = {
+//    Seq(_alpha(alphaValueFor(t)))
+//  }
+//
+//  def alphaValueFor(t: Int): Int = {
+//    val q = t % 180
+//    if (0 <= q && q < 60) 5
+//    else if (q >= 60 && q < 120) 15
+//    else 25
+//  }
+//
+//}

@@ -1,5 +1,6 @@
 package jtms.evaluation
 
+import core.Atom
 import core.asp.NormalRule
 
 /**
@@ -14,17 +15,18 @@ trait StreamingTmsStandardEvalInst extends StreamingTmsEvalInst {
 
   def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule]
   def rulesExpiringAfterWindow(t: Int): Seq[NormalRule]
-  def generateFactsToAddAt(t: Int): Seq[NormalRule]
 
-  var addedFacts = Map[Int,Seq[NormalRule]]()
+  def generateFactAtomsToAddAt(t: Int): Seq[Atom]
 
-  def factsToAddAt(t: Int): Seq[NormalRule] = {
-    val rules = generateFactsToAddAt(t)
+  var addedFacts = Map[Int,Seq[Atom]]()
+
+  def factAtomsToAddAt(t: Int): Seq[Atom] = {
+    val rules = generateFactAtomsToAddAt(t)
     addedFacts = addedFacts + (t -> rules)
     rules
   }
 
-  def factsToRemoveAt(t: Int): Seq[NormalRule] = {
+  def factAtomsToRemoveAt(t: Int): Seq[Atom] = {
     val u = t - windowSize - 1
     addedFacts.get(u) match {
       case Some(seq) => {

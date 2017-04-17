@@ -4,19 +4,18 @@ import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import core.lars._
-import jtms.JtmsUpdateAlgorithm
-import jtms.evaluation.StreamingTmsStandardEvalInst
+import jtms.evaluation.{LarsEvaluationInstance, StreamingTmsStandardEvalInst}
 
 import scala.util.Random
 
 /**
   * Created by hb on 10.04.17.
   */
-abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEvalInst {
+abstract class CacheHopsEvalInst(random: Random) extends LarsEvaluationInstance with StreamingTmsStandardEvalInst {
 
-  def windowSize: Int
-  def timePoints: Int
-  def nrOfItems: Int
+  val windowSize: Int
+  val timePoints: Int
+  val nrOfItems: Int
 
   def edges: Set[Atom]
 
@@ -114,6 +113,8 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
    w_cache(I,N) :- cache(I,N,T)
    w_error(N,M) :- error(N,M,T)
    */
+
+  val program = larsProgram(40)
 
   def larsProgram(windowSize: Int): LarsProgram = {
 
@@ -276,29 +277,29 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
 
   val i1 = StringValue("i1")
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    def req_(item: StringValue, node: Int) = fact(req(item,iVal(node),iVal(t)))
-    def cache_(item: StringValue, node: Int) = fact(cache(item,iVal(node),iVal(t)))
-    def err_(fromNode: Int, toNode: Int) = fact(error(iVal(fromNode),iVal(toNode),iVal(t)))
+  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
+//    def req_(item: StringValue, node: Int) = fact(req(item,iVal(node),iVal(t)))
+//    def cache_(item: StringValue, node: Int) = fact(cache(item,iVal(node),iVal(t)))
+//    def err_(fromNode: Int, toNode: Int) = fact(error(iVal(fromNode),iVal(toNode),iVal(t)))
     t % 30 match {
-      case 0 => Seq(req_(i1,1),cache_(i1,4))
-      case 2 => Seq(cache_(i1,7))
-      case 4 => Seq(err_(8,4))
-      case 6 => Seq(cache_(i1,1))
-      case 8 => Seq(req_(i1,1))
-      case 10 => Seq(cache_(i1,7))
-      case 16 => Seq(cache_(i1,7))
-      case 20 => Seq(req_(i1,1))
+      case 0 => Seq(_req(i1,1),_cache(i1,4))
+      case 2 => Seq(_cache(i1,7))
+      case 4 => Seq(_error(8,4))
+      case 6 => Seq(_cache(i1,1))
+      case 8 => Seq(_req(i1,1))
+      case 10 => Seq(_cache(i1,7))
+      case 16 => Seq(_cache(i1,7))
+      case 20 => Seq(_req(i1,1))
       case _ => Seq()
     }
   }
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
-    if (tms.getModel.isEmpty) {
+  override def verifyModel(optModel: Option[Model], t: Int): Unit = {
+    if (optModel.isEmpty) {
       print(f"x($t)")
       return
     }
-    val model = tms.getModel.get
+    val model = optModel.get
     val q = t % 30
     if (q >= 0 && q < 2) {
       assert(model.contains(getFrom(i1,1,4)))
@@ -371,35 +372,35 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
 
   val i1 = StringValue("i1")
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    def cache_(i: StringValue, n: Int) = fact(cache(i,iVal(n),iVal(t)))
-    def req_(i: StringValue, n: Int) = fact(req(i,iVal(n),iVal(t)))
-    def err_(n: Int, m: Int) = fact(error(iVal(n),iVal(m),iVal(t)))
+  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
+//    def cache_(i: StringValue, n: Int) = fact(cache(i,iVal(n),iVal(t)))
+//    def req_(i: StringValue, n: Int) = fact(req(i,iVal(n),iVal(t)))
+//    def err_(n: Int, m: Int) = fact(error(iVal(n),iVal(m),iVal(t)))
     t % 40 match {
-      case 0 => Seq(cache_(i1,16),req_(i1,1))
-      case 2 => Seq(cache_(i1,9))
-      case 4 => Seq(req_(i1,2))
-      case 6 => Seq(req_(i1,10))
-      case 8 => Seq(cache_(i1,4))
-      case 10 => Seq(req_(i1,1),req_(i1,7))
-      case 12 => Seq(cache_(i1,9),cache_(i1,1))
-      case 14 => Seq(err_(8,9))
+      case 0 => Seq(_cache(i1,16),_req(i1,1))
+      case 2 => Seq(_cache(i1,9))
+      case 4 => Seq(_req(i1,2))
+      case 6 => Seq(_req(i1,10))
+      case 8 => Seq(_cache(i1,4))
+      case 10 => Seq(_req(i1,1),_req(i1,7))
+      case 12 => Seq(_cache(i1,9),_cache(i1,1))
+      case 14 => Seq(_error(8,9))
       //nothing at 16; where cache(i1,16,1) expires
-      case 18 => Seq(req_(i1,2),cache_(i1,1),cache_(i1,9))
-      case 20 => Seq(req_(i1,10))
-      case 22 => Seq(req_(i1,1),req_(i1,7))
-      case 32 => Seq(err_(16,1))
+      case 18 => Seq(_req(i1,2),_cache(i1,1),_cache(i1,9))
+      case 20 => Seq(_req(i1,10))
+      case 22 => Seq(_req(i1,1),_req(i1,7))
+      case 32 => Seq(_error(16,1))
       case _=> Seq()
     }
   }
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
-
-    if (tms.getModel.isEmpty) {
+  override def verifyModel(optModel: Option[Model], t: Int): Unit = {
+    if (optModel.isEmpty) {
       print(f"x($t)")
       return
     }
-    val model = tms.getModel.get
+
+    val model = optModel.get
 
     def contains(a: Atom) = {
       if (!model.contains(a)) {

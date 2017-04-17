@@ -1,17 +1,16 @@
 package jtms.evaluation.instances
 
-import core.asp.NormalRule
 import core._
+import core.asp.NormalRule
 import core.lars._
-import jtms.JtmsUpdateAlgorithm
-import jtms.evaluation.StreamingTmsStandardEvalInst
+import jtms.evaluation.{LarsEvaluationInstance, StreamingTmsStandardEvalInst}
 
 import scala.util.Random
 
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst with LarsEvaluationInstance {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -117,6 +116,8 @@ random :- not done.
     rules
   }
 
+  val program = larsProgram(30)
+
   def larsProgram(windowSize: Int): LarsProgram = {
 
     val T:Variable = StringVariable("T")
@@ -149,8 +150,9 @@ random :- not done.
 
 case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints,random) {
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {
-    val model = tms.getModel().get
+  override def verifyModel(optModel: Option[Model], t: Int) = {
+    if (optModel.isEmpty) assert(false)
+    val model = optModel.get
     val q = t % 180
     if (q >= 0 && q < windowSize) {
       assert(model.contains(randomAtom))
@@ -167,8 +169,8 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
     }
   }
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    Seq[NormalRule]() :+ fact(alpha_at(alphaValueFor(t),t))
+  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
+    Seq[Atom]() :+ alpha_at(alphaValueFor(t),t)
   }
 
   def alphaValueFor(t: Int): Int = {
@@ -177,6 +179,7 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
     else if (q >= 60 && q < 120) 15
     else 25
   }
+
 }
 
 case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints, random) {
@@ -191,7 +194,7 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
   var modeUntil = 1
   var lastRtm = -10000
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
+  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
     if (modeUntil == t) {
       mode = random.nextInt(4) match {
         case 0 => High
@@ -206,20 +209,21 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
       case Mid => 12 + random.nextInt(6)
       case _ => random.nextInt(12)
     }
-    var rules = Seq[NormalRule]() :+ fact(alpha_at(v,t))
+    var factAtoms = Seq[Atom]() :+ alpha_at(v,t)
     if (mode == Low) {
       if ((t-lastRtm > windowSize) || (random.nextDouble() < (1.0/(1.0*windowSize/2.0)))) {
-        rules = rules :+ fact(rtm_at(t)) //TODO in engine use atom rtm50
+        factAtoms = factAtoms :+ rtm_at(t)
         lastRtm = t
       }
     }
-    addedFacts = addedFacts + (t -> rules)
-    //println(f"$t -> $rules")
-    rules
+    addedFacts = addedFacts + (t -> factAtoms)
+    //println(f"$t -> $factAtoms")
+    factAtoms
   }
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
-    val model = tms.getModel().get
+  override def verifyModel(optModel: Option[Model], t: Int): Unit = {
+    if (optModel.isEmpty) assert(false)
+    val model = optModel.get
     if (t >= (modeUntil-windowSize)) {
       mode match {
         case High => assert(model.contains(lfu))
