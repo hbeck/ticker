@@ -25,6 +25,8 @@ object LarsEvaluation {
 
   def evaluate(config: Config) = {
 
+    if (config.withDebug) println(config)
+
     val executionTimes = BatchExecution(run(config))
 
     val outputValues = Seq(
@@ -37,6 +39,7 @@ object LarsEvaluation {
 
     val separator = ";"
     if (config.withHeader) {
+      println()
       println(outputValues.map(_._1).mkString(separator))
     }
 
@@ -49,16 +52,13 @@ object LarsEvaluation {
   }
 
   def run(config: Config): List[ExecutionTimePerRun] = {
-    val runIndexes = ((-1 * config.preRuns) to config.runs)
-    runIndexes map (evaluateRun(_,config)) toList
+    val runIndexes = ((-1 * config.preRuns) to config.runs-1)
+    runIndexes.map(evaluateRun(_,config)).toList.drop(config.preRuns)
   }
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
 
-    if (config.withDebug) {
-      if (iterationNr < 0) { println(f"# pre-run $iterationNr") }
-      else { println(f"# run $iterationNr") }
-    }
+    if (config.withDebug) { print(" " + iterationNr) }
 
     val instance = config.makeInstance(iterationNr)
     val builder = BuildEngine.withProgram(instance.program)

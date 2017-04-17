@@ -56,7 +56,7 @@ object StreamingTmsEval {
 
     for (i <- (1 + (cfg.preRuns * -1)) to cfg.runs) {
 
-      print(" " + i)
+      if (cfg.withDebug) { print(" " + i) }
 
       instance = Some(cfg.makeInstance(i)) //init only here for having different random seeds
 
@@ -253,23 +253,14 @@ object StreamingTmsEval {
       timeRemoveFacts += loopTimeRemoveFacts
       timeGetModel += loopTimeGetModel
 
-      inst.verifyModel(tms.getModel,t)
+      if (cfg.verifyModel) {
+        inst.verifyModel(tms.getModel, t)
+      }
 
     }
 
     val evaluationIterationTime = timeStaticRules + timeAllTimePoints
 
-    /*
-    if (tms.isInstanceOf[JtmsDoyle]) {
-      val jtms = tms.asInstanceOf[JtmsDoyle]
-      jtms.doConsistencyCheck = true
-      jtms.doJtmsSemanticsCheck = true
-      jtms.doSelfSupportCheck = true
-      jtms.checkConsistency()
-      jtms.checkJtmsSemantics()
-      jtms.checkSelfSupport()
-    }
-    */
     if (cfg.isSomeDoyle()) {
       nrOfRetractionsAffected = tms.asInstanceOf[JtmsDoyle].retractionsAffected
     }
