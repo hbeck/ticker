@@ -225,6 +225,7 @@ object StreamingTmsEval {
 
     val avgTimeIteration = totalTime %% runs sec
     val avgTimeRuleGen = totalTimeRuleGen %% runs sec
+    val avgTimeRuleGenPerTimePoint = totalTimeRuleGen %% (runs * tp) sec
     val avgTimeStaticRules = totalTimeStaticRules %% runs sec
     val avgTimeAllTimePoints = totalTimeAllTimePoints %% (runs * tp) sec
     val avgTimeAddFact = totalTimeAddFact %% totalNrAddFact sec
@@ -242,6 +243,7 @@ object StreamingTmsEval {
     println(f"rule generation (not included): $avgTimeRuleGen sec")
     println(f"add static rules: $avgTimeStaticRules sec")
     println(f"avg per time point: $avgTimeAllTimePoints sec")
+    println(f"avg rule gen per time point (not incl): $avgTimeRuleGenPerTimePoint sec")
     //println(f"avg time to add fact: $avgTimeAddFact sec")
     //println(f"avg time to add rule: $avgTimeAddRule sec")
     //println(f"avg time to remove rule: $avgTimeRemoveRule sec")

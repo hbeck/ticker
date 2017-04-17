@@ -3,12 +3,13 @@ package jtms.evaluation
 import common.Util.stopTime
 import core._
 import core.lars._
-import engine.asp.tms.policies.LazyRemovePolicy
-import engine.config.BuildEngine
+import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
+import engine.config.{BuildEngine, StartableEngineConfiguration}
 import engine.{EvaluationEngine, Result}
 import evaluation._
-import jtms.algorithms.JtmsDoyleHeuristics
-import jtms.networks.OptimizedNetwork
+import jtms.JtmsUpdateAlgorithm
+import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
+import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -19,58 +20,162 @@ import scala.util.Random
 object StreamingEvaluation {
 
   def main(args: Array[String]): Unit = {
-
-    val myargs = Seq(
-      "--runs", "4"
-    ).toArray
-
-
     timings(args)
   }
 
+  //implementations:
+  val DOYLE_SIMPLE = "DoyleSimple"
+  val DOYLE = "Doyle"
+  val DOYLE_HEURISTICS = "DoyleHeur"
+  val GREEDY = "Greedy"
+  val LEARN = "Learn"
+  val CLINGO_PUSH = "ClingoPush"
+  val CLINGO_PULL = "ClingoPush"
+
+
+  //known instances:
+  val MMEDIA_DET = "mmediaDet"
+  val MMEDIA_NONDET = "mmediaNonDet"
+  val CACHE_HOPS1 = "cacheHops1"
+  val CACHE_HOPS2 = "cacheHops2"
+
+  var INSTANCE_NAME = "inst"
+  var IMPL = "tms"
+  var PRE_RUNS = "pre"
+  var RUNS = "runs"
+  var TIMEPOINTS = "tp"
+  var MODEL_RATIO = "ratio"
+  var WINDOW_SIZE = "winsize"
+  //
+  var ITEMS = "items"
+  //* (for cache hops)
+  //
+  var PRINT_RULES = "printRules"
+  var INDICATE_TIMEPOINTS = "dots"
+  var SEMANTICS_CHECKS = "checks"
+
   def timings(args: Array[String]): Unit = {
-    if (args.length == 0) {
-      evaluate(Config(
-        instance = Instance.MMedia_Det,
-        preRuns = 3,
-        runs = 5,
-        timePoints = 100,
-        windowSize = 10))
-    } else {
-      parseParameters(args) match {
-        case Some(config) => evaluate(config)
-        case None => println("could not parse arguments")
+
+    var argMap = buildArgMap(args)
+
+    def defaultArg(key: String, value: String) = {
+      if (!argMap.contains(key)) {
+        argMap = argMap + (key -> value)
       }
     }
+
+    defaultArg(INSTANCE_NAME, CACHE_HOPS2)
+    defaultArg(IMPL, DOYLE_HEURISTICS)
+    defaultArg(PRE_RUNS, "0")
+    defaultArg(RUNS, "1")
+    defaultArg(TIMEPOINTS, "2")
+    defaultArg(MODEL_RATIO, "false")
+    defaultArg(WINDOW_SIZE, "2")
+    //
+    defaultArg(ITEMS, "1")
+    //
+    defaultArg(PRINT_RULES, "false")
+    defaultArg(INDICATE_TIMEPOINTS, "false")
+    defaultArg(SEMANTICS_CHECKS, "false")
+
+    evaluate(Config(argMap))
+
+  }
+
+  def buildArgMap(args: Array[String]): Map[String, String] = {
+
+    if (args.length % 2 == 1) {
+      println("need even number of args. given: " + args)
+      System.exit(1)
+    }
+    if (args.length == 0) {
+      return Map()
+    }
+
+    var argMap = Map[String, String]()
+    for (i <- 0 to args.length / 2 - 1) {
+      argMap = argMap + (args(2 * i) -> args(2 * i + 1))
+    }
+    argMap
+
+  }
+
+  case class Config(args: Map[String, String]) {
+
+    val instanceName = args(INSTANCE_NAME)
+    val preRuns = Integer.parseInt(args(PRE_RUNS))
+    val runs = Integer.parseInt(args(RUNS))
+    val modelRatio: Boolean = (args(MODEL_RATIO) == "true")
+    val timePoints = Integer.parseInt(args(TIMEPOINTS))
+    val windowSize = Integer.parseInt(args(WINDOW_SIZE))
+    val nrOfItems = Integer.parseInt(args(ITEMS))
+    val withDebug = true
+    val withHeader = true
+    val implementation = args(IMPL)
+    val verifyModel = true
+
+    def makeInstance(iterationNr: Int): EvaluationInstance = {
+      val random = new Random(iterationNr)
+      args(INSTANCE_NAME) match {
+        //        case CACHE_HOPS1 => {
+        //          val printRules: Boolean = (args(PRINT_RULES) == "true")
+        //          CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random)
+        //        }
+        //        case CACHE_HOPS2 => {
+        //          val printRules: Boolean = (args(PRINT_RULES) == "true")
+        //          CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random)
+        //        }
+        case MMEDIA_DET => MMediaDeterministic(windowSize, timePoints, random)
+        //        case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+        case s => println(f"unknown instance name $s"); throw new RuntimeException
+      }
+    }
+
+    def makeTms(inst: EvaluationInstance): JtmsUpdateAlgorithm = {
+      val tms = args(IMPL) match {
+        case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
+        case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
+        case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), inst.random)
+        case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
+        case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), inst.random)
+        case _ => throw new RuntimeException("unknown tms: "+args(IMPL))
+      }
+
+      if ((tms.isInstanceOf[JtmsDoyle]) && args(SEMANTICS_CHECKS) == "true") {
+        tms.asInstanceOf[JtmsDoyle].doConsistencyCheck = true
+        tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck = true
+        tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck = true
+      }
+
+      tms
+    }
+
+    def isSomeDoyle() = {
+      args(IMPL).toLowerCase().contains("doyle")
+    }
+
   }
 
   def evaluate(config: Config) = {
-    val configWithParam = common.Util.prettyPrint(config)
-
-    // we want '#' before each line
-    if (config.withDebug)
-      println(configWithParam.linesWithSeparators.map(l => f"# $l").mkString)
-
 
     val executionTimes = BatchExecutionTimes(run(config))
 
     val outputValues = Seq(
-      "config" -> config.title.getOrElse(f"CFG: ${config.windowSize} ${config.runs}"),
+      "instance" -> config.instanceName,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
       "eval_time" -> executionTimes.evaluateTimes.avg
     )
 
-    // TODO: can we use .keys / .values? - Not sure if they keep the order
-    val separator = "\t"
+    val separator = ";"
     if (config.withHeader) {
       println(outputValues.map(_._1).mkString(separator))
     }
 
     val values = outputValues.collect {
-      case (_, d: Duration) => d.toMillis
-      case (_, s: String )=> f"\"$s\""
+      case (_, d: Duration) => ((1.0) * d.toMillis) / (1000.0)
+      case (_, s: String) => f"$s"
     }
 
     println(values.mkString(separator))
@@ -78,35 +183,22 @@ object StreamingEvaluation {
 
   def run(config: Config): List[ExecutionTimePerRun] = {
 
-    val instance = config.buildInstance()
-
-    val evaluateRuns = evaluateRun(config, instance) _
-
-    def generateRandom(seedHint: Int) = config.randomSeed match {
-      case None => new Random(seedHint)
-      case Some(seed) => new Random(seed)
+    val runResults:Seq[ExecutionTimePerRun] = ((-1 * config.preRuns) to config.runs) map { i =>
+      if (config.withDebug) {
+        if (i < 0) { println(f"# pre-run $i") }
+        else { println(f"# run $i") }
+      }
+      evaluateRun(i, config)
     }
 
-    (-config.preRuns until 0).
-      foreach { i =>
-        if (config.withDebug)
-          println(f"# pre-run $i")
-        evaluateRuns(generateRandom(i))
-      }
+    runResults.toList
 
-    val runResults = (0 to config.runs).
-      map { i =>
-        if (config.withDebug)
-          println(f"# run $i")
-        evaluateRuns(generateRandom(i))
-      }.
-      toList
-
-    runResults
   }
 
 
-  def evaluateRun(config: Config, instance: EvaluationInstance)(random: Random): ExecutionTimePerRun = {
+  def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
+
+    val instance = config.makeInstance(iterationNr)
 
     val builder = BuildEngine.withProgram(instance.program)
 
@@ -114,21 +206,12 @@ object StreamingEvaluation {
 
     val initializationTime = stopTime {
 
-      val startableEngine = config.evaluationType match {
-        case EvaluationTypes.ClingoPush => builder.configure().withClingo().use().usePush()
-        case EvaluationTypes.DoyleHeuristics =>
-          val tms = new JtmsDoyleHeuristics(new OptimizedNetwork(), random)
-
-          if (config.semanticCheck) {
-            tms.doConsistencyCheck = true
-            tms.doJtmsSemanticsCheck = true
-            tms.doSelfSupportCheck = true
-          }
-
-          builder.configure().
-            withTms().
-            withPolicy(LazyRemovePolicy(tms)).
-            withIncremental()
+      val startableEngine: StartableEngineConfiguration = config.implementation match {
+        case CLINGO_PUSH => builder.configure().withClingo().use().usePush()
+        case DOYLE_HEURISTICS => {
+          val tms = config.makeTms(instance)
+          builder.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
+        }
       }
 
       engine = startableEngine.start()
@@ -137,9 +220,9 @@ object StreamingEvaluation {
 
     val timepoints = Seq.range(0, config.timePoints)
 
-    val runTimepoints = runTimepoint(instance, engine, config.verifyModel) _
+    val runSingleTimepoint = runTimepoint(instance, engine, config.verifyModel) _
 
-    val timings = timepoints.map(runTimepoints).toList
+    val timings: List[ExecutionTimePerTimePoint] = timepoints.map(runSingleTimepoint).toList
 
     val append = StatisticResult.fromMillis(timings.map(_.appendTime))
     val evaluate = StatisticResult.fromMillis(timings.map(_.evaluateTime))
@@ -149,6 +232,7 @@ object StreamingEvaluation {
 
 
   def runTimepoint(instance: EvaluationInstance, engine: EvaluationEngine, verifyModel: Boolean)(t: Int): ExecutionTimePerTimePoint = {
+
     val facts = instance.generateFactsToAddAt(t)
     val time = TimePoint(t)
 
@@ -162,99 +246,13 @@ object StreamingEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (verifyModel)
+    if (verifyModel) {
       instance.verifyModel(result.get, t)
+    }
 
     ExecutionTimePerTimePoint(time, appendTime, evaluateTime)
   }
 
-  object EvaluationTypes extends Enumeration {
-    type Type = Value
-    val DoyleHeuristics, ClingoPush = Value
-  }
-
-
-  object Instance extends Enumeration {
-    type Type = Value
-    val MMedia_Det, MMedia_NonDet, Cache_Hops_1, Cache_Hops_2 = Value
-  }
-
-  case class Config(evaluationType: EvaluationTypes.Type = EvaluationTypes.DoyleHeuristics,
-                    preRuns: Int = 1,
-                    runs: Int = 1,
-                    timePoints: Int = 2,
-                    windowSize: Int = 2,
-                    instance: Instance.Type = Instance.MMedia_Det,
-                    items: Int = 1,
-                    semanticCheck: Boolean = false,
-                    verifyModel: Boolean = false,
-                    randomSeed: Option[Long] = None,
-                    withHeader: Boolean = true,
-                    title: Option[String] = None,
-                    withDebug: Boolean = true
-                   ) {
-
-    def buildInstance(): EvaluationInstance = instance match {
-      case Instance.MMedia_Det => MMediaDeterministic(windowSize)
-    }
-  }
-
-  def parseParameters(args: Array[String]) = {
-    implicit val evaluationTypesRead: scopt.Read[EvaluationTypes.Type] =
-      scopt.Read.reads(EvaluationTypes withName)
-
-    implicit val instanceRead: scopt.Read[Instance.Type] =
-      scopt.Read.reads(Instance withName)
-
-    val parser = new scopt.OptionParser[Config]("scopt") {
-      head("scopt", "3.x")
-
-      opt[EvaluationTypes.Type]('e', "evaluationType").optional().valueName("<evaluation type>").
-        action((x, c) => c.copy(evaluationType = x)).
-        text("An evaluation type is required, possible values: " + EvaluationTypes.values)
-
-      opt[Instance.Type]('i', "instance").optional().valueName("<instance identifier>").
-        action((x, c) => c.copy(instance = x)).
-        text("An instance identifier is required, possible values: " + Instance.values)
-
-      opt[Int]('p', "pre").optional().valueName("<value>").
-        action((x, c) => c.copy(preRuns = x))
-
-      opt[Int]('r', "runs").optional().valueName("<value>").
-        action((x, c) => c.copy(runs = x))
-
-      opt[Int]('t', "tp").optional().valueName("<value>").
-        action((x, c) => c.copy(timePoints = x))
-
-      opt[Int]('w', "winsize").optional().valueName("<value>").
-        action((x, c) => c.copy(windowSize = x))
-
-      opt[Int]('i', "items").optional().valueName("<value>").
-        action((x, c) => c.copy(items = x))
-
-      opt[Boolean]('s', "checks").optional().valueName("<value>").
-        action((x, c) => c.copy(semanticCheck = x))
-
-      opt[Boolean]('v', "verify").optional().valueName("<value>").
-        action((x, c) => c.copy(verifyModel = x))
-
-      opt[Long]("randomSeed").optional().
-        action((x, c) => c.copy(randomSeed = Some(x)))
-
-      opt[String]("title").optional().
-        action((x, c) => c.copy(title = Some(x)))
-
-      opt[Boolean]('d', "debug").optional().valueName("<value>").
-        action((x, c) => c.copy(withDebug = x))
-
-      opt[Boolean]('h', "header").optional().valueName("<value>").
-        action((x, c) => c.copy(withHeader = x))
-
-      help("help").text("Specify init parameters for running the evaluation")
-    }
-
-    parser.parse(args, Config())
-  }
 }
 
 case class ExecutionTimePerTimePoint(timePoint: TimePoint, appendTime: Long, evaluateTime: Long) {
@@ -276,11 +274,16 @@ case class BatchExecutionTimes(runs: List[ExecutionTimePerRun]) {
 }
 
 trait EvaluationInstance {
+
+  val timePoints: Int
+
   val program: LarsProgram
 
   def verifyModel(model: Option[Model], t: Int)
 
   def generateFactsToAddAt(t: Int): Seq[Atom]
+
+  def random: Random
 }
 
 trait MMedia {
@@ -302,9 +305,7 @@ trait MMedia {
     val V: Variable = StringVariable("V")
 
     def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
-
     def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
-
     def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
 
     def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
@@ -327,7 +328,7 @@ trait MMedia {
   }
 }
 
-case class MMediaDeterministic(windowSize: Int) extends MMedia with EvaluationInstance {
+case class MMediaDeterministic(windowSize: Int, timePoints: Int, random: Random) extends MMedia with EvaluationInstance {
 
   val program = larsProgram(windowSize)
 
@@ -358,4 +359,5 @@ case class MMediaDeterministic(windowSize: Int) extends MMedia with EvaluationIn
     else if (q >= 60 && q < 120) 15
     else 25
   }
+
 }

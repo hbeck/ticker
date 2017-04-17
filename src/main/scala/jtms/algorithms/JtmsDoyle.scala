@@ -77,6 +77,7 @@ class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new R
     if (choice(a)) {
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
       network.unknownCons(a) foreach chooseStatus
+      //network.unknownCons(a) foreach findStatus //variant
     } else {
       retractionsAffected = retractionsAffected + 1
       val aff = shuffle(network.affected(a) + a) //TODO no test coverage
