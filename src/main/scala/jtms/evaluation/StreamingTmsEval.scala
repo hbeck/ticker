@@ -190,10 +190,10 @@ object StreamingTmsEval {
       var factsToRemove = Seq[NormalRule]()
 
       timeRuleGen = timeRuleGen + stopTime {
-        factsToAdd = inst.factAtomsToAddAt(t) map (fact(_))
+        factsToAdd = inst.factsToAddAt(t)
         rulesToAdd = inst.rulesToAddAt(t)
         rulesToRemove = inst.rulesToRemoveAt(t)
-        factsToRemove = inst.factAtomsToRemoveAt(t) map (fact(_))
+        factsToRemove = inst.factsToRemoveAt(t)
         nrOfAddedFacts += factsToAdd.size
         nrOfAddedRules += rulesToAdd.size
         nrOfRemovedRules += rulesToRemove.size
@@ -254,6 +254,9 @@ object StreamingTmsEval {
       timeGetModel += loopTimeGetModel
 
       if (cfg.verifyModel) {
+        if (t==32) {
+          tms.rules foreach println
+        }
         inst.verifyModel(tms.getModel, t)
       }
 

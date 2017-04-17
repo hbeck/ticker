@@ -3,14 +3,14 @@ package jtms.evaluation.instances
 import core._
 import core.asp.NormalRule
 import core.lars._
-import jtms.evaluation.StreamingTmsStandardEvalInst
+import jtms.evaluation.{StreamingTmsEvalInst}
 
 import scala.util.Random
 
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -52,12 +52,12 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   def mid_at(arg1: Argument) = AtomWithArguments(_mid_at,Seq(arg1))
   def low_at(arg1: Argument) = AtomWithArguments(_low_at,Seq(arg1))
   def rtm_at(arg1: Argument) = AtomWithArguments(_rtm_at,Seq(arg1))
-  def lt(arg1: Int, arg2: Argument) = AtomWithArguments(_lt,Seq(IntValue(arg1),arg2))
-  def lt(arg1: Argument, arg2: Int) = AtomWithArguments(_lt,Seq(arg1,IntValue(arg2)))
-  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
-  def leq(arg1: Int, arg2: Argument) = AtomWithArguments(_leq,Seq(IntValue(arg1),arg2))
-  def leq(arg1: Argument, arg2: Int) = AtomWithArguments(_leq,Seq(arg1,IntValue(arg2)))
-  def leq(arg1: Argument, arg2: Argument) = AtomWithArguments(_leq,Seq(arg1,arg2))
+//  def lt(arg1: Int, arg2: Argument) = AtomWithArguments(_lt,Seq(IntValue(arg1),arg2))
+//  def lt(arg1: Argument, arg2: Int) = AtomWithArguments(_lt,Seq(arg1,IntValue(arg2)))
+//  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
+//  def leq(arg1: Int, arg2: Argument) = AtomWithArguments(_leq,Seq(IntValue(arg1),arg2))
+//  def leq(arg1: Argument, arg2: Int) = AtomWithArguments(_leq,Seq(arg1,IntValue(arg2)))
+//  def leq(arg1: Argument, arg2: Argument) = AtomWithArguments(_leq,Seq(arg1,arg2))
 
 
   /*
@@ -132,9 +132,9 @@ random :- not done.
     val n = windowSize
 
     LarsProgram.from(
-      AtAtom(T,high) <= wAt(n,T,_alpha(V)) and leq(18,V),
-      AtAtom(T,mid) <= wAt(n,T,_alpha(V)) and leq(12,V) and lt(V,18),
-      AtAtom(T,low) <= wAt(n,T,_alpha(V)) and lt(V,12),
+      AtAtom(T,high) <= wAt(n,T,_alpha(V)) and Leq(IntValue(18),V),
+      AtAtom(T,mid) <= wAt(n,T,_alpha(V)) and Leq(IntValue(12),V) and Lt(V,IntValue(18)),
+      AtAtom(T,low) <= wAt(n,T,_alpha(V)) and Lt(V,IntValue(12)),
       lfu <= wB(n,high),
       lru <= wB(n,mid),
       fifo <= wB(n,low) and wD(n,rtm50),
@@ -169,7 +169,7 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
     }
   }
 
-  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     Seq[Atom]() :+ alpha_at(alphaValueFor(t),t)
   }
 
@@ -194,7 +194,7 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
   var modeUntil = 1
   var lastRtm = -10000
 
-  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (modeUntil == t) {
       mode = random.nextInt(4) match {
         case 0 => High
@@ -216,7 +216,7 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
         lastRtm = t
       }
     }
-    addedFacts = addedFacts + (t -> factAtoms)
+    addedFacts = addedFacts + (t -> (factAtoms map (fact(_))))
     //println(f"$t -> $factAtoms")
     factAtoms
   }

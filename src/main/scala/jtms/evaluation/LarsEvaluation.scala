@@ -104,7 +104,7 @@ object LarsEvaluation {
 
   def runTimepoint(instance: LarsEvaluationInstance, engine: EvaluationEngine, verifyModel: Boolean)(t: Int): ExecutionTimePerTimePoint = {
 
-    val signals = instance.generateFactAtomsToAddAt(t)
+    val signals = instance.generateSignalsToAddAt(t)
     val time = TimePoint(t)
 
     val appendTime = stopTime {

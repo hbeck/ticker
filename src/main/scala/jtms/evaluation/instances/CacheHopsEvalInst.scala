@@ -4,14 +4,14 @@ import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import core.lars._
-import jtms.evaluation.StreamingTmsStandardEvalInst
+import jtms.evaluation.{StreamingTmsEvalInst}
 
 import scala.util.Random
 
 /**
   * Created by hb on 10.04.17.
   */
-abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEvalInst {
+abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
   val windowSize: Int
   val timePoints: Int
@@ -82,17 +82,21 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
   def w_req(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_req,Seq(arg1,arg2))
   def w_cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_cache,Seq(arg1,arg2))
   def w_error(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_error,Seq(arg1,arg2))
-  def req(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_req,Seq(arg1,arg2,arg3))
-  def cache(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
-  def error(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
+  //def req(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_req,Seq(arg1,arg2,arg3))
+  //def cache(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
+  //def error(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
   def length(arg1: Argument) = AtomWithArguments(_length,Seq(arg1))
   def length(arg1: Int) = AtomWithArguments(_length,Seq(iVal(arg1)))
 
   //LARS:
-  def req(arg1: Argument, arg2: Argument) = AtomWithArguments(_req,Seq(arg1,arg2))
-  def cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_cache,Seq(arg1,arg2))
-  def error(arg1: Argument, arg2: Argument) = AtomWithArguments(_error,Seq(arg1,arg2))
-  def reach(arg1: Argument, arg2: Argument, arg3: Int) = AtomWithArguments(_reach,Seq(arg1,arg2,iVal(arg3)))
+  def req(arg1: Argument, arg2: Argument):Atom = AtomWithArguments(_req,Seq(arg1,arg2))
+  def cache(arg1: Argument, arg2: Argument):Atom = AtomWithArguments(_cache,Seq(arg1,arg2))
+  def error(arg1: Argument, arg2: Argument):Atom = AtomWithArguments(_error,Seq(arg1,arg2))
+  def reach(arg1: Argument, arg2: Argument, arg3: Int):Atom = AtomWithArguments(_reach,Seq(arg1,arg2,iVal(arg3)))
+  def req(arg1: Argument, arg2: Int):Atom = AtomWithArguments(_req,Seq(arg1,iVal(arg2)))
+  def cache(arg1: Argument, arg2: Int):Atom = AtomWithArguments(_cache,Seq(arg1,iVal(arg2)))
+  def error(arg1: Int, arg2: Int):Atom = AtomWithArguments(_error,Seq(iVal(arg1),iVal(arg2)))
+
 
   /*
    % STATIC:
@@ -228,36 +232,25 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEva
 
   override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
     /*
-       w_req(I,N) :- req(I,N,T)
-       w_cache(I,N) :- cache(I,N,T)
-       w_error(N,M) :- error(N,M,T)
+       w_req(I,N) :- req_at(I,N,T)
+       w_cache(I,N) :- cache_at(I,N,T)
+       w_error(N,M) :- error_at(N,M,T)
     */
     var rules = Seq[NormalRule]()
+    def pin(a:Atom,t: Int) = PinnedAtom.asPinnedAtAtom(a, TimePoint(t))
     def it(i:Int) = StringValue("i"+i)
     for (i <- 1 to nrOfItems; n <- nodes()) {
       rules = rules :+
-        rule(w_req(it(i),n), req(it(i),n,iVal(t))) :+
-        rule(w_cache(it(i),n), cache(it(i),n,iVal(t)))
+        rule(w_req(it(i),n), pin(req(it(i),n),t)) :+
+        rule(w_cache(it(i),n), pin(cache(it(i),n),t))
     }
     for (e <- edges) {
       val args = e.asInstanceOf[AtomWithArguments].arguments
       val n = args(0)
       val m = args(1)
-      rules = rules :+ rule(w_error(n,m), error(n,m,iVal(t)))
+      rules = rules :+ rule(w_error(n,m), pin(error(n,m),t))
     }
     rules
-  }
-
-  //
-
-  def printModel(t:Int, model: Set[Atom]): Unit = {
-    println(f"\nt=$t")
-    model filter { a =>
-      a.predicate != _edge && a.predicate != _node && a.predicate != _conn && a.predicate != _reach &&
-        a.predicate != _itemReach && a.predicate != _n_minReach && a.predicate != _item &&
-        a.predicate != _length && a.predicate != _sat && a.predicate != _n_getFrom
-    } foreach println
-    model filter (a => a.predicate == _reach) foreach println
   }
 
 }
@@ -277,19 +270,16 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
 
   val i1 = StringValue("i1")
 
-  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
-//    def req_(item: StringValue, node: Int) = fact(req(item,iVal(node),iVal(t)))
-//    def cache_(item: StringValue, node: Int) = fact(cache(item,iVal(node),iVal(t)))
-//    def err_(fromNode: Int, toNode: Int) = fact(error(iVal(fromNode),iVal(toNode),iVal(t)))
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     t % 30 match {
-      case 0 => Seq(_req(i1,1),_cache(i1,4))
-      case 2 => Seq(_cache(i1,7))
-      case 4 => Seq(_error(8,4))
-      case 6 => Seq(_cache(i1,1))
-      case 8 => Seq(_req(i1,1))
-      case 10 => Seq(_cache(i1,7))
-      case 16 => Seq(_cache(i1,7))
-      case 20 => Seq(_req(i1,1))
+      case 0 => Seq(req(i1,1),cache(i1,4))
+      case 2 => Seq(cache(i1,7))
+      case 4 => Seq(error(8,4))
+      case 6 => Seq(cache(i1,1))
+      case 8 => Seq(req(i1,1))
+      case 10 => Seq(cache(i1,7))
+      case 16 => Seq(cache(i1,7))
+      case 20 => Seq(req(i1,1))
       case _ => Seq()
     }
   }
@@ -299,51 +289,57 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
       print(f"x($t)")
       return
     }
+
     val model = optModel.get
+
+    def has(atom: Atom) = contains(model,t,atom)
+    def hasNot(atom: Atom) = notContains(model,t,atom)
+    def hasSomeOf(ats: Atom*) = containsSomeOf(model,t,ats.toSeq)
+
     val q = t % 30
     if (q >= 0 && q < 2) {
-      assert(model.contains(getFrom(i1,1,4)))
-      assert(model.contains(sat(i1,1)))
-      assert(model.contains(itemReach(i1,1,4,2)))
-      assert(model.contains(itemReach(i1,1,4,3)))
-      assert(model.contains(minReach(i1,1,4)))
+      has(getFrom(i1,1,4))
+      has(sat(i1,1))
+      has(itemReach(i1,1,4,2))
+      has(itemReach(i1,1,4,3))
+      has(minReach(i1,1,4))
     } else if (q >= 2 && q < 4) {
       //from before:
-      assert(model.contains(getFrom(i1,1,4))) //keep
-      assert(model.contains(sat(i1,1)))
-      assert(model.contains(itemReach(i1,1,4,2)))
-      assert(model.contains(itemReach(i1,1,4,3)))
-      assert(model.contains(minReach(i1,1,4)))
+      has(getFrom(i1,1,4)) //keep
+      has(sat(i1,1))
+      has(itemReach(i1,1,4,2))
+      has(itemReach(i1,1,4,3))
+      has(minReach(i1,1,4))
       //new:
-      assert(model.contains(itemReach(i1,1,7,2)))
-      assert(model.contains(itemReach(i1,1,7,5)))
-      assert(model.contains(itemReach(i1,1,7,6)))
-      assert(model.contains(minReach(i1,1,7)))
+      has(itemReach(i1,1,7,2))
+      has(itemReach(i1,1,7,5))
+      has(itemReach(i1,1,7,6))
+      has(minReach(i1,1,7))
     } else if (q >= 4 && q < 6) {
-      assert(model.contains(getFrom(i1,1,7))) //switch
+      has(getFrom(i1,1,7)) //switch
     } else if (q >= 6 && q < 8) {
-      assert(!model.contains(getFrom(i1,1,4)))
-      assert(!model.contains(getFrom(i1,1,7)))
-      assert(model.contains(sat(i1,1)))
+      hasNot(getFrom(i1,1,4))
+      hasNot(getFrom(i1,1,7))
+      has(sat(i1,1))
     } else if (q >= 8 && q < 10) {
-      assert(model.contains(sat(i1,1)))
+      has(sat(i1,1))
     } else if (q >= 10 && q <= 16) {
-      assert(!model.contains(getFrom(i1,1,4)))
-      assert(!model.contains(getFrom(i1,1,7)))
-      assert(model.contains(sat(i1,1)))
+      hasNot(getFrom(i1,1,4))
+      hasNot(getFrom(i1,1,7))
+      has(sat(i1,1))
     } else if (q >= 17 && q <= 18) {
-      assert(model.contains(getFrom(i1,1,7)))
+      has(getFrom(i1,1,7))
     } else if (q == 19) {
-      assert(!model.contains(getFrom(i1,1,4)))
-      assert(!model.contains(getFrom(i1,1,7)))
-      assert(!model.contains(sat(i1,1)))
+      hasNot(getFrom(i1,1,4))
+      hasNot(getFrom(i1,1,7))
+      hasNot(sat(i1,1))
     } else if (q >= 20 && q <= 26) {
-      assert(model.contains(getFrom(i1,1,7)))
+      has(getFrom(i1,1,7))
     } else {
-      assert(!model.contains(getFrom(i1,1,4)))
-      assert(!model.contains(getFrom(i1,1,7)))
-      assert(!model.contains(sat(i1,1)))
-      assert(model.contains(unsat(i1,1)))
+      hasNot(getFrom(i1,1,4))
+      hasNot(getFrom(i1,1,7))
+      hasNot(sat(i1,1))
+      has(unsat(i1,1))
     }
   }
 }
@@ -372,24 +368,23 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
 
   val i1 = StringValue("i1")
 
-  override def generateFactAtomsToAddAt(t: Int): Seq[Atom] = {
-//    def cache_(i: StringValue, n: Int) = fact(cache(i,iVal(n),iVal(t)))
-//    def req_(i: StringValue, n: Int) = fact(req(i,iVal(n),iVal(t)))
-//    def err_(n: Int, m: Int) = fact(error(iVal(n),iVal(m),iVal(t)))
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     t % 40 match {
-      case 0 => Seq(_cache(i1,16),_req(i1,1))
-      case 2 => Seq(_cache(i1,9))
-      case 4 => Seq(_req(i1,2))
-      case 6 => Seq(_req(i1,10))
-      case 8 => Seq(_cache(i1,4))
-      case 10 => Seq(_req(i1,1),_req(i1,7))
-      case 12 => Seq(_cache(i1,9),_cache(i1,1))
-      case 14 => Seq(_error(8,9))
+      case 0 => Seq(cache(i1,16),req(i1,1))
+      case 2 => Seq(cache(i1,9))
+      case 4 => Seq(req(i1,2))
+      case 6 => Seq(req(i1,10))
+      case 8 => Seq(cache(i1,4))
+      case 10 => Seq(req(i1,1),req(i1,7))
+      case 12 => Seq(cache(i1,9),cache(i1,1))
+      case 14 => Seq(error(8,9))
       //nothing at 16; where cache(i1,16,1) expires
-      case 18 => Seq(_req(i1,2),_cache(i1,1),_cache(i1,9))
-      case 20 => Seq(_req(i1,10))
-      case 22 => Seq(_req(i1,1),_req(i1,7))
-      case 32 => Seq(_error(16,1))
+      case 18 => {
+        Seq(req(i1, 2), cache(i1, 1), cache(i1, 9))
+      }
+      case 20 => Seq(req(i1,10))
+      case 22 => Seq(req(i1,1),req(i1,7))
+      case 32 => Seq(error(16,1))
       case _=> Seq()
     }
   }
@@ -402,144 +397,126 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
 
     val model = optModel.get
 
-    def contains(a: Atom) = {
-      if (!model.contains(a)) {
-        printModel(t,model)
-        println(f"does not contain $a")
-        assert(false)
-      }
-    }
-    def notContains(a: Atom) = {
-      if (model.contains(a)) {
-        printModel(t,model)
-        println(f"contains $a")
-        assert(false)
-      }
-    }
-    def containsSomeOf(ats: Atom*) = {
-      if (!(ats.exists(model.contains(_)))) {
-        printModel(t,model)
-        println(f"contained none of $ats")
-        assert(false)
-      }
-    }
+    def has(atom: Atom) = contains(model,t,atom)
+    def hasNot(atom: Atom) = notContains(model,t,atom)
+    def hasSomeOf(ats: Atom*) = containsSomeOf(model,t,ats.toSeq)
 
     val ensureModelMaintenance = false
 
     val q = t % 40
     if (q >= 0 && q < 2) {
-      contains(getFrom(i1,1,16))
+      has(getFrom(i1,1,16))
     } else if (q >= 2 && q < 4) {
-      contains(getFrom(i1,1,9))
+      has(getFrom(i1,1,9))
     } else if (q >= 4 && q < 6) {
-      contains(getFrom(i1,1,9))
-      contains(getFrom(i1,2,9))
+      has(getFrom(i1,1,9))
+      has(getFrom(i1,2,9))
     } else if (q >= 6 && q < 8) {
-      contains(getFrom(i1,1,9))
-      contains(getFrom(i1,2,9))
-      contains(getFrom(i1,10,16))
+      has(getFrom(i1,1,9))
+      has(getFrom(i1,2,9))
+      has(getFrom(i1,10,16))
     } else if (q >= 8 && q < 10) {
-      contains(getFrom(i1,1,4))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,10,16))
+      has(getFrom(i1,1,4))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,10,16))
     } else if (q >= 10 && q < 12) {
-      contains(getFrom(i1,1,4))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,7,9))
-      contains(getFrom(i1,10,16))
+      has(getFrom(i1,1,4))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,7,9))
+      has(getFrom(i1,10,16))
     } else if (q >= 12 && q < 14) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,10,16))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,10,16))
       if (ensureModelMaintenance) {
-        contains(getFrom(i1,7,9))
+        has(getFrom(i1,7,9))
       } else {
-        containsSomeOf(getFrom(i1,7,9),getFrom(i1,7,1))
+        hasSomeOf(getFrom(i1,7,9),getFrom(i1,7,1))
       }
     } else if (q >= 14 && q < 16) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,7,1))
-      contains(getFrom(i1,10,16))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,7,1))
+      has(getFrom(i1,10,16))
     } else if (q >= 16 && q < 18) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,7,1))
-      contains(getFrom(i1,10,1))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,7,1))
+      has(getFrom(i1,10,1))
     } else if (q >= 18 && q < 24) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,4))
-      contains(getFrom(i1,7,1))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,4))
+      has(getFrom(i1,7,1))
       if (ensureModelMaintenance) {
-        contains(getFrom(i1,10,1))
+        has(getFrom(i1,10,1))
       } else {
-        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
       }
     } else if (q >= 24 && q < 30) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,1))
-      contains(getFrom(i1,7,1))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,1))
+      has(getFrom(i1,7,1))
       if (ensureModelMaintenance) {
-        contains(getFrom(i1,10,1))
+        has(getFrom(i1,10,1))
       } else {
-        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
       }
     } else if (q >= 30 && q < 32) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
       if (ensureModelMaintenance) {
-        contains(getFrom(i1,2,1))
-        contains(getFrom(i1,7,1))
-        contains(getFrom(i1,10,1))
+        has(getFrom(i1,2,1))
+        has(getFrom(i1,7,1))
+        has(getFrom(i1,10,1))
       } else {
-        containsSomeOf(getFrom(i1,2,1),getFrom(i1,2,9))
-        containsSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
-        containsSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i1,2,1),getFrom(i1,2,9))
+        hasSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
+        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
       }
     } else if (q >= 32 && q < 34) {
-      notContains(getFrom(i1,1,4))
-      notContains(needAt(i1,1))
-      contains(sat(i1,1))
-      contains(getFrom(i1,2,1))
-      contains(getFrom(i1,10,9))
+      hasNot(getFrom(i1,1,4))
+      hasNot(needAt(i1,1))
+      has(sat(i1,1))
+      has(getFrom(i1,2,1))
+      has(getFrom(i1,10,9))
       if (ensureModelMaintenance) {
-        contains(getFrom(i1,7,1))
+        has(getFrom(i1,7,1))
       } else {
-        containsSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
+        hasSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
       }
     } else if (q >= 34 && q < 36) {
-      contains(unsat(i1,1))
-      notContains(sat(i1,2))
-      notContains(unsat(i1,2))
-      contains(unsat(i1,7))
-      contains(unsat(i1,10))
+      has(unsat(i1,1))
+      hasNot(sat(i1,2))
+      hasNot(unsat(i1,2))
+      has(unsat(i1,7))
+      has(unsat(i1,10))
     } else if (q >= 36 && q < 38) {
-      contains(unsat(i1,1))
-      notContains(sat(i1,2))
-      notContains(unsat(i1,2))
-      contains(unsat(i1,7))
-      notContains(sat(i1,10))
-      notContains(unsat(i1,10))
+      has(unsat(i1,1))
+      hasNot(sat(i1,2))
+      hasNot(unsat(i1,2))
+      has(unsat(i1,7))
+      hasNot(sat(i1,10))
+      hasNot(unsat(i1,10))
     } else if (q >= 38 && q < 40) {
-      notContains(sat(i1,1))
-      notContains(unsat(i1,1))
-      notContains(sat(i1,2))
-      notContains(unsat(i1,2))
-      notContains(sat(i1,7))
-      notContains(unsat(i1,7))
-      notContains(sat(i1,10))
-      notContains(unsat(i1,10))
+      hasNot(sat(i1,1))
+      hasNot(unsat(i1,1))
+      hasNot(sat(i1,2))
+      hasNot(unsat(i1,2))
+      hasNot(sat(i1,7))
+      hasNot(unsat(i1,7))
+      hasNot(sat(i1,10))
+      hasNot(unsat(i1,10))
     }
   }
 }

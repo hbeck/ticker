@@ -13,6 +13,6 @@ trait LarsEvaluationInstance {
   val timePoints: Int
   val program: LarsProgram
   def verifyModel(model: Option[Model], t: Int)
-  def generateFactAtomsToAddAt(t: Int): Seq[Atom]
+  def generateSignalsToAddAt(t: Int): Seq[Atom]
   def random: Random
 }
