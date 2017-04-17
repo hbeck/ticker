@@ -4,14 +4,14 @@ import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import core.lars._
-import jtms.evaluation.{LarsEvaluationInstance, StreamingTmsStandardEvalInst}
+import jtms.evaluation.StreamingTmsStandardEvalInst
 
 import scala.util.Random
 
 /**
   * Created by hb on 10.04.17.
   */
-abstract class CacheHopsEvalInst(random: Random) extends LarsEvaluationInstance with StreamingTmsStandardEvalInst {
+abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsStandardEvalInst {
 
   val windowSize: Int
   val timePoints: Int

@@ -8,11 +8,11 @@ import scala.util.Random
 /**
   * Created by hb on 04.04.17.
   */
-trait StreamingTmsEvalInst {
+trait StreamingTmsEvalInst extends LarsEvaluationInstance {
 
   def random: Random
 
-  def timePoints: Int
+  val timePoints: Int
   def staticRules(): Seq[NormalRule]
   def factAtomsToAddAt(t: Int): Seq[Atom]
   def factAtomsToRemoveAt(t: Int): Seq[Atom]

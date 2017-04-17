@@ -3,14 +3,14 @@ package jtms.evaluation.instances
 import core._
 import core.asp.NormalRule
 import core.lars._
-import jtms.evaluation.{LarsEvaluationInstance, StreamingTmsStandardEvalInst}
+import jtms.evaluation.StreamingTmsStandardEvalInst
 
 import scala.util.Random
 
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst with LarsEvaluationInstance {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")

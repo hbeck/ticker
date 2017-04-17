@@ -8,12 +8,9 @@ import core.Atom
 import core.asp._
 import jtms._
 import jtms.algorithms._
-import jtms.evaluation.instances.{CacheHopsEvalInst1, CacheHopsEvalInst2, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
-import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 import runner.Load
 
 import scala.io.Source
-import scala.util.Random
 
 
 /**
@@ -21,135 +18,15 @@ import scala.util.Random
   */
 object StreamingTmsEval {
 
-  //known instances:
-  val MMEDIA_DET = "mmediaDet"
-  val MMEDIA_NONDET = "mmediaNonDet"
-  val CACHE_HOPS1 = "cacheHops1"
-  val CACHE_HOPS2 = "cacheHops2"
-
   val loader = Load(TimeUnit.SECONDS)
 
   def main(args: Array[String]): Unit = {
     evaluate(args)
   }
 
-  //implementations:
-  val DOYLE_SIMPLE = "DoyleSimple"
-  val DOYLE = "Doyle"
-  val DOYLE_HEURISTICS = "DoyleHeur" //*
-  val GREEDY = "Greedy"
-  val LEARN = "Learn"
-
-  var INSTANCE_NAME = "inst"
-  var TMS = "tms"
-  var PRE_RUNS = "pre" //*
-  var RUNS = "runs" //*
-  var TIMEPOINTS = "tp" //*
-  var MODEL_RATIO = "ratio"
-  var WINDOW_SIZE = "winsize" //*
-  //
-  var ITEMS = "items" //* (for cache hops)
-  //
-  var PRINT_RULES = "printRules"
-  var INDICATE_TIMEPOINTS = "dots"
-  var SEMANTICS_CHECKS = "checks" //*
-
-  var argMap = Map[String,String]() //make accessible globally for faster dev access
-
   def evaluate(args: Array[String]): Unit = {
-
-    argMap = buildArgMap(args)
-
-    def defaultArg(key: String, value: String) = {
-      if (!argMap.contains(key)) {
-        argMap = argMap + (key -> value)
-      }
-    }
-
-    defaultArg(INSTANCE_NAME,CACHE_HOPS2)
-    defaultArg(TMS,DOYLE_HEURISTICS)
-    defaultArg(PRE_RUNS,"0")
-    defaultArg(RUNS,"1")
-    defaultArg(TIMEPOINTS,"2")
-    defaultArg(MODEL_RATIO,"false")
-    defaultArg(WINDOW_SIZE,"2")
-    //
-    defaultArg(ITEMS,"1")
-    //
-    defaultArg(PRINT_RULES,"false")
-    defaultArg(INDICATE_TIMEPOINTS,"false")
-    defaultArg(SEMANTICS_CHECKS,"false")
-
+    val argMap = Config.buildArgMap(args)
     run(Config(argMap))
-
-  }
-
-  def buildArgMap(args: Array[String]): Map[String,String] = {
-
-    if (args.length % 2 == 1) {
-      println("need even number of args. given: "+args)
-      System.exit(1)
-    }
-    if (args.length == 0) {
-      return Map()
-    }
-
-    var argMap = Map[String,String]()
-    for (i <- 0 to args.length/2-1) {
-      argMap = argMap + (args(2*i) -> args(2*i+1))
-    }
-    argMap
-
-  }
-
-  case class Config(args: Map[String,String]) {
-
-    val preRuns = Integer.parseInt(argMap(PRE_RUNS))
-    val runs = Integer.parseInt(argMap(RUNS))
-    val modelRatio:Boolean = (argMap(MODEL_RATIO) == "true")
-    val timePoints = Integer.parseInt(argMap(TIMEPOINTS))
-    val windowSize = Integer.parseInt(argMap(WINDOW_SIZE))
-    val nrOfItems = Integer.parseInt(argMap(ITEMS))
-
-    def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
-      val random = new Random(iterationNr)
-      argMap(INSTANCE_NAME) match {
-        case CACHE_HOPS1 => {
-          val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random)
-        }
-        case CACHE_HOPS2 => {
-          val printRules: Boolean = (argMap(PRINT_RULES) == "true")
-          CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random)
-        }
-        case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
-        case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
-        case s => println(f"unknown instance name $s"); throw new RuntimeException
-      }
-    }
-
-    def makeTms(inst: StreamingTmsEvalInst): JtmsUpdateAlgorithm = {
-      val tms = argMap(TMS) match {
-        case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
-        case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
-        case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), inst.random)
-        case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
-        case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), inst.random)
-      }
-
-      if ((tms.isInstanceOf[JtmsDoyle]) && argMap(SEMANTICS_CHECKS) == "true") {
-        tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
-        tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
-        tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
-      }
-
-      tms
-    }
-
-    def isSomeDoyle() = {
-      argMap(TMS).toLowerCase().contains("doyle")
-    }
-
   }
 
   def run(cfg: Config): Unit = {
@@ -306,8 +183,6 @@ object StreamingTmsEval {
     var nrOfRetractionsAffected = 0L
 
     for (t <- 0 to inst.timePoints) {
-
-      if (argMap(INDICATE_TIMEPOINTS) == "true") print(".")
 
       var factsToAdd = Seq[NormalRule]()
       var rulesToAdd = Seq[NormalRule]()
