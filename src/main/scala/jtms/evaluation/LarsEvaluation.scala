@@ -36,8 +36,8 @@ object LarsEvaluation {
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
       "eval_time" -> executionTimes.evaluateTimes.avg,
-      "add_time_per_tp" -> executionTimes.appendTimes.avg/(1.0*config.timePoints),
-      "eval_time_per_tp" -> executionTimes.evaluateTimes.avg/(1.0*config.timePoints)
+      "add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints),
+      "eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
     )
 
     def timeOutput(a: Any) = a match {
@@ -96,7 +96,7 @@ object LarsEvaluation {
 
     val runSingleTimepoint = runTimepoint(instance, engine, config) _
 
-    val timings: List[ExecutionTimePerTimePoint] = (0 to config.timePoints) map (runSingleTimepoint) toList
+    val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints-1)) map runSingleTimepoint toList
 
     val appendStats = StatisticResult.fromMillis(timings.map(_.appendTime))
     val evaluateStats = StatisticResult.fromMillis(timings.map(_.evaluateTime))

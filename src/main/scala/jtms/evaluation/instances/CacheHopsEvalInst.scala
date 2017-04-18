@@ -137,7 +137,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
     val n = windowSize
 
-    LarsProgram.from(
+    val rules: Seq[LarsRule] = Seq[LarsRule](
       hit(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and wD(n,cache(I,N)),
       get(I,N) <= item(I) and node(N) and wD(n,req(I,N)) and getFrom(I,N,M),
       fail(I,N) <= item(I) and node(N) and wD(n,req(I,N)) not hit(I,N) not get(I,N),
@@ -150,9 +150,13 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
       itemReach(I,N,M,K) <= needAt(I,N) and wD(n,cache(I,M)) and reach(N,M,K),
       reach(N,M,1) <= conn(N,M),
       reach(N,M,K) <= reach(N,M0,K0) and conn(M0,M) and Neq(N,M) and Incr(K0,K) and length(K0) and length(K)//!
-    )
+    ) ++ (factAtoms() map larsFact)
+
+    LarsProgram(rules)
 
   }
+
+  def larsFact(a: Atom): LarsRule = UserDefinedLarsRule(a,Set(),Set())
 
   var printRulesOnce = false
 
@@ -198,14 +202,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
     /* facts */
 
-    rules = rules ++ (edges map (fact(_)))
-    rules = rules ++ (nodeAtoms map (fact(_)))
-    for (i <- 1 to nrOfItems) {
-      rules = rules :+ fact(item("i"+i))
-    }
-    for (k <- 1 to maxPathLength) {
-      rules = rules :+ fact(length(k))
-    }
+    rules = rules ++ (factAtoms map fact)
 
     //
 
@@ -225,6 +222,13 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
     groundRules
 
   } //end staticRules
+
+  def factAtoms(): Seq[Atom] = {
+    var atoms = Seq[Atom]() ++ edges ++ nodeAtoms
+    (1 to nrOfItems) foreach (i => atoms = atoms :+ item("i"+i))
+    (1 to maxPathLength) foreach (k => atoms = atoms :+ length(k))
+    atoms
+  }
 
   override def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule] = Seq()
 
