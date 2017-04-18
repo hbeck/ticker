@@ -41,7 +41,6 @@ class SimpleParserTest extends FlatSpec {
   }
 
   "The parser" should "recognize simple positive rules with regular atoms" in {
-    println(parser.parseRule("a :- b."))
     assert(parser.parseRule("a :- b.").successful)
   }
 

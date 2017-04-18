@@ -29,7 +29,6 @@ trait ParserTrait extends SimpleLarsParser {
     if(isPath) program = readFile(input)
 
     val parsedProgram: ParseResult[ProgramFactory] = doTheThing(program)
-    println(parsedProgram)
     if(parsedProgram.successful) return Some(parsedProgram.get.program)
     None
   }

@@ -10,7 +10,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
    */
 class SimpleLarsParser extends JavaTokenParsers {
 
-  /* Possibly remove comments from the input beforehand. See utils.Tokenizer for that. */
+  /* Possibly remove comments from the input beforehand. See fromScratch.utils.Tokenizer for that. */
 
   override val skipWhitespace = false
 
@@ -20,10 +20,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def importN: Parser[ImportFactory] = "import"~>space ~ fqdn ~ opt("("~> rep1sep(param,",") ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
     case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,List(),str2)
-    case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => {
-      val parameter = /*params.get._2 + params.get._1._1 + */params.get._1
-      ImportFactory(str1,params.get._1,str2)
-    }
+    case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,params.get._1,str2)
   }
 
   def fqdn: Parser[String] = rep1(str,"."|str) ^^ (str => str.mkString)
@@ -41,7 +38,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def bodyElement: Parser[BodyTrait] = operation | wAtom | head
 
-  def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(upperChar|number,",") <~ ")") ^^ {
+  def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(variable|number,",") <~ ")") ^^ {
     case not ~ _ ~ pred ~ None => AtomFactory(not.getOrElse(false),pred,List())
     case not ~ _ ~ pred ~ params => AtomFactory(not.getOrElse(false), pred, params.get)
   }
@@ -71,14 +68,12 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def optIn: Parser[Option[Any]] = opt(space ~ "in" ~ space)
 
-  //TODO can we abstract this and plug in?
-//  def window: Parser[WindowFactory] = "[" ~> str ~ opt(defaultWindow) <~ "]"
   def window: Parser[WindowFactory] = optSpace ~ "[" ~> anyStr ~ opt(space ~> repsep(param,",")) <~ "]" ^^ {
     case wType ~ None => WindowFactory(wType,List())
     case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
-  def operand: Parser[OperandFactory] = optSpace ~> (upperChar ^^ { o: Char => OperandFactory(o) }
+  def operand: Parser[OperandFactory] = optSpace ~> (variable ^^ { o: String => OperandFactory(o) }
                                                     | number ^^ { o: Double => OperandFactory(o) }) <~ optSpace
 
   def arithmetic: Parser[String] = optSpace ~> ("+"|"-"|"/"|"*") <~ optSpace
@@ -87,7 +82,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def arithOperation: Parser[OperationWrapper] = operand ~ arithmetic ~ operand ^^ {
     case l ~ op ~ r => OperationWrapper(l,Some(op),Some(r))
-  } //| operand ^^ { o => println("none"); OperationWrapper(o, None, None)}
+  }
 
   def leftOperation: Parser[OperationFactory] = (arithOperation | operand ^^ (o => OperationWrapper(o,None,None))) ~ compare ~ operand ^^ {
     case ao ~ op ~ o => OperationFactory(ao,op,o)
@@ -97,21 +92,19 @@ class SimpleLarsParser extends JavaTokenParsers {
     case o ~ op ~ ao => OperationFactory(o,op,ao)
   }
 
-//  def logicOperation: Parser[OperationFactory] = operand ~ compare ~ operand ^^ {
-//    case left ~ func ~ right => OperationFactory(left,func,right)
-//  }
-
-  def operation: Parser[OperationFactory] = rightOperation | leftOperation  //| logicOperation
-
-//  def operator: Parser[String] = arithmetic | compare
+  def operation: Parser[OperationFactory] = rightOperation | leftOperation
 
   def param: Parser[ParamWrapper] = optSpace ~> number ~ opt(space ~> str) ^^ {
     case num ~ str => ParamWrapper(num,str)
   }
 
+  def variable: Parser[String] = upperChar ~ opt(str|number) ^^ {
+    case c ~ None => c.toString
+    case c ~ str => c+""+str.mkString
+  }
+
   def neg: Parser[Boolean] = optSpace ~> "not" <~ space ^^ (_ => true)
 
-//  def number: Parser[Double] = floatingPointNumber ^^ (_.toDouble)
   def number: Parser[Double] = rep1(digit) ~ opt("." ~ rep1(digit)) ^^ {
     case integ ~ None => integ.mkString.toDouble
     case integ ~ dec => (integ.mkString + dec.mkString).toDouble
@@ -127,7 +120,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def anyChar: Parser[Char] = """\S""".r ^^ (_.head)
 
-  def char: Parser[Char] = lowChar | upperChar
+  def char: Parser[Char] = lowChar | upperChar | '_'
 
   def lowChar: Parser[Char] = """[a-z]""".r ^^ (_.head)
 
@@ -135,9 +128,13 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def comment: Parser[Any] = lineComment | blockComment
 
-  def lineComment: Parser[Any] = ("//" | "%") ~ optSpace ~ repsep(str,space) ~ newline
+  def lineComment: Parser[Any] = """((\/\/|%).*?(\n|\r))""".r
 
-  def blockComment: Parser[Any] = ("/*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""") ~ "*/" | "%*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""".r) ~ "*%") ~ rep(newline)
+//  def lineComment: Parser[Any] = ("//" | "%") ~ optSpace ~ repsep(str,space) ~ newline
+
+  def blockComment: Parser[Any] = """(((\/\*)|%\*)(.|\n|\r)*?((\*\/)|\*%))""".r
+
+//  def blockComment: Parser[Any] = ("/*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""") ~ "*/" | "%*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""".r) ~ "*%") ~ rep(newline)
 
   def optSpace: Parser[String] = rep(" ") ^^ (_.toString)
 

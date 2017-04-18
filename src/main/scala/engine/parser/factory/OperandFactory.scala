@@ -12,7 +12,7 @@ case class OperandFactory(operand: Any) {
 
   def create(operand: Any): Argument = operand match {
     case arg: Double => IntValue(arg.##)
-    case arg: Char => Variable(arg.toString)
+    case arg: String => Variable(arg)
     case _ => throw new InvalidSyntaxException("Invalid operand class: "+operand.getClass.toString) //TODO throw exception
   }
 }

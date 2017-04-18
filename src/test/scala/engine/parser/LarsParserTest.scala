@@ -49,7 +49,17 @@ class LarsParserTest extends FlatSpec {
   }
 
   "A program with imports, rules, and comments" should "be accepted and parsed" in {
-    val program: Option[LarsProgram] = LarsParser("/parser-programs/LarsProgram.lars")
-//    assert(program.isDefined)
+    val program: Option[LarsProgram] = LarsParser("/parser-programs/TestProgram1.lars")
+    assert(program.isDefined)
+  }
+
+  "Program jtms.evaluation.instances.CacheHopsEvalInst" should "not fail" in {
+    val program: Option[LarsProgram] = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
+    assert(program.isDefined)
+  }
+
+  "Program jtms.evaluation.instances.MMedia" should "not fail" in {
+    val program: Option[LarsProgram] = LarsParser("/parser-programs/MMedia.lars")
+    assert(program.isDefined)
   }
 }
