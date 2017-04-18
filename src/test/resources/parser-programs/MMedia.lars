@@ -1,0 +1,3 @@
+high at T :- alpha(V) at T in [t 5], 18 <= V.
+mid at T :- alpha(V) at T in [t 5], 12 <= V, V < 18.
+low at T :- alpha(V) at T in [t 5], V < 12.
