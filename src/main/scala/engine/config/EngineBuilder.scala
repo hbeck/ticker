@@ -51,9 +51,9 @@ case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: 
 
 }
 
-case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(JtmsGreedy(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), random)))
 
   def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 

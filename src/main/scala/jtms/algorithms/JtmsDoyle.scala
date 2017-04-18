@@ -3,7 +3,6 @@ package jtms.algorithms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 import jtms._
-import jtms.networks.{OptimizedNetwork, SimpleNetwork}
 
 import scala.util.Random
 
@@ -15,7 +14,7 @@ object JtmsDoyle {
     tmn
   }
 
-  def apply(): JtmsDoyle = JtmsDoyle(TruthMaintenanceNetwork())
+  def apply(): JtmsDoyle = new JtmsDoyle(TruthMaintenanceNetwork())
 
 }
 
@@ -28,7 +27,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
@@ -38,13 +37,13 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
 
   var failed = false
 
-  override def update(atoms: Predef.Set[Atom]): Unit = {
+  override def update(atoms: Set[Atom]): Unit = {
 
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     try {
-      updateDoyle(atoms)
+      updateImplementation(atoms)
 
       checkJtmsSemantics()
       checkSelfSupport()
@@ -57,7 +56,7 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
 
   }
 
-  def updateDoyle(atoms: Predef.Set[Atom]): Unit = {
+  def updateImplementation(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown //Marking the nodes
     atoms foreach findStatus // Evaluating the nodes' justifications
 
@@ -72,15 +71,15 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
   }
 
   def chooseStatus(a: Atom): Unit = {
-    if (jtms.status(a) != unknown)
+    if (network.status(a) != unknown)
       return
 
     if (choice(a)) {
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
-      jtms.unknownCons(a) foreach chooseStatus
+      network.unknownCons(a) foreach chooseStatus
     } else {
       retractionsAffected = retractionsAffected + 1
-      val aff = shuffle(jtms.affected(a) + a) //TODO no test coverage
+      val aff = shuffle(network.affected(a) + a) //TODO no test coverage
       //val aff = affected(a) + a
       aff foreach setUnknown
       aff foreach chooseStatus
@@ -90,9 +89,9 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
   var retractionsAffected = 0
 
   def choice(a: Atom): Boolean = {
-    jtms.justifications(a) find jtms.posValid match {
+    network.justifications(a) find network.posValid match {
       case Some(rule) => {
-        if (jtms.affected(a).isEmpty) setIn(rule)
+        if (network.affected(a).isEmpty) setIn(rule)
         else return false
       }
       case None => setOut(a) //allowing 'unknown' instead of 'out' in spoiler!
@@ -108,17 +107,17 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
    */
   override def findSpoiler(rule: NormalRule): Option[Atom] = {
     if (random.nextDouble() < 0.5) {
-      rule.pos find (jtms.status(_) == out) match {
-        case None => rule.neg find (jtms.status(_) == in) match {
-          case None => rule.pos find (jtms.status(_) == unknown)
+      rule.pos find (network.status(_) == out) match {
+        case None => rule.neg find (network.status(_) == in) match {
+          case None => rule.pos find (network.status(_) == unknown)
           case opt => opt
         }
         case opt => opt
       }
     } else {
-      rule.neg find (jtms.status(_) == in) match {
-        case None => rule.pos find (jtms.status(_) == out) match {
-          case None => rule.pos find (jtms.status(_) == unknown)
+      rule.neg find (network.status(_) == in) match {
+        case None => rule.pos find (network.status(_) == out) match {
+          case None => rule.pos find (network.status(_) == unknown)
           case opt => opt
         }
         case opt => opt
@@ -126,7 +125,7 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
     }
   }
 
-  def sortByForcedOrder(atoms: Predef.Set[Atom]): Seq[Atom] = {
+  def sortByForcedOrder(atoms: Set[Atom]): Seq[Atom] = {
     val atomList = Seq[Atom]() ++ atoms
 
     def sort(a: Atom, b: Atom): Boolean = {
@@ -142,14 +141,14 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
 
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
-    if (jtms.atomsNeedingSupp exists (jtms.supp(_).isEmpty)) {
-      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (jtms.atomsNeedingSupp filter (jtms.supp(_).isEmpty)))
+    if (network.atomsNeedingSupp exists (network.supp(_).isEmpty)) {
+      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (network.atomsNeedingSupp filter (network.supp(_).isEmpty)))
     }
   }
 
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
-    if (jtms.inAtoms exists unfoundedSelfSupport) {
+    if (network.inAtoms exists unfoundedSelfSupport) {
       //throw new RuntimeException("model: "+getModel()+"\nself support exists")
       Console.err.println("model: " + getModel() + "\nself support exists")
       failed = true
@@ -159,13 +158,13 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if ((jtms.inAtoms diff jtms.factAtoms) exists (a => !(jtms.justifications(a) exists jtms.valid))) {
+    if ((network.inAtoms diff network.factAtoms) exists (a => !(network.justifications(a) exists network.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
       Console.err.println("model: " + getModel() + "\ninconsistent state: in-atom has no valid justification")
       failed = true
       invalidateModel()
     }
-    if ((jtms.outAtoms diff jtms.factAtoms) exists (a => (jtms.justifications(a) exists jtms.valid))) {
+    if ((network.outAtoms diff network.factAtoms) exists (a => (network.justifications(a) exists network.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
       Console.err.println("model: " + getModel() + "\ninconsistent state: out-atom has valid justification")
       failed = true
@@ -173,10 +172,10 @@ case class JtmsDoyle(jtms: TruthMaintenanceNetwork, random: Random = new Random(
     }
   }
 
-  def selfSupport(a: Atom): Boolean = jtms.supp(a) contains a
+  def selfSupport(a: Atom): Boolean = network.supp(a) contains a
 
   def unfoundedSelfSupport(a: Atom): Boolean = {
     if (!selfSupport(a)) return false
-    jtms.justifications(a) filter jtms.valid exists (r => !(r.pos contains a))
+    network.justifications(a) filter network.valid exists (r => !(r.pos contains a))
   }
 }

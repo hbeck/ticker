@@ -2,8 +2,8 @@ package jtms.algorithms
 
 import core._
 import core.asp.{NormalProgram, NormalRule}
-import jtms.networks.{IncrementalHashCode, OptimizedNetwork}
-import jtms.{IncrementalUpdateFailureException}
+import jtms.IncrementalUpdateFailureException
+import jtms.networks.{IncrementalHashCode, OptimizedNetworkForLearn}
 
 import scala.collection.immutable.HashSet
 import scala.util.Random
@@ -23,7 +23,7 @@ object JtmsLearn {
   * Refinement of JtmsGreedy that learns to avoid bad choices.
   *
   */
-class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), override val random: Random = new Random()) extends JtmsGreedy(jtms, random) {
+class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), override val random: Random = new Random()) extends JtmsGreedy(network, random) {
 
   shuffle = false
 
@@ -57,12 +57,12 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
   }
   */
 
-  override def updateGreedy(atoms: Set[Atom]) {
+  override def updateImplementation(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
     var firstLoop = true
-    while (jtms.hasUnknown) {
-      jtms.unknownAtoms foreach findStatus
+    while (network.hasUnknown) {
+      network.unknownAtoms foreach findStatus
       selectNextAtom()
       selectedAtom match {
         case Some(atom) => {
@@ -70,7 +70,7 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
           saveState()
         }
         case None => {
-          if (jtms.hasUnknown) {
+          if (network.hasUnknown) {
             if (firstLoop) {
               super.invalidateModel()
             } else {
@@ -308,7 +308,7 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
     val newRule = super.register(rule)
     if (!newRule) {
       return false
-    } else if (jtms.dataIndependentRule(rule)) {
+    } else if (network.dataIndependentRule(rule)) {
       tabu.add(rule)
     }
     true
@@ -318,7 +318,7 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
     val ruleExisted = super.unregister(rule)
     if (!ruleExisted) {
       return false
-    } else if (jtms.dataIndependentRule(rule)) {
+    } else if (network.dataIndependentRule(rule)) {
       tabu.remove(rule)
     }
     true
@@ -342,23 +342,24 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
     //    val filteredStatus = status filterKeys currentStateAtoms.contains
     //    val collectedSupp = supp collect { case (atom,set) if isStateAtom(atom) => (atom,set filter (!extensional(_))) }
     //    val collectedSupp = supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom, set diff extensionalAtoms) }
-    val collectedSupp = jtms.__suppHash filterKeys currentStateAtoms.contains
+
+    val collectedSupp = network.__suppHash filterKeys currentStateAtoms.contains
 
     //     val recomputedSupp =  supp filterKeys currentStateAtoms.contains collect { case (atom, set) => (atom,IncrementalHashCode.hash(set diff extensionalAtoms)) }
 
-    Some(PartialState(collectedSupp, jtms.__stateHash))
+    Some(PartialState(collectedSupp, network.__stateHash))
   }
 
-  def stateAtoms = (jtms.inAtoms union jtms.outAtoms) diff jtms.signals
+  def stateAtoms = (network.inAtoms union network.outAtoms) diff network.signals
 
   def stateSnapshotNew(): Option[PartialState] = {
     val currentStateAtoms = stateAtomsNew
-    val collectedSupp = jtms.__suppHash filterKeys currentStateAtoms.contains
+    val collectedSupp = network.__suppHash filterKeys currentStateAtoms.contains
     //Some(PartialState(collectedSupp, __lightweightStateHash))
-    Some(PartialState(collectedSupp, jtms.__stateHash))
+    Some(PartialState(collectedSupp, network.__stateHash))
   }
 
-  def stateAtomsNew = jtms.__choiceAtoms diff jtms.unknownAtoms
+  def stateAtomsNew = network.__choiceAtoms diff network.unknownAtoms
 
   //skip signals! - for asp they are irrelevant, for tms they change based on time - no stable basis
   //def isStateAtom(a: Atom): Boolean = (status(a) == in || status(a) == out) && !isSignal(a)
@@ -411,7 +412,7 @@ class JtmsLearn(override val jtms: OptimizedNetwork = new OptimizedNetwork(), ov
 
     state = stateSnapshot()
 
-    val atomSet = (jtms.unknownAtoms diff jtms.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
     val atoms = if (shuffle && atomSet.size > 1)
       (random.shuffle(atomSet.toSeq))
     else

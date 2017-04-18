@@ -6,7 +6,7 @@ import core.asp._
 import core.grounding.{Grounding, LarsGrounding}
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.evaluation.Util._
-import jtms.networks.OptimizedNetwork
+import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 import org.scalatest.FunSuite
 import runner.Load
 import runner.Load._
@@ -1493,7 +1493,7 @@ class GrounderTests extends FunSuite {
 
             val tms = tmsName match {
               case "greedy" => new JtmsGreedy(new OptimizedNetwork())
-              case "learn" => new JtmsLearn(new OptimizedNetwork())
+              case "learn" => new JtmsLearn(new OptimizedNetworkForLearn())
             }
 
             println(f"\n${tmsName}#${iteration}, windowSize: ${windowSize}, insertProbability: ${insertProbability}")

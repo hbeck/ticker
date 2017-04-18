@@ -9,6 +9,8 @@ import scala.sys.process._
 object ClingoWrapper {
 
 
+  // TODO: describe how clingo is called
+
   def parseVersion(versionString: String) = {
     val regex = """^clingo version (\d\.\d\.\d)""".r("version")
 

@@ -30,6 +30,7 @@ sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
     sb.append(".")
     sb.toString
   }
+
 }
 
 trait AspFact[TAtom <: Atom] extends AspRule[TAtom] with Fact[TAtom, TAtom]
@@ -91,7 +92,7 @@ case class UserDefinedAspFact[TAtom <: Atom](head: TAtom) extends AspFact[TAtom]
     UserDefinedAspFact(h)
   }
 
-  override def toString = {
-    head.toString
-  }
+//  override def toString = {
+//    head.toString
+//  }
 }

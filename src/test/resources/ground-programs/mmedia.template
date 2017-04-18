@@ -1,0 +1,17 @@
+high_at(T) :- alpha_at(V,T), leq(18,V).
+mid_at(T) :- alpha_at(V,T), leq(12,V), lt(V,18).
+low_at(T) :- alpha_at(V,T), lt(V,12).
+lfu :- high_at(N), not spoil_high.
+spoil_high :- mid_at(N-1).
+spoil_high :- low_at(N-1).
+lru :- mid_at(N), not spoil_mid.
+spoil_mid :- high_at(N-1).
+spoil_mid :- low_at(N-1).
+fifo :- low_at(N), not spoil_low, wrtm.
+spoil_low :- high_at(N-1).
+spoil_low :- mid_at(N-1).
+wrmt :- rtm_at(T).
+done :- lfu.
+done :- lru.
+done :- fifo.
+random :- not done.

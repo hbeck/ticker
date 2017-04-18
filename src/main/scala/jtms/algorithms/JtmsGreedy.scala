@@ -10,16 +10,20 @@ import scala.util.Random
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val net = new JtmsGreedy(new OptimizedNetwork()) //TODO hb: why don't we use "TruthMaintenanceNetwork()" here (as below)?
+    val net = new JtmsGreedy(new OptimizedNetwork())
     P.rules foreach net.add
     net
   }
 
-  def apply(): JtmsGreedy = JtmsGreedy(TruthMaintenanceNetwork())
+  def apply(): JtmsGreedy = new JtmsGreedy(TruthMaintenanceNetwork())
 
 }
 
-case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(jtms, random) {
+class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
+
+  var prevModel = network.inAtoms
+
+  //
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency
@@ -31,11 +35,13 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
 
   override def update(atoms: Set[Atom]) {
 
+    prevModel = network.inAtoms
+
     if (recordChoiceSeq) choiceSeq = Seq[Atom]()
     if (recordStatusSeq) statusSeq = Seq[(Atom, Status, String)]()
 
     try {
-      updateGreedy(atoms)
+      updateImplementation(atoms)
 
       checkJtmsSemantics()
       checkSelfSupport()
@@ -51,11 +57,11 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
 
   }
 
-  def updateGreedy(atoms: Set[Atom]) {
+  def updateImplementation(atoms: Set[Atom]) {
     atoms foreach setUnknown
     var lastAtom: Option[Atom] = None
-    while (jtms.hasUnknown) {
-      jtms.unknownAtoms foreach findStatus
+    while (network.hasUnknown) {
+      network.unknownAtoms foreach findStatus
       val atom = getOptUnknownOtherThan(lastAtom) //ensure that the same atom is not tried consecutively
       if (atom.isDefined) {
         chooseStatusGreedy(atom.get)
@@ -65,9 +71,17 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
   }
 
   def getOptUnknownOtherThan(avoid: Option[Atom]): Option[Atom] = {
+
+    if (!prevModel.isEmpty) {
+      val a = prevModel.head
+      prevModel = prevModel.tail
+      return Some(a)
+    }
+
     //TODO improve
 
-    val atomSet = (jtms.unknownAtoms diff jtms.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    //val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atomSet = network.unknownAtoms filter (!_.isInstanceOf[PinnedAtom])
 
     if (atomSet.isEmpty) return None
     if (atomSet.size == 1) return Some(atomSet.head)
@@ -111,23 +125,23 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
 
   def chooseStatusGreedy(a: Atom): Unit = {
 
-    if (jtms.status(a) != unknown)
+    if (network.status(a) != unknown)
 
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
 
-    jtms.justifications(a) find jtms.posValid match {
+    network.justifications(a) find network.posValid match {
       case Some(rule) => chooseIn(rule)
       case None => chooseOut(a)
     }
 
-    jtms.unknownCons(a) foreach findStatus
+    network.unknownCons(a) foreach findStatus
   }
 
   def chooseIn(rulePosValid: NormalRule): Unit = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (rulePosValid.head, in, "choose")
     setIn(rulePosValid)
     rulePosValid.neg foreach { a =>
-      jtms.status(a) match {
+      network.status(a) match {
         case `unknown` => chooseOut(a) //fix status of ancestors
         case `in` => throw new IncrementalUpdateFailureException() //odd loop (within rule) detection
         case `out` => //nothing to be done
@@ -146,9 +160,9 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
 
     //status(a) = out
     //status = status.updated(atom,out)
-    jtms.updateStatus(atom, out)
+    network.updateStatus(atom, out)
 
-    val maybeAtoms: Set[Option[Atom]] = jtms.openJustifications(atom) map { r => (r.pos find (jtms.status(_) == unknown)) }
+    val maybeAtoms: Set[Option[Atom]] = network.openJustifications(atom) map { r => (r.pos find (network.status(_) == unknown)) }
     val unknownPosAtoms = (maybeAtoms filter (_.isDefined)) map (_.get)
     unknownPosAtoms foreach chooseOut //fix status of ancestors
     //note that only positive body atoms are used to create a spoilers, since a rule with an empty body
@@ -162,33 +176,33 @@ case class JtmsGreedy(jtms: TruthMaintenanceNetwork, random: Random = new Random
 
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
-    if (jtms.atomsNeedingSupp exists (jtms.supp(_).isEmpty)) {
-      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (jtms.atomsNeedingSupp filter (jtms.supp(_).isEmpty)))
+    if (network.atomsNeedingSupp exists (network.supp(_).isEmpty)) {
+      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (network.atomsNeedingSupp filter (network.supp(_).isEmpty)))
     }
   }
 
   def checkSelfSupport(): Unit = {
     if (!doSelfSupportCheck) return
-    if (jtms.inAtoms exists unfoundedSelfSupport) {
+    if (network.inAtoms exists unfoundedSelfSupport) {
       throw new RuntimeException("model: " + getModel() + "\nself support exists")
     }
   }
 
   def checkConsistency(): Unit = {
     if (!doConsistencyCheck) return
-    if ((jtms.inAtoms diff jtms.factAtoms) exists (a => !(jtms.justifications(a) exists jtms.valid))) {
+    if ((network.inAtoms diff network.factAtoms) exists (a => !(network.justifications(a) exists network.valid))) {
       throw new RuntimeException("model: " + getModel() + "\ninconsistent state: in-atom has no valid justification")
     }
-    if ((jtms.outAtoms diff jtms.factAtoms) exists (a => (jtms.justifications(a) exists jtms.valid))) {
+    if ((network.outAtoms diff network.factAtoms) exists (a => (network.justifications(a) exists network.valid))) {
       throw new RuntimeException("model: " + getModel() + "\ninconsistent state: out-atom has valid justification")
     }
   }
 
-  def selfSupport(a: Atom): Boolean = jtms.supp(a) contains a
+  def selfSupport(a: Atom): Boolean = network.supp(a) contains a
 
   def unfoundedSelfSupport(a: Atom): Boolean = {
     if (!selfSupport(a)) return false
-    jtms.justifications(a) filter jtms.valid exists (r => !(r.pos contains a))
+    network.justifications(a) filter network.valid exists (r => !(r.pos contains a))
   }
 
 }

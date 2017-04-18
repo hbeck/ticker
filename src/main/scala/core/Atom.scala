@@ -311,7 +311,7 @@ object Atom {
     case _ => None
   }
 
-  def apply(caption: String): Atom = PredicateAtom(Predicate(caption))
+  def apply(caption:String):Atom = PredicateAtom(Predicate(caption))
 
   def apply(predicate: Predicate) = PredicateAtom(predicate)
 
@@ -486,6 +486,12 @@ case class LeqLt(x: Argument, y: Argument, z: Argument) extends TernaryNumericRe
   override val predicate: Predicate = Predicate("leqlt")
   override def groundingHolds(): Boolean = int(x) <= int(y) && int(y) < int(z)
   override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLt(nx,ny,nz)
+}
+
+case class Incr(x: Argument, y: Argument) extends BinaryNumericRelationAtom(x, y) {
+  override val predicate: Predicate = Predicate("incr")
+  override def groundingHolds(): Boolean = int(x) + 1 == int(y)
+  override def newInstance(nx: Argument, ny: Argument) = Incr(nx,ny)
 }
 
 

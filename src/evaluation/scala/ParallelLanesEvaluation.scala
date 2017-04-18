@@ -1,8 +1,5 @@
-import core.Atom
-import core.lars._
-import engine.StreamEntry
-import evaluation._
-import evaluation.reachBlocked.ParallelLanes
+
+//import evaluation.reachBlocked.ParallelLanes
 
 /**
   * Created by FM on 06.08.16.
@@ -10,6 +7,10 @@ import evaluation.reachBlocked.ParallelLanes
 object ParallelLanesEvaluation {
 
   def main(args: Array[String]): Unit = {
+
+    /*
+
+    TODO does not compile
 
     val dump = DumpData("Configuration", "node x lanes")
     val dumpToCsv = dump.printResults("output.csv") _
@@ -78,7 +79,8 @@ object ParallelLanesEvaluation {
     }
 
     evaluator.streamAsFastAsPossible(1, 2)(inputs)
-  }
 
+      */
+  }
 
 }

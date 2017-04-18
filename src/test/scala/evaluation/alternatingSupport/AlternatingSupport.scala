@@ -24,7 +24,7 @@ class AlternatingSupport extends FlatSpec with AlternatingSupportSpec with TimeT
 
   "Two streaming elements and the normal TMS-Evaluation" should "lead to an expensive update" in {
     val jtms = new OptimizedNetwork()
-    val updateAlgo = JtmsGreedy(jtms, new Random(1))
+    val updateAlgo = new JtmsGreedy(jtms, new Random(1))
     val engine = TmsEvaluationEngine(transformedProgram, LazyRemovePolicy(updateAlgo, 9))
 
     engine.append(t1)(b)

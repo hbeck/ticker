@@ -2,14 +2,13 @@ package jtms
 
 import core.Atom
 import core.asp._
-import jtms.algorithms.JtmsGreedy
-import jtms.networks.SimpleNetwork
+import jtms.algorithms.JtmsDoyleHeuristics
 
 /**
   * Created by FM on 13.10.16.
   */
 object JtmsUpdateAlgorithm {
-  def apply() = JtmsGreedy(TruthMaintenanceNetwork())
+  def apply() = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
 }
 
 
