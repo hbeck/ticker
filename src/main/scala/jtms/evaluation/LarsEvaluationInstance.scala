@@ -11,7 +11,7 @@ import scala.util.Random
   */
 trait LarsEvaluationInstance {
   val timePoints: Int
-  val program: LarsProgram
+  def larsProgram(windowSize: Int): LarsProgram
   def verifyModel(model: Option[Model], t: Int)
   def generateSignalsToAddAt(t: Int): Seq[Atom]
   def random: Random

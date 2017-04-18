@@ -19,9 +19,9 @@ case class Config(var args: Map[String,String]) {
   val runs = Integer.parseInt(args(RUNS))
   val modelRatio:Boolean = (args(MODEL_RATIO) == "true")
   val timePoints = Integer.parseInt(args(TIMEPOINTS))
-  val windowSize = Integer.parseInt(args(WINDOW_SIZE))
+  val inputWindowSize = Integer.parseInt(args(WINDOW_SIZE))
   val nrOfItems = Integer.parseInt(args(ITEMS))
-  val withDebug = (args(DEBUG_MSG) == "true")
+  val withDebug = (args(WITH_DEBUG) == "true")
   val withHeader = (args(HEADER) == "true")
   val implementation = args(IMPL)
   val verifyModel = (args(VERIFY_MODEL) == "true")
@@ -31,14 +31,14 @@ case class Config(var args: Map[String,String]) {
     args(INSTANCE_NAME) match {
       case CACHE_HOPS1 => {
         val printRules: Boolean = (args(PRINT_RULES) == "true")
-        CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random)
+        CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random) //window size is fixed to 10 (for verification)
       }
       case CACHE_HOPS2 => {
         val printRules: Boolean = (args(PRINT_RULES) == "true")
-        CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random)
+        CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random) //window size is fixed to 15 (for verification)
       }
-      case MMEDIA_DET => MMediaDeterministicEvalInst(windowSize, timePoints, random)
-      case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+      case MMEDIA_DET => MMediaDeterministicEvalInst(inputWindowSize, timePoints, random)
+      case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(inputWindowSize, timePoints, random)
       case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
   }
@@ -53,7 +53,7 @@ case class Config(var args: Map[String,String]) {
       case _ => throw new RuntimeException("unknown tms impl: "+args(IMPL))
     }
 
-    if ((tms.isInstanceOf[JtmsDoyle]) && args(SEMANTICS_CHECKS) == "true") {
+    if (tms.isInstanceOf[JtmsDoyle] && (args(SEMANTICS_CHECKS) == "true")) {
       tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
       tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
       tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
@@ -83,7 +83,7 @@ object Config {
   val GREEDY = "Greedy"
   val LEARN = "Learn"
   val CLINGO_PUSH = "ClingoPush"
-  val CLINGO_PULL = "ClingoPush"
+  val CLINGO_PULL = "ClingoPull"
 
   val INSTANCE_NAME = "inst"
   val IMPL = "impl"
@@ -99,7 +99,7 @@ object Config {
   val VERIFY_MODEL = "verify"
   //
   val HEADER = "header"
-  val DEBUG_MSG = "debugMsg"
+  val WITH_DEBUG = "withDebug"
   val PRINT_RULES = "printRules"
 
   def buildArgMap(args: Array[String]): Map[String,String] = {
@@ -145,7 +145,7 @@ object Config {
     defaultArg(VERIFY_MODEL, "true")
     //
     defaultArg(HEADER, "true")
-    defaultArg(DEBUG_MSG, "true")
+    defaultArg(WITH_DEBUG, "false")
 
     argMap
   }

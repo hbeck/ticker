@@ -6,6 +6,7 @@ import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
 import engine.config.{BuildEngine, StartableEngineConfiguration}
 import engine.{EvaluationEngine, Result}
 import evaluation._
+import jtms.JtmsUpdateAlgorithm
 
 import scala.concurrent.duration.Duration
 
@@ -71,19 +72,21 @@ object LarsEvaluation {
     runIndexes.map(evaluateRun(_,config)).toList.drop(config.preRuns)
   }
 
+  var tms: JtmsUpdateAlgorithm = null //debugging
+
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
 
     if (config.withDebug) { print(" " + iterationNr) }
 
     val instance = config.makeInstance(iterationNr)
-    val builder = BuildEngine.withProgram(instance.program)
+    val builder = BuildEngine.withProgram(instance.larsProgram(instance.windowSize))
     var engine: EvaluationEngine = null
 
     val initializationTime = stopTime {
       val startableEngine: StartableEngineConfiguration = config.implementation match {
         case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
         case Config.DOYLE_HEURISTICS => {
-          val tms = config.makeTms(instance)
+          tms = config.makeTms(instance)
           builder.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
         }
       }
@@ -91,7 +94,7 @@ object LarsEvaluation {
       engine = startableEngine.start()
     }
 
-    val runSingleTimepoint = runTimepoint(instance, engine, config.verifyModel) _
+    val runSingleTimepoint = runTimepoint(instance, engine, config) _
 
     val timings: List[ExecutionTimePerTimePoint] = (0 to config.timePoints) map (runSingleTimepoint) toList
 
@@ -102,7 +105,7 @@ object LarsEvaluation {
   }
 
 
-  def runTimepoint(instance: LarsEvaluationInstance, engine: EvaluationEngine, verifyModel: Boolean)(t: Int): ExecutionTimePerTimePoint = {
+  def runTimepoint(instance: LarsEvaluationInstance, engine: EvaluationEngine, config: Config)(t: Int): ExecutionTimePerTimePoint = {
 
     val signals = instance.generateSignalsToAddAt(t)
     val time = TimePoint(t)
@@ -117,7 +120,7 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (verifyModel) {
+    if (config.verifyModel) {
       instance.verifyModel(result.get, t)
     }
 

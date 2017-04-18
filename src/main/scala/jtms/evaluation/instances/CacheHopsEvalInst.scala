@@ -118,9 +118,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
    w_error(N,M) :- error(N,M,T)
    */
 
-  val program = larsProgram(40)
-
-  def larsProgram(windowSize: Int): LarsProgram = {
+  override def larsProgram(windowSize: Int): LarsProgram = {
 
     val I:Variable = StringVariable("I")
     val N:Variable = StringVariable("N")

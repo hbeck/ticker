@@ -106,9 +106,7 @@ random :- not done.
     rules
   }
 
-  val program = larsProgram(30)
-
-  def larsProgram(windowSize: Int): LarsProgram = {
+  override def larsProgram(windowSize: Int): LarsProgram = {
 
     val T:Variable = StringVariable("T")
     val V:Variable = StringVariable("V")
