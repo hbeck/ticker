@@ -31,6 +31,7 @@ object LarsEvaluation {
     val executionTimes = BatchExecution(run(config))
 
     val outputValues = Seq(
+      "impl" -> config.implementation,
       "instance" -> config.instanceName,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
@@ -120,8 +121,8 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (config.withDebug && t==27) {
-      println(f"\n rules at t=$t")
+    if (config.withDebug && t==config.printRulesAt) {
+      println(f"\ntms rules at t=$t")
       tms.rules foreach println
       println()
     }

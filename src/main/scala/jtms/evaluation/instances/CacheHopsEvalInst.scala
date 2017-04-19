@@ -270,18 +270,18 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
         (1,8),(8,4),(1,6)) map { case (x,y) => edge(x,y) }
   }
 
-  val i1 = StringValue("i1")
+  val i = StringValue("i1")
 
   override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     t % 30 match {
-      case 0 => Seq(req(i1,1),cache(i1,4))
-      case 2 => Seq(cache(i1,7))
+      case 0 => Seq(req(i,1),cache(i,4))
+      case 2 => Seq(cache(i,7))
       case 4 => Seq(error(8,4))
-      case 6 => Seq(cache(i1,1))
-      case 8 => Seq(req(i1,1))
-      case 10 => Seq(cache(i1,7))
-      case 16 => Seq(cache(i1,7))
-      case 20 => Seq(req(i1,1))
+      case 6 => Seq(cache(i,1))
+      case 8 => Seq(req(i,1))
+      case 10 => Seq(cache(i,7))
+      case 16 => Seq(cache(i,7))
+      case 20 => Seq(req(i,1))
       case _ => Seq()
     }
   }
@@ -298,53 +298,59 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
     def hasNot(atom: Atom) = notContains(model,t,atom)
     def hasSomeOf(ats: Atom*) = containsSomeOf(model,t,ats.toSeq)
 
+    val ensureModelMaintenance = false
+
     val q = t % 30
     if (q >= 0 && q < 2) {
-      has(getFrom(i1,1,4))
-      has(get(i1,1))
-      has(itemReach(i1,1,4,2))
-      has(itemReach(i1,1,4,3))
-      has(minReach(i1,1,4))
+      has(getFrom(i,1,4))
+      has(get(i,1))
+      has(itemReach(i,1,4,2))
+      has(itemReach(i,1,4,3))
+      has(minReach(i,1,4))
     } else if (q >= 2 && q < 4) {
       //from before:
-      has(getFrom(i1,1,4)) //keep
-      has(get(i1,1))
-      has(itemReach(i1,1,4,2))
-      has(itemReach(i1,1,4,3))
-      has(minReach(i1,1,4))
+      if (ensureModelMaintenance) {
+        has(getFrom(i,1,4)) //keep
+      } else {
+        hasSomeOf(getFrom(i,1,4),getFrom(i,1,7))
+      }
+      has(get(i,1))
+      has(itemReach(i,1,4,2))
+      has(itemReach(i,1,4,3))
+      has(minReach(i,1,4))
       //new:
-      has(itemReach(i1,1,7,2))
-      has(itemReach(i1,1,7,5))
-      has(itemReach(i1,1,7,6))
-      has(minReach(i1,1,7))
+      has(itemReach(i,1,7,2))
+      has(itemReach(i,1,7,5))
+      has(itemReach(i,1,7,6))
+      has(minReach(i,1,7))
     } else if (q >= 4 && q < 6) {
-      has(getFrom(i1,1,7)) //switch
+      has(getFrom(i,1,7)) //switch
     } else if (q >= 6 && q < 8) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(getFrom(i1,1,7))
-      has(hit(i1,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(getFrom(i,1,7))
+      has(hit(i,1))
     } else if (q >= 8 && q < 10) {
-      has(hit(i1,1))
+      has(hit(i,1))
     } else if (q >= 10 && q <= 16) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(getFrom(i1,1,7))
-      has(hit(i1,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(getFrom(i,1,7))
+      has(hit(i,1))
     } else if (q >= 17 && q <= 18) {
-      has(getFrom(i1,1,7))
+      has(getFrom(i,1,7))
     } else if (q == 19) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(getFrom(i1,1,7))
-      hasNot(hit(i1,1))
-      hasNot(get(i1,1))
-      hasNot(fail(i1,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(getFrom(i,1,7))
+      hasNot(hit(i,1))
+      hasNot(get(i,1))
+      hasNot(fail(i,1))
     } else if (q >= 20 && q <= 26) {
-      has(getFrom(i1,1,7))
+      has(getFrom(i,1,7))
     } else {
-      hasNot(getFrom(i1,1,4))
-      hasNot(getFrom(i1,1,7))
-      hasNot(hit(i1,1))
-      hasNot(get(i1,1))
-      has(fail(i1,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(getFrom(i,1,7))
+      hasNot(hit(i,1))
+      hasNot(get(i,1))
+      has(fail(i,1))
     }
   }
 }
@@ -371,24 +377,24 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     pairs map { case (x,y) => edge(x,y) }
   }
 
-  val i1 = StringValue("i1")
+  val i = StringValue("i1")
 
   override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     t % 40 match {
-      case 0 => Seq(cache(i1,16),req(i1,1))
-      case 2 => Seq(cache(i1,9))
-      case 4 => Seq(req(i1,2))
-      case 6 => Seq(req(i1,10))
-      case 8 => Seq(cache(i1,4))
-      case 10 => Seq(req(i1,1),req(i1,7))
-      case 12 => Seq(cache(i1,9),cache(i1,1))
+      case 0 => Seq(cache(i,16),req(i,1))
+      case 2 => Seq(cache(i,9))
+      case 4 => Seq(req(i,2))
+      case 6 => Seq(req(i,10))
+      case 8 => Seq(cache(i,4))
+      case 10 => Seq(req(i,1),req(i,7))
+      case 12 => Seq(cache(i,9),cache(i,1))
       case 14 => Seq(error(8,9))
       //nothing at 16; where cache(i1,16,1) expires
       case 18 => {
-        Seq(req(i1, 2), cache(i1, 1), cache(i1, 9))
+        Seq(req(i, 2), cache(i, 1), cache(i, 9))
       }
-      case 20 => Seq(req(i1,10))
-      case 22 => Seq(req(i1,1),req(i1,7))
+      case 20 => Seq(req(i,10))
+      case 22 => Seq(req(i,1),req(i,7))
       case 32 => Seq(error(16,1))
       case _=> Seq()
     }
@@ -407,125 +413,132 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     def hasSomeOf(ats: Atom*) = containsSomeOf(model,t,ats.toSeq)
 
     val ensureModelMaintenance = false
+    var getFrom_i1_10_ChoiceAtStep16: Atom = null
 
     val q = t % 40
     if (q >= 0 && q < 2) {
-      has(getFrom(i1,1,16))
+      has(getFrom(i,1,16))
     } else if (q >= 2 && q < 4) {
-      has(getFrom(i1,1,9))
+      has(getFrom(i,1,9))
     } else if (q >= 4 && q < 6) {
-      has(getFrom(i1,1,9))
-      has(getFrom(i1,2,9))
+      has(getFrom(i,1,9))
+      has(getFrom(i,2,9))
     } else if (q >= 6 && q < 8) {
-      has(getFrom(i1,1,9))
-      has(getFrom(i1,2,9))
-      has(getFrom(i1,10,16))
+      has(getFrom(i,1,9))
+      has(getFrom(i,2,9))
+      has(getFrom(i,10,16))
     } else if (q >= 8 && q < 10) {
-      has(getFrom(i1,1,4))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,10,16))
+      has(getFrom(i,1,4))
+      has(getFrom(i,2,4))
+      has(getFrom(i,10,16))
     } else if (q >= 10 && q < 12) {
-      has(getFrom(i1,1,4))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,7,9))
-      has(getFrom(i1,10,16))
+      has(getFrom(i,1,4))
+      has(getFrom(i,2,4))
+      has(getFrom(i,7,9))
+      has(getFrom(i,10,16))
     } else if (q >= 12 && q < 14) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,10,16))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,2,4))
+      has(getFrom(i,10,16))
       if (ensureModelMaintenance) {
-        has(getFrom(i1,7,9))
+        has(getFrom(i,7,9))
       } else {
-        hasSomeOf(getFrom(i1,7,9),getFrom(i1,7,1))
+        hasSomeOf(getFrom(i,7,9),getFrom(i,7,1))
       }
     } else if (q >= 14 && q < 16) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,7,1))
-      has(getFrom(i1,10,16))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,2,4))
+      has(getFrom(i,7,1))
+      has(getFrom(i,10,16))
     } else if (q >= 16 && q < 18) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,7,1))
-      has(getFrom(i1,10,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,2,4))
+      has(getFrom(i,7,1))
+      hasSomeOf(getFrom(i,10,1),getFrom(i,10,9))
+      if (model.contains(getFrom(i,10,1))) {
+        getFrom_i1_10_ChoiceAtStep16 = getFrom(i,10,1)
+      } else if (model.contains(getFrom(i,10,9))) {
+        getFrom_i1_10_ChoiceAtStep16 = getFrom(i,10,9)
+      }
     } else if (q >= 18 && q < 24) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,4))
-      has(getFrom(i1,7,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,2,4))
+      has(getFrom(i,7,1))
       if (ensureModelMaintenance) {
-        has(getFrom(i1,10,1))
+        has(getFrom_i1_10_ChoiceAtStep16)
       } else {
-        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i,10,1),getFrom(i,10,9))
       }
     } else if (q >= 24 && q < 30) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,1))
-      has(getFrom(i1,7,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,2,1))
+      has(getFrom(i,7,1))
       if (ensureModelMaintenance) {
-        has(getFrom(i1,10,1))
+        has(getFrom_i1_10_ChoiceAtStep16)
       } else {
-        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i,10,1),getFrom(i,10,9))
       }
     } else if (q >= 30 && q < 32) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
       if (ensureModelMaintenance) {
-        has(getFrom(i1,2,1))
-        has(getFrom(i1,7,1))
-        has(getFrom(i1,10,1))
+        has(getFrom(i,2,1))
+        has(getFrom(i,7,1))
+        has(getFrom_i1_10_ChoiceAtStep16)
       } else {
-        hasSomeOf(getFrom(i1,2,1),getFrom(i1,2,9))
-        hasSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
-        hasSomeOf(getFrom(i1,10,1),getFrom(i1,10,9))
+        hasSomeOf(getFrom(i,2,1),getFrom(i,2,9))
+        hasSomeOf(getFrom(i,7,1),getFrom(i,7,9))
+        hasSomeOf(getFrom(i,10,1),getFrom(i,10,9))
       }
     } else if (q >= 32 && q < 34) {
-      hasNot(getFrom(i1,1,4))
-      hasNot(needAt(i1,1))
-      has(hit(i1,1))
-      has(getFrom(i1,2,1))
-      has(getFrom(i1,10,9))
+      hasNot(getFrom(i,1,4))
+      hasNot(needAt(i,1))
+      has(hit(i,1))
+      has(getFrom(i,10,9))
       if (ensureModelMaintenance) {
-        has(getFrom(i1,7,1))
+        has(getFrom(i,2,1))
+        has(getFrom(i,7,1))
       } else {
-        hasSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
+        hasSomeOf(getFrom(i,2,1),getFrom(i,2,9))
+        hasSomeOf(getFrom(i,7,1),getFrom(i,7,9))
       }
     } else if (q >= 34 && q < 36) {
-      has(fail(i1,1))
-      hasNot(hit(i1,2))
-      hasNot(fail(i1,2))
-      has(fail(i1,7))
-      has(fail(i1,10))
+      has(fail(i,1))
+      hasNot(hit(i,2))
+      hasNot(fail(i,2))
+      has(fail(i,7))
+      has(fail(i,10))
     } else if (q >= 36 && q < 38) {
-      has(fail(i1,1))
-      hasNot(hit(i1,2))
-      hasNot(fail(i1,2))
-      has(fail(i1,7))
-      hasNot(hit(i1,10))
-      hasNot(fail(i1,10))
+      has(fail(i,1))
+      hasNot(hit(i,2))
+      hasNot(fail(i,2))
+      has(fail(i,7))
+      hasNot(hit(i,10))
+      hasNot(fail(i,10))
     } else if (q >= 38 && q < 40) {
-      hasNot(hit(i1,1))
-      hasNot(get(i1,1))
-      hasNot(fail(i1,1))
-      hasNot(hit(i1,2))
-      hasNot(get(i1,2))
-      hasNot(fail(i1,2))
-      hasNot(hit(i1,7))
-      hasNot(get(i1,7))
-      hasNot(fail(i1,7))
-      hasNot(hit(i1,10))
-      hasNot(get(i1,10))
-      hasNot(fail(i1,10))
+      hasNot(hit(i,1))
+      hasNot(get(i,1))
+      hasNot(fail(i,1))
+      hasNot(hit(i,2))
+      hasNot(get(i,2))
+      hasNot(fail(i,2))
+      hasNot(hit(i,7))
+      hasNot(get(i,7))
+      hasNot(fail(i,7))
+      hasNot(hit(i,10))
+      hasNot(get(i,10))
+      hasNot(fail(i,10))
     }
   }
 }

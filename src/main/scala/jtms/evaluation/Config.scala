@@ -25,6 +25,7 @@ case class Config(var args: Map[String,String]) {
   val withHeader = (args(HEADER) == "true")
   val implementation = args(IMPL)
   val verifyModel = (args(VERIFY_MODEL) == "true")
+  val printRulesAt = Integer.parseInt(args(PRINT_RULES_AT))
 
   def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
     val random = new Random(iterationNr)
@@ -101,6 +102,7 @@ object Config {
   val HEADER = "header"
   val WITH_DEBUG = "withDebug"
   val PRINT_RULES = "printRules"
+  val PRINT_RULES_AT = "printRulesAt"
 
   def buildArgMap(args: Array[String]): Map[String,String] = {
 
@@ -141,6 +143,7 @@ object Config {
     defaultArg(ITEMS,"1")
     //
     defaultArg(PRINT_RULES, "false")
+    defaultArg(PRINT_RULES_AT, "-1")
     defaultArg(SEMANTICS_CHECKS, "false")
     defaultArg(VERIFY_MODEL, "true")
     //
