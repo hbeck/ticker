@@ -25,11 +25,11 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   def maxPathLength: Int = nodes.size //at most number of nodes
 
   val _node = Predicate("node")
-  val _sat = Predicate("sat")
+  //val _sat = Predicate("sat")
   val _hit = Predicate("hit")
   val _get = Predicate("get")
   val _fail = Predicate("fail")
-  val _unsat = Predicate("unsat")
+  //val _unsat = Predicate("unsat")
   val _item = Predicate("item")
   val _getFrom = Predicate("getFrom")
   val _n_getFrom = Predicate("n_getFrom")
@@ -54,16 +54,16 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   def iVal(i: Int) = IntValue(i)
 
   def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
-  def sat(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
-  def sat(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
-  def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
-  def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
-  def get(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
-  def get(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
-  def fail(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
-  def fail(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
-  def unsat(arg1: Argument, arg2: Argument) = AtomWithArguments(_unsat,Seq(arg1,arg2))
-  def unsat(arg1: Argument, arg2: Int) = AtomWithArguments(_unsat,Seq(arg1,iVal(arg2)))
+  //def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
+  //def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
+  def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_hit,Seq(arg1,arg2))
+  def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_hit,Seq(arg1,iVal(arg2)))
+  def get(arg1: Argument, arg2: Argument) = AtomWithArguments(_get,Seq(arg1,arg2))
+  def get(arg1: Argument, arg2: Int) = AtomWithArguments(_get,Seq(arg1,iVal(arg2)))
+  def fail(arg1: Argument, arg2: Argument) = AtomWithArguments(_fail,Seq(arg1,arg2))
+  def fail(arg1: Argument, arg2: Int) = AtomWithArguments(_fail,Seq(arg1,iVal(arg2)))
+  //def unhit(arg1: Argument, arg2: Argument) = AtomWithArguments(_unsat,Seq(arg1,arg2))
+  //def unhit(arg1: Argument, arg2: Int) = AtomWithArguments(_unsat,Seq(arg1,iVal(arg2)))
   def getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
   def getFrom(arg1: Argument, arg2: Int, arg3: Int) = AtomWithArguments(_getFrom,Seq(arg1,iVal(arg2),iVal(arg3)))
   def item(arg1: Argument) = AtomWithArguments(_item,Seq(arg1))
@@ -100,8 +100,8 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
   /*
    % STATIC:
-   sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
-   sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
+   hit(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
+   hit(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
    needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
    conn(N,M) :- edge(N,M), not w_error(N,M).
    getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
@@ -175,14 +175,14 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
     def s(ats: Atom*) = ats.toSet[Atom]
 
     rules = rules :+
-    //   sat(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
-    rule(sat(I,N), s(item(I), node(N), w_req(I,N), w_cache(I,N)), s()) :+
-    //   sat(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
-    rule(sat(I,N), s(item(I), node(N), w_req(I,N), getFrom(I,N,M)), s()) :+
-    //  unsat(I,N) :- item(I), node(N), w_req(I,N), not sat(I,N).
-    rule(unsat(I,N), s(item(I), node(N), w_req(I,N)), s(sat(I,N))) :+
+    //   hit(I,N) :- item(I), node(N), w_req(I,N), w_cache(I,N).
+    rule(hit(I,N), s(item(I), node(N), w_req(I,N), w_cache(I,N)), s()) :+
+    //   get(I,N) :- item(I), node(N), w_req(I,N), getFrom(I,N,M).
+    rule(get(I,N), s(item(I), node(N), w_req(I,N), getFrom(I,N,M)), s()) :+
+    //  fail(I,N) :- item(I), node(N), w_req(I,N), not hit(I,N), not get(I,N).
+    rule(fail(I,N), s(item(I), node(N), w_req(I,N)), s(hit(I,N),get(I,N))) :+
     //  needAt(I,N) :- item(I), node(N), w_req(I,N), not w_cache(I,N).
-    rule(needAt(I,N), s(item(I), node(N), w_req(I,N)),  s(w_cache(I,N)) ) :+
+    rule(needAt(I,N), s(item(I), node(N), w_req(I,N)), s(w_cache(I,N)) ) :+
     //   conn(N,M) :- edge(N,M), not w_error(N,M).
     rule(conn(N,M), s(edge(N,M)),  s(w_error(N,M))) :+
     //   getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
@@ -301,14 +301,14 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
     val q = t % 30
     if (q >= 0 && q < 2) {
       has(getFrom(i1,1,4))
-      has(sat(i1,1))
+      has(get(i1,1))
       has(itemReach(i1,1,4,2))
       has(itemReach(i1,1,4,3))
       has(minReach(i1,1,4))
     } else if (q >= 2 && q < 4) {
       //from before:
       has(getFrom(i1,1,4)) //keep
-      has(sat(i1,1))
+      has(get(i1,1))
       has(itemReach(i1,1,4,2))
       has(itemReach(i1,1,4,3))
       has(minReach(i1,1,4))
@@ -322,26 +322,29 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 6 && q < 8) {
       hasNot(getFrom(i1,1,4))
       hasNot(getFrom(i1,1,7))
-      has(sat(i1,1))
+      has(hit(i1,1))
     } else if (q >= 8 && q < 10) {
-      has(sat(i1,1))
+      has(hit(i1,1))
     } else if (q >= 10 && q <= 16) {
       hasNot(getFrom(i1,1,4))
       hasNot(getFrom(i1,1,7))
-      has(sat(i1,1))
+      has(hit(i1,1))
     } else if (q >= 17 && q <= 18) {
       has(getFrom(i1,1,7))
     } else if (q == 19) {
       hasNot(getFrom(i1,1,4))
       hasNot(getFrom(i1,1,7))
-      hasNot(sat(i1,1))
+      hasNot(hit(i1,1))
+      hasNot(get(i1,1))
+      hasNot(fail(i1,1))
     } else if (q >= 20 && q <= 26) {
       has(getFrom(i1,1,7))
     } else {
       hasNot(getFrom(i1,1,4))
       hasNot(getFrom(i1,1,7))
-      hasNot(sat(i1,1))
-      has(unsat(i1,1))
+      hasNot(hit(i1,1))
+      hasNot(get(i1,1))
+      has(fail(i1,1))
     }
   }
 }
@@ -429,7 +432,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 12 && q < 14) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,4))
       has(getFrom(i1,10,16))
       if (ensureModelMaintenance) {
@@ -440,21 +443,21 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 14 && q < 16) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,4))
       has(getFrom(i1,7,1))
       has(getFrom(i1,10,16))
     } else if (q >= 16 && q < 18) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,4))
       has(getFrom(i1,7,1))
       has(getFrom(i1,10,1))
     } else if (q >= 18 && q < 24) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,4))
       has(getFrom(i1,7,1))
       if (ensureModelMaintenance) {
@@ -465,7 +468,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 24 && q < 30) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,1))
       has(getFrom(i1,7,1))
       if (ensureModelMaintenance) {
@@ -476,7 +479,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 30 && q < 32) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       if (ensureModelMaintenance) {
         has(getFrom(i1,2,1))
         has(getFrom(i1,7,1))
@@ -489,7 +492,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     } else if (q >= 32 && q < 34) {
       hasNot(getFrom(i1,1,4))
       hasNot(needAt(i1,1))
-      has(sat(i1,1))
+      has(hit(i1,1))
       has(getFrom(i1,2,1))
       has(getFrom(i1,10,9))
       if (ensureModelMaintenance) {
@@ -498,27 +501,31 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
         hasSomeOf(getFrom(i1,7,1),getFrom(i1,7,9))
       }
     } else if (q >= 34 && q < 36) {
-      has(unsat(i1,1))
-      hasNot(sat(i1,2))
-      hasNot(unsat(i1,2))
-      has(unsat(i1,7))
-      has(unsat(i1,10))
+      has(fail(i1,1))
+      hasNot(hit(i1,2))
+      hasNot(fail(i1,2))
+      has(fail(i1,7))
+      has(fail(i1,10))
     } else if (q >= 36 && q < 38) {
-      has(unsat(i1,1))
-      hasNot(sat(i1,2))
-      hasNot(unsat(i1,2))
-      has(unsat(i1,7))
-      hasNot(sat(i1,10))
-      hasNot(unsat(i1,10))
+      has(fail(i1,1))
+      hasNot(hit(i1,2))
+      hasNot(fail(i1,2))
+      has(fail(i1,7))
+      hasNot(hit(i1,10))
+      hasNot(fail(i1,10))
     } else if (q >= 38 && q < 40) {
-      hasNot(sat(i1,1))
-      hasNot(unsat(i1,1))
-      hasNot(sat(i1,2))
-      hasNot(unsat(i1,2))
-      hasNot(sat(i1,7))
-      hasNot(unsat(i1,7))
-      hasNot(sat(i1,10))
-      hasNot(unsat(i1,10))
+      hasNot(hit(i1,1))
+      hasNot(get(i1,1))
+      hasNot(fail(i1,1))
+      hasNot(hit(i1,2))
+      hasNot(get(i1,2))
+      hasNot(fail(i1,2))
+      hasNot(hit(i1,7))
+      hasNot(get(i1,7))
+      hasNot(fail(i1,7))
+      hasNot(hit(i1,10))
+      hasNot(get(i1,10))
+      hasNot(fail(i1,10))
     }
   }
 }

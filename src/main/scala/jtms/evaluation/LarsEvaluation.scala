@@ -120,6 +120,12 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
+    if (config.withDebug && t==27) {
+      println(f"\n rules at t=$t")
+      tms.rules foreach println
+      println()
+    }
+
     if (config.verifyModel) {
       instance.verifyModel(result.get, t)
     }
