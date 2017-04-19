@@ -25,11 +25,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   def maxPathLength: Int = nodes.size //at most number of nodes
 
   val _node = Predicate("node")
-  //val _sat = Predicate("sat")
   val _hit = Predicate("hit")
   val _get = Predicate("get")
   val _fail = Predicate("fail")
-  //val _unsat = Predicate("unsat")
   val _item = Predicate("item")
   val _getFrom = Predicate("getFrom")
   val _n_getFrom = Predicate("n_getFrom")
@@ -54,16 +52,12 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   def iVal(i: Int) = IntValue(i)
 
   def node(arg1: Argument) = AtomWithArguments(_node,Seq(arg1))
-  //def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_sat,Seq(arg1,arg2))
-  //def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_sat,Seq(arg1,iVal(arg2)))
   def hit(arg1: Argument, arg2: Argument) = AtomWithArguments(_hit,Seq(arg1,arg2))
   def hit(arg1: Argument, arg2: Int) = AtomWithArguments(_hit,Seq(arg1,iVal(arg2)))
   def get(arg1: Argument, arg2: Argument) = AtomWithArguments(_get,Seq(arg1,arg2))
   def get(arg1: Argument, arg2: Int) = AtomWithArguments(_get,Seq(arg1,iVal(arg2)))
   def fail(arg1: Argument, arg2: Argument) = AtomWithArguments(_fail,Seq(arg1,arg2))
   def fail(arg1: Argument, arg2: Int) = AtomWithArguments(_fail,Seq(arg1,iVal(arg2)))
-  //def unhit(arg1: Argument, arg2: Argument) = AtomWithArguments(_unsat,Seq(arg1,arg2))
-  //def unhit(arg1: Argument, arg2: Int) = AtomWithArguments(_unsat,Seq(arg1,iVal(arg2)))
   def getFrom(arg1: Argument, arg2: Argument, arg3: Argument) = AtomWithArguments(_getFrom,Seq(arg1,arg2,arg3))
   def getFrom(arg1: Argument, arg2: Int, arg3: Int) = AtomWithArguments(_getFrom,Seq(arg1,iVal(arg2),iVal(arg3)))
   def item(arg1: Argument) = AtomWithArguments(_item,Seq(arg1))
@@ -82,9 +76,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   def w_req(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_req,Seq(arg1,arg2))
   def w_cache(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_cache,Seq(arg1,arg2))
   def w_error(arg1: Argument, arg2: Argument) = AtomWithArguments(_w_error,Seq(arg1,arg2))
-  //def req(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_req,Seq(arg1,arg2,arg3))
-  //def cache(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_cache,Seq(arg1,arg2,arg3))
-  //def error(arg1: Argument, arg2: Argument, arg3: Argument):Atom = AtomWithArguments(_error,Seq(arg1,arg2,arg3))
   def length(arg1: Argument) = AtomWithArguments(_length,Seq(arg1))
   def length(arg1: Int) = AtomWithArguments(_length,Seq(iVal(arg1)))
 
