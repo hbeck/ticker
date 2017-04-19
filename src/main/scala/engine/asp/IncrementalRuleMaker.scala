@@ -38,7 +38,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
 
   def rulesToGroundFor(currentTick: Tick, signal: Option[Atom]): Seq[(Expiration,NormalRule)] = {
     val pinWithExp = timeCountPinned(currentTick) _
-    val expTickFact: (Expiration, NormalRule) = (Tick(-1,-1),tickRule(TimePoint(currentTick.time),Value(currentTick.count.toInt)))
+    val expTickFact: (Expiration, NormalRule) = (Tick(Void,Void),tickRule(TimePoint(currentTick.time),Value(currentTick.count.toInt)))
     val facts:Seq[(Expiration,NormalRule)] = Seq(expTickFact) ++ {
       signal match {
         case Some(atom) => pinnedAtoms(DefaultTrackedSignal(atom,currentTick))
