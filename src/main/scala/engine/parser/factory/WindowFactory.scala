@@ -12,7 +12,6 @@ case class WindowFactory(w: String, params: List[ParamWrapper]) {
 
   val wfn: WindowFunction = create(w,params)
 
-
   def create(wType: String, params: List[ParamWrapper]): WindowFunction = {
     val wfc = ImportFactory.getWinfowFunction(wType)
     wfc.updateWindowParams(params)

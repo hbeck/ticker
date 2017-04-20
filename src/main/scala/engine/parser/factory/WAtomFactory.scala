@@ -6,11 +6,11 @@ import core.lars._
 /**
   * Created by et on 22.03.17.
   */
-case class WAtomFactory(predicate: AtomTrait, tempMod: Option[TemporalModality], window: WindowFactory)
+case class WAtomFactory(not:Boolean = false, predicate: AtomTrait, tempMod: Option[TemporalModality], window: WindowFactory)
   extends AtomTrait {
 
   val atom: WindowAtom = create(predicate,tempMod,window)
-  override val neg: Boolean = false
+  override val neg: Boolean = not
 
   def create(predicate: AtomTrait, tempMod: Option[TemporalModality], window: WindowFactory): WindowAtom =
     tempMod match {
@@ -22,6 +22,6 @@ case class WAtomFactory(predicate: AtomTrait, tempMod: Option[TemporalModality],
     predicate match {
       case at: AtAtomFactory => WindowAtom(window.wfn,At(Variable(at.time)),at.atom.atom)
       case a: AtomFactory => WindowAtom(window.wfn,mod.get,a.atom)
-      case c => println(c); ???
+      case _ => ???
     }
 }

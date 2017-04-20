@@ -38,45 +38,49 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def bodyElement: Parser[BodyTrait] = operation | wAtom | head
 
-  def atom: Parser[AtomFactory] = opt(neg) ~ optSpace ~ predicate ~ opt("(" ~> repsep(variable|number,",") <~ ")") ^^ {
-    case not ~ _ ~ pred ~ None => AtomFactory(not.getOrElse(false),pred,List())
-    case not ~ _ ~ pred ~ params => AtomFactory(not.getOrElse(false), pred, params.get)
+  def atom: Parser[AtomFactory] = neg ~ optSpace ~ predicate ~ opt("(" ~> repsep(variable|float,",") <~ ")") ^^ {
+    case not ~ _ ~ pred ~ None => AtomFactory(not,pred,List())
+    case not ~ _ ~ pred ~ params => AtomFactory(not, pred, params.get)
   }
 
   def predicate: Parser[String] = lowChar ~ opt(str) ^^ {
     case l ~ None => l.toString
-    case l ~ r => ""+l+r
+    case l ~ r => l+""+r.mkString
   }
 
-  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ opt(neg) ~ "at" ~ space ~ (number|rep1(upperChar, str)) ^^ {
-    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not.getOrElse(false),atom,time.toString)
+  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ neg ~ "at" ~ space ~ (float|rep1(upperChar, str)) ^^ {
+    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not,atom,time.toString)
   }
 
   def wAtom: Parser[WAtomFactory] = boxWAtom | diamWAtom | atWAtom
 
-  def boxWAtom: Parser[WAtomFactory] = atom ~ space ~ "always" ~ optIn ~ window ^^ {
-    case atom ~ _ ~ _ ~ _ ~ window => WAtomFactory(atom,Some(Box),window)
+  def boxWAtom: Parser[WAtomFactory] = atom ~ space ~ "always" ~ optNotIn ~ window ^^ {
+    case atom ~ _ ~ _ ~ not ~ window => WAtomFactory(not,atom,Some(Box),window)
   }
 
-  def diamWAtom: Parser[WAtomFactory] = atom ~ optIn ~ window ^^ {
-    case atom ~ _ ~ window => WAtomFactory(atom,Some(Diamond),window)
+  def diamWAtom: Parser[WAtomFactory] = atom ~ optNotIn ~ window ^^ {
+    case atom ~ not ~ window => WAtomFactory(not,atom,Some(Diamond),window)
   }
 
-  def atWAtom: Parser[WAtomFactory] = atAtom ~ optIn ~ window ^^ {
-    case atAtom ~ _ ~ window => WAtomFactory(atAtom,None,window)
+  def atWAtom: Parser[WAtomFactory] = atAtom ~ optNotIn ~ window ^^ {
+    case atAtom ~ not ~ window => WAtomFactory(not,atAtom,None,window)
   }
 
-  def optIn: Parser[Option[Any]] = opt(space ~ "in" ~ space)
+  def optNotIn: Parser[Boolean] = space ~ "not" ~ in ^^ (_ => true) |
+                                space ~ "not" ~ space ^^ (_ => true) |
+                                              opt(in) ^^ (_ => false)
 
-  def window: Parser[WindowFactory] = optSpace ~ "[" ~> anyStr ~ opt(space ~> repsep(param,",")) <~ "]" ^^ {
+  def in: Parser[Any] = space ~ "in" ~ space
+
+  def window: Parser[WindowFactory] = optSpace ~> "[" ~> str ~ opt(space ~> repsep(param,",")) <~ "]" ^^ {
     case wType ~ None => WindowFactory(wType,List())
     case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
   def operand: Parser[OperandFactory] = optSpace ~> (variable ^^ { o: String => OperandFactory(o) }
-                                                    | number ^^ { o: Double => OperandFactory(o) }) <~ optSpace
+                                                    | float ^^ { o: Double => OperandFactory(o) }) <~ optSpace
 
-  def arithmetic: Parser[String] = optSpace ~> ("+"|"-"|"/"|"*") <~ optSpace
+  def arithmetic: Parser[String] = optSpace ~> ("+"|"-"|"/"|"*"|"%"|"^") <~ optSpace
 
   def compare: Parser[String] = optSpace ~> ("="|">="|"<="|"!="|"<"|">") <~ optSpace
 
@@ -94,33 +98,39 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def operation: Parser[OperationFactory] = rightOperation | leftOperation
 
-  def param: Parser[ParamWrapper] = optSpace ~> number ~ opt(space ~> str) ^^ {
-    case num ~ str => ParamWrapper(num,str)
+  def param: Parser[ParamWrapper] = optSpace ~> float ~ opt(space ~ opt(str <~ optSpace)) ^^ {
+    case num ~ None => ParamWrapper(num,None)
+    case num ~ str => ParamWrapper(num,str.get._2)
   }
-
-  def variable: Parser[String] = upperChar ~ opt(str|number) ^^ {
+//(optSpace ^^ (_ => None) | opt(space ~> str <~ optSpace))
+  def variable: Parser[String] = upperChar ~ opt(str|intStr) ^^ {
     case c ~ None => c.toString
     case c ~ str => c+""+str.mkString
   }
 
-  def neg: Parser[Boolean] = optSpace ~> "not" <~ space ^^ (_ => true)
-
-  def number: Parser[Double] = rep1(digit) ~ opt("." ~ rep1(digit)) ^^ {
-    case integ ~ None => integ.mkString.toDouble
-    case integ ~ dec => (integ.mkString + dec.mkString).toDouble
+  def neg: Parser[Boolean] = optSpace ~> opt("not" <~ space) ^^ {
+    case None => false
+    case _ => true
   }
+
+  def float: Parser[Double] = rep1(digit) ~ opt("." ~ intStr) ^^ {
+    case integ ~ None => integ.mkString.toDouble
+    case integ ~ dec => (integ.mkString + dec.get._1 + dec.get._2).toDouble
+  }
+
+  def intStr: Parser[String] = rep1(digit) ^^ (_.mkString)
 
   def digit: Parser[Int] = """[0-9]""".r ^^ (_.toInt)
 
   def newline: Parser[String] = "\n" | "\r"
 
-  def str: Parser[String] = rep1(char, char | digit) ^^ (str => str.mkString)
+  //def str: Parser[String] = /*rep1(char, char | digit)*/"""\S+""".r ^^ (str => str.mkString)
 
-  def anyStr: Parser[String] = rep1(anyChar) ^^ (str => str.mkString)
+  def str: Parser[String] = rep1(char) ^^ (str => str.mkString)
 
-  def anyChar: Parser[Char] = """\S""".r ^^ (_.head)
+  def char: Parser[Char] = """[^\n\r\t +-/*%^<>=!,.\[\]\{\}\(\)]""".r ^^ (_.head)
 
-  def char: Parser[Char] = lowChar | upperChar | '_'
+//  def char: Parser[Char] = lowChar | upperChar | '_'
 
   def lowChar: Parser[Char] = """[a-z]""".r ^^ (_.head)
 
@@ -128,7 +138,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def comment: Parser[Any] = lineComment | blockComment
 
-  def lineComment: Parser[Any] = """((\/\/|%).*?(\n|\r))""".r
+  def lineComment: Parser[Any] = """(\/\/|%).*?(\n|\r)+?""".r
 
 //  def lineComment: Parser[Any] = ("//" | "%") ~ optSpace ~ repsep(str,space) ~ newline
 

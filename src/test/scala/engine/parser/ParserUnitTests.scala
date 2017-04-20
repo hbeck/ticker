@@ -8,6 +8,8 @@ import org.scalatest.FlatSpec
 class ParserUnitTests extends FlatSpec {
 
   private val parser = LarsParser
+  private val arith = List("+","-","/","*","%","^")
+  private val comp = List("=",">=","<=","!=","<",">")
 
   "program" should "be accepted" in {}
   "program" should "be rejected" in {}
@@ -19,48 +21,121 @@ class ParserUnitTests extends FlatSpec {
   "rule" should "be rejected" in {}
   "ruleBase" should "be accepted" in {}
   "ruleBase" should "be rejected" in {}
-  "head" should "be accepted" in {}
-  "head" should "be rejected" in {}
+//  "head" should "be accepted" in {}
+//  "head" should "be rejected" in {}
   "body" should "be accepted" in {}
   "body" should "be rejected" in {}
-  "bodyElement" should "be accepted" in {}
-  "bodyElement" should "be rejected" in {}
+//  "bodyElement" should "be accepted" in {}
+//  "bodyElement" should "be rejected" in {}
   "atom" should "be accepted" in {}
   "atom" should "be rejected" in {}
   "predicate" should "be accepted" in {}
   "predicate" should "be rejected" in {}
   "atAtom" should "be accepted" in {}
   "atAtom" should "be rejected" in {}
-  "wAtom" should "be accepted" in {}
-  "wAtom" should "be rejected" in {}
+//  "wAtom" should "be accepted" in {}
+//  "wAtom" should "be rejected" in {}
   "boxWAtom" should "be accepted" in {}
   "boxWAtom" should "be rejected" in {}
   "diamWAtom" should "be accepted" in {}
   "diamWAtom" should "be rejected" in {}
-  "atWAtom" should "be accepted" in {}
-  "atWAtom" should "be rejected" in {}
-  "optIn" should "be accepted" in {}
-  "optIn" should "be rejected" in {}
-  "window" should "be accepted" in {}
-  "window" should "be rejected" in {}
-  "operand" should "be accepted" in {}
-  "operand" should "be rejected" in {}
-  "arithmetic" should "be accepted" in {}
-  "arithmetic" should "be rejected" in {}
-  "compare" should "be accepted" in {}
-  "compare" should "be rejected" in {}
-  "arithOperation" should "be accepted" in {}
-  "arithOperation" should "be rejected" in {}
-  "leftOperation" should "be accepted" in {}
-  "leftOperation" should "be rejected" in {}
-  "rightOperation" should "be accepted" in {}
-  "rightOperation" should "be rejected" in {}
-  "operation" should "be accepted" in {}
-  "operation" should "be rejected" in {}
-  "param" should "be accepted" in {}
-  "param" should "be rejected" in {}
-  "variable" should "be accepted" in {}
-  "variable" should "be rejected" in {}
+  "atWAtom" should "be accepted" in {
+    assert(parser.parseAll(parser.atWAtom,"a at T in [t]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T not in [t]").successful)
+    assert(parser.parseAll(parser.atWAtom,"not a at T in [t]").successful)
+    assert(parser.parseAll(parser.atWAtom,"not a at T not in [t]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T [t]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T [t 5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at 10 [t 5]").successful)
+  }
+  "atWAtom" should "be rejected" in {
+    assert(!parser.parseAll(parser.atWAtom,"a at [t]").successful)
+  }
+  "optNotIn" should "be accepted" in {
+    assert(parser.parseAll(parser.optNotIn," in ").successful)
+    assert(parser.parseAll(parser.optNotIn,"                       in ").successful)
+    assert(parser.parseAll(parser.optNotIn," in                       ").successful)
+    assert(parser.parseAll(parser.optNotIn," not in ").successful)
+    assert(parser.parseAll(parser.optNotIn," not         in                       ").successful)
+    assert(parser.parseAll(parser.optNotIn," not ").successful)
+  }
+  "optIn" should "be rejected" in {
+    assert(!parser.parseAll(parser.optNotIn,"in ").successful)
+    assert(!parser.parseAll(parser.optNotIn," in").successful)
+    assert(!parser.parseAll(parser.optNotIn,"in").successful)
+    assert(!parser.parseAll(parser.optNotIn,"not in").successful)
+  }
+  "window" should "be accepted" in {
+    assert(parser.parseAll(parser.window," [t]").successful)
+    assert(parser.parseAll(parser.window," [t 5]").successful)
+    assert(parser.parseAll(parser.window," [t 5 sec]").successful)
+    assert(parser.parseAll(parser.window," [t 5 sec,10 min,4]").successful)
+    assert(parser.parseAll(parser.window," [t 5, 10 ,4]").successful)
+  }
+  "window" should "be rejected" in {
+    assert(!parser.parseAll(parser.window," []").successful)
+  }
+  "operand" should "be accepted" in {
+    assert(parser.parseAll(parser.operand,"Strings").successful)
+    assert(parser.parseAll(parser.operand,"10.0").successful)
+  }
+  "operand" should "be rejected" in {
+    val otherSymbols = comp ++ arith ++ List("\n\r ")
+    otherSymbols.foreach { c => assert(!parser.parseAll(parser.operand,"String_with_"+c).successful) }
+  }
+  "arithmetic" should "be accepted" in {
+    arith.foreach { c => assert(parser.parseAll(parser.arithmetic,c).successful) }
+  }
+//  "arithmetic" should "be rejected" in {}
+  "compare" should "be accepted" in {
+    comp.foreach { c => assert(parser.parseAll(parser.compare,c).successful) }
+  }
+//  "compare" should "be rejected" in {}
+  "arithOperation" should "be accepted" in {
+    arith.foreach { c => assert(parser.parseAll(parser.arithOperation,"1"+c+"1").successful) }
+  }
+  "arithOperation" should "be rejected" in {
+    comp.foreach { c => assert(!parser.parseAll(parser.arithOperation,"1"+c+"1").successful) }
+  }
+  "leftOperation" should "be accepted" in {
+    assert(parser.parseAll(parser.operation,"1+0=1").successful)
+  }
+  "leftOperation" should "be rejected" in {
+    assert(!parser.parseAll(parser.leftOperation,"1=1+0").successful)
+  }
+  "rightOperation" should "be accepted" in {
+    assert(parser.parseAll(parser.operation,"1=1+0").successful)
+  }
+  "rightOperation" should "be rejected" in {
+    assert(!parser.parseAll(parser.rightOperation,"1+0=1").successful)
+  }
+  "operation" should "be accepted" in {
+    assert(parser.parseAll(parser.operation,"1=1+0").successful)
+    assert(parser.parseAll(parser.operation,"1+0=1").successful)
+    assert(parser.parseAll(parser.operation,"A=B+C").successful)
+    assert(parser.parseAll(parser.operation,"A+B=C").successful)
+  }
+  "operation" should "be rejected" in {
+    assert(!parser.parseAll(parser.operation,"0+1=1+0").successful)
+  }
+  "param" should "be accepted" in {
+    assert(parser.parseAll(parser.param,"1").successful)
+    assert(parser.parseAll(parser.param,"1.0").successful)
+    assert(parser.parseAll(parser.param,"1.0 Einheit").successful)
+  }
+  "param" should "be rejected" in {
+    assert(!parser.parseAll(parser.param,"random words").successful)
+  }
+  "A variable starting with an upper case character" should "be accepted" in {
+    assert(parser.parseAll(parser.variable,"V").successful)
+//    println(parser.parseAll(parser.variable,"V4ri4_bl3"))
+    assert(parser.parseAll(parser.variable,"V4ri4_bl3").successful)
+  }
+  "A variable starting with lower case character" should "be rejected" in {
+    assert(!parser.parseAll(parser.variable,"v").successful)
+    assert(!parser.parseAll(parser.variable,"1").successful)
+    assert(!parser.parseAll(parser.variable,"_").successful)
+  }
 //  "neg" should "be accepted" in {}
 //  "neg" should "be rejected" in {}
 //  "number" should "be accepted" in {}
@@ -69,74 +144,29 @@ class ParserUnitTests extends FlatSpec {
 //  "digit" should "be rejected" in {}
 //  "newline" should "be accepted" in {}
 //  "newline" should "be rejected" in {}
-//  "str" should "be accepted" in {}
-//  "str" should "be rejected" in {}
-//  "anyStr" should "be accepted" in {}
-//  "anyStr" should "be rejected" in {}
-  "anyChar" should "be accepted" in {
-    assert(parser.parseAll(parser.anyChar,".").successful)
-    assert(parser.parseAll(parser.anyChar,",").successful)
-    assert(parser.parseAll(parser.anyChar,":").successful)
-    assert(parser.parseAll(parser.anyChar,";").successful)
-    assert(parser.parseAll(parser.anyChar,"_").successful)
-    assert(parser.parseAll(parser.anyChar,"-").successful)
-    assert(parser.parseAll(parser.anyChar,"!").successful)
-    assert(parser.parseAll(parser.anyChar,"?").successful)
-    assert(parser.parseAll(parser.anyChar,"$").successful)
-    assert(parser.parseAll(parser.anyChar,"%").successful)
-    assert(parser.parseAll(parser.anyChar,"&").successful)
-    assert(parser.parseAll(parser.anyChar,"(").successful)
-    assert(parser.parseAll(parser.anyChar,")").successful)
-    assert(parser.parseAll(parser.anyChar,"[").successful)
-    assert(parser.parseAll(parser.anyChar,"]").successful)
-    assert(parser.parseAll(parser.anyChar,"{").successful)
-    assert(parser.parseAll(parser.anyChar,"}").successful)
-    assert(parser.parseAll(parser.anyChar,"/").successful)
-    assert(parser.parseAll(parser.anyChar,"\\").successful)
-    assert(parser.parseAll(parser.anyChar,"\"").successful)
-    assert(parser.parseAll(parser.anyChar,"\'").successful)
-    assert(parser.parseAll(parser.anyChar,"+").successful)
-    assert(parser.parseAll(parser.anyChar,"*").successful)
-    assert(parser.parseAll(parser.anyChar,"~").successful)
-    assert(parser.parseAll(parser.anyChar,"=").successful)
-    assert(parser.parseAll(parser.anyChar,"0").successful)
-    assert(parser.parseAll(parser.anyChar,"1").successful)
-    assert(parser.parseAll(parser.anyChar,"2").successful)
-    assert(parser.parseAll(parser.anyChar,"3").successful)
-    assert(parser.parseAll(parser.anyChar,"4").successful)
-    assert(parser.parseAll(parser.anyChar,"5").successful)
-    assert(parser.parseAll(parser.anyChar,"6").successful)
-    assert(parser.parseAll(parser.anyChar,"7").successful)
-    assert(parser.parseAll(parser.anyChar,"8").successful)
-    assert(parser.parseAll(parser.anyChar,"9").successful)
-    assert(parser.parseAll(parser.anyChar,"§").successful)
-    assert(parser.parseAll(parser.anyChar,"#").successful)
-    assert(parser.parseAll(parser.anyChar,"<").successful)
-    assert(parser.parseAll(parser.anyChar,">").successful)
-    assert(parser.parseAll(parser.anyChar,"@").successful)
+  "str" should "be accepted" in {
+    assert(parser.parseAll(parser.str,"A_regular_string").successful)
+    assert(parser.parseAll(parser.str,"4_str1ng_w1th_numb3rs").successful)
   }
-  "anyChar" should "be rejected" in {
-    assert(!parser.parseAll(parser.anyChar," ").successful)
-    assert(!parser.parseAll(parser.anyChar,"\r").successful)
-    assert(!parser.parseAll(parser.anyChar,"\n").successful)
-    assert(!parser.parseAll(parser.anyChar,"\t").successful)
+  "str" should "be rejected" in {
+    assert(!parser.parseAll(parser.str,"Strings do not contain whitespaces").successful)
   }
-  "char" should "be accepted" in {
+/*  "char" should "be accepted" in {
     assert(parser.parseAll(parser.char,"u").successful)
     assert(parser.parseAll(parser.char,"U").successful)
   }
   "char" should "be rejected" in {
     assert(!parser.parseAll(parser.char,"IUIUIU").successful)
     assert(!parser.parseAll(parser.char,"iuiuiu").successful)
-  }
+  }*/
   "lowChar" should "be accepted" in {
-    assert(!parser.parseAll(parser.lowChar,"u").successful)
+    assert(parser.parseAll(parser.lowChar,"u").successful)
   }
   "lowChar" should "be rejected" in {
     assert(!parser.parseAll(parser.lowChar,"U").successful)
   }
   "upperChar" should "be accepted" in {
-    assert(!parser.parseAll(parser.upperChar,"U").successful)
+    assert(parser.parseAll(parser.upperChar,"U").successful)
   }
   "upperChar" should "be rejected" in {
     assert(!parser.parseAll(parser.upperChar,"u").successful)
@@ -147,14 +177,14 @@ class ParserUnitTests extends FlatSpec {
   }
 //  "comment" should "be rejected" in {}
   "lineComment" should "accept c++-style comments" in {
-    assert(parser.parseAll(parser.lineComment,"// foo and bar are words\n comment ends with line").successful)
+    assert(parser.parse(parser.lineComment,"// foo and bar are words\n comment ends with line").successful)
   }
   "lineComment" should "accept latex-style comments" in {
-    assert(parser.parseAll(parser.lineComment,"% foo and bar are words\n comment ends with line").successful)
+    assert(parser.parse(parser.lineComment,"% foo and bar are words\n comment ends with line").successful)
   }
 //  "lineComment" should "be rejected" in {}
   "newBlockComment" should "accept anything that is between /* */ or %* *% or any combination of the two" in {
-    println(parser.parseAll(parser.blockComment,"/* foo\n * bar\n * next line\n *%"))
+    assert(parser.parseAll(parser.blockComment,"/* foo\n * bar\n * next line\n *%").successful)
   }
   "blockComment" should "be accepted with c-style block comment" in {
     assert(parser.parseAll(parser.blockComment,"/* random text line one \n\r\r\r\n and in line n */").successful)
