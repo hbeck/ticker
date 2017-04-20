@@ -11,7 +11,7 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
     }
-    val possibleVariableValues: Map[Variable, Set[Value]] = inspect possibleVariableValues rule
+    val possibleVariableValues: Map[Variable, Set[Value]] = inspect.possibleVariableValues(rule)
     ground(rule, possibleVariableValues)
   }
 

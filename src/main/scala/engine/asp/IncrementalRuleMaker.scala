@@ -15,11 +15,11 @@ import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
 
   val R: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.larsRuleEncodings map { encoding =>
-    val rule = TickBasedAspToIncrementalAsp.stripTickAtoms(encoding.aspRule)
+    val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(encoding.aspRule) //now(.), cnt(.)
     (encoding.ticksUntilOutdated,rule)
   }
   val Q: Seq[(TicksUntilOutdated,NormalRule)] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
-    (Tick(1,Void),TickBasedAspToIncrementalAsp.stripTickAtoms(r))
+    (Tick(1,Void),TickBasedAspToIncrementalAsp.stripPositionAtoms(r))
   }
 
   val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == Void && ticks.count == Void }
@@ -27,6 +27,9 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding) {
   val (groundNonExpiringR,nonGroundNonExpiringR) = nonExpiringR partition { case (_,r) => r.isGround }
 
   val staticGroundRules = groundNonExpiringR map { case (_,r) => r } //TODO add those of window atom encoders later
+
+  //TODO 0420 all rules that do not depend on ticks: some of window atom encodings (box)
+  val staticRules: Seq[NormalRule] = larsProgramEncoding.baseRules //TODO 0420 what about those that depend on ticks. add pre-grounding based on (0,0)?
 
   /*
    * TODO separate rules:

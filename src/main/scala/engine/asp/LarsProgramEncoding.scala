@@ -46,30 +46,28 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
    */
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
+  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_)))
 
   /*
    * one-shot stuff
    */
 
-  //note that baseRules do not include the rules to derive the windowAtomEncodings
-  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_))) //for one-shot solving
-
-  val (groundBaseRules, nonGroundBaseRules) = baseRules.
-    map(TickBasedAspToIncrementalAsp.stripTickAtoms).
+  lazy val (groundBaseRules, nonGroundBaseRules) = baseRules.
+    map(TickBasedAspToIncrementalAsp.stripPositionAtoms).
     partition(_.isGround)
 
-  val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)
+  lazy val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)
 
   /*
    * general stuff
    */
 
   // full representation of Lars-Program as asp
-  override val rules = baseRules ++ oneShotWindowRules
+  override lazy val rules = baseRules ++ oneShotWindowRules
 
-  override val larsRules = larsRuleEncodings map (_.larsRule)
+  override lazy val larsRules = larsRuleEncodings map (_.larsRule)
 
-  val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
+  lazy val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
     flatMap(_.windowAtomEncoders).
     collect {
       case t: TimeWindowEncoder => t.length

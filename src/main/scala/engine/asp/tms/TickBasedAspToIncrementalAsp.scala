@@ -46,11 +46,11 @@ object TickBasedAspToIncrementalAsp {
   }
 
   def apply(larsProgramEncoding: LarsProgramEncoding): NormalProgram = {
-    val rulesWithoutNowCntPin = larsProgramEncoding.rules map stripTickAtoms
+    val rulesWithoutNowCntPin = larsProgramEncoding.rules map stripPositionAtoms
     AspProgram(rulesWithoutNowCntPin.toList)
   }
 
-  def stripTickAtoms(rule: NormalRule): NormalRule = {
+  def stripPositionAtoms(rule: NormalRule): NormalRule = {
     rule.
       from(
         rule.head,

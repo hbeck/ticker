@@ -2,7 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.NormalRule
-import core.grounding.incremental.IncrementalAspGrounder
+import core.grounding.incremental.TailoredIncrementalGrounder
 import core.lars.TimePoint
 import engine._
 import engine.asp._
@@ -16,9 +16,12 @@ import scala.collection.immutable.HashMap
   */
 case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val grounder = IncrementalAspGrounder()
-  grounder.add(incrementalRuleMaker.staticGroundRules)
-  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
+  val grounder = TailoredIncrementalGrounder()
+  //deprecated: grounder.add(incrementalRuleMaker.staticGroundRules)
+  grounder.prepareStaticGroundRules(incrementalRuleMaker.staticRules) //ground everything that does not depend on ticks
+
+  //deprecated: tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
+  tmsPolicy.initialize(grounder.staticGroundRules) //result of initStaticPart
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0, 0) //using (-1,0), first "+" will fail!
@@ -65,6 +68,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
   //method to be called whenever time xor count increases by 1
   def singleOneDimensionalTickIncrement(signal: Option[Atom] = None) {
 
+    //TODO 0420 is it possible to do pinning only?
     val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
     rulesToGround foreach { case (e, r) =>
       grounder.add(r)
@@ -82,10 +86,12 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     }
 
     tmsPolicy.add(currentTick.time)(rulesToAdd)
+
     val expiredRules = signal match { //logic somewhat implicit...
       case None => expirationHandling.deregisterExpiredByTime()
       case _ => expirationHandling.deregisterExpiredByCount()
     }
+
     val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
 
     if (IEEConfig.printRules) {
@@ -95,7 +101,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       }
     }
 
-    grounder.remove(rulesToRemove)
+    //grounder.remove(rulesToRemove) //TODO 0420 ever do?
     tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }
 
