@@ -1,7 +1,10 @@
 package engine.parser
 
 import core.lars.LarsProgram
+import jtms.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst}
 import org.scalatest.FlatSpec
+
+import scala.util.Random
 
 /**
   * Created by et on 11.04.17.
@@ -55,6 +58,21 @@ class LarsParserTest extends FlatSpec {
 
   "Program jtms.evaluation.instances.CacheHopsEvalInst" should "not fail" in {
     val program: Option[LarsProgram] = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
+    val foo = CacheHopsEvalInst1(10000,10,true,Random)
+    val bar = foo.larsProgram(300)
+    val diff1 = bar.rules diff program.get.rules
+    val diff2 = program.get.rules diff bar.rules
+    print("bar.rules == program.rules: ")
+    println(bar.rules == program.get.rules)
+    print("bar.rules diff program.rules: ")
+    diff1.foreach(println(_))
+    println("####################")
+    print("program.rules diff bar.rules: ")
+    diff2.foreach(println(_))
+    println("--------------------------")
+    println(program.get.toString())
+    println(bar.toString())
+    println(program.get == bar)
     assert(program.isDefined)
   }
 
