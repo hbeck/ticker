@@ -1,7 +1,7 @@
 package jtms.evaluation
 
 import core.asp.{NormalRule, UserDefinedAspFact, UserDefinedAspRule}
-import core.lars.TimePoint
+import core.lars.{LarsRule, TimePoint, UserDefinedLarsRule}
 import core.{Atom, Model, PinnedAtom}
 
 /**
@@ -88,6 +88,9 @@ trait StreamingTmsEvalInst extends LarsEvaluationInstance {
   }
 
   def fact(head: Atom): NormalRule = UserDefinedAspFact[Atom](head)
+
+  def larsFact(head: Atom): LarsRule = UserDefinedLarsRule(head,Set(),Set())
+
   def pinnedFact(a: Atom, t: Int): NormalRule = fact(PinnedAtom.asPinnedAtAtom(a,TimePoint(t)))
 
 }

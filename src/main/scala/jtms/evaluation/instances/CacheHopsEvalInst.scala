@@ -147,8 +147,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
   }
 
-  def larsFact(a: Atom): LarsRule = UserDefinedLarsRule(a,Set(),Set())
-
   var printRulesOnce = false
 
   override lazy val staticRules: Seq[NormalRule] = {

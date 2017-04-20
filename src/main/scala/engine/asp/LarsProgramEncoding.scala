@@ -46,13 +46,14 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
    */
 
   val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
-  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_)))
+  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ (backgroundData map (AspFact(_))) //nowAndAtNowIdentityRules, which includes now(.)
 
   /*
    * one-shot stuff
    */
+  lazy val oneShotBaseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_)))
 
-  lazy val (groundBaseRules, nonGroundBaseRules) = baseRules.
+  lazy val (groundBaseRules, nonGroundBaseRules) = oneShotBaseRules.
     map(TickBasedAspToIncrementalAsp.stripPositionAtoms).
     partition(_.isGround)
 
@@ -63,7 +64,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
    */
 
   // full representation of Lars-Program as asp
-  override lazy val rules = baseRules ++ oneShotWindowRules
+  override lazy val rules = oneShotBaseRules ++ oneShotWindowRules
 
   override lazy val larsRules = larsRuleEncodings map (_.larsRule)
 

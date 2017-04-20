@@ -3,7 +3,7 @@ package jtms.evaluation.instances
 import core._
 import core.asp.NormalRule
 import core.lars._
-import jtms.evaluation.{StreamingTmsEvalInst}
+import jtms.evaluation.StreamingTmsEvalInst
 
 import scala.util.Random
 
@@ -23,8 +23,8 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   val _mid_at = Predicate("mid_at")
   val _low_at = Predicate("low_at")
   val _rtm_at = Predicate("rtm50_at")
-  val _lt = Predicate("lt")
-  val _leq = Predicate("leq")
+  val _value = Predicate("value")
+
 
   val spoil_high = Atom("spoil_high")
   val spoil_mid = Atom("spoil_mid")
@@ -37,8 +37,9 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   def mid_at(arg1: Int) = AtomWithArguments(_mid_at,Seq(IntValue(arg1)))
   def low_at(arg1: Int) = AtomWithArguments(_low_at,Seq(IntValue(arg1)))
   def rtm_at(arg1: Int) = AtomWithArguments(_rtm_at,Seq(IntValue(arg1)))
-  def lt(arg1: Int, arg2: Int) = AtomWithArguments(_lt,Seq(IntValue(arg1),IntValue(arg2)))
-  def leq(arg1: Int, arg2: Int) = AtomWithArguments(_leq,Seq(IntValue(arg1),IntValue(arg2)))
+  def lt(arg1: Int, arg2: Int) = Lt(IntValue(arg1),IntValue(arg2))
+  def leq(arg1: Int, arg2: Int) = Leq(IntValue(arg1),IntValue(arg2))
+  def value(arg1: Int) = AtomWithArguments(_value,Seq(IntValue(arg1)))
 
   // LARS:
   val _alpha = Predicate("alpha")
@@ -47,7 +48,8 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   val low = Atom("low")
   val rtm50 = Atom("rtm50")
 
-  def alpha(arg1: Argument) = AtomWithArguments(_alpha,Seq(arg1))
+  def alpha(arg: Argument) = AtomWithArguments(_alpha,Seq(arg))
+  def value(arg: Argument) = AtomWithArguments(_value,Seq(arg))
 
 
   /*
@@ -73,6 +75,7 @@ random :- not done.
         }
       }
     }
+    rules = rules ++ (factAtoms map fact)
     rules
   }
 
@@ -89,9 +92,9 @@ random :- not done.
   override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
     var rules = Seq[NormalRule]()
     for (v <- 0 to maxAlphaValue) {
-      rules = rules :+ rule(high_at(t),Set[Atom](alpha_at(v,t),leq(18,v)),E) //high_at(T) :- alpha_at(V,T), leq(18,V).
-      rules = rules :+ rule(mid_at(t),Set[Atom](alpha_at(v,t),leq(12,v), lt(v,18)),E) //mid_at(T) :- alpha_at(V,T), leq(12,V), lt(V,18).
-      rules = rules :+ rule(low_at(t),Set[Atom](alpha_at(v,t),lt(v,12)),E) //low_at(T) :- alpha_at(V,T), lt(V,12).
+      rules = rules :+ rule(high_at(t),Set[Atom](value(v), alpha_at(v,t),leq(18,v)),E) //high_at(T) :- value(V), alpha_at(V,T), leq(18,V).
+      rules = rules :+ rule(mid_at(t),Set[Atom](value(v), alpha_at(v,t),leq(12,v), lt(v,18)),E) //mid_at(T) :- value(V), alpha_at(V,T), leq(12,V), lt(V,18).
+      rules = rules :+ rule(low_at(t),Set[Atom](value(v), alpha_at(v,t),lt(v,12)),E) //low_at(T) :- value(V), alpha_at(V,T), lt(V,12).
 
     }
     rules = rules :+
@@ -119,10 +122,10 @@ random :- not done.
 
     val n = windowSize
 
-    LarsProgram.from(
-      AtAtom(T,high) <= wAt(n,T,_alpha(V)) and Leq(IntValue(18),V),
-      AtAtom(T,mid) <= wAt(n,T,_alpha(V)) and Leq(IntValue(12),V) and Lt(V,IntValue(18)),
-      AtAtom(T,low) <= wAt(n,T,_alpha(V)) and Lt(V,IntValue(12)),
+    val rules = Seq[LarsRule](
+      AtAtom(T,high) <= value(V) and wAt(n,T,_alpha(V)) and Leq(IntValue(18),V),
+      AtAtom(T,mid) <= value(V) and wAt(n,T,_alpha(V)) and Leq(IntValue(12),V) and Lt(V,IntValue(18)),
+      AtAtom(T,low) <= value(V) and wAt(n,T,_alpha(V)) and Lt(V,IntValue(12)),
       lfu <= wB(n,high),
       lru <= wB(n,mid),
       fifo <= wB(n,low) and wD(n,rtm50),
@@ -130,8 +133,14 @@ random :- not done.
       done <= lru,
       done <= fifo,
       UserDefinedLarsRule(randomAtom,s(),s(done))
-    )
+    ) ++ (factAtoms map larsFact)
 
+    LarsProgram(rules)
+
+  }
+
+  def factAtoms(): Seq[Atom] = {
+    (1 to 30) map (value(_))
   }
 
 }
