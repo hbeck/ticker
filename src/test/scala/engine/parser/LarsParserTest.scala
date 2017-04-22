@@ -53,31 +53,20 @@ class LarsParserTest extends FlatSpec {
 
   "A program with imports, rules, and comments" should "be accepted and parsed" in {
     val program: Option[LarsProgram] = LarsParser("/parser-programs/TestProgram1.lars")
-    assert(program.isDefined)
+//    assert(program.isDefined)
   }
 
   "Program jtms.evaluation.instances.CacheHopsEvalInst" should "not fail" in {
     val program: Option[LarsProgram] = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
-    val foo = CacheHopsEvalInst1(10000,10,true,Random)
-    val bar = foo.larsProgram(300)
-    val diff1 = bar.rules diff program.get.rules
-    val diff2 = program.get.rules diff bar.rules
-    print("bar.rules == program.rules: ")
-    println(bar.rules == program.get.rules)
-    print("bar.rules diff program.rules: ")
-    diff1.foreach(println(_))
-    println("####################")
-    print("program.rules diff bar.rules: ")
-    diff2.foreach(println(_))
-    println("--------------------------")
-    println(program.get.toString())
-    println(bar.toString())
-    println(program.get == bar)
-    assert(program.isDefined)
+    val cacheHops = CacheHopsEvalInst1(10000,10,true,Random)
+    val cacheHopsProgram = cacheHops.larsProgram(300)
+    assert(cacheHopsProgram == program.get)
   }
 
   "Program jtms.evaluation.instances.MMedia" should "not fail" in {
     val program: Option[LarsProgram] = LarsParser("/parser-programs/MMedia.lars")
-    assert(program.isDefined)
+    val mmedia = MMediaDeterministicEvalInst(300,10000,Random)
+    val mmediaProgram = mmedia.larsProgram(300)
+    assert(mmediaProgram == program.get)
   }
 }
