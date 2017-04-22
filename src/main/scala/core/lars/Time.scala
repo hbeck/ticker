@@ -58,3 +58,19 @@ case class TimeVariableWithOffset(variable: TimeVariable, offset: Offset = 0) ex
 object TimeVariableWithOffset {
   implicit def convertToTimeVariable(variable: Variable): TimeVariableWithOffset = TimeVariableWithOffset(variable)
 }
+
+case class IntVariableWithOffset(variable: Variable, offset: Offset = 0) extends Variable with ArgumentWithOffset {
+
+  override def calculate(baseValue: Value): Value = baseValue match {
+    case IntValue(t) => IntValue(t + offset)
+  }
+
+  override def +(duration: Offset) = IntVariableWithOffset(variable, duration)
+
+  override def -(duration: Offset) = IntVariableWithOffset(variable, -duration)
+}
+
+object IntVariableWithOffset {
+  implicit def convertToTimeVariable(variable: Variable): IntVariableWithOffset = IntVariableWithOffset(variable)
+}
+

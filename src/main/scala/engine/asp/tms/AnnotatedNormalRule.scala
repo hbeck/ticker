@@ -10,13 +10,15 @@ trait AnnotatedNormalRule {
   val rule: NormalRule
 }
 
+trait VolatileNormalRule extends AnnotatedNormalRule
+
 case class StaticNormalRule(rule: NormalRule) extends AnnotatedNormalRule
 
 //rule that has to be deleted after ticksUntilExpired (resp. its groundings)
-case class ExpiringNormalRuleTemplate(rule: NormalRule, ticksUntilExpired: TicksUntilExpiration) extends AnnotatedNormalRule //non-ground
-case class ExpiringNormalRule(rule: NormalRule, expiration: Expiration) extends AnnotatedNormalRule //ground
+case class ExpiringNormalRuleTemplate(rule: NormalRule, ticksUntilExpired: TicksUntilExpiration) extends VolatileNormalRule //non-ground
+case class ExpiringNormalRule(rule: NormalRule, expiration: Expiration) extends VolatileNormalRule //ground
 
 //rule that has can be deleted after ticksUntilOutdated (resp. its groundings)
-case class OutdatingNormalRuleTemplate(rule: NormalRule, ticksUntilOutdated: TicksUntilOutdated) extends AnnotatedNormalRule //non-ground
-case class OutdatingNormalRule(rule: NormalRule, outdate: Outdate) extends AnnotatedNormalRule //ground
+case class OutdatingNormalRuleTemplate(rule: NormalRule, ticksUntilOutdated: TicksUntilOutdated) extends VolatileNormalRule //non-ground
+case class OutdatingNormalRule(rule: NormalRule, outdate: Outdate) extends VolatileNormalRule //ground
 

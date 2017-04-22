@@ -12,10 +12,14 @@ package object asp {
   val now = Predicate("now")
   val cnt = Predicate("cnt")
   val tickPredicate = Predicate("tick")
+  val timePredicate = Predicate("time")
 
   def tickAtom(time: Argument, count: Argument): AtomWithArguments = AtomWithArguments(tickPredicate,Seq(time,count))
   def tickFact(time: Argument, count: Argument): AspFact[AtomWithArguments] = AspFact(tickAtom(time,count))
   def tickFactAsNormalRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
+  def timeAtom(time: Argument): AtomWithArguments = AtomWithArguments(timePredicate,Seq(time))
+  def timeFact(time: Argument): AspFact[AtomWithArguments] = AspFact(timeAtom(time))
+  def timeFactAsNormalRule(time: Argument): NormalRule = AspFact(timeAtom(time))
 
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   //use -1 for infinity
@@ -24,6 +28,7 @@ package object asp {
   type TicksUntilExpiration = Tick
   type TicksUntilOutdated = Tick
   val Void: Long = -1L
+
 
   val specialPinPredicates = Seq(now, cnt) //note that "tick" is not used for pinning!
 

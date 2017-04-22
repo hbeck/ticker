@@ -1,9 +1,8 @@
 package engine.asp
 
-import core.Atom
-import core.asp.{AspFact, NormalProgram, NormalRule}
+import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint}
-import engine.asp.tms.TickBasedAspToIncrementalAsp
+import engine.asp.tms.{AnnotatedNormalRule, TickBasedAspToIncrementalAsp}
 
 /**
   * Created by fm on 20/02/2017.
@@ -17,6 +16,10 @@ trait WindowAtomEncoder {
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
 
+  //non-instantiated incremental rules for (partial) pre-grounding
+  def windowRuleTemplates(): Seq[AnnotatedNormalRule]
+
+  @deprecated
   def incrementalRules(tick: Tick): Seq[(TicksUntilOutdated,NormalRule)]
 
 }
@@ -35,23 +38,19 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TicksUntilOutdated = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(-1L,-1L))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TicksUntilOutdated = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
 
 }
 
-case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundData: Set[Atom]) extends NormalProgram with LarsBasedProgram {
+case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundKnowledge: Seq[NormalRule]) extends NormalProgram with LarsBasedProgram {
 
-  /*
-   * incremental stuff
-   */
-
-  val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
-  val baseRules = (larsRuleEncodings map (_.aspRule)) ++ (backgroundData map (AspFact(_))) //nowAndAtNowIdentityRules, which includes now(.)
+  lazy val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
+  //val baseRules = (larsRuleEncodings map (_.aspRule)) ++ (backgroundData map (AspFact(_))) //nowAndAtNowIdentityRules, which includes now(.)
 
   /*
    * one-shot stuff
    */
-  lazy val oneShotBaseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ (backgroundData map (AspFact(_)))
+  lazy val oneShotBaseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ backgroundKnowledge
 
   lazy val (groundBaseRules, nonGroundBaseRules) = oneShotBaseRules.
     map(TickBasedAspToIncrementalAsp.stripPositionAtoms).

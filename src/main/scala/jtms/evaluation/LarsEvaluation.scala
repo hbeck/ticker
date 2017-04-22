@@ -55,7 +55,7 @@ object LarsEvaluation {
       println()
     }
 
-    val separator = ";"
+    val separator = "\t"
     if (config.withHeader) {
       println(outputValues.map(_._1).mkString(separator))
     }

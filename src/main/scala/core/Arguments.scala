@@ -38,6 +38,8 @@ object Argument {
   }
 
   implicit def convertToValue(timePoint: TimePoint): Value = timePoint
+
+  implicit def convertToValue(intValue: IntValue): Value = intValue
 }
 
 trait Variable extends Argument {
@@ -155,6 +157,5 @@ object Value {
 
     StringValue(value)
   }
-
 
 }

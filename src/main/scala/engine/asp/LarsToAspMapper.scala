@@ -1,6 +1,6 @@
 package engine.asp
 
-import core.asp.{AspRule, NormalRule}
+import core.asp.{AspFact, AspRule, NormalRule}
 import core.{Atom, PinnedAtom, Predicate}
 import core.lars._
 
@@ -56,6 +56,7 @@ trait LarsToAspMapper {
 
     val (backgroundKnowledge,nonFacts) = program.rules partition (_.isFact)
 
+    val backgroundFacts: Seq[NormalRule] = backgroundKnowledge map (r => AspFact[Atom](r.head.asInstanceOf[Atom])) //ignore potential @-atom facts
     val backgroundData = backgroundKnowledge map (_.head.asInstanceOf[Atom]) toSet //ignore potential @-atom facts
 
     val actualProgram = LarsProgram(nonFacts)
@@ -66,7 +67,7 @@ trait LarsToAspMapper {
 
     val rulesEncodings = actualProgram.rules map encodeRule
 
-    LarsProgramEncoding(rulesEncodings, nowAndAtNowIdentityRules, backgroundData)
+    LarsProgramEncoding(rulesEncodings, nowAndAtNowIdentityRules, backgroundFacts)
   }
 
   def identityRulesForAtom(a: Atom): Seq[NormalRule]

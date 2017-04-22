@@ -16,7 +16,9 @@ import scala.collection.immutable.HashMap
   */
 case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules) //TODO 0422 include those of window rules that do not change
+  //TODO 0422 include those of window rules that do not change
+  //TODO 0422 check background data is included
+  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0, 0) //using (-1,0), first "+" will fail!
@@ -62,9 +64,12 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
 
   def singleOneDimensionalTickIncrement(signal: Option[Atom] = None) {
 
-    val expiringRules: Seq[ExpiringNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
-    expiringRules foreach (expirationHandling.register(_))
-    val rulesToAdd = expiringRules map (_.rule)
+    val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
+    annotatedRules foreach {
+      case ExpiringNormalRule(r,e) => expirationHandling.register(r,e)
+      case OutdatingNormalRule(r,o) => expirationHandling.register(r,o)
+    }
+    val rulesToAdd = annotatedRules map (_.rule)
 
     if (IEEConfig.printRules) {
       println("rules added at tick " + currentTick)
@@ -134,18 +139,16 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     var rulesExpiringAtTime: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var rulesExpiringAtCount: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
 
-    def register(expRule: ExpiringNormalRule): Unit = {
-      val t = expRule.expiration.time
-      val c = expRule.expiration.count
+    def register(rule: NormalRule, expiration: Expiration): Unit = {
+      val t = expiration.time
+      val c = expiration.count
       if (t != Void) {
-        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t, Set()) + expRule.rule)
+        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
       }
       if (c != Void) {
-        rulesExpiringAtCount = rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c, Set()) + expRule.rule)
+        rulesExpiringAtCount = rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
       }
     }
-
-    def register(expRules: Set[ExpiringNormalRule]) = expRules foreach register
 
     def deregisterExpiredByTime(): Seq[NormalRule] = {
       if (!rulesExpiringAtTime.contains(currentTick.time)) {
