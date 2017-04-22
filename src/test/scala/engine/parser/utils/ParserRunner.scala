@@ -21,7 +21,7 @@ class ParserRunner() extends SimpleLarsParser {
   def parseWAtom(input: String): ParseResult[WAtomFactory] = parseAll(wAtom,input)
   def parseBodyAtom(input: String): ParseResult[BodyTrait] = parseAll(bodyElement,input)
   def parseWindow(input: String): ParseResult[WindowFactory] = parseAll(window,input)
-  def parseOperand(input: String): ParseResult[OperandFactory] = parseAll(operand,input)
+  def parseOperand(input: String): ParseResult[ArgumentFactory] = parseAll(operand,input)
   def parseArithmetic(input: String): ParseResult[String] = parseAll(arithmetic,input)
   def parseBool(input: String): ParseResult[String] = parseAll(compare,input)
   def parseOperation(input: String): ParseResult[OperationFactory] = parseAll(operation,input)

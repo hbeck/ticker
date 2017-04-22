@@ -6,13 +6,14 @@ import engine.parser.InvalidSyntaxException
 /**
   * Created by et on 22.03.17.
   */
-case class OperandFactory(operand: Any) {
+case class ArgumentFactory(operand: Any) {
 
-  val arg: Argument = create(operand)
+  lazy val arg: Argument = create(operand)
 
   def create(operand: Any): Argument = operand match {
-    case arg: Double => IntValue(arg.##)
-    case arg: String => Variable(arg)
-    case _ => throw new InvalidSyntaxException("Invalid operand class: "+operand.getClass.toString) //TODO throw exception
+    case arg: Double  => IntValue(arg.##)
+    case arg: Int     => IntValue(arg)
+    case arg: String  => Variable(arg)
+    case _            => throw new InvalidSyntaxException("Invalid operand class: "+operand.getClass.toString)
   }
 }
