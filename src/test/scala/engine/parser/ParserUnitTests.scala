@@ -11,34 +11,124 @@ class ParserUnitTests extends FlatSpec {
   private val arith = List("+","-","/","*","%","^")
   private val comp = List("=",">=","<=","!=","<",">")
 
-  "program" should "be accepted" in {}
-  "program" should "be rejected" in {}
-  "importN" should "be accepted" in {}
-  "importN" should "be rejected" in {}
-  "fqdn" should "be accepted" in {}
-  "fqdn" should "be rejected" in {}
-  "rule" should "be accepted" in {}
-  "rule" should "be rejected" in {}
-  "ruleBase" should "be accepted" in {}
-  "ruleBase" should "be rejected" in {}
+  "program" should "be accepted" in {
+    assert(parser.parseAll(parser.program,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n" +
+      "import engine.parser.factory.slidingWindowFunctionFactory.SlidingTupleWindowFactory as tup\n" +
+      "/* random comment\n" +
+      " * over multiple\n" +
+      " * lines\n" +
+      " */\n" +
+      "\n" +
+      "a :- b.\n" +
+      "c at 2399 :- a in [t 5], d, e at 25000, f always in [tup 30].").successful)
+  }
+//  "program" should "be rejected" in {}
+  "importN" should "be accepted" in {
+    assert(parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
+  }
+
+  "importN" should "be rejected" in {
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw").successful)
+    assert(!parser.parseAll(parser.importN,"engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory stw\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as \n").successful)
+  }
+
+  "fqdn" should "be accepted" in {
+    assert(parser.parseAll(parser.fqdn,"head.string1.string2.last").successful)
+    assert(parser.parseAll(parser.fqdn,"head").successful)
+  }
+  "fqdn" should "be rejected" in {
+    assert(!parser.parseAll(parser.fqdn,"head.string1 . string2.last").successful)
+  }
+  "rule" should "be accepted" in {
+    assert(parser.parseAll(parser.rule,"a :- b.").successful)
+    assert(parser.parseAll(parser.rule,"/*comment?*/a :- b.").successful)
+    assert(parser.parseAll(parser.rule,"a :- not b.").successful)
+    assert(parser.parseAll(parser.rule,"a.").successful)
+    assert(parser.parseAll(parser.rule,"a.//fooo\n").successful)
+  }
+  "rule" should "be rejected" in {
+    assert(!parser.parseAll(parser.rule,":- b.").successful)
+    assert(!parser.parseAll(parser.rule,"a :- b").successful)
+    assert(!parser.parseAll(parser.rule,"a").successful)
+    assert(!parser.parseAll(parser.rule,"a :- /* comment */ b.").successful)
+  }
+//  "ruleBase" should "be accepted" in {}
+//  "ruleBase" should "be rejected" in {}
 //  "head" should "be accepted" in {}
 //  "head" should "be rejected" in {}
-  "body" should "be accepted" in {}
-  "body" should "be rejected" in {}
+  "body" should "be accepted" in {
+    assert(parser.parseAll(parser.body,"a,not b,c at T,d always in [t], e at T in [t 5], f in [t], g [t], " +
+      "h not in [t], not i always not [t], 10 = 5+5, A<B, C = 1+2, C > D").successful)
+  }
+//  "body" should "be rejected" in {}
 //  "bodyElement" should "be accepted" in {}
 //  "bodyElement" should "be rejected" in {}
-  "atom" should "be accepted" in {}
-  "atom" should "be rejected" in {}
-  "predicate" should "be accepted" in {}
-  "predicate" should "be rejected" in {}
-  "atAtom" should "be accepted" in {}
-  "atAtom" should "be rejected" in {}
+  "atom" should "be accepted" in {
+    assert(parser.parseAll(parser.atom,"a").successful)
+    assert(parser.parseAll(parser.atom,"not a").successful)
+    assert(parser.parseAll(parser.atom,"a(A)").successful)
+    assert(parser.parseAll(parser.atom,"not a(A)").successful)
+    assert(parser.parseAll(parser.atom,"a(A,B,10)").successful)
+    assert(parser.parseAll(parser.atom,"not a(A,B,10)").successful)
+  }
+  "atom" should "be rejected" in {
+    assert(!parser.parseAll(parser.atom,"A").successful)
+    assert(!parser.parseAll(parser.atom,"not A").successful)
+    assert(!parser.parseAll(parser.atom,"A(A)").successful)
+    assert(!parser.parseAll(parser.atom,"not A(A)").successful)
+  }
+  "predicate" should "be accepted" in {
+    assert(parser.parseAll(parser.predicate,"pRediCate").successful)
+    assert(parser.parseAll(parser.predicate,"pR3_d1_C4t3").successful)
+  }
+  "predicate" should "be rejected" in {
+    assert(!parser.parseAll(parser.predicate,"No_pRediCate").successful)
+    assert(!parser.parseAll(parser.predicate,"4o_pRediCate").successful)
+    assert(!parser.parseAll(parser.predicate,"no pRe_di_Cate").successful)
+  }
+  "atAtom" should "be accepted" in {
+    assert(parser.parseAll(parser.atAtom,"a at T").successful)
+    assert(parser.parseAll(parser.atAtom,"not a at T").successful)
+    assert(parser.parseAll(parser.atAtom,"a at 10").successful)
+    assert(parser.parseAll(parser.atAtom,"a(A) at T").successful)
+    assert(parser.parseAll(parser.atAtom,"not a(10,A,C) at T").successful)
+  }
+  "atAtom" should "be rejected" in {
+    assert(!parser.parseAll(parser.atAtom,"a at").successful)
+    assert(!parser.parseAll(parser.atAtom,"a T").successful)
+    assert(!parser.parseAll(parser.atAtom,"not a T").successful)
+    assert(!parser.parseAll(parser.atAtom,"a 10").successful)
+  }
 //  "wAtom" should "be accepted" in {}
 //  "wAtom" should "be rejected" in {}
-  "boxWAtom" should "be accepted" in {}
-  "boxWAtom" should "be rejected" in {}
-  "diamWAtom" should "be accepted" in {}
-  "diamWAtom" should "be rejected" in {}
+  "boxWAtom" should "be accepted" in {
+    assert(parser.parseAll(parser.boxWAtom,"a always in [t]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always not in [t]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"not a always in [t]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"not a always not in [t]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [t]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [t 5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [t 5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always[t 5]").successful)
+  }
+//  "boxWAtom" should "be rejected" in {}
+  "diamWAtom" should "be accepted" in {
+    assert(parser.parseAll(parser.diamWAtom,"a in [t]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a not in [t]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"not a in [t]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"not a not in [t]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [t]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [t 5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [t 5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a[t 5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a(A)[t 5]").successful)
+  }
+  "diamWAtom" should "be rejected" in {
+    assert(!parser.parseAll(parser.diamWAtom,"a []").successful)
+  }
   "atWAtom" should "be accepted" in {
     assert(parser.parseAll(parser.atWAtom,"a at T in [t]").successful)
     assert(parser.parseAll(parser.atWAtom,"a at T not in [t]").successful)
@@ -177,10 +267,12 @@ class ParserUnitTests extends FlatSpec {
   }
 //  "comment" should "be rejected" in {}
   "lineComment" should "accept c++-style comments" in {
-    assert(parser.parse(parser.lineComment,"// foo and bar are words\n comment ends with line").successful)
+    assert(parser.parse(parser.lineComment,"// foo and bar are words\n comment ends with line").get ==
+                                                "// foo and bar are words\n")
   }
   "lineComment" should "accept latex-style comments" in {
-    assert(parser.parse(parser.lineComment,"% foo and bar are words\n comment ends with line").successful)
+    assert(parser.parse(parser.lineComment,"% foo and bar are words\n comment ends with line").get ==
+                                                "% foo and bar are words\n")
   }
 //  "lineComment" should "be rejected" in {}
   "newBlockComment" should "accept anything that is between /* */ or %* *% or any combination of the two" in {
