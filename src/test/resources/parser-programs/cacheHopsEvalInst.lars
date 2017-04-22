@@ -1,7 +1,8 @@
 sat(I,N) :- item(I), node(N),req(I,N) in [t 5], cache(I,N) in [t 5].
 sat(I,N) :- item(I), node(N),req(I,N) in [t 5], getFrom(I,N,M).
-needAt(I,N) :- item(I), node(N),req(I,N) in [t 5], not cache(I,N) in [t 5].
-conn(N,M) :- edge(N,M), not error(N,M) [t 5].
+sat(I,N) :- item(I), node(N), req(I,N) in [t 5], not sat(I,N).
+needAt(I,N) :- item(I), node(N),req(I,N) in [t 5], cache(I,N) not in [t 5].
+conn(N,M) :- edge(N,M), error(N,M) not [t 5].
 getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
 n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
 minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
