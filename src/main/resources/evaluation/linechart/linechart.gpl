@@ -1,0 +1,32 @@
+# Chart settings
+
+#set title "test"
+set key left top
+
+set terminal png enhanced 
+set output "linechart.png"
+
+# Define the seperator (default is \t - Tab)
+#set datafile separator ";"
+
+
+c2s = system("awk '!/^#/ { print $1 }' linechart.dat | sort | uniq")
+
+# XYChart settings
+#set nologscale
+#set key autotitle columnhead
+set style data linespoints
+#set xr [*:*] noreverse
+set yr [0:*] noreverse
+set xlabel "Das ist meine X-Achse"
+set ylabel "Time [ms]"
+
+# XYData Plotting
+#plot for [c2 in c2s] sprintf('< grep ''\b%s\b'' linechart.dat', c2) using 3:4 with linespoints title c2
+plot for [c2 in c2s] sprintf('< grep ''\b%s\b'' linechart.dat', c2) using 4:xtic(3) with linespoints title c2
+
+
+unset output
+# Wrapup
+set terminal dumb
+refresh
