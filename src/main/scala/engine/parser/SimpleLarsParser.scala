@@ -18,7 +18,7 @@ class SimpleLarsParser extends JavaTokenParsers {
     case imp ~_ ~ rl => ProgramFactory(imp,rl)
   }
 
-  def importN: Parser[ImportFactory] = "import"~>space ~ fqdn ~ opt("("~> rep1sep(param,",") ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
+  def importN: Parser[ImportFactory] = "import" ~> space ~ fqdn ~ opt("("~> rep1sep(param,",") ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep1(newline,newline) ^^ {
     case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,List(),str2)
     case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,params.get._1,str2)
   }
@@ -27,10 +27,10 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def rule: Parser[RuleFactory] = rep(comment) ~> ruleBase <~ "." <~ optSpace <~ rep(comment) <~ rep(newline)
 
-  def ruleBase: Parser[RuleFactory] = (opt(head) ~ optSpace ~ ":-" ~ optSpace ~ body <~ optSpace ^^ {
+  def ruleBase: Parser[RuleFactory] = (head ~ optSpace ~ ":-" ~ optSpace ~ body <~ optSpace ^^ {
     case h ~ _ ~ _ ~ _ ~ b => RuleFactory(h,b)
   }
-    | head ^^ (h => RuleFactory(Some(h), List())))
+    | head ^^ (h => RuleFactory(h, List())))
 
   def head: Parser[AtomTrait] = atAtom | atom
 
@@ -48,8 +48,12 @@ class SimpleLarsParser extends JavaTokenParsers {
     case l ~ r => l+""+r.mkString
   }
 
-  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ neg ~ "at" ~ space ~ (float|rep1(upperChar, str)) ^^ {
-    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not,atom,time.toString)
+  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ neg ~ "at" ~ space ~ (float ^^ (f => f.toString)
+    |upperChar ~ opt(str) ^^ {
+    case c ~ None => c.toString
+    case c ~ str => c+""+str.get
+  }) ^^ {
+      case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not,atom,time)
   }
 
   def wAtom: Parser[WAtomFactory] = boxWAtom | diamWAtom | atWAtom
@@ -77,8 +81,8 @@ class SimpleLarsParser extends JavaTokenParsers {
     case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
-  def operand: Parser[OperandFactory] = optSpace ~> (variable ^^ { o: String => OperandFactory(o) }
-                                                    | float ^^ { o: Double => OperandFactory(o) }) <~ optSpace
+  def operand: Parser[ArgumentFactory] = optSpace ~> (variable ^^ { o: String => ArgumentFactory(o) }
+                                                    | float ^^ { o: Double => ArgumentFactory(o) }) <~ optSpace
 
   def arithmetic: Parser[String] = optSpace ~> ("+"|"-"|"/"|"*"|"%"|"^") <~ optSpace
 
@@ -136,17 +140,17 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def upperChar: Parser[Char] = """[A-Z]""".r ^^ (_.head)
 
-  def comment: Parser[Any] = lineComment | blockComment
+  def comment: Parser[String] = lineComment | blockComment | """[\n\r]""".r
 
-  def lineComment: Parser[Any] = """(\/\/|%).*?(\n|\r)+?""".r
+  def lineComment: Parser[String] = """(\/\/|%).*?(\n|\r)+?""".r
 
 //  def lineComment: Parser[Any] = ("//" | "%") ~ optSpace ~ repsep(str,space) ~ newline
 
-  def blockComment: Parser[Any] = """(((\/\*)|%\*)(.|\n|\r)*?((\*\/)|\*%))""".r
+  def blockComment: Parser[String] = """(((\/\*)|%\*)(.|\n|\r)*?((\*\/)|\*%))""".r
 
 //  def blockComment: Parser[Any] = ("/*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""") ~ "*/" | "%*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""".r) ~ "*%") ~ rep(newline)
 
-  def optSpace: Parser[String] = rep(" ") ^^ (_.toString)
+  def optSpace: Parser[String] = """ *""".r //(_.toString)
 
   def space: Parser[String] = rep1(" ") ^^ (_.toString)
 }
