@@ -71,7 +71,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   //do not allow/consider facts to appear only non-ground; but fact atoms may appear non-ground in bodies of rules
   //however: for non-ground, we must identify different variable names used in atoms
   val nonGroundFactAtomPredicates = ruleCores flatMap (_.pos) collect {
-    case b: Atom if groundFactAtomPredicates.contains(b.predicate) => b.predicate
+    case b: Atom if (groundFactAtomPredicates contains b.predicate) => b.predicate
   }
 
   val nonGroundHeadPredicates = ruleCores map (_.head) collect { case x: NonGroundAtom => x.predicate }
@@ -89,7 +89,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   def makeAtomLookupMap(predicates: Set[Predicate]): Map[TRule, Map[Variable, Set[NonGroundAtom]]] = {
     def atomsPerVariable(rule: TRule): Map[Variable, Set[NonGroundAtom]] = {
       def atomsWithVar(v: Variable): Set[NonGroundAtom] = rule.pos collect {
-        case atom: NonGroundAtom if (predicates contains atom.predicate) && atom.variables.contains(v) => atom
+        case atom: NonGroundAtom if (predicates contains atom.predicate) && (atom.variables contains v) => atom
       }
       val variableOccurrences: Map[Variable, Set[NonGroundAtom]] = (rule.variables map (v => (v, atomsWithVar(v)))).toMap
       variableOccurrences

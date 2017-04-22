@@ -21,7 +21,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
   def encodingAtom(extendedAtom: ExtendedAtom): Atom = extendedAtom match {
     case AtAtom(t, a) => PinnedAtom.asPinnedAtAtom(a, t)
     case a: Atom => a
-    case a: WindowAtom => this.encodedWindowAtom(a)
+    case a: WindowAtom => encodedWindowAtom(a)
   }
 
   // windowAtom: \window^1 @_T a(X)

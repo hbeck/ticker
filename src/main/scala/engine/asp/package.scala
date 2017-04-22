@@ -15,12 +15,12 @@ package object asp {
 
   def tickAtom(time: Argument, count: Argument): AtomWithArguments = AtomWithArguments(tickPredicate,Seq(time,count))
   def tickFact(time: Argument, count: Argument): AspFact[AtomWithArguments] = AspFact(tickAtom(time,count))
-  def tickRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
+  def tickFactAsNormalRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
 
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   //use -1 for infinity
   type Expiration = Tick //time, count
-  //type Outdate = TickPair //time, count
+  type Outdate = Tick //time, count
   type TicksUntilExpiration = Tick
   type TicksUntilOutdated = Tick
   val Void: Long = -1L

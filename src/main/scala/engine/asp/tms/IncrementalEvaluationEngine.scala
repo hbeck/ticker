@@ -2,11 +2,11 @@ package engine.asp.tms
 
 import core._
 import core.asp.NormalRule
-import core.grounding.incremental.TailoredIncrementalGrounder
 import core.lars.TimePoint
 import engine._
 import engine.asp._
 import engine.asp.tms.policies.TmsPolicy
+
 import scala.collection.immutable.HashMap
 
 /**
@@ -16,12 +16,7 @@ import scala.collection.immutable.HashMap
   */
 case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val grounder = TailoredIncrementalGrounder()
-  //deprecated: grounder.add(incrementalRuleMaker.staticGroundRules)
-  grounder.prepareStaticGroundRules(incrementalRuleMaker.staticRules) //ground everything that does not depend on ticks
-
-  //deprecated: tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
-  tmsPolicy.initialize(grounder.staticGroundRules) //result of initStaticPart
+  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules) //TODO 0422 include those of window rules that do not change
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0, 0) //using (-1,0), first "+" will fail!
@@ -65,20 +60,11 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     singleOneDimensionalTickIncrement(Some(signal))
   }
 
-  //method to be called whenever time xor count increases by 1
   def singleOneDimensionalTickIncrement(signal: Option[Atom] = None) {
 
-    //TODO 0420 is it possible to do pinning only?
-    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
-    rulesToGround foreach { case (e, r) =>
-      grounder.add(r)
-      expirationHandling.register(e, Set(r))
-    }
-    val rulesToAdd = rulesToGround flatMap { case (e, r) =>
-      val rules = grounder.ground(r)
-      if (!rules.isEmpty) expirationHandling.register(e, rules)
-      rules
-    }
+    val expiringRules: Seq[ExpiringNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
+    expiringRules foreach (expirationHandling.register(_))
+    val rulesToAdd = expiringRules map (_.rule)
 
     if (IEEConfig.printRules) {
       println("rules added at tick " + currentTick)
@@ -101,25 +87,65 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       }
     }
 
-    //grounder.remove(rulesToRemove) //TODO 0420 ever do?
     tmsPolicy.remove(currentTick.time)(rulesToRemove)
   }
+
+  //method to be called whenever time xor count increases by 1
+//  def singleOneDimensionalTickIncrement(signal: Option[Atom] = None) {
+//
+//    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
+//    rulesToGround foreach { case (e, r) =>
+//      grounder.add(r)
+//      expirationHandling.register(e, Set(r))
+//    }
+//    val rulesToAdd = rulesToGround flatMap { case (e, r) =>
+//      val rules = grounder.ground(r)
+//      if (!rules.isEmpty) expirationHandling.register(e, rules)
+//      rules
+//    }
+//
+//    if (IEEConfig.printRules) {
+//      println("rules added at tick " + currentTick)
+//      rulesToAdd foreach println
+//    }
+//
+//    tmsPolicy.add(currentTick.time)(rulesToAdd)
+//
+//    val expiredRules = signal match { //logic somewhat implicit...
+//      case None => expirationHandling.deregisterExpiredByTime()
+//      case _ => expirationHandling.deregisterExpiredByCount()
+//    }
+//
+//    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
+//
+//    if (IEEConfig.printRules) {
+//      println("\nrules removed at tick " + currentTick)
+//      if (rulesToRemove.isEmpty) println("(none)") else {
+//        rulesToRemove foreach println
+//      }
+//    }
+//
+//    grounder.remove(rulesToRemove)
+//    tmsPolicy.remove(currentTick.time)(rulesToRemove)
+//  }
 
   object expirationHandling {
 
     var rulesExpiringAtTime: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var rulesExpiringAtCount: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
 
-    def register(expiration: Expiration, rules: Set[NormalRule]) {
-      val t = expiration.time
-      val c = expiration.count
+    def register(expRule: ExpiringNormalRule): Unit = {
+      val t = expRule.expiration.time
+      val c = expRule.expiration.count
       if (t != Void) {
-        rulesExpiringAtTime = rulesExpiringAtTime updated(t, rulesExpiringAtTime.getOrElse(t, Set()) ++ rules)
+        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t, Set()) + expRule.rule)
       }
       if (c != Void) {
-        rulesExpiringAtCount = rulesExpiringAtCount updated(c, rulesExpiringAtCount.getOrElse(c, Set()) ++ rules)
+        rulesExpiringAtCount = rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c, Set()) + expRule.rule)
       }
     }
+
+    def register(expRules: Set[ExpiringNormalRule]) = expRules foreach register
 
     def deregisterExpiredByTime(): Seq[NormalRule] = {
       if (!rulesExpiringAtTime.contains(currentTick.time)) {

@@ -15,7 +15,7 @@ trait LarsToAspMapper {
   }
 
   def encodeRule(rule: LarsRule): LarsRuleEncoding = {
-    val encodedRule = this.encode(rule)
+    val encodedRule = encode(rule)
 
     val windowAtomEncoders = (rule.pos ++ rule.neg) collect {
       case wa: WindowAtom => windowAtomEncoder(wa)
@@ -47,20 +47,24 @@ trait LarsToAspMapper {
   def encode(rule: LarsRule): NormalRule = {
     AspRule(
       encodingAtom(rule.head),
-      rule.pos map this.encodingAtom,
-      rule.neg map this.encodingAtom
+      rule.pos map encodingAtom,
+      rule.neg map encodingAtom
     )
   }
 
   def apply(program: LarsProgram): LarsProgramEncoding = {
 
-    val nowAndAtNowIdentityRules = program.atoms.
+    val (backgroundKnowledge,nonFacts) = program.rules partition (_.isFact)
+
+    val backgroundData = backgroundKnowledge map (_.head.asInstanceOf[Atom]) toSet //ignore potential @-atom facts
+
+    val actualProgram = LarsProgram(nonFacts)
+
+    val nowAndAtNowIdentityRules = actualProgram.atoms.diff(backgroundData). //assumption on use of background data
       flatMap(identityRulesForAtom).
       toSeq
 
-    val rulesEncodings = program.rules map encodeRule
-
-    val backgroundData = Set[Atom]() //TODO
+    val rulesEncodings = actualProgram.rules map encodeRule
 
     LarsProgramEncoding(rulesEncodings, nowAndAtNowIdentityRules, backgroundData)
   }

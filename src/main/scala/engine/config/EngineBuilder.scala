@@ -7,7 +7,7 @@ import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.reactive.ReactiveEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
-import engine.asp.tms.{IncrementalEvaluationEngine, TmsEvaluationEngine}
+import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker, TmsEvaluationEngine}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsUpdateAlgorithm
