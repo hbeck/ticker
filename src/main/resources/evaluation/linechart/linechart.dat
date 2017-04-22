@@ -1,0 +1,7 @@
+impl    instance   w_size    add_time_per_tp
+ClingoPush  cacheHops2   10    0.51
+ClingoPush  cacheHops2   100   0.52
+ClingoPush  cacheHops2   1000  0.53
+DoyleHeur   cacheHops2    10 0.77
+DoyleHeur   cacheHops2    100    0.44
+DoyleHeur   cacheHops2    1000   0.23
