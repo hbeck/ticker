@@ -1,8 +1,10 @@
 package engine.asp
 
+import core.Atom
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint}
 import engine.asp.tms.{AnnotatedNormalRule, TickBasedAspToIncrementalAsp}
+
 
 /**
   * Created by fm on 20/02/2017.
@@ -18,6 +20,8 @@ trait WindowAtomEncoder {
 
   //non-instantiated incremental rules for (partial) pre-grounding
   def windowRuleTemplates(): Seq[AnnotatedNormalRule]
+
+  //val groundingGuards: Set[Atom] //TODO at this to posBody of windowRuleTemplates? 0424
 
   @deprecated
   def incrementalRules(tick: Tick): Seq[(TicksUntilOutdated,NormalRule)]

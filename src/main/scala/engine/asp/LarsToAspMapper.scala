@@ -57,11 +57,11 @@ trait LarsToAspMapper {
     val (backgroundKnowledge,nonFacts) = program.rules partition (_.isFact)
 
     val backgroundFacts: Seq[NormalRule] = backgroundKnowledge map (r => AspFact[Atom](r.head.asInstanceOf[Atom])) //ignore potential @-atom facts
-    val backgroundData = backgroundKnowledge map (_.head.asInstanceOf[Atom]) toSet //ignore potential @-atom facts
+    val backgroundPredicates = backgroundKnowledge map (_.head.atom.predicate) toSet
 
     val actualProgram = LarsProgram(nonFacts)
 
-    val nowAndAtNowIdentityRules = actualProgram.atoms.diff(backgroundData). //assumption on use of background data
+    val nowAndAtNowIdentityRules = actualProgram.atoms.filter(a => !backgroundPredicates.contains(a.predicate)). //assumption on use of background data
       flatMap(identityRulesForAtom).
       toSeq
 

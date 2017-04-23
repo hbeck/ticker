@@ -96,7 +96,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtA
     AspRule[Atom,Atom](head, Set(now(TimePinVariable), b))
   }
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     val posBody = Set(PinnedAtom.asPinnedAtAtom(atom,atTime))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(length + 1, Void)
@@ -133,7 +133,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
     AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](now(TimePinVariable), b))
   }
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,TimePinVariable))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(length+1,Void)
@@ -165,7 +165,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) ex
 
   override lazy val allWindowRules: Seq[NormalRule] = spoilerRules :+ staticRule
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     if (length == 0) return Seq(StaticNormalRule(staticRule)) //TODO prevT
     val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1)))) //TODO check usage
     val expSp: TickDuration =  Tick(length,Void)
@@ -194,7 +194,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
     AspRule[Atom, Atom](windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, atTime, D), Plus(CountPinVariable, IntValue(-i), D)))
   }
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,atTime,CountPinVariable))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(Void,length)
@@ -223,7 +223,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
     AspRule(windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, T, CountPinVariable - i)))
   }
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePinVariable,CountPinVariable))
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(Void,length)
@@ -275,7 +275,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom) e
   val offset:Offset = length.toInt - 1
   val startTickCount = VariableWithOffset(CountPinVariable,offset)
 
-  override def windowRuleTemplates: Seq[AnnotatedNormalRule] = {
+  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     if (length < 2) return Seq(StaticNormalRule(staticRule))
 
     val spoilerRule: NormalRule = AspRule(spoilerAtom,

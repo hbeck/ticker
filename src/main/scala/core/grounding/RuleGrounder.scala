@@ -12,7 +12,7 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
     }
     val possibleVariableValues: Map[Variable, Set[Value]] = inspect.possibleVariableValues(rule,ensureGroundResult)
-    ground(rule, possibleVariableValues)
+    ground(rule, possibleVariableValues, ensureGroundResult)
   }
 
   def relationsHold(rule: TRule): Boolean = {
@@ -26,7 +26,16 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
   }
 
-  def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]]): Set[TRule] = {
+  def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]], ensureGroundResult: Boolean): Set[TRule] = {
+
+    if (possibleValuesPerVariable.isEmpty) {
+      if (ensureGroundResult) {
+        throw new RuntimeException(f"no possibleValuesPerVariable for rule $rule")
+      } else {
+        return Set(rule)
+      }
+    }
+
     val relationAtoms: Set[RelationAtom] = rule.atoms collect { case a: RelationAtom => a }
     def holdsPartially = allGroundedRelationsHold(relationAtoms) _
 

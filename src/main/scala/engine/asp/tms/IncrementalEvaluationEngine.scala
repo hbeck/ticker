@@ -67,6 +67,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
     annotatedRules foreach {
       case xr:ExpiringNormalRule => expirationHandling.register(xr.rule,xr.expiration)
+      case _ =>
     }
     val rulesToAdd = annotatedRules map (_.rule)
 
