@@ -23,10 +23,11 @@ package object asp {
 
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
   //use -1 for infinity
-  type Expiration = Tick //time, count
-  type Outdate = Tick //time, count
-  type TicksUntilExpiration = Tick
-  type TicksUntilOutdated = Tick
+  @deprecated type Expiration = Tick //time, count; now using simply Tick
+  @deprecated type Outdate = Tick //time, count; now using simply Tick
+  type TickDuration = Tick //subsumes previous TicksUntilExpired, TicksUntilOutdated
+  @deprecated type TicksUntilExpiration = Tick
+  @deprecated type TicksUntilOutdated = Tick
   val Void: Long = -1L
 
 

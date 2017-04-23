@@ -6,12 +6,12 @@ import core.grounding.Grounding._
 
 case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](inspect: ProgramInspection[TRule, THead, TBody]) {
 
-  def ground(rule: TRule): Set[TRule] = {
+  def ground(rule: TRule, ensureGroundResult: Boolean = true): Set[TRule] = {
     if (rule isGround) {
       if (rule.isFact) return Set(rule)
       else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
     }
-    val possibleVariableValues: Map[Variable, Set[Value]] = inspect.possibleVariableValues(rule)
+    val possibleVariableValues: Map[Variable, Set[Value]] = inspect.possibleVariableValues(rule,ensureGroundResult)
     ground(rule, possibleVariableValues)
   }
 

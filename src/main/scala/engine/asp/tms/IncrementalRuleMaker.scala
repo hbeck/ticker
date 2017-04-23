@@ -14,74 +14,85 @@ import engine.asp._
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: TailoredIncrementalGrounder) {
 
-  //
-  //
+  private val Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map (TickBasedAspToIncrementalAsp.stripPositionAtoms(_))
 
-  val Q: Seq[ExpiringNormalRuleTemplate] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
-    ExpiringNormalRuleTemplate(TickBasedAspToIncrementalAsp.stripPositionAtoms(r),Tick(1,Void))
-  }
+  private val VoidTick = Tick(Void,Void)
 
-  val VoidTick = Tick(Void,Void)
-
-  val baseRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings map { encoding =>
+  private val baseRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings map { encoding =>
     val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(encoding.aspRule)
     val ticks = encoding.ticksUntilOutdated()
     if (ticks == VoidTick) {
       StaticNormalRule(rule)
+    } else if (ticks.count == Void) {
+      NormalRuleWithTimeDuration(rule,ticks,ExpirationOptional)
+    } else if (ticks.time == Void) {
+      NormalRuleWithCountDuration(rule,ticks,ExpirationOptional)
     } else {
-      OutdatingNormalRuleTemplate(rule,ticks)
+      NormalRuleWithDualDuration(rule,ticks,ExpirationOptional)
     }
   }
 
-  val windowRuleTemplates: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings flatMap { encoding =>
+  private val windowRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings flatMap { encoding =>
     encoding.windowAtomEncoders flatMap (_.windowRuleTemplates)
   }
 
-  val (staticBaseRules,volatileBaseRules) = baseRules partition (_.isInstanceOf[StaticNormalRule])
-  val (staticWindowRules,volatileWindowRules) = windowRuleTemplates partition (_.isInstanceOf[StaticNormalRule])
+  private val (baseRulesStatic,baseRulesWithDuration) = baseRules partition (_.isInstanceOf[StaticNormalRule])
+  private val (windowRulesStatic,windowRulesWithDuration) = windowRules partition (_.isInstanceOf[StaticNormalRule])
 
-  //grounding part TODO
+  private val allRules: Seq[NormalRule] = ((baseRules ++ windowRules) map (_.rule)) ++ Q ++ larsProgramEncoding.backgroundKnowledge
 
-  val pregroundedQ = {
-    val templates =???
+  grounder.init(allRules)
+
+  private def groundFully(xRules: Seq[AnnotatedNormalRule]): Seq[NormalRule] = xRules flatMap (xr => grounder.groundFully(xr.rule))
+
+  private def groundPartially(xRules: Seq[AnnotatedNormalRule]): Seq[NormalRuleWithDuration] = xRules flatMap { xr =>
+    val rwd = xr.asInstanceOf[NormalRuleWithDuration]
+    grounder.groundPartially(rwd.rule) map { groundRule =>
+      rwd match {
+        case r:NormalRuleWithTimeDuration => NormalRuleWithTimeDuration(groundRule,r.duration,r.expirationMode,r.preparationMode)
+        case r:NormalRuleWithCountDuration => NormalRuleWithCountDuration(groundRule,r.duration,r.expirationMode,r.preparationMode)
+        case r:NormalRuleWithDualDuration => NormalRuleWithDualDuration(groundRule,r.duration,r.expirationMode,r.preparationMode)
+      }
+    }
   }
 
-  //val (nonExpiringR,expiringR) = R partition { case (ticks,_) => ticks.time == Void && ticks.count == Void }
 
-  //grounder.prepareStaticGroundRules(nonExpiringR map { case (_,r) => r})
+  //!
+  private val Q_prepared: Seq[NormalRuleWithDuration] = Q flatMap (r => grounder.groundPartially(r) map (NormalRuleWithTimeDuration(_,Tick(1,Void),ExpirationObligatory)))
 
+  //!
+  private val baseRules_expiring_prepared: Seq[NormalRuleWithDuration] = groundPartially(baseRulesWithDuration)
 
-  val staticGroundRules = grounder.staticGroundRules
+  private val windowRulesExpiringPartialGrounding: Seq[NormalRuleWithDuration] = groundPartially(windowRulesWithDuration)
 
-  def hasTickVariable(rule: NormalRule) = rule.atoms.exists { a =>
-    a.isInstanceOf[PinnedAtom] && a.asInstanceOf[PinnedAtom].pinnedArguments.exists(arg => arg.isInstanceOf[Variable])
+  //first are from tuple-box combination. to be tackled manually
+  //!
+  private val (windowRules_expiring_prepared, windowRules_expiring_that_need_incremental_grounding) = {
+    windowRulesExpiringPartialGrounding partition (_.preparationMode == MayBePregrounded)
   }
 
-  /*
-   * TODO separate rules:
-   * a) no tick-variables
-   * b) only time-tick variables
-   * c) only count-tick variables
-   * d) both tick-variables
-   */
+  val staticGroundRules = groundFully(baseRulesStatic ++ windowRulesStatic)
 
   def rulesToAddFor(currentTick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
 
     val timeIncrease = signal.isEmpty
 
     val tick = tickFactAsNormalRule(TimePoint(currentTick.time),Value(currentTick.count.toInt))
-    val time = timeFactAsNormalRule(TimePoint(currentTick.time)) //TODO only if needed
-    val auxFacts: Seq[AnnotatedNormalRule] = Seq(StaticNormalRule(tick),StaticNormalRule(time)) //TODO outdating based on max window length
-    val signals: Seq[AnnotatedNormalRule] = //TODO outdating
+    val auxFacts: Seq[AnnotatedNormalRule] = Seq() :+ StaticNormalRule(tick) //TODO expiring based on max window length
+    val signals: Seq[AnnotatedNormalRule] = { //TODO expiring
       if (timeIncrease) { Seq() }
-      else { pinnedAtoms(DefaultTrackedSignal(signal.get,currentTick)) }
+      else { pinnedAtoms(DefaultTrackedSignal(signal.get, currentTick)) }
+    }
 
     val pin = expirationPinningForTick(currentTick)
-    val pQ = if (timeIncrease) pin(pregroundedQ) else Seq()
-    val pB = pin(volatileBaseRules)
-    val pW = pin(volatileWindowRules) //static vs volatile = expiring vs outdating
+    val expiringRules: Seq[AnnotatedNormalRule] = {
+      if (timeIncrease) { pin(rulesToPinForTimeIncrease) }
+      else { pin(rulesToPinForCountIncrease) }
+    }
 
-    signals ++ auxFacts ++ pQ ++ pB ++ pW
+    //TODO tuple-box
+
+    signals ++ auxFacts ++ expiringRules
   }
 
 //  @deprecated
@@ -102,10 +113,12 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 //    facts ++ pq ++ pr ++ nonExpiringR ++ windowRules
 //  }
 
-  def expirationPinningForTick(now: Tick): (Seq[ExpiringNormalRuleTemplate] => Seq[ExpiringNormalRule]) = {
+  def expirationPinningForTick(now: Tick): (Seq[NormalRuleWithDuration] => Seq[ExpiringNormalRule]) = {
     val pin = Pin(now.time,now.count)
-    def f(rules: Seq[ExpiringNormalRuleTemplate]): Seq[ExpiringNormalRule] = {
-      rules map (r => ExpiringNormalRule(pin.groundTickVariables(r.rule),now+r.ticksUntilExpired))
+    def f(rules: Seq[NormalRuleWithDuration]): Seq[ExpiringNormalRule] = rules map {
+      case xr: NormalRuleWithTimeDuration => NormalRuleTimeExpiration(pin.groundTickVariables(xr.rule), now + xr.duration, xr.expirationMode)
+      case xr: NormalRuleWithCountDuration => NormalRuleCountExpiration(pin.groundTickVariables(xr.rule), now + xr.duration, xr.expirationMode)
+      case xr: NormalRuleWithDualDuration => NormalRuleDualExpiration(pin.groundTickVariables(xr.rule), now + xr.duration, xr.expirationMode)
     }
     f
   }
@@ -124,8 +137,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   def countPinned(count: Long)(rules: Seq[(TicksUntilOutdated,NormalRule)]) = timeCountPinned(TickPair(Void,count))(rules)
   */
 
-  def pinnedAtoms(t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = { //TODO outdating
-    Seq(t.timePinned, t.timeCountPinned) map (a => StaticNormalRule(AspFact[Atom](a)))
+  def pinnedAtoms(t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = { //TODO expire
+    Seq() :+ StaticNormalRule(AspFact[Atom](t.timePinned)) :+ StaticNormalRule(AspFact[Atom](t.timeCountPinned))
   }
 
   @deprecated

@@ -15,7 +15,7 @@ import core.lars.{ExtendedAtom, HeadAtom, LarsProgram, LarsRule}
 case class IncrementalProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) extends ProgramInspection[TRule,THead,TBody] {
 
   //TODO fix static one first
-  override def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
+  override def possibleVariableValues(rule: TRule, ensureGroundResult: Boolean): Map[Variable, Set[Value]] = {
     Map()
     //rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
   }

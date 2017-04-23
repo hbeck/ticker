@@ -14,7 +14,7 @@ trait WindowAtomEncoder {
 
   val length: Long
   //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
-  def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated
+  def ticksUntilWindowAtomIsOutdated(): TickDuration
 
   //non-instantiated incremental rules for (partial) pre-grounding
   def windowRuleTemplates(): Seq[AnnotatedNormalRule]
@@ -38,7 +38,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TicksUntilOutdated = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TickDuration = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
 
 }
 

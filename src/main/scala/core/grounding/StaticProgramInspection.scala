@@ -14,8 +14,13 @@ import scala.collection.immutable.HashMap
  */
 case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](rules: Seq[TRule]) extends ProgramInspection[TRule,THead,TBody] {
 
-  override def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]] = {
-    rule.variables map (v => (v, possibleValuesForVariable(rule, v))) toMap
+  override def possibleVariableValues(rule: TRule, ensureGroundResult: Boolean): Map[Variable, Set[Value]] = {
+    val pairs = rule.variables map (v => (v, possibleValuesForVariable(rule, v, ensureGroundResult)))
+    if (ensureGroundResult) {
+      pairs toMap
+    } else {
+      pairs collect { case (k,v) if (!v.isEmpty) => (k,v)} toMap
+    }
   }
 
   //
@@ -102,7 +107,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   //
   //
 
-  def possibleValuesForVariable(rule: TRule, variable: Variable): Set[Value] = {
+  def possibleValuesForVariable(rule: TRule, variable: Variable, ensureGroundResult: Boolean): Set[Value] = {
 
     val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere //TODO move up
 
@@ -120,7 +125,11 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
     val nonGroundIntensionalAtoms = nonGroundIntensionalAtomsPerVariableInRule(coreRule).getOrElse(variable, Set())
     if (nonGroundIntensionalAtoms.isEmpty) {
-      throw new RuntimeException("rule " + coreRule + ": variable " + variable + " does not appear in a fact atom or intensional atom.")
+      if (ensureGroundResult) {
+        throw new RuntimeException("rule " + coreRule + ": variable " + variable + " does not appear in a fact atom or intensional atom.")
+      } else {
+        return Set()
+      }
     }
 
     // since the variable does not appear in a fact atom, we have to collect *all* values
