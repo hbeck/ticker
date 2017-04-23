@@ -1,7 +1,7 @@
 package engine.asp
 
 import core.asp.{AspFact, AspRule, NormalRule}
-import core.{Atom, PinnedAtom, Predicate}
+import core.{Atom, PinnedAtom, Predicate, RelationAtom}
 import core.lars._
 
 /**
@@ -9,19 +9,34 @@ import core.lars._
   */
 trait LarsToAspMapper {
 
-  def windowAtomEncoder(windowAtom: WindowAtom): WindowAtomEncoder = windowAtom match {
-    case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w)
-    case w@WindowAtom(window: SlidingTupleWindow, _, _) => slidingTuple(window, w)
+  def windowAtomEncoder(windowAtom: WindowAtom, groundingGuards: Set[Atom]=Set()): WindowAtomEncoder = windowAtom match {
+    case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w, groundingGuards)
+    case w@WindowAtom(window: SlidingTupleWindow, _, _) => slidingTuple(window, w, groundingGuards)
   }
 
   def encodeRule(rule: LarsRule): LarsRuleEncoding = {
     val encodedRule = encode(rule)
 
+    val groundingGuards: Map[WindowAtom,Set[Atom]] = extractGroundingGuards(rule)
+
     val windowAtomEncoders = (rule.pos ++ rule.neg) collect {
-      case wa: WindowAtom => windowAtomEncoder(wa)
+      case wa: WindowAtom => windowAtomEncoder(wa,groundingGuards.getOrElse(wa,Set()))
     }
 
     LarsRuleEncoding(rule, encodedRule, windowAtomEncoders)
+  }
+
+  def extractGroundingGuards(rule: LarsRule): Map[WindowAtom,Set[Atom]] = {
+    val variables = rule.pos collect {
+      case wa: WindowAtom => (wa, wa.atom.variables)
+    }
+    val posAtoms = rule.pos collect { case a:Atom if !a.isInstanceOf[RelationAtom] => a }
+    variables map {
+      case (wa,wVars) => {
+        val guards = posAtoms filter (a => !a.variables.intersect(wVars).isEmpty)
+        (wa,guards)
+      }
+    } toMap
   }
 
   def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
@@ -74,9 +89,9 @@ trait LarsToAspMapper {
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom
 
-  def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom): WindowAtomEncoder
+  def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
 
-  def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom): WindowAtomEncoder
+  def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
 
   def timePoints(unit: TimeUnit, size: Long): Long
 }

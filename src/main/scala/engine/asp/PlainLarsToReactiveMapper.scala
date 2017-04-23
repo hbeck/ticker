@@ -33,11 +33,13 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
 
     //non-instantiated incremental rules for (partial) pre-grounding
     override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = Seq()
+
+    override val groundingGuards: Set[Atom] = Set()
   }
 
-  override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom): WindowAtomEncoder = dummy
+  override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder = dummy
 
-  override def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom): WindowAtomEncoder = dummy
+  override def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder = dummy
 
   override def timePoints(unit: TimeUnit, size: TupleCount): TupleCount = -1
 }

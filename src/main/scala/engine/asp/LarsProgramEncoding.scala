@@ -21,7 +21,7 @@ trait WindowAtomEncoder {
   //non-instantiated incremental rules for (partial) pre-grounding
   def windowRuleTemplates(): Seq[AnnotatedNormalRule]
 
-  //val groundingGuards: Set[Atom] //TODO at this to posBody of windowRuleTemplates? 0424
+  val groundingGuards: Set[Atom] //TODO at this to posBody of windowRuleTemplates? 0424
 
   @deprecated
   def incrementalRules(tick: Tick): Seq[(TicksUntilOutdated,NormalRule)]
