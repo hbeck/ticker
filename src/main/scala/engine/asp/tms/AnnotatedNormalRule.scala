@@ -23,13 +23,16 @@ case class NormalRuleWithCountDuration(rule: NormalRule, duration: TickDuration,
 case class NormalRuleWithDualDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, preparationMode: PreparationMode = MayBePregrounded) extends NormalRuleWithDuration
 
 trait ExpiringNormalRule extends AnnotatedNormalRule {
-  val deadline: Tick
+  val expiration: Tick
   val expirationMode: ExpirationMode
 }
 
-case class NormalRuleTimeExpiration(rule: NormalRule, deadline: Tick, expirationMode: ExpirationMode) extends ExpiringNormalRule //necessarily ground
-case class NormalRuleCountExpiration(rule: NormalRule, deadline: Tick, expirationMode: ExpirationMode) extends ExpiringNormalRule //necessarily ground
-case class NormalRuleDualExpiration(rule: NormalRule, deadline: Tick, expirationMode: ExpirationMode) extends ExpiringNormalRule //necessarily ground
+trait TimeExpiringNormalRule extends ExpiringNormalRule
+trait CountExpiringNormalRule extends ExpiringNormalRule
+
+case class NormalRuleTimeExpiration(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends TimeExpiringNormalRule //necessarily ground
+case class NormalRuleCountExpiration(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends CountExpiringNormalRule //necessarily ground
+case class NormalRuleDualExpiration(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends TimeExpiringNormalRule with CountExpiringNormalRule //necessarily ground
 
 sealed trait ExpirationMode
 case object ExpirationObligatory extends ExpirationMode

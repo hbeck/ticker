@@ -3,6 +3,7 @@ package engine.asp
 import core._
 import core.asp.NormalRule
 import core.lars.{TimeUnit => _, _}
+import engine.asp.tms.AnnotatedNormalRule
 
 import scala.concurrent.duration._
 
@@ -29,6 +30,9 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
     override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = Tick(-1,-1)
 
     override def incrementalRules(tick: Tick): Seq[(Expiration, NormalRule)] = Seq()
+
+    //non-instantiated incremental rules for (partial) pre-grounding
+    override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = Seq()
   }
 
   override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom): WindowAtomEncoder = dummy

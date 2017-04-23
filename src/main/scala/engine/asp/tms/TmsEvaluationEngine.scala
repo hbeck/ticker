@@ -56,8 +56,8 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
 
     val inspectWithAllSignals = StaticProgramInspection.forAsp(AspProgram((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toList))
     val grounder = GrounderInstance.oneShotAsp(inspectWithAllSignals)
-    // TODO: grounding fails here
-    val grounded = groundTimeVariableCalculations flatMap grounder.ground toSeq
+
+    val grounded = groundTimeVariableCalculations flatMap (grounder.ground(_)) toSeq
 
     val nowAtom = AspFact[Atom](now(time))
     val cntAtom = AspFact[Atom](cnt(tracker.tupleCount))

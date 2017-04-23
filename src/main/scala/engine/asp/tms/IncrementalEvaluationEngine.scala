@@ -66,8 +66,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
 
     val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
     annotatedRules foreach {
-      case ExpiringNormalRule(r,e) => expirationHandling.register(r,e)
-      case OutdatingNormalRule(r,o) => expirationHandling.register(r,o)
+      case xr:ExpiringNormalRule => expirationHandling.register(xr.rule,xr.expiration)
     }
     val rulesToAdd = annotatedRules map (_.rule)
 
@@ -139,7 +138,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     var rulesExpiringAtTime: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var rulesExpiringAtCount: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
 
-    def register(rule: NormalRule, expiration: Expiration): Unit = {
+    def register(rule: NormalRule, expiration: Tick): Unit = {
       val t = expiration.time
       val c = expiration.count
       if (t != Void) {

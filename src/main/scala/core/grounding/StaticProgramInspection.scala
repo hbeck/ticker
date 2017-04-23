@@ -107,7 +107,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
   //
   //
 
-  def possibleValuesForVariable(rule: TRule, variable: Variable, ensureGroundResult: Boolean): Set[Value] = {
+  def possibleValuesForVariable(rule: TRule, variable: Variable, ensureGroundResult: Boolean=true): Set[Value] = {
 
     val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere //TODO move up
 

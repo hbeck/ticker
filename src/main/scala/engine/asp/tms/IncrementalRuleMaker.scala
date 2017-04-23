@@ -12,7 +12,7 @@ import engine.asp._
   * Created by hb on 05.03.17.
   *
   */
-case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: TailoredIncrementalGrounder) {
+case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: TailoredIncrementalGrounder = TailoredIncrementalGrounder()) {
 
   private val Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map (TickBasedAspToIncrementalAsp.stripPositionAtoms(_))
 
@@ -56,7 +56,6 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     }
   }
 
-
   //!
   private val Q_prepared: Seq[NormalRuleWithDuration] = Q flatMap (r => grounder.groundPartially(r) map (NormalRuleWithTimeDuration(_,Tick(1,Void),ExpirationObligatory)))
 
@@ -73,18 +72,26 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val staticGroundRules = groundFully(baseRulesStatic ++ windowRulesStatic)
 
+  private val rulesToPinForTimeIncrease =
+    Q_prepared ++ ((baseRules_expiring_prepared ++ windowRules_expiring_prepared) filter (_.isInstanceOf[TimeExpiringNormalRule]))
+
+  private val rulesToPinForCountIncrease =
+    (baseRules_expiring_prepared ++ windowRules_expiring_prepared) filter (_.isInstanceOf[CountExpiringNormalRule])
+
   def rulesToAddFor(currentTick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
 
     val timeIncrease = signal.isEmpty
 
     val tick = tickFactAsNormalRule(TimePoint(currentTick.time),Value(currentTick.count.toInt))
     val auxFacts: Seq[AnnotatedNormalRule] = Seq() :+ StaticNormalRule(tick) //TODO expiring based on max window length
+
     val signals: Seq[AnnotatedNormalRule] = { //TODO expiring
       if (timeIncrease) { Seq() }
       else { pinnedAtoms(DefaultTrackedSignal(signal.get, currentTick)) }
     }
 
     val pin = expirationPinningForTick(currentTick)
+
     val expiringRules: Seq[AnnotatedNormalRule] = {
       if (timeIncrease) { pin(rulesToPinForTimeIncrease) }
       else { pin(rulesToPinForCountIncrease) }
