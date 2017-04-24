@@ -140,7 +140,7 @@ random :- not done.
   }
 
   def factAtoms(): Seq[Atom] = {
-    (1 to maxAlphaValue) map (value(_))
+    (0 to maxAlphaValue) map (value(_))
   }
 
 }
