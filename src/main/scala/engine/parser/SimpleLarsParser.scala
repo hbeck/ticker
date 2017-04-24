@@ -23,7 +23,11 @@ class SimpleLarsParser extends JavaTokenParsers {
     case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,params.get._1,str2)
   }
 
-  def fqdn: Parser[String] = rep1(str,"."|str) ^^ (str => str.mkString)
+  def fqdn: Parser[String] = filepath | classpath
+
+  def classpath: Parser[String] = rep1(str,"."|str) ^^ (str => str.mkString)
+
+  def filepath: Parser[String] = "/" ~ rep1(str,"/"|str) ^^ {case root ~ str => root+""+str.mkString}
 
   def rule: Parser[RuleFactory] = rep(comment) ~> ruleBase <~ "." <~ optSpace <~ rep(comment) <~ rep(newline)
 
