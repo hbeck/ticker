@@ -100,7 +100,7 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtA
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,atTime)) ++ groundingGuards
     val rule: NormalRule = UserDefinedAspRule(windowAtomEncoding,posBody,Set())
     val exp: TickDuration =  Tick(length + 1, Void)
-    Seq(NormalRuleWithTimeDuration(rule,exp,ExpirationObligatory))
+    Seq(RuleWithTimeDurationOnly(rule,exp,ExpirationObligatory))
   }
 
   @deprecated
@@ -137,7 +137,7 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,TimePinVariable)) ++ groundingGuards
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(length+1,Void)
-    Seq(NormalRuleWithTimeDuration(rule,exp,ExpirationObligatory))
+    Seq(RuleWithTimeDurationOnly(rule,exp,ExpirationObligatory))
   }
 
   @deprecated
@@ -167,11 +167,11 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, gr
 
   override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
     val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom)++groundingGuards, Set(spoilerAtom))
-    if (length == 0) return Seq(StaticNormalRule(staticRule)) //TODO prevT
+    if (length == 0) return Seq(StaticRule(staticRule)) //TODO prevT
     //TODO check correct pinning:
     val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom)++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
     val expSp: TickDuration =  Tick(length,Void)
-    Seq(StaticNormalRule(staticRule),NormalRuleWithTimeDuration(spoilerRule,expSp,ExpirationObligatory))
+    Seq(StaticRule(staticRule),RuleWithTimeDurationOnly(spoilerRule,expSp,ExpirationObligatory))
   }
 
   @deprecated
@@ -200,7 +200,7 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,atTime,CountPinVariable))++groundingGuards
     val rule: NormalRule = UserDefinedAspRule(windowAtomEncoding,posBody,Set())
     val exp: TickDuration =  Tick(Void,length)
-    Seq(NormalRuleWithCountDuration(rule,exp,ExpirationObligatory))
+    Seq(RuleWithCountDurationOnly(rule,exp,ExpirationObligatory))
   }
 
   @deprecated
@@ -229,7 +229,7 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePinVariable,CountPinVariable))++groundingGuards
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(Void,length)
-    Seq(NormalRuleWithCountDuration(rule,exp,ExpirationObligatory))
+    Seq(RuleWithCountDurationOnly(rule,exp,ExpirationObligatory))
   }
 
   @deprecated
@@ -281,10 +281,10 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, g
 
     val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom)++groundingGuards, Set(spoilerAtom))
 
-    if (length < 2) return Seq(StaticNormalRule(staticRule))
+    if (length < 2) return Seq(StaticRule(staticRule))
 
     val spoilerRule: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom,startAtom,LeqLt(T,U,TimePinVariable),timeAtom(U))++groundingGuards,
+      Set[Atom](atom,startAtom,LeqLt(T,U,TimePinVariable))++groundingGuards,
       Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
 
     val startRule: NormalRule = AspRule(startAtom,
@@ -296,9 +296,9 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, g
     val expSpoiler: TickDuration = Tick(1, Void)
     val expStart: TickDuration = Tick(Void, 1)
 
-    Seq(StaticNormalRule(staticRule),
-      NormalRuleWithTimeDuration(spoilerRule,expSpoiler,ExpirationObligatory,NeedsIncrementalGrounding),
-      NormalRuleWithCountDuration(startRule,expStart,ExpirationObligatory,NeedsIncrementalGrounding))
+    Seq(StaticRule(staticRule),
+      RuleWithTimeDurationOnly(spoilerRule,expSpoiler,ExpirationObligatory,NeedsIncrementalGrounding),
+      RuleWithCountDurationOnly(startRule,expStart,ExpirationObligatory,NeedsIncrementalGrounding))
   }
 
   @deprecated

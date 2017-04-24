@@ -14,8 +14,10 @@ package object lars {
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
   //TODO hb move to engine asp package (like now/cnt/pin)
-  val TimePinVariable = TimeVariableWithOffset(Variable("NN"))
-  val CountPinVariable = Variable("CC")
+  val TimePinVariableName = "NN"
+  val CountPinVariableName = "CC"
+  val TimePinVariable = TimeVariableWithOffset(Variable(TimePinVariableName))
+  val CountPinVariable = Variable(CountPinVariableName)
 
   def TimeW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
 
