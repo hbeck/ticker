@@ -1,6 +1,6 @@
 package engine.asp
 
-import core.Atom
+import core.{Atom, Predicate}
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint}
 import engine.asp.tms.{AnnotatedNormalRule, TickBasedAspToIncrementalAsp}
@@ -46,7 +46,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
 
 }
 
-case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundKnowledge: Seq[NormalRule]) extends NormalProgram with LarsBasedProgram {
+case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundKnowledge: Seq[NormalRule], needGuard: Set[Predicate]) extends NormalProgram with LarsBasedProgram {
 
   lazy val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
   //val baseRules = (larsRuleEncodings map (_.aspRule)) ++ (backgroundData map (AspFact(_))) //nowAndAtNowIdentityRules, which includes now(.)

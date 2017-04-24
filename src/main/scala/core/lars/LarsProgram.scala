@@ -15,7 +15,7 @@ trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
   lazy val atAtoms: Set[HeadAtom] = larsRules flatMap {
     _.atoms collect {
       case a: AtAtom => a
-      case WindowAtom(_, At(_), a) => a
+      case WindowAtom(_, At(t), a) => AtAtom(t,a)
     }
   } toSet
 

@@ -13,7 +13,7 @@ import scala.concurrent.duration._
   */
 case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) extends LarsToAspMapper {
 
-  def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
+  override def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(
       AspRule[Atom, Atom](a, Set(now(TimePinVariable), PinnedAtom.asPinnedAtAtom(a, TimePinVariable))),
       AspRule[Atom, Atom](PinnedAtom.asPinnedAtAtom(a, TimePinVariable), Set(now(TimePinVariable), a))

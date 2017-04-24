@@ -1,6 +1,6 @@
 package engine.asp.tms
 
-import core.asp.{AspFact, NormalRule}
+import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
 import core.grounding.incremental.TailoredIncrementalGrounder
 import core.lars.TimePoint
 import core.{Value, _}
@@ -14,7 +14,16 @@ import engine.asp._
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: TailoredIncrementalGrounder = TailoredIncrementalGrounder()) {
 
-  private val Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map (TickBasedAspToIncrementalAsp.stripPositionAtoms(_))
+  private val Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
+    val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(r)
+    val atom = ((rule.pos + rule.head) filter (!_.isInstanceOf[PinnedAtom])).head
+    if (larsProgramEncoding.needGuard contains (atom.predicate)) {
+      val guards = LarsToAspMapper.findGroundingGuards(larsProgramEncoding,atom)
+      UserDefinedAspRule(rule.head,rule.pos ++ guards,Set()) //assume that the conjunction of all guards is always needed (as opposed to e.g., one guaard per rule etc)
+    } else {
+      rule
+    }
+  }
 
   private val VoidTick = Tick(Void,Void)
 
