@@ -68,10 +68,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   private def normalizeTickVariables(ruleWithDuration: RuleWithDuration): RuleWithDuration = {
     val r = ruleWithDuration.rule
-    val h = r.head
-    val p = r.pos
-    val n = r.neg
-    val newRule: NormalRule = UserDefinedAspRule(nrm(h), p map nrm, n map nrm)
+    val newRule: NormalRule = UserDefinedAspRule(nrm(r.head), r.pos map nrm, r.neg map nrm)
     ruleWithDuration match {
       case xr:RuleWithTimeDurationOnly => RuleWithTimeDurationOnly(newRule, xr.duration, xr.expirationMode, xr.preparationMode)
       case xr:RuleWithCountDurationOnly => RuleWithCountDurationOnly(newRule, xr.duration, xr.expirationMode, xr.preparationMode)
@@ -107,7 +104,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     window_rules_with_duration_partial_grounding partition (_.preparationMode == MayBePregrounded)
   }
 
-  val staticGroundRules = (__base_rules_static ++ __window_rules_static) flatMap (xr => grounder.groundFully(xr.rule))
+  val staticGroundRules = ((__base_rules_static ++ __window_rules_static) flatMap (xr => grounder.groundFully(xr.rule))) ++ larsProgramEncoding.backgroundKnowledge
 
   private val rulesToPinForTimeIncrease = {
     Q_prepared ++ ((base_rules_with_duration_prepared ++ window_rules_with_duration_prepared) filter (_.isInstanceOf[RuleWithTimeDuration]))
@@ -145,9 +142,10 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   def expiringRulesPinner(now: Tick): (Seq[RuleWithDuration] => Seq[ExpiringRule]) = {
     val pin = Pin(now.time,now.count)
     def fn(rulesWithDuration: Seq[RuleWithDuration]): Seq[ExpiringRule] = {
-      rulesWithDuration map { rwd =>
+      val pairs = rulesWithDuration map { rwd =>
         (rwd,Grounding.ensureRuleRelations(pin.groundTickVariables(rwd.rule)))
-      } collect {
+      }
+      val expiringRules = pairs collect {
         case (rwd,optRule) if optRule.isDefined => {
           val pinnedRule = optRule.get
           val exp = now + rwd.duration
@@ -159,6 +157,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
           }
         }
       }
+      expiringRules
     }
     fn
   }

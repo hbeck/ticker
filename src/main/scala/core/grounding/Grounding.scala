@@ -56,7 +56,7 @@ object Grounding {
     for (s1 <- sets1; s2 <- sets2) yield s1 union s2
   }
 
-  def allGroundedRelationsHold(relationAtoms: Set[RelationAtom])(partialAssignment: Set[(Variable, Value)]): Boolean = {
+  def allGroundedRelationsHold(relationAtoms: Set[RelationAtom],partialAssignment: Set[(Variable, Value)]): Boolean = {
     val groundRelationAtoms: Set[RelationAtom] = relationAtoms map (assignRelationAtom(_, partialAssignment)) filter (_.isGround)
     groundRelationAtoms forall (_.groundingHolds())
   }
