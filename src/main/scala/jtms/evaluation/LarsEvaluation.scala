@@ -33,12 +33,14 @@ object LarsEvaluation {
     val outputValues = Seq(
       "impl" -> config.implementation,
       "instance" -> config.instanceName,
+      "items" -> config.nrOfItems,
+      "tp" -> config.timePoints,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
-      "eval_time" -> executionTimes.evaluateTimes.avg,
-      "add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints),
-      "eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
+      //"eval_time" -> executionTimes.evaluateTimes.avg,
+      "add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
+      //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
     )
 
     def timeOutput(a: Any) = a match {
@@ -50,7 +52,9 @@ object LarsEvaluation {
     if (config.withDebug) {
       println()
       outputValues foreach {
-        case (k,v) => println(f"$k -> ${timeOutput(v)}")
+        case (k, d: Duration) => println(f"$k -> ${timeOutput(d)}")
+        case (k, i: Integer) => println(f"$k -> $i")
+        case (k, s: String) => println(f"$k -> $s")
       }
       println()
     }
@@ -62,6 +66,7 @@ object LarsEvaluation {
 
     val values = outputValues.collect {
       case (_, d: Duration) => timeOutput(d)
+      case (_, i: Integer) => f"$i"
       case (_, s: String) => f"$s"
     }
 

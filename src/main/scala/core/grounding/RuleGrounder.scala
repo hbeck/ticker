@@ -32,7 +32,7 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
 
     val preparedAssignments: Set[Set[(Variable, Value)]] = {
       if (possibleValuesPerVariable.size == 1) {
-        pairSingletonsPerVariable.head filter (allGroundedRelationsHold(relationAtoms, _)) //TODO
+        pairSingletonsPerVariable.head filter (allGroundedRelationsHold(relationAtoms, _))
       } else {
         //pairSingletonsPerVariable.reduce((s1, s2) => cross(s1, s2) filter holdsPartially) //filter
         pairSingletonsPerVariable.reduce((s1, s2) => cross(s1, s2) filter (allGroundedRelationsHold(relationAtoms, _))) //filter
