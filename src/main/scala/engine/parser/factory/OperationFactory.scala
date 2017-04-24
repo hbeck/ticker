@@ -54,7 +54,7 @@ case class OperationFactory(left: ArgumentFactory, func: String, right: Operatio
     case "<=" => Leq(arg,arg2)
     case "!=" => Neq(arg,arg2)
     case "+" => Incr(arg,arg2)
-    case _ => throw new InvalidSyntaxException("Relation "+func+" is not in the set {=,>,<,>=,<=,!=}") //TODO throw exception
+    case _ => throw new InvalidSyntaxException("Relation "+func+" is not in the set {=,>,<,>=,<=,!=}")
   }
 }
 

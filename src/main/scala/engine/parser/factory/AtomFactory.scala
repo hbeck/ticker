@@ -19,8 +19,6 @@ case class AtomFactory(override val neg: Boolean, predicate: String, args: List[
   }
 
   private def argSeq(args: List[Any]): Seq[Argument] = args collect {
-      case arg:Double => Argument.convertToArgument(arg.toInt.toString)
-      case arg:Int    => Argument.convertToArgument(arg.toString)
-      case arg:String => Argument.convertToArgument(arg)
+    case arg:Any => ArgumentFactory(arg).arg
   }
 }

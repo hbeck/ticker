@@ -1,7 +1,6 @@
 package engine.parser.factory
 
-import core.lars.{SlidingTimeWindow, WindowFunction}
-import engine.parser.utils.WindowFunctionRegistry
+import core.lars.WindowFunction
 import engine.parser.wrapper.ParamWrapper
 
 /**

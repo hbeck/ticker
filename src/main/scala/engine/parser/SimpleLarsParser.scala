@@ -118,8 +118,8 @@ class SimpleLarsParser extends JavaTokenParsers {
   }
 
   def float: Parser[Double] = rep1(digit) ~ opt("." ~ intStr) ^^ {
-    case integ ~ None => integ.mkString.toDouble
-    case integ ~ dec => (integ.mkString + dec.get._1 + dec.get._2).toDouble
+    case num ~ None => num.mkString.toDouble
+    case num ~ dec => (num.mkString + dec.get._1 + dec.get._2).toDouble
   }
 
   def intStr: Parser[String] = rep1(digit) ^^ (_.mkString)
@@ -128,13 +128,9 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def newline: Parser[String] = "\n" | "\r"
 
-  //def str: Parser[String] = /*rep1(char, char | digit)*/"""\S+""".r ^^ (str => str.mkString)
-
   def str: Parser[String] = rep1(char) ^^ (str => str.mkString)
 
   def char: Parser[Char] = """[^\n\r\t +-/*%^<>=!,.\[\]\{\}\(\)]""".r ^^ (_.head)
-
-//  def char: Parser[Char] = lowChar | upperChar | '_'
 
   def lowChar: Parser[Char] = """[a-z]""".r ^^ (_.head)
 
@@ -144,11 +140,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def lineComment: Parser[String] = """(\/\/|%).*?(\n|\r)+?""".r
 
-//  def lineComment: Parser[Any] = ("//" | "%") ~ optSpace ~ repsep(str,space) ~ newline
-
   def blockComment: Parser[String] = """(((\/\*)|%\*)(.|\n|\r)*?((\*\/)|\*%))""".r
-
-//  def blockComment: Parser[Any] = ("/*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""") ~ "*/" | "%*" ~ optSpace ~ repsep(repsep(str,space),"""\s+""".r) ~ "*%") ~ rep(newline)
 
   def optSpace: Parser[String] = """ *""".r //(_.toString)
 

@@ -7,6 +7,7 @@ import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFact
 /**
   * Created by et on 14.04.17.
   */
+@deprecated
 object WindowFunctionRegistry {
 
   private var factories: Map[String,WindowFunctionFactory] = defaultWfnFactories
@@ -23,8 +24,8 @@ object WindowFunctionRegistry {
   }
 
   private def defaultWfnFactories: Map[String,WindowFunctionFactory] = {
-    val time = SlidingTimeWindowFactory(List())
-    val tuple = SlidingTupleWindowFactory(List())
+    val time = SlidingTimeWindowFactory()
+    val tuple = SlidingTupleWindowFactory()
     Map(getFQDN(time) -> time) + (getFQDN(tuple) -> tuple)
   }
 
