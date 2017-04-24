@@ -112,7 +112,7 @@ object LarsToAspMapper {
 
   def findGroundingGuards(larsProgramEncoding: LarsProgramEncoding, atom: Atom): Set[Atom] = {
     val optRule = larsProgramEncoding.larsRules find { rule =>
-      rule.pos exists {
+      rule.body exists {
         case wa: WindowAtom if wa.atom == atom => true
         //case aa: AtAtom if aa.atom == atom => true //ignored
         case _ => false
@@ -120,7 +120,8 @@ object LarsToAspMapper {
     }
 
     optRule match {
-      case None => throw new RuntimeException(f"no guard found for atom "+atom)
+      case None =>
+        throw new RuntimeException(f"no guard found for atom "+atom)
       case Some(rule) => extractGroundingGuards(rule,atom) //assumption that guard is given everywhere, i.e., can choose any
     }
 
