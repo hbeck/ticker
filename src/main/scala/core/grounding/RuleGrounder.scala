@@ -1,29 +1,18 @@
 package core.grounding
 
 import core._
+import core.grounding.Grounding.{allGroundedRelationsHold, cross, makePairedWithValueSingletons}
 import core.lars.{Assignment, ExtendedAtom, HeadAtom}
-import core.grounding.Grounding._
 
 case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom](inspect: ProgramInspection[TRule, THead, TBody]) {
 
   def ground(rule: TRule, ensureGroundResult: Boolean = true): Set[TRule] = {
     if (rule isGround) {
       if (rule.isFact) return Set(rule)
-      else return Set(rule) filter relationsHold map deleteAuxiliaryAtoms
+      else return ensureRelations(Set(rule))
     }
     val possibleVariableValues: Map[Variable, Set[Value]] = inspect.possibleVariableValues(rule,ensureGroundResult)
     ground(rule, possibleVariableValues, ensureGroundResult)
-  }
-
-  def relationsHold(rule: TRule): Boolean = {
-    (rule.pos map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds())) &&
-      (rule.neg map (_.atom) collect { case r:RelationAtom => r } forall (_.groundingHolds()))
-  }
-
-  def deleteAuxiliaryAtoms(rule: TRule): TRule = {
-    val corePosAtoms: Set[TBody] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
-    val coreNegAtoms: Set[TBody] = rule.neg filterNot (_.isInstanceOf[RelationAtom])
-    rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
   }
 
   def ground(rule: TRule, possibleValuesPerVariable: Map[Variable, Set[Value]], ensureGroundResult: Boolean): Set[TRule] = {
@@ -36,7 +25,7 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
       }
     }
 
-    val relationAtoms: Set[RelationAtom] = rule.atoms collect { case a: RelationAtom => a }
+    val relationAtoms: Set[RelationAtom] = rule.pos collect { case a: RelationAtom => a }
     def holdsPartially = allGroundedRelationsHold(relationAtoms) _
 
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
@@ -53,5 +42,31 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     preparedAssignments map (a => rule.assign(Assignment(a.toMap)).asInstanceOf[TRule])
   }
 
-}
 
+  def ensureRelations(rules: Set[TRule]): Set[TRule] = {
+    rules collect {
+      case r if relationsHold(r) => deleteAuxiliaryAtoms(r)
+    }
+  }
+
+  def ensureRuleRelations(rule: TRule): Option[TRule] = {
+    if (relationsHold(rule)) {
+      Some(deleteAuxiliaryAtoms(rule))
+    } else {
+      None
+    }
+  }
+
+  def relationsHold(rule: TRule): Boolean = {
+    rule.pos collect { case ra:RelationAtom => ra } forall (_.groundingHolds())
+    //&& (rule.neg collect { case ra:RelationAtom => ra } forall (!_.groundingHolds())) //not used per convention
+  }
+
+  def deleteAuxiliaryAtoms(rule: TRule): TRule = {
+    val corePosAtoms: Set[TBody] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
+    //val coreNegAtoms: Set[TBody] = rule.neg filterNot (_.isInstanceOf[RelationAtom]) //not used per convention
+    //rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
+    rule.from(rule.head,corePosAtoms,rule.neg).asInstanceOf[TRule]
+  }
+
+}
