@@ -79,7 +79,7 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     rules = rules - rule
 
-    __justifications = __justifications updated(rule.head, __justifications(rule.head) filter (_ != rule))
+    __justifications = __justifications updated(rule.head, __justifications(rule.head) - rule)
 
     val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) - rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences

@@ -69,7 +69,7 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       case xr:ExpiringRule => expirationHandling.register(xr.rule,xr.expiration)
       case _ =>
     }
-    val rulesToAdd = annotatedRules map (_.rule)
+    val rulesToAdd = annotatedRules map (_.rule) toVector
 
     if (IEEConfig.printRules) {
       println("rules added at tick " + currentTick)
@@ -83,7 +83,8 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       case _ => expirationHandling.deregisterExpiredByCount()
     }
 
-    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
+    val addLookup = rulesToAdd.toSet
+    val rulesToRemove = expiredRules filterNot addLookup.contains //do not remove first; concerns efficiency of tms
 
     if (IEEConfig.printRules) {
       println("\nrules removed at tick " + currentTick)
