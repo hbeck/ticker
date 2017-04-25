@@ -82,8 +82,7 @@ object LarsEvaluation {
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
 
-    if(iterationNr ==0)
-      readLine()
+   
     if (config.withDebug) { print(" " + iterationNr) }
 
     val instance = config.makeInstance(iterationNr)
