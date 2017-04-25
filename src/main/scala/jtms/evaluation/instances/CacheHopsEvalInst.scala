@@ -17,7 +17,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
   val timePoints: Int
   val nrOfItems: Int
 
-  def edges: Set[Atom]
+  def edges: Set[AtomWithArguments]
 
   final def nodes(): Set[Value] = edges collect { case a:GroundAtomWithArguments => a.arguments } flatten
   final def nodeAtoms(): Set[Atom] = nodes map (node(_))
@@ -246,15 +246,9 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
 }
 
-case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
+case class CacheHopsEvalInst1(windowSize: Int, timePoints: Int, nrOfItems: Int, random: Random) extends CacheHopsEvalInst(random) {
 
-  override val windowSize = 10
-
-  if (printRules) {
-    printRulesOnce = true
-  }
-
-  override lazy val edges: Set[Atom] = { //part of initialization
+  override lazy val edges: Set[AtomWithArguments] = { //part of initialization
     Set((1,2),(2,3),(3,4),(4,5),(5,6),(6,7),
         (1,8),(8,4),(1,6)) map { case (x,y) => edge(x,y) }
   }
@@ -344,13 +338,7 @@ case class CacheHopsEvalInst1(timePoints: Int, nrOfItems: Int, printRules: Boole
   }
 }
 
-case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boolean, random: Random) extends CacheHopsEvalInst(random) {
-
-  override val windowSize = 15
-
-  if (printRules) {
-    printRulesOnce = true
-  }
+case class CacheHopsEvalInst2(windowSize: Int, timePoints: Int, nrOfItems: Int, random: Random) extends CacheHopsEvalInst(random) {
 
   /*
   override lazy val edges: Set[Atom] = {
@@ -360,7 +348,7 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
   }
   */
 
-  override lazy val edges: Set[Atom] = {
+  override lazy val edges: Set[AtomWithArguments] = {
     val pairs = Set((1,2),(2,4),(4,7),(7,8),(8,9),(9,10),(10,16),(16,1),(8,1),(16,9))
     //val pairs = Set((1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,10),(10,11),(11,12),(12,16),(16,1),(8,1),(16,9))
     pairs map { case (x,y) => edge(x,y) }
@@ -531,3 +519,53 @@ case class CacheHopsEvalInst2(timePoints: Int, nrOfItems: Int, printRules: Boole
     }
   }
 }
+
+case class CacheHopsEvalInst3(windowSize: Int, timePoints: Int, nrOfItems: Int, nrOfSignalsPerTimePoint: Int, random: Random) extends CacheHopsEvalInst(random) {
+
+  override lazy val edges: Set[AtomWithArguments] = {
+    val pairs = Set((1,2),(2,4),(4,7),(7,8),(8,9),(9,10),(10,16),(16,1),(8,1),(16,9))
+    //val pairs = Set((1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,10),(10,11),(11,12),(12,16),(16,1),(8,1),(16,9))
+    pairs map { case (x,y) => edge(x,y) }
+  }
+
+  //val i = StringValue("i1")
+
+  def it(i:Int) = StringValue("i"+i)
+
+  val allCacheAtoms: List[Atom] = (for (i <- 1 to nrOfItems; n <- nodes) yield cache(it(i),n)).toList
+  val allReqAtoms: List[Atom] = (for (i <- 1 to nrOfItems; n <- nodes) yield cache(it(i),n)).toList
+  val allErrorAtoms: List[Atom] = (for (e <- edges) yield error(e.arguments(0),e.arguments(1))).toList
+
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
+
+    var cacheAtoms: List[Atom] = random.shuffle(allCacheAtoms)
+    var reqAtoms: List[Atom] = random.shuffle(allReqAtoms)
+    var errorAtoms: List[Atom] = random.shuffle(allErrorAtoms)
+
+    val atoms = (1 to nrOfSignalsPerTimePoint) map { i =>
+      //cache req error
+      val d = random.nextDouble()
+      var atom:Atom = null
+      if (d < 0.01) {
+        atom = errorAtoms.head
+        errorAtoms = errorAtoms.tail
+      } else if (d < 0.9) {
+        atom = reqAtoms.head
+        reqAtoms = reqAtoms.tail
+      } else {
+        atom = cacheAtoms.head
+        cacheAtoms = cacheAtoms.tail
+      }
+      atom
+    }
+    atoms
+  }
+
+  override def verifyModel(optModel: Option[Model], t: Int): Unit = {
+    if (optModel.isEmpty) {
+      print(f"x($t)")
+      return
+    }
+  }
+}
+

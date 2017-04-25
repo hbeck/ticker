@@ -2,7 +2,7 @@ package jtms.evaluation
 
 import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
-import jtms.evaluation.instances.{CacheHopsEvalInst1, CacheHopsEvalInst2, MMediaDeterministicEvalInst, MMediaNonDeterministicEvalInst}
+import jtms.evaluation.instances._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 
 import scala.util.Random
@@ -20,26 +20,41 @@ case class Config(var args: Map[String,String]) {
   val modelRatio:Boolean = (args(MODEL_RATIO) == "true")
   val timePoints = Integer.parseInt(args(TIMEPOINTS))
   val inputWindowSize = Integer.parseInt(args(WINDOW_SIZE))
+  val signalsPerTp = Integer.parseInt(args(SIGNALS_PER_TP))
   val nrOfItems = Integer.parseInt(args(ITEMS))
   val withDebug = (args(WITH_DEBUG) == "true")
   val withHeader = (args(HEADER) == "true")
+  val headerOnly = (args(HEADER) == "only")
   val implementation = args(IMPL)
   val verifyModel = (args(VERIFY_MODEL) == "true")
   val printRulesAt = Integer.parseInt(args(PRINT_RULES_AT))
+
+  var windowSize = if (inputWindowSize == -1) 100 else inputWindowSize
 
   def makeInstance(iterationNr: Int): StreamingTmsEvalInst = {
     val random = new Random(iterationNr)
     args(INSTANCE_NAME) match {
       case CACHE_HOPS1 => {
-        val printRules: Boolean = (args(PRINT_RULES) == "true")
-        CacheHopsEvalInst1(timePoints,nrOfItems,printRules,random) //window size is fixed to 10 (for verification)
+        if (verifyModel) {
+          windowSize = 10
+        }
+        CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,random)
       }
       case CACHE_HOPS2 => {
-        val printRules: Boolean = (args(PRINT_RULES) == "true")
-        CacheHopsEvalInst2(timePoints,nrOfItems,printRules,random) //window size is fixed to 15 (for verification)
+        if (verifyModel) {
+          windowSize = 15
+        }
+        CacheHopsEvalInst2(windowSize,timePoints,nrOfItems,random)
       }
-      case MMEDIA_DET => MMediaDeterministicEvalInst(inputWindowSize, timePoints, random)
-      case MMEDIA_NONDET => MMediaNonDeterministicEvalInst(inputWindowSize, timePoints, random)
+      case CACHE_HOPS3 => {
+        CacheHopsEvalInst3(windowSize,timePoints,nrOfItems,signalsPerTp,random) //window size is fixed to 15 (for verification)
+      }
+      case MMEDIA_DET => {
+        MMediaDeterministicEvalInst(windowSize, timePoints, random)
+      }
+      case MMEDIA_NONDET => {
+        MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+      }
       case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
   }
@@ -76,6 +91,7 @@ object Config {
   val MMEDIA_NONDET = "mmediaNonDet"
   val CACHE_HOPS1 = "cacheHops1"
   val CACHE_HOPS2 = "cacheHops2"
+  val CACHE_HOPS3 = "cacheHops3"
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
@@ -93,6 +109,7 @@ object Config {
   val TIMEPOINTS = "tp"
   val MODEL_RATIO = "ratio"
   val WINDOW_SIZE = "winsize"
+  val SIGNALS_PER_TP = "signalsPerTp"
   //
   val ITEMS = "items" //* (for cache hops)
   //
@@ -138,7 +155,8 @@ object Config {
     defaultArg(RUNS,"5")
     defaultArg(TIMEPOINTS,"20")
     defaultArg(MODEL_RATIO,"false")
-    defaultArg(WINDOW_SIZE,"10")
+    defaultArg(WINDOW_SIZE,"-1")
+    defaultArg(SIGNALS_PER_TP,"1")
     //
     defaultArg(ITEMS,"1")
     //
@@ -147,7 +165,7 @@ object Config {
     defaultArg(SEMANTICS_CHECKS, "false")
     defaultArg(VERIFY_MODEL, "true")
     //
-    defaultArg(HEADER, "true")
+    defaultArg(HEADER, "false")
     defaultArg(WITH_DEBUG, "false")
 
     argMap

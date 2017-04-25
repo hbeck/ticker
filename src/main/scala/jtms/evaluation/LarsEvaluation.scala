@@ -21,8 +21,38 @@ object LarsEvaluation {
 
   def timings(args: Array[String]): Unit = {
     val argMap = Config.buildArgMap(args)
-    evaluate(Config(argMap))
+    val config = Config(argMap)
+    if (config.headerOnly) {
+      printHeader(dummyOutputValues)
+    } else {
+      evaluate(config)
+    }
   }
+
+  val separator = "\t"
+
+  def printHeader(outputValues: Seq[(String,Any)]): Unit = {
+    println(outputValues.map(_._1).mkString(separator))
+  }
+
+  val dummyOutputValues = Seq(
+    "impl" -> "",
+    "instance" -> "",
+    "items" -> "",
+    "tp" -> "",
+    "winsize" -> "",
+    "signalsPerTp" -> "",
+    "total_time" -> "",
+    "init_time" -> "",
+    "add_time" -> "",
+    //"eval_time" -> executionTimes.evaluateTimes.avg,
+    "add_time_per_tp" -> ""
+    //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
+  )
+
+  //
+  //
+  //
 
   def evaluate(config: Config) = {
 
@@ -35,6 +65,8 @@ object LarsEvaluation {
       "instance" -> config.instanceName,
       "items" -> config.nrOfItems,
       "tp" -> config.timePoints,
+      "winsize" -> config.windowSize,
+      "signalsPerTp" -> config.signalsPerTp,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
@@ -58,10 +90,8 @@ object LarsEvaluation {
       }
       println()
     }
-
-    val separator = "\t"
     if (config.withHeader) {
-      println(outputValues.map(_._1).mkString(separator))
+      printHeader(outputValues)
     }
 
     val values = outputValues.collect {
@@ -81,7 +111,6 @@ object LarsEvaluation {
   var tms: JtmsUpdateAlgorithm = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
-
    
     if (config.withDebug) { print(" " + iterationNr) }
 
@@ -127,7 +156,7 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (config.withDebug && t==config.printRulesAt) {
+    if (t==config.printRulesAt) {
       println(f"\ntms rules at t=$t")
       tms.rules foreach println
       println()
