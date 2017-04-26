@@ -52,7 +52,7 @@ class SimpleParserTest extends FlatSpec {
 
 "Rules with negation in the head" should "not be recognized" in {
   intercept[InvalidSyntaxException] {
-    parser.parseRule("not a:- b.")
+    parser.parseRule("not a:- b.").get.ruleHead
   }
 //  assert(!parser.parseRule("not a:- b.").successful)
   }
@@ -90,12 +90,10 @@ class SimpleParserTest extends FlatSpec {
   }
 
   "Rules" should "also parse numbers only, in a left sided operation" in {
-//    assert(parser.parseRule("a :- 3+5=8.").successful)
-    println(parser.parseRule("a :- 3+5=8."))
+    assert(parser.parseRule("a :- 3+5=8.").successful)
   }
 
   "A rule body" should "recognize atoms, @-atoms and window atoms" in {
-    println(parser.parseBody("a, b at T, c in [t 5], T=3+4"))
     assert(parser.parseBody("a, b at T, c in [t 5], T=3+4").successful)
   }
 

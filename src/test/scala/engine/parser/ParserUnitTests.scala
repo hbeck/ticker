@@ -95,7 +95,6 @@ class ParserUnitTests extends FlatSpec {
 
   "A variable starting with an upper case character" should "be accepted" in {
     assert(parser.parseAll(parser.variable,"V").successful)
-    //    println(parser.parseAll(parser.variable,"V4ri4_bl3"))
     assert(parser.parseAll(parser.variable,"V4ri4_bl3").successful)
   }
   "A variable starting with lower case character" should "be rejected" in {

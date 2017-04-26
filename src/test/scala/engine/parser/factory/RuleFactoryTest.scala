@@ -38,7 +38,7 @@ class RuleFactoryTest extends FlatSpec {
 
   it should "not create the rule with a negtive head" in {
     intercept[InvalidSyntaxException] {
-      RuleFactory(not_a, List())
+      RuleFactory(not_a, List()).ruleHead
     }
   }
 }

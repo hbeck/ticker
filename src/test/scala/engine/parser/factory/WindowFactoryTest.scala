@@ -19,7 +19,7 @@ class WindowFactoryTest extends FlatSpec {
 
   it should "reject non existent window types" in {
     intercept[InvalidSyntaxException] {
-      WindowFactory("wrong",List())
+      WindowFactory("wrong",List()).wfn
     }
   }
 }

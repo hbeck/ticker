@@ -136,7 +136,7 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   def str: Parser[String] = rep1(char) ^^ (str => str.mkString)
 
-  def char: Parser[Char] = """[^\n\r\t +-/*%^<>=!,.\[\]\{\}\(\)]""".r ^^ (_.head)
+  def char: Parser[Char] = """[^\n\r\t +-/*%^<>=!,.:\[\]\{\}\(\)]""".r ^^ (_.head)
 
   def lowChar: Parser[Char] = """[a-z]""".r ^^ (_.head)
 
