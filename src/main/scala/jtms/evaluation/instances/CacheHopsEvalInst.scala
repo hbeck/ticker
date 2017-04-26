@@ -120,10 +120,6 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
     val K0:Variable = Variable("K0")
     val K2:Variable = Variable("K2")
 
-    //def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
-    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
-    //def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
-
     def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
 
     val n = windowSize

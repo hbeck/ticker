@@ -27,6 +27,7 @@ case class Config(var args: Map[String,String]) {
   val headerOnly = (args(HEADER) == "only")
   val implementation = args(IMPL)
   val verifyModel = (args(VERIFY_MODEL) == "true")
+  val printModelAt = Integer.parseInt(args(PRINT_MODEL_AT))
   val printRulesAt = Integer.parseInt(args(PRINT_RULES_AT))
 
   var windowSize = if (inputWindowSize == -1) 100 else inputWindowSize
@@ -54,6 +55,10 @@ case class Config(var args: Map[String,String]) {
       }
       case MMEDIA_NONDET => {
         MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+      }
+      //simple ones:
+      case BOX => {
+        BoxEvalInst(windowSize, timePoints, random)
       }
       case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
@@ -87,6 +92,9 @@ case class Config(var args: Map[String,String]) {
 object Config {
 
   //known instances:
+  //simple:
+  val BOX = "box"
+  //relevant:
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
   val CACHE_HOPS1 = "cacheHops1"
@@ -120,6 +128,7 @@ object Config {
   val WITH_DEBUG = "withDebug"
   val PRINT_RULES = "printRules"
   val PRINT_RULES_AT = "printRulesAt"
+  val PRINT_MODEL_AT = "printModelAt"
 
   def buildArgMap(args: Array[String]): Map[String,String] = {
 
@@ -162,8 +171,9 @@ object Config {
     //
     defaultArg(PRINT_RULES, "false")
     defaultArg(PRINT_RULES_AT, "-1")
+    defaultArg(PRINT_MODEL_AT, "-1")
     defaultArg(SEMANTICS_CHECKS, "false")
-    defaultArg(VERIFY_MODEL, "true")
+    defaultArg(VERIFY_MODEL, "false")
     //
     defaultArg(HEADER, "false")
     defaultArg(WITH_DEBUG, "false")

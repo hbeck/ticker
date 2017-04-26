@@ -156,7 +156,7 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (t==config.printRulesAt) {
+    if (t==config.printRulesAt && config.implementation.toLowerCase.startsWith("doyle")) {
       println(f"\ntms rules at t=$t")
       tms.rules foreach println
       println()
@@ -164,6 +164,15 @@ object LarsEvaluation {
 
     if (config.verifyModel) {
       instance.verifyModel(result.get, t)
+    }
+
+    if (t==config.printModelAt) {
+      println(f"\nmodel at t=$t")
+      result.get match {
+        case None => println("(none)")
+        case Some(model) => println(model)
+      }
+      println()
     }
 
     ExecutionTimePerTimePoint(time, appendTime, evaluateTime)
