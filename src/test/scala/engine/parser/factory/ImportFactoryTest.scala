@@ -1,5 +1,6 @@
 package engine.parser.factory
 
+import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory
 import org.scalatest.FlatSpec
 
 /**
@@ -10,7 +11,13 @@ class ImportFactoryTest extends FlatSpec {
   behavior of "ImportFactoryTest"
 
   it should "register" in {
-
+    ImportFactory("engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory",List(),"stw")
+    assert(ImportFactory.getWinfowFunction("stw") == SlidingTimeWindowFactory())
   }
 
+  it should "not register a non existent window function factory" in {
+    intercept[ImportException] {
+      ImportFactory("no.such.WindowFunctionFactory", List(), "fake")
+    }
+  }
 }

@@ -19,9 +19,9 @@ class AtomFactoryTest extends FlatSpec {
   it should "create an atom with parameters" in {
     val neg = false
     val predicate = "a"
-    val A = Argument.convertToArgument("A")
-    val B = Argument.convertToArgument("B")
-    val C = Argument.convertToArgument("6")
+    val A: Argument = "A"
+    val B: Argument = "B"
+    val C: Argument = "6"
     assert(AtomFactory(neg,predicate,List("A","B",6.0)).atom == Atom(Predicate(predicate),Seq(A,B,C)))
 //    assert(AtomFactory(neg,predicate,List("A","B",6.0)).atom == not Atom(Predicate(predicate),Seq(A,B,C)))
   }

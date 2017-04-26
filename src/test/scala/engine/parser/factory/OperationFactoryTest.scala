@@ -13,10 +13,10 @@ class OperationFactoryTest extends FlatSpec with BeforeAndAfterEach {
   private val argument1 = ArgumentFactory(10)
   private val argument2 = ArgumentFactory(11)
   private val operation = "="
-  private val A = Argument.convertToArgument("A")
-  private val B = Argument.convertToArgument("6")
-  private val C = Argument.convertToArgument("10")
-  private val D = Argument.convertToArgument("11")
+  private val A: Argument = "A"
+  private val B: Argument = "6"
+  private val C: Argument = "10"
+  private val D: Argument = "11"
 
   behavior of "OperationFactoryTest"
 

@@ -1,5 +1,8 @@
 package engine.parser.factory
 
+import core.lars.{SlidingTimeWindow, TimeWindowSize}
+import engine.parser.InvalidSyntaxException
+import engine.parser.wrapper.ParamWrapper
 import org.scalatest.FlatSpec
 
 /**
@@ -10,7 +13,13 @@ class WindowFactoryTest extends FlatSpec {
   behavior of "WindowFactoryTest"
 
   it should "create" in {
-
+    assert(WindowFactory("t",List()).wfn == SlidingTimeWindow(TimeWindowSize(300)))
+    assert(WindowFactory("t",List(ParamWrapper("10"))).wfn == SlidingTimeWindow(TimeWindowSize(10)))
   }
 
+  it should "reject non existent window types" in {
+    intercept[InvalidSyntaxException] {
+      WindowFactory("wrong",List())
+    }
+  }
 }
