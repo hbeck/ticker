@@ -16,6 +16,7 @@ object WindowFunctionRegistry {
     factories += (getFQDN(factory) -> factory)
   }
 
+  @throws[InvalidSyntaxException]
   def getFactory(importClass: String): WindowFunctionFactory = {
     val wff = factories.get(importClass)
 

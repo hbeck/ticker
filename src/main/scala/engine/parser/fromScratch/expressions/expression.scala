@@ -53,6 +53,7 @@ case class RuleExpression(rule: String) extends Expression {
   val head: HeadExpression = ruleExp._1
   val body: BodyExpression = ruleExp._2
 
+  @throws[InvalidSyntaxException]
   private def createExp(parts: List[String]): (HeadExpression,BodyExpression) = parts match {
     case Nil  => throw new InvalidSyntaxException("Empty rule.")
     case x::xs => (createHead(x),createBody(xs))

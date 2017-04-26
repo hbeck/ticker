@@ -13,6 +13,7 @@ import engine.parser.wrapper.ParamWrapper
 case class SlidingTimeWindowFactory(params: List[ParamWrapper] = List())
   extends WindowFunctionFactory(params) {
 
+  @throws[InvalidSyntaxException]
   override def create(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) return SlidingTimeWindow(5*60)
 
@@ -32,7 +33,7 @@ case class SlidingTimeWindowFactory(params: List[ParamWrapper] = List())
   }
 
   override def updateWindowParams(params: List[ParamWrapper]): WindowFunction = {
-    if(params.isEmpty) wfn = create(params)
+    if(params.nonEmpty) wfn = create(params)
     wfn
   }
 }

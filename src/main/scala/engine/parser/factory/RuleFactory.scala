@@ -8,15 +8,18 @@ import engine.parser.InvalidSyntaxException
   * Created by et on 22.03.17.
   */
 case class RuleFactory(head: AtomTrait, body: List[BodyTrait]) {
-  val ruleHead: HeadAtom = createHead(head)
-  val posBody: Option[Set[ExtendedAtom]] = createBody(body,false)
-  val negBody: Option[Set[ExtendedAtom]] = createBody(body,true)
-  val rule: Rule[HeadAtom,ExtendedAtom] = createRule(ruleHead,posBody.getOrElse(Set()),negBody.getOrElse(Set()))
+  lazy val ruleHead: HeadAtom = createHead(head)
+  lazy val posBody: Option[Set[ExtendedAtom]] = createBody(body,false)
+  lazy val negBody: Option[Set[ExtendedAtom]] = createBody(body,true)
+  lazy val rule: Rule[HeadAtom,ExtendedAtom] = createRule(ruleHead,posBody.getOrElse(Set()),negBody.getOrElse(Set()))
 
+  @throws[InvalidSyntaxException]
   private def createHead(head: AtomTrait): HeadAtom = {
+    if(head.neg) throw new InvalidSyntaxException("Only positive head atoms are allowed.")
+
       head match {
-        case a:AtomFactory => if (a.neg) {throw new InvalidSyntaxException("Only positive head atoms are allowed.")} else a.atom
-        case at:AtAtomFactory => if (at.neg) {throw new InvalidSyntaxException("Only positive head atoms are allowed.")} else at.atom
+        case a:AtomFactory => a.atom
+        case at:AtAtomFactory => at.atom
       }
   }
 
@@ -37,7 +40,8 @@ case class RuleFactory(head: AtomTrait, body: List[BodyTrait]) {
         case a:OperationFactory => a.operation
   } toSet
 
-  private def createRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]): Rule[HeadAtom, ExtendedAtom] = {
+  private def createRule(head: HeadAtom, pos: Set[ExtendedAtom], neg: Set[ExtendedAtom]):
+  Rule[HeadAtom, ExtendedAtom] = {
       if (pos.isEmpty && neg.isEmpty) {
         return LarsFact(head)
       }

@@ -8,7 +8,7 @@ import core.lars.AtAtom
   */
 case class AtAtomFactory(override val neg: Boolean, atAtom: AtomFactory, time: String) extends AtomTrait {
 
-  val atom: AtAtom = create(time,atAtom)
+  lazy val atom: AtAtom = create(time,atAtom)
 
   def create(time: String, atom: AtomFactory): AtAtom = {
     if(time.forall(Character.isDigit)) return AtAtom(time.toInt, atom.atom)

@@ -11,6 +11,7 @@ import engine.parser.wrapper.ParamWrapper
 case class SlidingTupleWindowFactory(params: List[ParamWrapper] = List())
   extends WindowFunctionFactory(params) {
 
+  @throws[InvalidSyntaxException]
   override def create(params: List[ParamWrapper]): WindowFunction = {
     if(params.isEmpty) return SlidingTupleWindow(5)
     else if (params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.")

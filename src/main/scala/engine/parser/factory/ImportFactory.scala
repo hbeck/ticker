@@ -24,15 +24,19 @@ object ImportFactory {
 
     var clazz:Option[Class[_]] = None
 
-    if(importClass.startsWith("/")) {
-      val splits = importClass.splitAt(importClass.lastIndexOf("/")+1)
+    try {
+      if (importClass.startsWith("/")) {
+        val splits = importClass.splitAt(importClass.lastIndexOf("/") + 1)
 
-      val url = new URL("file://"+splits._1)
-      val loader = new URLClassLoader(Array(url))
+        val url = new URL("file://" + splits._1)
+        val loader = new URLClassLoader(Array(url))
 
-      clazz = Some(loader.loadClass(splits._2))
-    } else {
-      clazz = Some(Class.forName(importClass))
+        clazz = Some(loader.loadClass(splits._2))
+      } else {
+        clazz = Some(Class.forName(importClass))
+      }
+    } catch {
+      case exception: ClassNotFoundException => throw new ImportException("Class "+importClass+" cannot be found. Make sure to specify the path to the .class file and check your compiler version.")
     }
 
     val constructor = clazz.get.getConstructor(classOf[List[WindowFunctionFactory]])
@@ -47,7 +51,7 @@ object ImportFactory {
   def getWinfowFunction(name: String): WindowFunctionFactory = {
     val wfn = importFactories.get(name)
     if(wfn.isDefined) return wfn.get
-    throw new InvalidSyntaxException("The specified window function is invalid")
+    throw new InvalidSyntaxException("A window function with name '"+name+"' has not been imported.")
   }
 
   private def defaultFactories: Map[String,WindowFunctionFactory] = {

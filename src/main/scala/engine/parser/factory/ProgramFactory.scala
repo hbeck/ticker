@@ -17,5 +17,4 @@ case class ProgramFactory(imports: List[ImportFactory], ruleLst: List[RuleFactor
   }
 
   private def createProgram(rules: List[Rule[HeadAtom, ExtendedAtom]]): LarsProgram = LarsProgram(rules)
-
 }

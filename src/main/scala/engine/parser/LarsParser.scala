@@ -17,19 +17,24 @@ import scala.io.Source
   */
 object LarsParser extends SimpleLarsParser {
 
-  def apply(input: String, isPath: Boolean = true): Option[LarsProgram] = {
+  def apply(input: String, isPath: Boolean = true): LarsProgram = {
     var program = input
     if(isPath) program = readFile(input)
 
-    val parsedProgram: ParseResult[ProgramFactory] = doTheThing(program)
-    if(parsedProgram.successful) return Some(parsedProgram.get.program)
-    None
+    doTheThing(program).program
   }
 
-  def readFile(path: String): String = {
+  private def readFile(path: String): String = {
     val source = Source.fromURL(getClass.getResource(path))
     try source.mkString finally source.close()
   }
 
-  def doTheThing(input:String): ParseResult[ProgramFactory] = parseAll(program,input)
+//  def doTheThing(input:String): ParseResult[ProgramFactory] = parseAll(program,input)
+  @throws[InvalidSyntaxException]
+  private def doTheThing(input:String): ProgramFactory = parseAll(program,input) match {
+    case Success(result,_) => result
+    case NoSuccess(msg,next) =>
+      throw new InvalidSyntaxException("Failed at line %s, column %s: %s".format(
+                next.pos.line, next.pos.column, msg))
+  }
 }

@@ -13,6 +13,7 @@ case class OperationFactory(left: ArgumentFactory, func: String, right: Operatio
 
   lazy val operation:RelationAtom = create(left,func,right)
 
+  @throws[InvalidSyntaxException]
   private def create(left: ArgumentFactory, func: String, right: OperationWrapper): RelationAtom = {
     if (isTernaryRelation(right)) {
       if (func == "=")
@@ -46,6 +47,7 @@ case class OperationFactory(left: ArgumentFactory, func: String, right: Operatio
     case "^" => Power(arg2.op1.arg,arg2.op2.get.arg,arg1)
   }
 
+  @throws[InvalidSyntaxException]
   private def getBinaryRelation(func: String, arg: Argument, arg2: Argument): BinaryRelationAtom = func match {
     case "=" => Eq(arg,arg2)
     case ">" => Gt(arg,arg2)

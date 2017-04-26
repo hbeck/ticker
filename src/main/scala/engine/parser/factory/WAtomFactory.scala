@@ -1,27 +1,23 @@
 package engine.parser.factory
 
-import core.{Atom, Variable}
+import core.Variable
 import core.lars._
+import engine.parser.InvalidSyntaxException
 
 /**
   * Created by et on 22.03.17.
   */
-case class WAtomFactory(not:Boolean = false, predicate: AtomTrait, tempMod: Option[TemporalModality], window: WindowFactory)
-  extends AtomTrait {
+case class WAtomFactory(not: Boolean = false, predicate: AtomTrait, tempMod: TemporalModality,
+                        window: WindowFactory) extends AtomTrait {
 
-  val atom: WindowAtom = create(predicate,tempMod,window)
+  lazy val atom: WindowAtom = create(predicate,tempMod,window)
   override val neg: Boolean = not
 
-  def create(predicate: AtomTrait, tempMod: Option[TemporalModality], window: WindowFactory): WindowAtom =
-    tempMod match {
-      case None => matchAtom(predicate,None,window)
-      case _ => matchAtom(predicate,tempMod,window)
-    }
-
-  private def matchAtom(predicate: AtomTrait, mod: Option[TemporalModality], window: WindowFactory): WindowAtom =
+  @throws[InvalidSyntaxException]
+  private def create(predicate: AtomTrait, mod: TemporalModality, window: WindowFactory): WindowAtom =
     predicate match {
-      case at: AtAtomFactory => WindowAtom(window.wfn,At(Variable(at.time)),at.atom.atom)
-      case a: AtomFactory => WindowAtom(window.wfn,mod.get,a.atom)
-      case _ => ???
-    }
+      case at: AtAtomFactory  => WindowAtom(window.wfn,At(Variable(at.time)),at.atom.atom)
+      case a: AtomFactory     => WindowAtom(window.wfn,mod,a.atom)
+      case _                  => throw new InvalidSyntaxException("Unknown atom cannot be parsed.")
+  }
 }

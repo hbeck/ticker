@@ -10,6 +10,7 @@ case class ArgumentFactory(operand: Any) {
 
   lazy val arg: Argument = create(operand)
 
+  @throws[InvalidSyntaxException]
   def create(operand: Any): Argument = operand match {
     case arg: Double  => IntValue(arg.##)
     case arg: Int     => IntValue(arg)

@@ -22,6 +22,7 @@ object ParamWrapper {
     ParamWrapper(valueToDouble(value))
   }
 
+  @throws[InvalidSyntaxException]
   private def valueToDouble(value: String): Double = {
     if(value.forall {c => Character.isDigit(c) || c == '.'}) {
       return value.toDouble

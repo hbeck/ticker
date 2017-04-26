@@ -14,6 +14,8 @@ class SimpleLarsParser extends JavaTokenParsers {
 
   override val skipWhitespace = false
 
+  def line: Parser[Any] = importN | rule
+
   def program: Parser[ProgramFactory] = rep(comment) ~> rep(importN) ~ rep(comment) ~ rep1(rule) <~ rep(comment) ^^ {
     case imp ~_ ~ rl => ProgramFactory(imp,rl)
   }
@@ -63,15 +65,15 @@ class SimpleLarsParser extends JavaTokenParsers {
   def wAtom: Parser[WAtomFactory] = boxWAtom | diamWAtom | atWAtom
 
   def boxWAtom: Parser[WAtomFactory] = atom ~ space ~ "always" ~ optNotIn ~ window ^^ {
-    case atom ~ _ ~ _ ~ not ~ window => WAtomFactory(not,atom,Some(Box),window)
+    case atom ~ _ ~ _ ~ not ~ window => WAtomFactory(not,atom,Box,window)
   }
 
   def diamWAtom: Parser[WAtomFactory] = atom ~ optNotIn ~ window ^^ {
-    case atom ~ not ~ window => WAtomFactory(not,atom,Some(Diamond),window)
+    case atom ~ not ~ window => WAtomFactory(not,atom,Diamond,window)
   }
 
   def atWAtom: Parser[WAtomFactory] = atAtom ~ optNotIn ~ window ^^ {
-    case atAtom ~ not ~ window => WAtomFactory(not,atAtom,None,window)
+    case atAtom ~ not ~ window => WAtomFactory(not,atAtom,At(atAtom.atom.time),window)
   }
 
   def optNotIn: Parser[Boolean] = space ~ "not" ~ in ^^ (_ => true) |
