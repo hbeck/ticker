@@ -130,6 +130,15 @@ case class NonGroundAtomWithArguments(override val predicate: Predicate, argumen
 
 case class GroundAtomWithArguments(override val predicate: Predicate, arguments: Seq[Value]) extends GroundAtom with AtomWithArguments {
   override def isGround() = true
+
+  private lazy val precomputedHash = scala.runtime.ScalaRunTime._hashCode(GroundAtomWithArguments.this)
+
+  override def hashCode(): Int = precomputedHash
+
+  override def equals(other: Any): Boolean = other match {
+    case a: GroundAtomWithArguments => this.precomputedHash == a.precomputedHash
+    case _ => false
+  }
 }
 
 object GroundAtom {
