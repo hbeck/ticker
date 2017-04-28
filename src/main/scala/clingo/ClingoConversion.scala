@@ -20,6 +20,7 @@ object ClingoConversion {
   }
 
   def apply[TAtom <: Atom](rule: AspRule[TAtom]): ClingoExpression = {
+    //println(rule)
     if (rule.body.isEmpty) {
       apply(rule.head) + '.'
     } else {

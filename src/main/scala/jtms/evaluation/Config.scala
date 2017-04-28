@@ -29,6 +29,7 @@ case class Config(var args: Map[String,String]) {
   val verifyModel = (args(VERIFY_MODEL) == "true")
   val printModelAt = Integer.parseInt(args(PRINT_MODEL_AT))
   val printRulesAt = Integer.parseInt(args(PRINT_RULES_AT))
+  val simplify = (args(SIMPLIFY) == "true")
 
   var windowSize = if (inputWindowSize == -1) 100 else inputWindowSize
 
@@ -37,12 +38,14 @@ case class Config(var args: Map[String,String]) {
     args(INSTANCE_NAME) match {
       case CACHE_HOPS1 => {
         if (verifyModel) {
+          if (windowSize != 10) { println("warning: override window size to 10 for verification") }
           windowSize = 10
         }
         CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,random)
       }
       case CACHE_HOPS2 => {
         if (verifyModel) {
+          if (windowSize != 15) { println("warning: override window size to 15 for verification") }
           windowSize = 15
         }
         CacheHopsEvalInst2(windowSize,timePoints,nrOfItems,random)
@@ -54,23 +57,27 @@ case class Config(var args: Map[String,String]) {
         MMediaDeterministicEvalInst(windowSize, timePoints, random)
       }
       case MMEDIA_NONDET => {
-        MMediaNonDeterministicEvalInst(windowSize, timePoints, random)
+        val values: Seq[Int] = if (simplify) Seq(10,15,20) else (0 to 30)
+        MMediaNonDeterministicEvalInst(windowSize, timePoints, random, values)
       }
       //simple ones:
       case BOX => {
         BoxEvalInst(windowSize, timePoints, random)
       }
+      case TUPLE_BOX => {
+        TupleBoxEvalInst()
+      }
       case s => println(f"unknown instance name $s"); throw new RuntimeException
     }
   }
 
-  def makeTms(inst: StreamingTmsEvalInst): JtmsUpdateAlgorithm = {
+  def makeTms(random: Random): JtmsUpdateAlgorithm = {
     val tms = args(IMPL) match {
-      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), inst.random)
-      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), inst.random)
-      case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), inst.random)
-      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), inst.random)
-      case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), inst.random)
+      case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), random)
+      case DOYLE => new JtmsDoyle(new OptimizedNetwork(), random)
+      case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), random)
+      case GREEDY => new JtmsGreedy(new OptimizedNetwork(), random)
+      case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), random)
       case _ => throw new RuntimeException("unknown tms impl: "+args(IMPL))
     }
 
@@ -94,6 +101,7 @@ object Config {
   //known instances:
   //simple:
   val BOX = "box"
+  val TUPLE_BOX = "tupleBox"
   //relevant:
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
@@ -129,6 +137,8 @@ object Config {
   val PRINT_RULES = "printRules"
   val PRINT_RULES_AT = "printRulesAt"
   val PRINT_MODEL_AT = "printModelAt"
+  //
+  val SIMPLIFY = "simplify"
 
   def buildArgMap(args: Array[String]): Map[String,String] = {
 
@@ -173,10 +183,11 @@ object Config {
     defaultArg(PRINT_RULES_AT, "-1")
     defaultArg(PRINT_MODEL_AT, "-1")
     defaultArg(SEMANTICS_CHECKS, "false")
-    defaultArg(VERIFY_MODEL, "false")
+    defaultArg(VERIFY_MODEL, "true")
     //
     defaultArg(HEADER, "false")
     defaultArg(WITH_DEBUG, "false")
+    defaultArg(SIMPLIFY, "false")
 
     argMap
   }

@@ -16,8 +16,6 @@ import scala.collection.immutable.HashMap
   */
 case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  //TODO 0422 include those of window rules that do not change
-  //TODO 0422 check background data is included
   tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 
   //time of the truth maintenance network due to previous append and result calls
@@ -83,17 +81,21 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       case _ => expirationHandling.deregisterExpiredByCount()
     }
 
-    val addLookup = rulesToAdd.toSet
-    val rulesToRemove = expiredRules filterNot addLookup.contains //do not remove first; concerns efficiency of tms
+    //val addLookup = rulesToAdd.toSet
+    //val rulesToRemove = expiredRules //filterNot addLookup.contains //do not remove first; concerns efficiency of tms
 
     if (IEEConfig.printRules) {
       println("\nrules removed at tick " + currentTick)
-      if (rulesToRemove.isEmpty) println("(none)") else {
-        rulesToRemove foreach println
-      }
+//      if (rulesToRemove.isEmpty) println("(none)") else {
+//        rulesToRemove foreach println
+//      }
+        if (expiredRules.isEmpty) println("(none)") else {
+          expiredRules foreach println
+        }
     }
 
-    tmsPolicy.remove(currentTick.time)(rulesToRemove)
+    //tmsPolicy.remove(currentTick.time)(rulesToRemove)
+    tmsPolicy.remove(currentTick.time)(expiredRules)
   }
 
   //method to be called whenever time xor count increases by 1

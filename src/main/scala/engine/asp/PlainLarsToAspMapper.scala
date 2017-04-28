@@ -1,6 +1,5 @@
 package engine.asp
 
-import core.Argument.Offset
 import core._
 import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
 import core.lars._
@@ -96,21 +95,11 @@ case class TimeAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtA
     AspRule[Atom,Atom](head, Set(now(TimePinVariable), b))
   }
 
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,atTime)) ++ groundingGuards
     val rule: NormalRule = UserDefinedAspRule(windowAtomEncoding,posBody,Set())
     val exp: TickDuration =  Tick(length + 1, Void)
     Seq(RuleWithTimeDurationOnly(rule,exp,ExpirationObligatory))
-  }
-
-  @deprecated
-  def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = tick.time
-    val head:Atom = windowAtomEncoding.resetPin(t)
-    val posBody = Set(PinnedAtom.asPinnedAtAtom(atom,t))
-    val rule: NormalRule = AspRule(head,posBody)
-    val exp: Expiration = Tick(t + length + 1, Void)
-    Seq((exp,rule))
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(length+1,Void)
@@ -133,20 +122,11 @@ case class TimeDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom
     AspRule[Atom, Atom](windowAtomEncoding, Set[Atom](now(TimePinVariable), b))
   }
 
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
     val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,TimePinVariable)) ++ groundingGuards
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(length+1,Void)
     Seq(RuleWithTimeDurationOnly(rule,exp,ExpirationObligatory))
-  }
-
-  @deprecated
-  override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = tick.time
-    val posBody = Set[Atom](PinnedAtom.asPinnedAtAtom(atom,t))
-    val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
-    val exp: Expiration = Tick(t + length + 1, Void)
-    Seq((exp,rule))
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(Void,Void) //since time variable not included
@@ -159,30 +139,24 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, gr
 
   val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
 
+  val zero = TimePoint(0)
+
   lazy val spoilerRules: Seq[NormalRule] = (1 to length.toInt) map  { i =>
-    AspRule(spoilerAtom, Set[Atom](atom, now(TimePinVariable)), Set[Atom](PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - i)))
+    AspRule(spoilerAtom, Set[Atom](atom, now(TimePinVariable), Geq(TimePinVariable-i,zero)), Set[Atom](PinnedAtom.asPinnedAtAtom(atom, TimePinVariable - i)))
   }
 
   override lazy val allWindowRules: Seq[NormalRule] = spoilerRules :+ staticRule
 
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
     val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom)++groundingGuards, Set(spoilerAtom))
-    if (length == 0) return Seq(StaticRule(staticRule)) //TODO prevT
-    //TODO check correct pinning:
-    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom)++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
-    val expSp: TickDuration =  Tick(length,Void)
-    Seq(StaticRule(staticRule),RuleWithTimeDurationOnly(spoilerRule,expSp,ExpirationObligatory))
-  }
-
-  @deprecated
-  override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val staticRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
-    val expStatic: Expiration = Tick(Void,Void)
-    val prevT = tick.time - 1
-    if (length == 0 || prevT == -1) return Seq((expStatic,staticRule))
-    val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom), Set(PinnedAtom.asPinnedAtAtom(atom, TimePoint(prevT))))
-    val expSp: Expiration = Tick(tick.time + length, Void)
-    Seq((expStatic,staticRule),(expSp,spoilerRule))
+    if (length == 0) {
+      Seq(StaticRule(staticRule))
+    } else {
+      //val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom)++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
+      val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom,Geq(TimeVariableWithOffset(TimePinVariable,-1),zero))++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
+      val expSp: TickDuration =  Tick(length,Void)
+      Seq(StaticRule(staticRule),RuleWithTimeDurationOnly(spoilerRule,expSp,ExpirationObligatory))
+    }
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(Void,Void) //since time variable not included
@@ -196,22 +170,11 @@ case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAt
     AspRule[Atom, Atom](windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, atTime, D), Plus(CountPinVariable, IntValue(-i), D)))
   }
 
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,atTime,CountPinVariable))++groundingGuards
     val rule: NormalRule = UserDefinedAspRule(windowAtomEncoding,posBody,Set())
     val exp: TickDuration =  Tick(Void,length)
     Seq(RuleWithCountDurationOnly(rule,exp,ExpirationObligatory))
-  }
-
-  @deprecated
-  override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = TimePoint(tick.time)
-    val c = tick.count.toInt
-    val head:Atom = windowAtomEncoding.resetPin(t)
-    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,t,IntValue(c)))
-    val rule: NormalRule = AspRule(head,posBody)
-    val exp: Expiration = Tick(Void, c + length)
-    Seq((exp,rule))
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(Void, length)
@@ -225,21 +188,11 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
     AspRule(windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, T, CountPinVariable - i)))
   }
 
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
     val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePinVariable,CountPinVariable))++groundingGuards
     val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
     val exp: TickDuration =  Tick(Void,length)
     Seq(RuleWithCountDurationOnly(rule,exp,ExpirationObligatory))
-  }
-
-  @deprecated
-  override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = tick.time
-    val c = tick.count.toInt
-    val posBody = Set(PinnedAtom.asPinnedAtCntAtom(atom,TimePoint(t),IntValue(c)))
-    val rule: NormalRule = AspRule(windowAtomEncoding,posBody)
-    val exp: Expiration = Tick(Void, c + length)
-    Seq((exp,rule))
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(Void,Void) //no time/count variable in window atom
@@ -247,81 +200,62 @@ case class TupleDiamondEncoder(length: Long, atom: Atom, windowAtomEncoding: Ato
 
 case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, groundingGuards: Set[Atom]) extends TupleWindowEncoder {
 
+  val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
+
   val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom), Set(spoilerAtom))
 
   val T = TimeVariableWithOffset("TT")
-  val U = TimeVariableWithOffset("UU")
+  val D = IntVariableWithOffset("DD")
+  val D2 = IntVariableWithOffset("DD2")
 
-  val spoilerAtom = Atom(Predicate(f"spoil_tu_${length}_${atom.predicate.caption}"), Atom.unapply(atom).getOrElse(Seq()))
-  val startAtom = Atom(Predicate(f"start_tu_${length}_${atom.predicate.caption}"), Seq(T))
+  lazy val spoilerRuleCoverTime: NormalRule = AspRule(spoilerAtom,
+    Set[Atom](atom,cnt(CountPinVariable),tickAtom(T,D), Leq(CountPinVariable - length.toInt + 1,D), Leq(D,CountPinVariable)),
+    Set[Atom](PinnedAtom.asPinnedAtAtom(atom, T)))
 
-  lazy val spoilerRule: NormalRule = AspRule(spoilerAtom,
-    Set[Atom](atom,startAtom,now(TimePinVariable),LeqLt(T,U,TimePinVariable)),
-    Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
+  lazy val spoilerRuleCoverCount: NormalRule = AspRule(spoilerAtom,
+    Set[Atom](atom,cnt(CountPinVariable),tickAtom(T,D),
+      Eq(D,CountPinVariable - length.toInt + 1), PinnedAtom.asPinnedAtCntAtom(atom,T,D2), Lt(D2,D)),
+    Set[Atom]())
 
-  lazy val startRule: NormalRule = AspRule(spoilerAtom,
-    Set[Atom](
-      atom,
-      cnt(CountPinVariable),
-      tickAtom(T,CountPinVariable - length.toInt + 1)
-    ))
-
-  lazy val spoilingRules: Seq[NormalRule] = Seq(spoilerRule,startRule)
+  lazy val spoilingRules: Seq[NormalRule] = Seq(spoilerRuleCoverTime,spoilerRuleCoverCount)
 
   override lazy val allWindowRules: Seq[NormalRule] = spoilingRules :+ staticRule
 
   //this variable may go if we can remove predicate "tick" from the pos body of the incremental rule
   //requires more intelligent grounding
-  val D = TimeVariableWithOffset(StringVariable("DD"))
 
-  val offset:Offset = length.toInt - 1
-  val startTickCount = VariableWithOffset(CountPinVariable,offset)
-
-  override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = {
+  override val windowRuleTemplates: Seq[AnnotatedNormalRule] = {
 
     val staticRule: NormalRule = AspRule(windowAtomEncoding, Set(atom)++groundingGuards, Set(spoilerAtom))
 
-    if (length < 2) return Seq(StaticRule(staticRule))
+    if (length < 2) {
+      Seq(StaticRule(staticRule))
+    } else {
 
-    val spoilerRule: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom,startAtom,LeqLt(T,U,TimePinVariable))++groundingGuards,
-      Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
+      val coversTime = Atom(Predicate(f"covT_${length}"),Seq(TimePinVariable))
+      val coversCount = Atom(Predicate(f"covC_${length}"),Seq(CountPinVariable))
+      val tickWithVars = tickAtom(TimePinVariable,CountPinVariable)
 
-    val startRule: NormalRule = AspRule(startAtom,
-      Set[Atom](
-        atom,
-        tickAtom(T,startTickCount)
-      )++groundingGuards)
+      val spoilerRuleCoverTime: NormalRule = AspRule(spoilerAtom,
+        Set[Atom](atom, tickAtom(TimePinVariable, CountPinVariable), coversTime) ++ groundingGuards,
+        Set[Atom](PinnedAtom.asPinnedAtAtom(atom, TimePinVariable)))
 
-    val expSpoiler: TickDuration = Tick(1, Void)
-    val expStart: TickDuration = Tick(Void, 1)
+      val spoilerRuleCoverCount: NormalRule = AspRule(spoilerAtom,
+        Set[Atom](atom, PinnedAtom.asPinnedAtCntAtom(atom, TimePinVariable, CountPinVariable), coversTime) ++ groundingGuards,
+        Set[Atom](coversCount))
 
-    Seq(StaticRule(staticRule),
-      RuleWithTimeDurationOnly(spoilerRule,expSpoiler,ExpirationObligatory,NeedsIncrementalGrounding),
-      RuleWithCountDurationOnly(startRule,expStart,ExpirationObligatory,NeedsIncrementalGrounding))
-  }
+      val expSpoilerCoverTime: TickDuration = Tick(Void, length)
+      val expSpoilerCoverCount: TickDuration = Tick(length, Void)
 
-  @deprecated
-  override def incrementalRules(tick: Tick): Seq[(Expiration,NormalRule)] = {
-    val t = TimePoint(tick.time)
+      val expCovers: TickDuration = Tick(Void, length)
+      val ruleDurCoverT = RuleWithCountDurationOnly(AspRule(coversTime, tickWithVars), expCovers, ExpirationObligatory, OnTimeAndCountIncrease)
+      val ruleDurCoverC = RuleWithCountDurationOnly(AspRule(coversCount, tickWithVars), expCovers, ExpirationObligatory, OnTimeAndCountIncrease)
 
-    val staticRule: NormalRule = AspRule(windowAtomEncoding,Set(atom),Set(spoilerAtom))
-    val expStatic: Expiration = Tick(Void,Void)
-    if (length < 2) return Seq((expStatic,staticRule))
-
-    val spoilerRule: NormalRule = AspRule(spoilerAtom,
-      Set[Atom](atom,startAtom,LeqLt(T,U,t),tickAtom(U,D)),
-      Set[Atom](PinnedAtom.asPinnedAtAtom(atom, U)))
-
-    val startRule: NormalRule = AspRule(startAtom,
-      Set[Atom](
-        atom,
-        tickAtom(T,IntValue(Math.max(0,tick.count.toInt - length.toInt + 1)))
-      ))
-
-    val expSpoiler: Expiration = Tick(tick.time + 1, Void)
-    val expStart: Expiration = Tick(Void, tick.count + 1)
-    Seq((expStatic,staticRule),(expSpoiler,spoilerRule),(expStart,startRule))
+      Seq(StaticRule(staticRule),
+        RuleWithCountDurationOnly(spoilerRuleCoverTime, expSpoilerCoverTime, ExpirationObligatory, OnTimeAndCountIncrease),
+        RuleWithTimeDurationOnly(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
+        ruleDurCoverT, ruleDurCoverC)
+    }
   }
 
   override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(Void, Void) //no time/count variable in window atom

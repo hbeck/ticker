@@ -121,8 +121,8 @@ object LarsEvaluation {
     val initializationTime = stopTime {
       val startableEngine: StartableEngineConfiguration = config.implementation match {
         case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
-        case Config.DOYLE_HEURISTICS => {
-          tms = config.makeTms(instance)
+        case _ => {
+          tms = config.makeTms(instance.random)
           builder.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
         }
       }
@@ -144,6 +144,7 @@ object LarsEvaluation {
   def runTimepoint(instance: LarsEvaluationInstance, engine: EvaluationEngine, config: Config)(t: Int): ExecutionTimePerTimePoint = {
 
     val signals = instance.generateSignalsToAddAt(t)
+
     val time = TimePoint(t)
 
     val appendTime = stopTime {
@@ -162,7 +163,7 @@ object LarsEvaluation {
       println()
     }
 
-    if (config.verifyModel) {
+    if (config.verifyModel && t == 301) {
       instance.verifyModel(result.get, t)
     }
 

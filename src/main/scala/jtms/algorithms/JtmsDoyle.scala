@@ -80,7 +80,7 @@ class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new R
       //network.unknownCons(a) foreach findStatus //variant
     } else {
       retractionsAffected = retractionsAffected + 1
-      val aff = shuffle(network.affected(a) + a) //TODO no test coverage
+      val aff = shuffle(network.affected(a) + a)
       //val aff = affected(a) + a
       aff foreach setUnknown
       aff foreach chooseStatus

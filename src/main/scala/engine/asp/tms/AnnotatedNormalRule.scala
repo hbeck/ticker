@@ -15,15 +15,15 @@ case class StaticRule(rule: NormalRule) extends AnnotatedNormalRule
 trait RuleWithDuration extends AnnotatedNormalRule {
   val duration: TickDuration
   val expirationMode: ExpirationMode
-  val preparationMode: PreparationMode
+  val generationMode: GenerationMode
 }
 
 trait RuleWithTimeDuration extends RuleWithDuration
 trait RuleWithCountDuration extends RuleWithDuration
 
-case class RuleWithTimeDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, preparationMode: PreparationMode = MayBePregrounded) extends RuleWithTimeDuration
-case class RuleWithCountDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, preparationMode: PreparationMode = MayBePregrounded) extends RuleWithCountDuration
-case class RuleWithDualDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, preparationMode: PreparationMode = MayBePregrounded) extends RuleWithTimeDuration with RuleWithCountDuration
+case class RuleWithTimeDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeIncreaseOnly) extends RuleWithTimeDuration
+case class RuleWithCountDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnCountIncreaseOnly) extends RuleWithCountDuration
+case class RuleWithDualDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeAndCountIncrease) extends RuleWithTimeDuration with RuleWithCountDuration
 
 trait ExpiringRule extends AnnotatedNormalRule {
   val expiration: Tick
@@ -41,6 +41,7 @@ sealed trait ExpirationMode
 case object ExpirationObligatory extends ExpirationMode
 case object ExpirationOptional extends ExpirationMode
 
-sealed trait PreparationMode
-case object NeedsIncrementalGrounding extends PreparationMode
-case object MayBePregrounded extends PreparationMode //grounding apart from pin-variables is possible (unless values are not known upfront)
+sealed trait GenerationMode
+case object OnTimeIncreaseOnly extends GenerationMode
+case object OnCountIncreaseOnly extends GenerationMode
+case object OnTimeAndCountIncrease extends GenerationMode

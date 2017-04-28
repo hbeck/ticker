@@ -23,9 +23,6 @@ trait WindowAtomEncoder {
 
   val groundingGuards: Set[Atom] //TODO at this to posBody of windowRuleTemplates? 0424
 
-  @deprecated
-  def incrementalRules(tick: Tick): Seq[(TicksUntilOutdated,NormalRule)]
-
 }
 
 trait TimeWindowEncoder extends WindowAtomEncoder

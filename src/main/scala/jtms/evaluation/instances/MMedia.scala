@@ -10,7 +10,7 @@ import scala.util.Random
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsEvalInst {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random, val values: Seq[Int] = (0 to 30)) extends StreamingTmsEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -24,7 +24,6 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   val _low_at = Predicate("low_at")
   val _rtm_at = Predicate("rtm50_at")
   val _value = Predicate("value")
-
 
   val spoil_high = Atom("spoil_high")
   val spoil_mid = Atom("spoil_mid")
@@ -60,13 +59,11 @@ random :- not done.
    */
   val E = Set[Atom]()
 
-  val maxAlphaValue = 30
-
   override val staticRules: Seq[NormalRule] = {
     var rules = Seq[NormalRule]()
     rules = rules :+ rule(done,lfu) :+ rule(done,lru) :+ rule(done,fifo) :+ rule(randomAtom,E,Set(done))
-    for (i <- 0 to maxAlphaValue) {
-      for (j <- 0 to maxAlphaValue) {
+    for (i <- values) {
+      for (j <- values) {
         if (i < j) {
           rules = rules :+ fact(lt(i,j))
         }
@@ -91,7 +88,7 @@ random :- not done.
 
   override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
     var rules = Seq[NormalRule]()
-    for (v <- 0 to maxAlphaValue) {
+    for (v <- values) {
       rules = rules :+ rule(high_at(t),Set[Atom](value(v), alpha_at(v,t),leq(18,v)),E) //high_at(T) :- value(V), alpha_at(V,T), leq(18,V).
       rules = rules :+ rule(mid_at(t),Set[Atom](value(v), alpha_at(v,t),leq(12,v), lt(v,18)),E) //mid_at(T) :- value(V), alpha_at(V,T), leq(12,V), lt(V,18).
       rules = rules :+ rule(low_at(t),Set[Atom](value(v), alpha_at(v,t),lt(v,12)),E) //low_at(T) :- value(V), alpha_at(V,T), lt(V,12).
@@ -110,10 +107,9 @@ random :- not done.
   }
 
   override def larsProgram(windowSize: Int): LarsProgram = {
-
     val T:Variable = StringVariable("T")
     val V:Variable = StringVariable("V")
-    
+
     def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
 
     val n = windowSize
@@ -136,7 +132,7 @@ random :- not done.
   }
 
   def factAtoms(): Seq[Atom] = {
-    (0 to maxAlphaValue) map (value(_))
+    values map (value(_))
   }
 
 }
@@ -178,7 +174,9 @@ case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random:
 
 }
 
-case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints, random) {
+case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = (0 to 30)) extends MMedia(windowSize,timePoints, random) {
+
+  val simplify = values.size == 3
 
   abstract class Mode
   case object High extends Mode
@@ -201,9 +199,9 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
       modeUntil = t+2*windowSize
     }
     val v = mode match {
-      case High => 18 + random.nextInt(13)
-      case Mid => 12 + random.nextInt(6)
-      case _ => random.nextInt(12)
+      case High => if (simplify) 20 else (18 + random.nextInt(13))
+      case Mid => if (simplify) 15 else (12 + random.nextInt(6))
+      case _ => if (simplify) 10 else random.nextInt(12)
     }
     var signals = Seq[Atom]() :+ alpha(IntValue(v))
     if (mode == Low) {

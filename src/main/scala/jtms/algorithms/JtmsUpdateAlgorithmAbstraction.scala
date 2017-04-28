@@ -78,19 +78,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
       update(network.unknownAtoms + rule.head) //i.e., recompute()
     } else {
       if (network.status(rule.head) == in) {
-        if (network.valid(rule)) {
-          // TODO: this could create self-support!
-          // Scenario:
-          // dz is in, support is: dz :- some, w_te_2_d_z.
-          // new rule is added: dz :- dz_at(18).
-          // is already valid, creates self-support :-/
-
-          // TODO: do a benchmark here
-          val foundations = rule.body flatMap network.foundations
-          if (!foundations.contains(rule.head))
-          //difference to original; optimization for sliding time-based window (support always by latest)
-            setIn(rule)
-        }
+        ruleAlreadyInHeuristic(rule)
         return
       }
       if (network.invalid(rule)) {
@@ -102,6 +90,8 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
       update(atoms)
     }
   }
+
+  def ruleAlreadyInHeuristic(rule: NormalRule): Unit = {} //see JtmsDoyleHeuristics
 
   override def remove(rule: NormalRule): Unit = {
     deregister(rule)
