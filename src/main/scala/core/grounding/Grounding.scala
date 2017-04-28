@@ -12,6 +12,9 @@ import core.Atom
 object Grounding {
 
   def ensureRuleRelations(rule: NormalRule): Option[NormalRule] = {
+    if (rule.pos.map(_.predicate.caption).contains("geq")) {
+      val a = 0
+    }
     if (relationsHold(rule)) {
       Some(deleteAuxiliaryAtoms(rule))
     } else {

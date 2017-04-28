@@ -32,22 +32,22 @@ trait LarsEvaluationInstance {
 
   def contains(model: Model, t: Int, a: Atom) = {
     if (!model.contains(a)) {
-      printModel(t,model)
-      println(f"does not contain $a")
+      //printModel(t,model)
+      println(f"model at t=$t does not contain $a")
       assert(false)
     }
   }
   def notContains(model: Model, t: Int, a: Atom) = {
     if (model.contains(a)) {
-      printModel(t,model)
-      println(f"contains $a")
+      //printModel(t,model)
+      println(f"model at t=$t contains $a")
       assert(false)
     }
   }
   def containsSomeOf(model: Model, t: Int, ats: Seq[Atom]) = {
     if (!(ats.exists(model.contains(_)))) {
-      printModel(t,model)
-      println(f"contained none of $ats")
+      //printModel(t,model)
+      println(f"model at t=$t contained none of $ats")
       assert(false)
     }
   }

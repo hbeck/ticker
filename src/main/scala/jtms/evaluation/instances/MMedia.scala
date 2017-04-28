@@ -137,7 +137,7 @@ random :- not done.
 
 }
 
-case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints,random) {
+case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = Seq(5,15,25)) extends MMedia(windowSize,timePoints,random) {
 
   override def verifyModel(optModel: Option[Model], t: Int) = {
     if (optModel.isEmpty) assert(false)

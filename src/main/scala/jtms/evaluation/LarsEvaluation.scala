@@ -163,7 +163,7 @@ object LarsEvaluation {
       println()
     }
 
-    if (config.verifyModel && t == 301) {
+    if (config.verifyModel) {
       instance.verifyModel(result.get, t)
     }
 

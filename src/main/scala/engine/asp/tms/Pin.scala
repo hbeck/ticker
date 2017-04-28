@@ -124,9 +124,9 @@ case class Pin(assignment: Assignment) {
   */
 
   def groundTickVariables(atom: Atom): Atom = atom match {
+    case rel: RelationAtom if !rel.isGround() => rel.assign(assignment).asInstanceOf[RelationAtom]
     case p: PinnedAtom => this.apply(p)
     case ng: NonGroundAtomWithArguments => ng.assign(assignment)
-    case rel: RelationAtom if !rel.isGround() => rel.assign(assignment).asInstanceOf[Atom]
     case a: GroundAtom => a
     case _ => atom
     //    case _ => throw new RuntimeException("cannot ground " + atom)
