@@ -86,7 +86,19 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
         case v@StringVariable(name) => if (name == CountPinVariableName) v else StringVariable(CountPinVariableName)
         case arg => arg
       }
-      Atom(aa.predicate,newArgs)
+      if (atom.isInstanceOf[RelationAtom]) {
+        instantiateRelationAtom(atom, newArgs)
+      } else {
+        Atom(aa.predicate,newArgs)
+      }
+    }
+  }
+
+  def instantiateRelationAtom(atom: Atom, args: Seq[Argument]): RelationAtom = {
+    atom match {
+      case ra:BinaryRelationAtom => ra.newInstance(args(0),args(1))
+      case ra:TernaryRelationAtom => ra.newInstance(args(0),args(1),args(2))
+      case _ => throw new RuntimeException("unknown relation atom "+atom)
     }
   }
 
