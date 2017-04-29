@@ -36,6 +36,7 @@ trait LarsEvaluationInstance {
       println(f"model at t=$t does not contain $a")
       assert(false)
     }
+    true
   }
   def notContains(model: Model, t: Int, a: Atom) = {
     if (model.contains(a)) {
@@ -43,6 +44,7 @@ trait LarsEvaluationInstance {
       println(f"model at t=$t contains $a")
       assert(false)
     }
+    true
   }
   def containsSomeOf(model: Model, t: Int, ats: Seq[Atom]) = {
     if (!(ats.exists(model.contains(_)))) {
@@ -50,6 +52,7 @@ trait LarsEvaluationInstance {
       println(f"model at t=$t contained none of $ats")
       assert(false)
     }
+    true
   }
 
   def printModel(t:Int, model: Set[Atom]): Unit = {

@@ -9,6 +9,8 @@ import jtms._
   */
 class OptimizedNetwork extends TruthMaintenanceNetwork {
 
+  val supportCleanupThreshold = 5000
+
   override def allAtoms() = __allAtoms
 
   var __allAtoms: Set[Atom] = Set()
@@ -114,11 +116,12 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   def __cleanupSupportingData(force: Boolean = false): Unit = {
     __cleanup = __cleanup + 1
-    if (__cleanup % 1000 == 0 || force) {
+    if (__cleanup % supportCleanupThreshold == 0 || force) {
       __cleanup = 0
 
-      __justifications = __justifications filter { case (atom, rules) => rules.nonEmpty }
-      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom, rules) => rules.nonEmpty }
+
+      __justifications = __justifications filter { case (atom, r) => r.nonEmpty }
+      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom, r) => r.nonEmpty }
     }
   }
 

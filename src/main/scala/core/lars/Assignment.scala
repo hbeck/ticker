@@ -22,8 +22,7 @@ case class Assignment(binding: Map[Variable, Value]) { //TODO crisis class due t
           }
           case _ => {
             val lookupObj = TimeVariableWithOffset(v.variable, 0) //hack due to type mismatch of map
-            val boundValue = binding(lookupObj)
-            Some(v.calculate(boundValue))
+            binding.get(lookupObj).map(boundValue=> v.calculate(boundValue) )
           }
         }
       }

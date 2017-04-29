@@ -1,6 +1,6 @@
 package core
 
-import core.asp.{AspFact, BuilderHead}
+import core.asp.{AspFact, BuilderHead, UserDefinedAspRule}
 import core.lars._
 
 /**

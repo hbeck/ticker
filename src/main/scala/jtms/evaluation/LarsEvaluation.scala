@@ -15,6 +15,8 @@ import scala.concurrent.duration.Duration
   */
 object LarsEvaluation {
 
+  val profiling = false
+
   def main(args: Array[String]): Unit = {
     timings(args)
   }
@@ -111,7 +113,12 @@ object LarsEvaluation {
   var tms: JtmsUpdateAlgorithm = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
-   
+    if(profiling && iterationNr == 0) {
+      println("waiting to start profiling, press return")
+      readLine()
+      println("running")
+    }
+
     if (config.withDebug) { print(" " + iterationNr) }
 
     val instance = config.makeInstance(iterationNr)

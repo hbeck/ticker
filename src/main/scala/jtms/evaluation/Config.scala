@@ -10,14 +10,14 @@ import scala.util.Random
 /**
   * Created by hb on 17.04.17.
   */
-case class Config(var args: Map[String,String]) {
+case class Config(var args: Map[String, String]) {
 
   import Config._
 
   val instanceName = args(INSTANCE_NAME)
   val preRuns = Integer.parseInt(args(PRE_RUNS))
   val runs = Integer.parseInt(args(RUNS))
-  val modelRatio:Boolean = (args(MODEL_RATIO) == "true")
+  val modelRatio: Boolean = (args(MODEL_RATIO) == "true")
   val timePoints = Integer.parseInt(args(TIMEPOINTS))
   val inputWindowSize = Integer.parseInt(args(WINDOW_SIZE))
   val signalsPerTp = Integer.parseInt(args(SIGNALS_PER_TP))
@@ -41,17 +41,17 @@ case class Config(var args: Map[String,String]) {
           if (windowSize != 10) { println("warning: override window size to 10 for verification") }
           windowSize = 10
         }
-        CacheHopsEvalInst1(windowSize,timePoints,nrOfItems,random)
+        CacheHopsEvalInst1(windowSize, timePoints, nrOfItems, random)
       }
       case CACHE_HOPS2 => {
         if (verifyModel) {
           if (windowSize != 15) { println("warning: override window size to 15 for verification") }
           windowSize = 15
         }
-        CacheHopsEvalInst2(windowSize,timePoints,nrOfItems,random)
+        CacheHopsEvalInst2(windowSize, timePoints, nrOfItems, random)
       }
       case CACHE_HOPS3 => {
-        CacheHopsEvalInst3(windowSize,timePoints,nrOfItems,signalsPerTp,random) //window size is fixed to 15 (for verification)
+        CacheHopsEvalInst3(windowSize, timePoints, nrOfItems, signalsPerTp, random) //window size is fixed to 15 (for verification)
       }
       case MMEDIA_DET => {
         MMediaDeterministicEvalInst(windowSize, timePoints, random)
@@ -59,6 +59,12 @@ case class Config(var args: Map[String,String]) {
       case MMEDIA_NONDET => {
         val values: Seq[Int] = if (simplify) Seq(10,15,20) else (0 to 30)
         MMediaNonDeterministicEvalInst(windowSize, timePoints, random, values)
+      }
+      case MMEDIA_DIM_DET => {
+        MMediaDimDetInstance(windowSize, timePoints, nrOfItems, random)
+      }
+      case MMEDIA_DIM_NONDET => {
+        MMediaDimNonDeterministicEvalInst(windowSize, timePoints, nrOfItems, random)
       }
       //simple ones:
       case BOX => {
@@ -82,9 +88,9 @@ case class Config(var args: Map[String,String]) {
     }
 
     if (tms.isInstanceOf[JtmsDoyle] && (args(SEMANTICS_CHECKS) == "true")) {
-      tms.asInstanceOf[JtmsDoyle].doConsistencyCheck=true
-      tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck=true
-      tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck=true
+      tms.asInstanceOf[JtmsDoyle].doConsistencyCheck = true
+      tms.asInstanceOf[JtmsDoyle].doJtmsSemanticsCheck = true
+      tms.asInstanceOf[JtmsDoyle].doSelfSupportCheck = true
     }
 
     tms
@@ -105,6 +111,8 @@ object Config {
   //relevant:
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
+  val MMEDIA_DIM_DET = "mmediaDimDet"
+  val MMEDIA_DIM_NONDET="mmediaDimNonDet"
   val CACHE_HOPS1 = "cacheHops1"
   val CACHE_HOPS2 = "cacheHops2"
   val CACHE_HOPS3 = "cacheHops3"
@@ -140,10 +148,10 @@ object Config {
   //
   val SIMPLIFY = "simplify"
 
-  def buildArgMap(args: Array[String]): Map[String,String] = {
+  def buildArgMap(args: Array[String]): Map[String, String] = {
 
     if (args.length % 2 == 1) {
-      println("need even number of args. given: "+args)
+      println("need even number of args. given: " + args)
       System.exit(1)
     }
     if (args.length == 0) {
@@ -151,16 +159,16 @@ object Config {
     }
 
     var argMap = defaultArgs()
-    for (i <- 0 to args.length/2-1) {
-      argMap = argMap + (args(2*i) -> args(2*i+1))
+    for (i <- 0 to args.length / 2 - 1) {
+      argMap = argMap + (args(2 * i) -> args(2 * i + 1))
     }
     argMap
 
   }
 
-  def defaultArgs(): Map[String,String] = {
+  def defaultArgs(): Map[String, String] = {
 
-    var argMap = Map[String,String]()
+    var argMap = Map[String, String]()
 
     def defaultArg(key: String, value: String) = {
       if (!argMap.contains(key)) {
@@ -168,16 +176,16 @@ object Config {
       }
     }
 
-    defaultArg(INSTANCE_NAME,CACHE_HOPS2)
-    defaultArg(IMPL,DOYLE_HEURISTICS)
-    defaultArg(PRE_RUNS,"2")
-    defaultArg(RUNS,"5")
-    defaultArg(TIMEPOINTS,"20")
-    defaultArg(MODEL_RATIO,"false")
-    defaultArg(WINDOW_SIZE,"-1")
-    defaultArg(SIGNALS_PER_TP,"1")
+    defaultArg(INSTANCE_NAME, CACHE_HOPS2)
+    defaultArg(IMPL, DOYLE_HEURISTICS)
+    defaultArg(PRE_RUNS, "2")
+    defaultArg(RUNS, "5")
+    defaultArg(TIMEPOINTS, "20")
+    defaultArg(MODEL_RATIO, "false")
+    defaultArg(WINDOW_SIZE, "-1")
+    defaultArg(SIGNALS_PER_TP, "1")
     //
-    defaultArg(ITEMS,"1")
+    defaultArg(ITEMS, "1")
     //
     defaultArg(PRINT_RULES, "false")
     defaultArg(PRINT_RULES_AT, "-1")
