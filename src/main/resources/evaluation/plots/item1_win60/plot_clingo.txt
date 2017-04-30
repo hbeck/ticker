@@ -1,0 +1,17 @@
+impl	instance	items	tp	winsize	total_time	init_time	add_time
+ClingoPush	content1	1	100	60	8.57	0.026	0.085
+ClingoPush	content1	1	200	60	16.392	0.022	0.081
+ClingoPush	content1	1	300	60	31.568	0.022	0.105
+ClingoPush	content1	1	400	60	40.927	0.025	0.102
+ClingoPush	content1	1	500	60	55.313	0.021	0.11
+ClingoPush	content1	1	600	60	69.548	0.021	0.115
+ClingoPush	content2	1	100	60	4.974	0.029	0.049
+ClingoPush	content2	1	200	60	10.06	0.021	0.05
+ClingoPush	content2	1	300	60	15.023	0.02	0.049
+ClingoPush	content2	1	400	60	20.574	0.019	0.051
+ClingoPush	content2	1	500	60	26.075	0.02	0.052
+ClingoPush	content2	1	600	60	31.68	0.02	0.052
+ClingoPush	content2	1	700	60	36.35	0.02	0.051
+ClingoPush	content2	1	800	60	42.391	0.021	0.052
+ClingoPush	content2	1	900	60	48.254	0.021	0.053
+ClingoPush	content2	1	1000	60	54.354	0.02	0.054
