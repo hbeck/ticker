@@ -1,10 +1,9 @@
 package jtms.evaluation.instances
 
 import core._
-import core.asp.{AspProgram, NormalRule}
-import core.grounding.{GrounderInstance, StaticProgramInspection}
+import core.asp.NormalRule
 import core.lars._
-import jtms.evaluation.{StreamingTmsEvalInst}
+import jtms.evaluation.StreamingTmsEvalInst
 
 import scala.util.Random
 
@@ -88,7 +87,8 @@ abstract class ContentRetrievalEvalInst(nrOfItems: Int, random: Random) extends 
       source(I, N, M) <= need(I, N) not avail(I, N) and avail(I, M) and reach(N, M),
       reach(N, M) <= conn(N, M),
       reach(N, M) <= reach(N, M0) and conn(M0, M) and Neq(M0, M) and Neq(N, M),
-      conn(N, M) <= edge(N, M) not WindowAtom(SlidingTupleWindow(n), Box, down(M)),
+      //conn(N, M) <= edge(N, M) not tup_wB(n, down(M)),
+      conn(N, M) <= edge(N, M) not wB(n, down(M)),
       qual(N, L) <= node(N) and lev(L) and lev(L0) and Lt(L0, L) and wD(n, qLev(N, L)) not wD(n, qLev(N, L0))
     ) ++ (factAtoms() map larsFact)
 
@@ -116,7 +116,6 @@ abstract class ContentRetrievalEvalInst(nrOfItems: Int, random: Random) extends 
 }
 
 case class ContentRetrieval1EvalInst(windowSize: Int, timePoints: Int, nrOfItems: Int, random: Random) extends ContentRetrievalEvalInst(nrOfItems, random) {
-
 
   val i = StringValue("i1")
 
