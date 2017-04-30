@@ -46,9 +46,9 @@ object LarsEvaluation {
     //"signalsPerTp" -> "",
     "total_time" -> "",
     "init_time" -> "",
-    "add_time" -> "",
+    "add_time" -> ""
     //"eval_time" -> executionTimes.evaluateTimes.avg,
-    "add_time_per_tp" -> ""
+    //"add_time_per_tp" -> ""
     //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
   )
 
@@ -71,9 +71,9 @@ object LarsEvaluation {
       //"signalsPerTp" -> config.signalsPerTp,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
-      "add_time" -> executionTimes.appendTimes.avg,
+      "add_time" -> executionTimes.appendTimes.avg
       //"eval_time" -> executionTimes.evaluateTimes.avg,
-      "add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
+      //"add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
       //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
     )
 
