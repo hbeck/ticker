@@ -68,7 +68,7 @@ object LarsEvaluation {
       "items" -> config.nrOfItems,
       "tp" -> config.timePoints,
       "winsize" -> config.windowSize,
-      "signalsPerTp" -> config.signalsPerTp,
+      //"signalsPerTp" -> config.signalsPerTp,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,

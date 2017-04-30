@@ -35,7 +35,8 @@ trait RuleExpiringByCount extends ExpiringRule
 
 case class RuleExpiringByTimeOnly(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends RuleExpiringByTime //necessarily ground
 case class RuleExpiringByCountOnly(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends RuleExpiringByCount //necessarily ground
-case class RuleExpiringDually(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends RuleExpiringByTime with RuleExpiringByCount //necessarily ground
+case class RuleExpiringByTimeOrCount(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends RuleExpiringByTime with RuleExpiringByCount //necessarily ground
+case class RuleExpiringByTimeAndCount(rule: NormalRule, expiration: Tick, expirationMode: ExpirationMode) extends RuleExpiringByTime with RuleExpiringByCount //necessarily ground
 
 sealed trait ExpirationMode
 case object ExpirationObligatory extends ExpirationMode

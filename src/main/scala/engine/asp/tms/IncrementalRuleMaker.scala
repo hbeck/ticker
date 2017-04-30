@@ -125,14 +125,31 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     }
   }
 
-  val needs_at_cnt_atoms = larsProgramEncoding.larsRules flatMap (_.body) exists {
+  val windowAtoms = larsProgramEncoding.larsRules flatMap (_.body collect { case w:WindowAtom => w})
+
+  val needs_at_cnt_atoms = windowAtoms exists {
     case WindowAtom(SlidingTupleWindow(_), _, _) => true
     case _ => false
   }
 
-  val need_tick_atoms = larsProgramEncoding.larsRules flatMap (_.body) exists {
+  val need_tick_atoms = windowAtoms exists {
     case WindowAtom(SlidingTupleWindow(_), Box, _) => true
     case _ => false
+  }
+
+  val predicateDurations: Map[Predicate,TickDuration] = windowAtoms.groupBy(_.atom.predicate) map {
+    case (pred,windows) => {
+      val durations:Seq[Tick] = windows map {
+        case WindowAtom(SlidingTimeWindow(n),At(_),_) => Tick(n.length+1,Void)
+        case WindowAtom(SlidingTimeWindow(n),Diamond,_) => Tick(n.length+1,Void)
+        case WindowAtom(SlidingTimeWindow(n),Box,_) => Tick(n.length+1,Void)
+        case WindowAtom(SlidingTupleWindow(n),At(_),_) => Tick(Void,n)
+        case WindowAtom(SlidingTupleWindow(n),Diamond,_) => Tick(Void,n)
+        case WindowAtom(SlidingTupleWindow(n),Box,_) => Tick(n,n) //can be improved
+      }
+      val maxDuration: TickDuration = durations.foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.max(ticks1,ticks2))
+      (pred,maxDuration)
+    }
   }
 
   //
@@ -152,7 +169,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
     val signals: Seq[AnnotatedNormalRule] = { //TODO expiring
       if (timeIncrease) { Seq() }
-      else { pinnedAtoms(DefaultTrackedSignal(signal.get, tick)) }
+      else { pinnedAtoms(tick, DefaultTrackedSignal(signal.get, tick)) }
     }
 
     val pin = expiringRulesPinning(tick)
@@ -180,7 +197,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
           rwd match {
             case xr: RuleWithTimeDurationOnly => RuleExpiringByTimeOnly(pinnedRule, exp, mode)
             case xr: RuleWithCountDurationOnly => RuleExpiringByCountOnly(pinnedRule, exp, mode)
-            case xr: RuleWithDualDuration => RuleExpiringDually(pinnedRule, exp, mode)
+            case xr: RuleWithDualDuration => RuleExpiringByTimeOrCount(pinnedRule, exp, mode)
           }
         }
       }
@@ -189,11 +206,32 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     fn
   }
 
-  def pinnedAtoms(t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = { //TODO expire
-    if (needs_at_cnt_atoms) {
-      Seq(StaticRule(AspFact[Atom](t.timePinned)),StaticRule(AspFact[Atom](t.timeCountPinned)))
+  val useSignalExpiration = false
+
+  def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
+    val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
+      Seq(AspFact[Atom](t.timePinned),t.timeCountPinned)
     } else {
-      Seq(StaticRule(AspFact[Atom](t.timePinned)))
+      Seq(AspFact[Atom](t.timePinned))
+    }
+    if (useSignalExpiration) {
+      val duration: TickDuration = predicateDurations(t.signal.predicate)
+      if (duration.count == Void) {
+        if (duration.time == Void) {
+          rules map StaticRule
+        } else {
+          rules map (RuleExpiringByTimeOnly(_, tick + duration, ExpirationOptional))
+        }
+      } else {
+        //duration = n
+        if (duration.time == Void) {
+          rules map (RuleExpiringByCountOnly(_, tick + duration, ExpirationOptional))
+        } else {
+          rules map (RuleExpiringByTimeAndCount(_, tick + duration, ExpirationOptional))
+        }
+      }
+    } else {
+      rules map StaticRule
     }
   }
 
