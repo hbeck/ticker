@@ -38,14 +38,18 @@ case class Config(var args: Map[String, String]) {
     args(INSTANCE_NAME) match {
       case CACHE_HOPS1 => {
         if (verifyModel) {
-          if (windowSize != 10) { println("warning: override window size to 10 for verification") }
+          if (windowSize != 10) {
+            println("warning: override window size to 10 for verification")
+          }
           windowSize = 10
         }
         CacheHopsEvalInst1(windowSize, timePoints, nrOfItems, random)
       }
       case CACHE_HOPS2 => {
         if (verifyModel) {
-          if (windowSize != 15) { println("warning: override window size to 15 for verification") }
+          if (windowSize != 15) {
+            println("warning: override window size to 15 for verification")
+          }
           windowSize = 15
         }
         CacheHopsEvalInst2(windowSize, timePoints, nrOfItems, random)
@@ -57,7 +61,7 @@ case class Config(var args: Map[String, String]) {
         MMediaDeterministicEvalInst(windowSize, timePoints, random)
       }
       case MMEDIA_NONDET => {
-        val values: Seq[Int] = if (simplify) Seq(10,15,20) else (0 to 30)
+        val values: Seq[Int] = if (simplify) Seq(10, 15, 20) else (0 to 30)
         MMediaNonDeterministicEvalInst(windowSize, timePoints, random, values)
       }
       case MMEDIA_DIM_DET => {
@@ -65,6 +69,12 @@ case class Config(var args: Map[String, String]) {
       }
       case MMEDIA_DIM_NONDET => {
         MMediaDimNonDeterministicEvalInst(windowSize, timePoints, nrOfItems, random)
+      }
+      case SAMPLE_N(sample) => {
+        val randomness = if (modelRatio) High else Low
+        sample match {
+          case "1" => SampleTimeWindowAtInstance(windowSize, timePoints, nrOfItems, randomness, random)
+        }
       }
       //simple ones:
       case BOX => {
@@ -84,7 +94,7 @@ case class Config(var args: Map[String, String]) {
       case DOYLE_HEURISTICS => new JtmsDoyleHeuristics(new OptimizedNetwork(), random)
       case GREEDY => new JtmsGreedy(new OptimizedNetwork(), random)
       case LEARN => new JtmsLearn(new OptimizedNetworkForLearn(), random)
-      case _ => throw new RuntimeException("unknown tms impl: "+args(IMPL))
+      case _ => throw new RuntimeException("unknown tms impl: " + args(IMPL))
     }
 
     if (tms.isInstanceOf[JtmsDoyle] && (args(SEMANTICS_CHECKS) == "true")) {
@@ -112,10 +122,11 @@ object Config {
   val MMEDIA_DET = "mmediaDet"
   val MMEDIA_NONDET = "mmediaNonDet"
   val MMEDIA_DIM_DET = "mmediaDimDet"
-  val MMEDIA_DIM_NONDET="mmediaDimNonDet"
+  val MMEDIA_DIM_NONDET = "mmediaDimNonDet"
   val CACHE_HOPS1 = "cacheHops1"
   val CACHE_HOPS2 = "cacheHops2"
   val CACHE_HOPS3 = "cacheHops3"
+  val SAMPLE_N = "sample_([1-9])".r
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
