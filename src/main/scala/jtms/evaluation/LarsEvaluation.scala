@@ -113,7 +113,7 @@ object LarsEvaluation {
   var tms: JtmsUpdateAlgorithm = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
-    if(profiling && iterationNr == 0) {
+    if (profiling && iterationNr == 0) {
       println("waiting to start profiling, press return")
       readLine()
       println("running")
