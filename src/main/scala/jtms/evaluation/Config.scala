@@ -82,6 +82,12 @@ case class Config(var args: Map[String, String]) {
       case CONTENT_2 => {
         ContentRetrieval2EvalInst(windowSize, timePoints, nrOfItems, random)
       }
+      case CACHING_STRAT_DET => {
+        CachingStrategyEvalInstDet(windowSize, timePoints, random)
+      }
+      case CACHING_STRAT_NONDET => {
+        CachingStrategyEvalInstNonDet(windowSize, timePoints, random)
+      }
       //simple ones:
       case BOX => {
         BoxEvalInst(windowSize, timePoints, random)
@@ -135,6 +141,8 @@ object Config {
   val SAMPLE_N = "sample_([1-9])".r
   val CONTENT_1 = "content1"
   val CONTENT_2 = "content2"
+  val CACHING_STRAT_DET = "cachingStatDet"
+  val CACHING_STRAT_NONDET = "cachingStatNonDet"
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
