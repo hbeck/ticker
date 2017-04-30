@@ -30,13 +30,6 @@ class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork, overrid
 
   override def ruleAlreadyInHeuristic(rule: NormalRule): Unit = {
     if (network.valid(rule)) {
-      // TODO: this could create self-support!
-      // Scenario:
-      // dz is in, support is: dz :- some, w_te_2_d_z.
-      // new rule is added: dz :- dz_at(18).
-      // is already valid, creates self-support :-/
-
-      // TODO: do a benchmark here
       val foundations = rule.body flatMap network.foundations
       if (!foundations.contains(rule.head)) {
         //difference to original; optimization for sliding time-based window (support always by latest)

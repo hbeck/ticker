@@ -98,45 +98,6 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
     tmsPolicy.remove(currentTick.time)(expiredRules)
   }
 
-  //method to be called whenever time xor count increases by 1
-//  def singleOneDimensionalTickIncrement(signal: Option[Atom] = None) {
-//
-//    val rulesToGround: Seq[(Expiration, NormalRule)] = incrementalRuleMaker.rulesToGroundFor(currentTick, signal)
-//    rulesToGround foreach { case (e, r) =>
-//      grounder.add(r)
-//      expirationHandling.register(e, Set(r))
-//    }
-//    val rulesToAdd = rulesToGround flatMap { case (e, r) =>
-//      val rules = grounder.ground(r)
-//      if (!rules.isEmpty) expirationHandling.register(e, rules)
-//      rules
-//    }
-//
-//    if (IEEConfig.printRules) {
-//      println("rules added at tick " + currentTick)
-//      rulesToAdd foreach println
-//    }
-//
-//    tmsPolicy.add(currentTick.time)(rulesToAdd)
-//
-//    val expiredRules = signal match { //logic somewhat implicit...
-//      case None => expirationHandling.deregisterExpiredByTime()
-//      case _ => expirationHandling.deregisterExpiredByCount()
-//    }
-//
-//    val rulesToRemove = expiredRules filterNot (rulesToAdd.contains(_)) //do not remove first; concerns efficiency of tms
-//
-//    if (IEEConfig.printRules) {
-//      println("\nrules removed at tick " + currentTick)
-//      if (rulesToRemove.isEmpty) println("(none)") else {
-//        rulesToRemove foreach println
-//      }
-//    }
-//
-//    grounder.remove(rulesToRemove)
-//    tmsPolicy.remove(currentTick.time)(rulesToRemove)
-//  }
-
   object expirationHandling {
 
     var rulesExpiringAtTime: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()

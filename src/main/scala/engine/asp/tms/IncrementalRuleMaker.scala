@@ -125,12 +125,30 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     }
   }
 
+  val needs_at_cnt_atoms = larsProgramEncoding.larsRules flatMap (_.body) exists {
+    case WindowAtom(SlidingTupleWindow(_), _, _) => true
+    case _ => false
+  }
+
+  val need_tick_atoms = larsProgramEncoding.larsRules flatMap (_.body) exists {
+    case WindowAtom(SlidingTupleWindow(_), Box, _) => true
+    case _ => false
+  }
+
+  //
+  //
+  //
+
   def rulesToAddFor(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
 
     val timeIncrease = signal.isEmpty
 
-    val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
-    val auxFacts: Seq[AnnotatedNormalRule] = Seq() :+ StaticRule(tickFact) //TODO expiring based on max window length
+    val auxFacts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
+      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt)) //TODO expiring based on max window length
+      Seq(StaticRule(tickFact))
+    } else {
+      Seq()
+    }
 
     val signals: Seq[AnnotatedNormalRule] = { //TODO expiring
       if (timeIncrease) { Seq() }
@@ -172,7 +190,11 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   }
 
   def pinnedAtoms(t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = { //TODO expire
-    Seq() :+ StaticRule(AspFact[Atom](t.timePinned)) :+ StaticRule(AspFact[Atom](t.timeCountPinned))
+    if (needs_at_cnt_atoms) {
+      Seq(StaticRule(AspFact[Atom](t.timePinned)),StaticRule(AspFact[Atom](t.timeCountPinned)))
+    } else {
+      Seq(StaticRule(AspFact[Atom](t.timePinned)))
+    }
   }
 
 }
