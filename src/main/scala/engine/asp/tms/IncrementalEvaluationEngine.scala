@@ -77,11 +77,15 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
 
     tmsPolicy.add(currentTick.time)(rulesToAdd)
 
-    val expiredRules = signal match { //TODO
+    val expiredRules = (signal match { //TODO
       //logic somewhat implicit...
       case None => expiration.deregisterExpiredByTime()
       case _ => expiration.deregisterExpiredByCount()
-    }
+    }) ++ (if (incrementalRuleMaker.useSignalExpiration) {
+      expiration.deregisterExpiredByTimeAndCount()
+    } else {
+      Seq()
+    })
 
     //val addLookup = rulesToAdd.toSet
     //val rulesToRemove = expiredRules //filterNot addLookup.contains //do not remove first; concerns efficiency of tms

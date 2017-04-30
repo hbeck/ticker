@@ -17,18 +17,6 @@ case class TailoredIncrementalGrounder() {
   var inspection: StaticProgramInspection[NormalRule, Atom, Atom] = null
   var grounder: RuleGrounder[NormalRule, Atom, Atom] = null
 
-//  //TODO 0420 instantiate tick-depending rules with (0,0) in order to pre-ground other values?
-//  //TODO 0420 temporarily add potential values?
-//  def prepareStaticGroundRules(staticRules: Seq[NormalRule]): Unit = {
-//    val inspect = IncrementalProgramInspection.forAsp(AspProgram(staticRules.toList))
-//    val grounderInstance = GrounderInstance.incrementalAsp(inspect)
-//    staticGroundRules = staticRules flatMap (grounderInstance.ground(_))
-//    allRules = allRules ++ staticGroundRules
-//  }
-
-  //
-  //
-
   var rulesUpdated=true
 
   def init(rules: Seq[NormalRule]): Unit = {
@@ -37,33 +25,6 @@ case class TailoredIncrementalGrounder() {
     grounder = GrounderInstance.incrementalAsp(inspection)
     rulesUpdated=true
   }
-
-  //val entireStreamAsFacts: Set[NormalRule] = signalTracker.allTimePoints(networkTime).flatMap(asFacts).toSet
-
-  //var facts: Set[NormalRule] = Set()
-
-//  def add(rules: Seq[NormalRule]) {
-//    allRules = allRules ++ rules
-//    rulesUpdated = true
-//  }
-//
-//  def add(rule: NormalRule) {
-//    //TODO incremental call to inspect
-//    allRules = allRules + rule
-//    rulesUpdated = true
-//  }
-//
-//  def remove(rules: Seq[NormalRule]) {
-//    //rules foreach remove //TODO incremental
-//    allRules = allRules -- rules
-//    rulesUpdated = true
-//  }
-
-//  def remove(rule: NormalRule) {
-//    //TODO incremental call to inspect
-//    allRules = allRules - rule
-//    rulesUpdated = true
-//  }
 
   def groundPartially(rule: NormalRule): Set[NormalRule] = {
     grounderCall(rule,false)
