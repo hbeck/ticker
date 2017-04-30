@@ -1,6 +1,5 @@
 package jtms.algorithms
 
-import core.Atom
 import core.asp.NormalRule
 import jtms.TruthMaintenanceNetwork
 
@@ -11,22 +10,22 @@ import scala.util.Random
   */
 class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork, override val random: Random = new Random()) extends JtmsDoyle(network,random) {
 
-  var prevModel = network.inAtoms
-
-  override def update(atoms: Set[Atom]): Unit = {
-    prevModel = network.inAtoms
-    super.update(atoms)
-  }
-
-  override def updateImplementation(atoms: Set[Atom]): Unit = {
-    atoms foreach setUnknown
-    atoms foreach findStatus
-
-    //addition:
-    prevModel foreach chooseStatus
-
-    atoms foreach chooseStatus
-  }
+//  var prevModel = network.inAtoms
+//
+//  override def update(atoms: Set[Atom]): Unit = {
+//    prevModel = network.inAtoms
+//    super.update(atoms)
+//  }
+//
+//  override def updateImplementation(atoms: Set[Atom]): Unit = {
+//    atoms foreach setUnknown
+//    atoms foreach findStatus
+//
+//    //addition:
+//    prevModel foreach chooseStatus
+//
+//    atoms foreach chooseStatus
+//  }
 
   override def ruleAlreadyInHeuristic(rule: NormalRule): Unit = {
     if (network.valid(rule)) {
