@@ -76,6 +76,12 @@ case class Config(var args: Map[String, String]) {
           case "1" => SampleTimeWindowAtInstance(windowSize, timePoints, nrOfItems, randomness, random)
         }
       }
+      case CONTENT_1 => {
+        ContentRetrieval1EvalInst(windowSize, timePoints, nrOfItems, random)
+      }
+      case CONTENT_2 => {
+        ContentRetrieval2EvalInst(windowSize, timePoints, nrOfItems, random)
+      }
       //simple ones:
       case BOX => {
         BoxEvalInst(windowSize, timePoints, random)
@@ -127,6 +133,8 @@ object Config {
   val CACHE_HOPS2 = "cacheHops2"
   val CACHE_HOPS3 = "cacheHops3"
   val SAMPLE_N = "sample_([1-9])".r
+  val CONTENT_1 = "content1"
+  val CONTENT_2 = "content2"
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
