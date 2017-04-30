@@ -41,7 +41,7 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
-    val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) + rule))
+    val ruleOccurrences =(rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) + rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
     rule.atoms foreach register
@@ -83,9 +83,12 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) - rule)
 
-    val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) - rule))
+
+    // not using set-semantics of atoms speeds up computation
+    val ruleOccurrences = (rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) - rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
+    // note: here we should use set semantics - its faster
     val atomsToBeRemoved = rule.atoms filter (a => __rulesAtomsOccursIn(a).isEmpty)
     val remainingAtoms = __allAtoms diff atomsToBeRemoved
 

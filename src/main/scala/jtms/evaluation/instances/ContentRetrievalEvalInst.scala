@@ -121,7 +121,7 @@ case class ContentRetrieval1EvalInst(windowSize: Int, timePoints: Int, nrOfItems
 
   override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     val requestItems = items collect {
-      case i if random.nextDouble() <= 0.1 => req(i, pickRandomNodeValue())
+      case item if random.nextDouble() <= 0.1 => req(item, pickRandomNodeValue())
     }
 
     val cachedItem: Option[Atom] = if (random.nextDouble() <= 0.1) {
