@@ -1,5 +1,6 @@
 package jtms.algorithms
 
+import core.Atom
 import core.asp.NormalRule
 import jtms.TruthMaintenanceNetwork
 
