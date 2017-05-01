@@ -1,6 +1,6 @@
 # Chart settings
 
-set title "Content-Retrieval with 1 Item, Window-Size 60"
+set title "Content retrieval with 1 item, window size 60"
 # position of chart-legend 
 set key left top
 
@@ -42,11 +42,11 @@ clingoKeys = system("awk '!/^#/ { print $2 }' plot_clingo.txt | sort | uniq")
 set style data linespoints
 #set xr [*:*] noreverse
 set yr [0:*] noreverse
-set xlabel "Timepoints"
-set ylabel "Add Time [s]"
+set xlabel "Time points"
+set ylabel "Add time [sec]"
 
 # XYData Plotting
-plot for [c2 in tmsKeys] sprintf('< grep ''\b%s\b'' plot_tms.txt', c2) using 8:xtic(4) with linespoints title "TMS ".c2, \
+plot for [c2 in tmsKeys] sprintf('< grep ''\b%s\b'' plot_tms.txt', c2) using 8:xtic(4) with linespoints title "Incremental ".c2, \
     for [c2 in clingoKeys] sprintf('< grep ''\b%s\b'' plot_clingo.txt', c2) using 8:xtic(4) with linespoints title "Clingo ".c2
 
 
