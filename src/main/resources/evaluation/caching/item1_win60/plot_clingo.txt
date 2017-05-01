@@ -1,0 +1,8 @@
+impl	instance	items	tp	winsize	total_time	init_time	add_time
+ClingoPush	cachingStatTupleNonDet	1	100	60	2.998	0.026	0.029
+ClingoPush	cachingStatTupleNonDet	1	200	60	5.727	0.023	0.028
+ClingoPush	cachingStatTupleNonDet	1	300	60	9.06	0.026	0.03
+ClingoPush	cachingStatTupleNonDet	1	400	60	11.783	0.021	0.029
+ClingoPush	cachingStatTupleNonDet	1	500	60	14.26	0.021	0.028
+ClingoPush	cachingStatTupleNonDet	1	600	60	17.439	0.02	0.029
+ClingoPush	cachingStatTupleNonDet	1	700	60	20.321	0.021	0.028

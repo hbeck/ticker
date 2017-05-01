@@ -1,0 +1,54 @@
+# Chart settings
+
+set title "Caching strategies with 1000 time points"
+# position of chart-legend 
+set key left top
+
+# dashed line types are only supported with pdf (or pngcairo)
+set terminal pdf color noenhanced linewidth 2
+set output "plot1_total.pdf"
+
+# Define the seperator (default is \t - Tab)
+#set datafile separator ";"
+
+# configure plots
+
+# define global configs for lines
+#set for [i=1:8] linetype i dashtype i pointtype i linewidth 2 pointsize 1
+
+# we could customize the lines
+set style line 1 lt 1 lw 1 
+set style line 2 lt 1 lw 3 
+#set style line 3 lt 2 dt 3 lw 1 lc 2 pointsize 2
+set style line 4 lt 2 dt 3 lw 1 lc 2 pointsize 2
+set style line 5 lt 2 dt 3 lw 3 lc 2 pointsize 2
+
+set style increment user
+
+# read data
+
+# select the column "instance"
+tmsKeys = system("awk '!/^#/ { print $2 }' plot_tms.txt | sort | uniq")
+clingoKeys = system("awk '!/^#/ { print $2 }' plot_clingo.txt | sort | uniq")
+
+# debug printing
+# set print 'test.out' 
+#print tmsKeys
+
+# XY-Chart settings
+#set nologscale
+#set key autotitle columnhead
+set style data linespoints
+#set xr [*:*] noreverse
+set yr [0:*] noreverse
+set xlabel "Window size"
+set ylabel "Total time [sec]"
+
+# XYData Plotting
+plot for [c2 in tmsKeys] sprintf('< grep ''\b%s\b'' plot_tms.txt', c2) using 6:xtic(5) with linespoints title "Incremental ".c2, \
+    for [c2 in clingoKeys] sprintf('< grep ''\b%s\b'' plot_clingo.txt', c2) using 6:xtic(5) with linespoints title "Clingo ".c2
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

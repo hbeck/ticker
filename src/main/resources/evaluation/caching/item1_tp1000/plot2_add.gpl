@@ -1,12 +1,12 @@
 # Chart settings
 
-set title "Content retrieval with window size 40, 400 time points"
+set title "Caching strategies with 1000 time points"
 # position of chart-legend 
 set key left top
 
 # dashed line types are only supported with pdf (or pngcairo)
 set terminal pdf color noenhanced linewidth 2
-set output "plot7_total.pdf"
+set output "plot2_add.pdf"
 
 # Define the seperator (default is \t - Tab)
 #set datafile separator ";"
@@ -31,9 +31,10 @@ set style increment user
 tmsKeys = system("awk '!/^#/ { print $2 }' plot_tms.txt | sort | uniq")
 clingoKeys = system("awk '!/^#/ { print $2 }' plot_clingo.txt | sort | uniq")
 
+
 # debug printing
 # set print 'test.out' 
-#print tmsKeys
+# print tmsKeys
 
 # XY-Chart settings
 #set nologscale
@@ -41,12 +42,13 @@ clingoKeys = system("awk '!/^#/ { print $2 }' plot_clingo.txt | sort | uniq")
 set style data linespoints
 #set xr [*:*] noreverse
 set yr [0:*] noreverse
-set xlabel "Items"
-set ylabel "Total Time [sec]"
+set xlabel "Window size"
+set ylabel "Add time [sec]"
 
 # XYData Plotting
-plot for [c2 in tmsKeys] sprintf('< grep ''\b%s\b'' plot_tms.txt', c2) using 6:xtic(3) with linespoints title "Incremental ".c2, \
-    for [c2 in clingoKeys] sprintf('< grep ''\b%s\b'' plot_clingo.txt', c2) using 6:xtic(3) with linespoints title "Clingo ".c2
+plot for [c2 in tmsKeys] sprintf('< grep ''\b%s\b'' plot_tms.txt', c2) using 8:xtic(5) with linespoints title "Incremental ".c2, \
+    for [c2 in clingoKeys] sprintf('< grep ''\b%s\b'' plot_clingo.txt', c2) using 8:xtic(5) with linespoints title "Clingo ".c2
+
 
 unset output
 # Wrapup

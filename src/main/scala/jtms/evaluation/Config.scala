@@ -88,6 +88,9 @@ case class Config(var args: Map[String, String]) {
       case CACHING_STRAT_TUPLE_NONDET => {
         CachingStrategyTupleEvalInstNonDet(windowSize, timePoints, random)
       }
+      case CACHING_STRAT_TIME_NONDET => {
+        CachingStrategyTimeNonDetEvalInst(windowSize, timePoints, random)
+      }
       //simple ones:
       case BOX => {
         BoxEvalInst(windowSize, timePoints, random)
@@ -143,6 +146,7 @@ object Config {
   val CONTENT_2 = "content2"
   val CACHING_STRAT_TUPLE_DET = "cachingStatTupleDet"
   val CACHING_STRAT_TUPLE_NONDET = "cachingStatTupleNonDet"
+  val CACHING_STRAT_TIME_NONDET = "cachingStatTimeNonDet"
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"
