@@ -2,7 +2,7 @@
 
 set title "Content retrieval with 1 item, 1000 time points"
 # position of chart-legend 
-set key left top
+set key right top
 
 # dashed line types are only supported with pdf (or pngcairo)
 set terminal pdf color noenhanced linewidth 2 fsize 10

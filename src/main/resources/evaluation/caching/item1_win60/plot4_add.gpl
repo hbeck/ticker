@@ -2,7 +2,7 @@
 
 set title "Caching strategies with window size 60"
 # position of chart-legend 
-set key left top
+set key left center
 
 # dashed line types are only supported with pdf (or pngcairo)
 set terminal pdf color noenhanced linewidth 2 fsize 10
