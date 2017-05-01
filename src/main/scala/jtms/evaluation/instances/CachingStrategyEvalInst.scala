@@ -64,7 +64,7 @@ abstract class CachingStrategyEvalInst(windowSize: Int, timePoints: Int, random:
       AtAtom(T, low) <= value(V) and tup_wAt(n, T, _alpha(V)) and Lt(V, IntValue(12)),
       lfu <= wB(n, high),
       lru <= wB(n, mid),
-      fifo <= wB(n, low) and value(V),
+      fifo <= wB(n, low),
       done <= lfu,
       done <= lru,
       done <= fifo,
