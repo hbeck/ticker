@@ -31,13 +31,13 @@ for winSize in $winSizes
 do
     echo "evaluating clingo - content 1 " $winSize
 
-    java -cp $classpath $program inst content1 pre $pre runs $runs tp $tp winsize $winSize items $items impl ClingoPush >> $clingoFile
+    java -Xmx10g -cp $classpath $program inst content1 pre $pre runs $runs tp $tp winsize $winSize items $items impl ClingoPush >> $clingoFile
 done
 
 for winSize in $winSizes
 do
     echo "evaluating clingo - content 2 " $winSize
 
-    java -cp $classpath $program inst content2 pre $pre runs $runs tp $tp winsize $winSize items $items impl ClingoPush >> $clingoFile
+    java -Xmx10g -cp $classpath $program inst content2 pre $pre runs $runs tp $tp winsize $winSize items $items impl ClingoPush >> $clingoFile
 done
 
