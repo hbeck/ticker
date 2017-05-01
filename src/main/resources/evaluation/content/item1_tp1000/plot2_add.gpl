@@ -5,7 +5,7 @@ set title "Content retrieval with 1 item, 1000 time points"
 set key left top
 
 # dashed line types are only supported with pdf (or pngcairo)
-set terminal pdf color noenhanced linewidth 2
+set terminal pdf color noenhanced linewidth 2 fsize 10
 set output "plot2_add.pdf"
 
 # Define the seperator (default is \t - Tab)

@@ -5,7 +5,7 @@ set title "Caching strategies with window size 60"
 set key left top
 
 # dashed line types are only supported with pdf (or pngcairo)
-set terminal pdf color noenhanced linewidth 2
+set terminal pdf color noenhanced linewidth 2 fsize 10
 set output "plot3_total.pdf"
 
 # Define the seperator (default is \t - Tab)
