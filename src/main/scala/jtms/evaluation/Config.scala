@@ -82,11 +82,11 @@ case class Config(var args: Map[String, String]) {
       case CONTENT_2 => {
         ContentRetrieval2EvalInst(windowSize, timePoints, nrOfItems, random)
       }
-      case CACHING_STRAT_DET => {
-        CachingStrategyEvalInstDet(windowSize, timePoints, random)
+      case CACHING_STRAT_TUPLE_DET => {
+        CachingStrategyTupleEvalInstDet(windowSize, timePoints, random)
       }
-      case CACHING_STRAT_NONDET => {
-        CachingStrategyEvalInstNonDet(windowSize, timePoints, random)
+      case CACHING_STRAT_TUPLE_NONDET => {
+        CachingStrategyTupleEvalInstNonDet(windowSize, timePoints, random)
       }
       //simple ones:
       case BOX => {
@@ -141,8 +141,8 @@ object Config {
   val SAMPLE_N = "sample_([1-9])".r
   val CONTENT_1 = "content1"
   val CONTENT_2 = "content2"
-  val CACHING_STRAT_DET = "cachingStatDet"
-  val CACHING_STRAT_NONDET = "cachingStatNonDet"
+  val CACHING_STRAT_TUPLE_DET = "cachingStatTupleDet"
+  val CACHING_STRAT_TUPLE_NONDET = "cachingStatTupleNonDet"
 
   //implementations:
   val DOYLE_SIMPLE = "DoyleSimple"

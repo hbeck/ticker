@@ -10,7 +10,7 @@ import scala.util.Random
 /**
   * Created by hb on 04.04.17.
   */
-abstract class CachingStrategyEvalInst(windowSize: Int, timePoints: Int, random: Random, val values: Seq[Int] = (0 to 30)) extends StreamingTmsEvalInst {
+abstract class CachingStrategyTupleEvalInst(windowSize: Int, timePoints: Int, random: Random, val values: Seq[Int] = (0 to 30)) extends StreamingTmsEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -81,7 +81,7 @@ abstract class CachingStrategyEvalInst(windowSize: Int, timePoints: Int, random:
 
 }
 
-case class CachingStrategyEvalInstDet(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = Seq(5, 15, 25)) extends CachingStrategyEvalInst(windowSize, timePoints, random) {
+case class CachingStrategyTupleEvalInstDet(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = Seq(5, 15, 25)) extends CachingStrategyTupleEvalInst(windowSize, timePoints, random) {
 
   override def verifyModel(optModel: Option[Model], t: Int) = {
 
@@ -100,7 +100,7 @@ case class CachingStrategyEvalInstDet(windowSize: Int, timePoints: Int, random: 
 
 }
 
-case class CachingStrategyEvalInstNonDet(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = (0 to 30)) extends CachingStrategyEvalInst(windowSize, timePoints, random) {
+case class CachingStrategyTupleEvalInstNonDet(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = (0 to 30)) extends CachingStrategyTupleEvalInst(windowSize, timePoints, random) {
 
   val simplify = values.size == 3
 
