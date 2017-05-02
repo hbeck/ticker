@@ -1,6 +1,6 @@
 # Chart settings
 
-set title "Content retrieval with 1 item, window size 60"
+set title "Content retrieval with window size 60"
 # position of chart-legend 
 set key right top
 

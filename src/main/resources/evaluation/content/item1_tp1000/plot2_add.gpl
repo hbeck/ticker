@@ -1,6 +1,6 @@
 # Chart settings
 
-set title "Content retrieval with 1 item, 1000 time points"
+set title "Content retrieval with 1000 time points"
 # position of chart-legend 
 set key right top
 

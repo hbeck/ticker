@@ -1,10 +1,10 @@
 # Chart settings
 
-set title "Content retrieval with 1 item, window size 60"
+set title "Content retrieval with window size 60"
 # position of chart-legend 
 set key left top
 set key samplen 1
-set key font "helvetica,9"
+set key font "Helvetica,9"
 
 # dashed line types are only supported with pdf (or pngcairo)
 set terminal pdf color noenhanced linewidth 2 fsize 10
