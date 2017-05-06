@@ -18,6 +18,9 @@ import scala.collection.immutable.HashMap
   */
 class GrounderTests extends FunSuite {
 
+  def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
+  def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
+
   val load = Load()
   import load._
 

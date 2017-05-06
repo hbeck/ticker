@@ -1,7 +1,7 @@
 package fixtures
 
 import core.Variable
-import core.lars.{TimePoint, TimeVariableWithOffset}
+import core.lars.TimePoint
 
 /**
   * Created by FM on 16.05.16.
@@ -14,5 +14,5 @@ trait TimeTestFixtures extends AtomTestFixture {
   val t4 = TimePoint(4)
 
   val U = Variable("U")
-  val T = core.lars.TimePinVariable
+  val T = engine.asp.TimePinVariable
 }

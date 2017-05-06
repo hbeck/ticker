@@ -13,6 +13,11 @@ package object asp {
   val cnt = Predicate("cnt")
   val tickPredicate = Predicate("tick")
 
+  val TimePinVariableName = "NN"
+  val CountPinVariableName = "CC"
+  val TimePinVariable = TimeVariableWithOffset(Variable(TimePinVariableName))
+  val CountPinVariable = Variable(CountPinVariableName)
+
   def tickAtom(time: Argument, count: Argument): AtomWithArguments = AtomWithArguments(tickPredicate,Seq(time,count))
   def tickFact(time: Argument, count: Argument): AspFact[AtomWithArguments] = AspFact(tickAtom(time,count))
   def tickFactAsNormalRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
