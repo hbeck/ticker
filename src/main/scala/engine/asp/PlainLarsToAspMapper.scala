@@ -73,7 +73,7 @@ object PlainLarsToAspMapper {
 
 /*
    at this point we have a representation for multiple evaluation modes:
-   - for one-shot/reactive solving, everything is there by ruleEncodings plus the allWindowRules in windowAtomEncoders
+   - for one-shot solving, everything is there by ruleEncodings plus the allWindowRules in windowAtomEncoders
    - for incremental solving, we use ruleEncodings + incrementalRulesAt (at every time point)
 
    b <- \window^1 \Diamond a

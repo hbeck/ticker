@@ -38,7 +38,6 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
 
   private lazy val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
-  private lazy val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
 
