@@ -1,10 +1,10 @@
 package evaluation.reactive.sensor
 
-import core.{Model, PinnedAtom}
 import core.lars.{LarsProgram, TimePoint}
-import engine.{EvaluationEngine, StreamEntry}
+import core.{Model, PinnedAtom}
 import engine.config.BuildEngine
-import org.scalatest.{FlatSpec, FlatSpecLike}
+import engine.{EvaluationEngine, StreamEntry}
+import org.scalatest.FlatSpecLike
 
 import scala.util.Random
 
@@ -20,14 +20,6 @@ trait ExecuteHelper extends SensorScenario with FlatSpecLike {
     val program = buildProgram(windowLength)
 
     val engine = BuildEngine.withProgram(program).configure().withClingo().use().usePull().start()
-
-    defaultProgramRunner(windowLength, engine)
-  }
-
-  def runClingoReactive(defaultProgramRunner: EngineExecutor)(windowLength: Long, buildProgram: (Long) => LarsProgram) = {
-    val program = buildProgram(windowLength)
-
-    val engine = BuildEngine.withProgram(program).configure().withReactive().start()
 
     defaultProgramRunner(windowLength, engine)
   }

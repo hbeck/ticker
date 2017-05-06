@@ -1,11 +1,10 @@
 package engine.config
 
-import clingo.{ClingoConversion, ClingoProgramWithLars, ClingoWrapper}
+import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp._
 import engine.asp.oneshot._
-import engine.asp.reactive.ReactiveEvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker, TmsEvaluationEngine}
 import engine.config.EvaluationModifier.EvaluationModifier
@@ -42,8 +41,6 @@ case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: 
   private lazy val reactiveMapped = PlainLarsToReactiveMapper(withTickSize)(program)
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
-
-  def withReactive() = ReactiveClingoConfiguration(reactiveMapped)
 
   def withTms(): TmsConfiguration = {
     TmsConfiguration(aspMapped)
@@ -88,17 +85,6 @@ case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
 
 }
 
-case class ReactiveClingoConfiguration(program: LarsProgramEncoding, wrapper: ClingoWrapper = ClingoWrapper()) {
-  def withWrapper(wrapper: ClingoWrapper) = ReactiveClingoConfiguration(program, wrapper)
-
-  def startable() = StartableEngineConfiguration(ReactiveEvaluationEngine(program, wrapper))
-}
-
-object ReactiveClingoConfiguration {
-  implicit def toStartable(config: ReactiveClingoConfiguration): StartableEngineConfiguration = config.startable()
-}
-
-
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {
-  def start() = evaluationEngine //TODO hb? why is called start?
+  def start() = evaluationEngine
 }

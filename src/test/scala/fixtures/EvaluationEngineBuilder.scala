@@ -46,10 +46,6 @@ trait ClingoPushEngine extends EvaluationEngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().start()
 }
 
-trait ReactiveClingoEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withReactive().startable().start()
-}
-
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
