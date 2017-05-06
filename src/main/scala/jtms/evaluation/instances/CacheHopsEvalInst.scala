@@ -193,7 +193,7 @@ abstract class CacheHopsEvalInst(random: Random) extends StreamingTmsEvalInst {
 
     val program = AspProgram(rules.toList)
     val inspect = StaticProgramInspection.forAsp(program)
-    val grounder = GrounderInstance.oneShotAsp(inspect)
+    val grounder = GrounderInstance.forAsp(inspect)
 
     val groundRules = rules flatMap (grounder.ground(_))
 

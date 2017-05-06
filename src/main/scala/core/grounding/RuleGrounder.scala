@@ -26,7 +26,6 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     }
 
     val relationAtoms: Set[RelationAtom] = rule.pos collect { case a: RelationAtom => a }
-    //def holdsPartially = allGroundedRelationsHold(relationAtoms) _
 
     val pairSingletonsPerVariable: Seq[Set[Set[(Variable, Value)]]] = makePairedWithValueSingletons(possibleValuesPerVariable)
 
@@ -67,7 +66,6 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
     } else {
       rule.pos collect { case ra:RelationAtom if ra.isGround => ra} forall (_.groundingHolds)
     }
-    //&& (rule.neg collect { case ra:RelationAtom => ra } forall (!_.groundingHolds())) //not used per convention
   }
 
   def deleteAuxiliaryAtoms(rule: TRule, ensureGroundResult: Boolean): TRule = {
@@ -78,8 +76,6 @@ case class RuleGrounder[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <:
         rule.pos filterNot (a => (a.isInstanceOf[RelationAtom] && a.atom.isGround))
       }
     }
-    //val coreNegAtoms: Set[TBody] = rule.neg filterNot (_.isInstanceOf[RelationAtom]) //not used per convention
-    //rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
     rule.from(rule.head,posAtomsSansGroundRelations,rule.neg).asInstanceOf[TRule]
   }
 

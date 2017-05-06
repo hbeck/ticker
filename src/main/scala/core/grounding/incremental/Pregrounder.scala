@@ -9,9 +9,7 @@ import core.grounding.{GrounderInstance, RuleGrounder, StaticProgramInspection}
   *
   * Created by hb on 08.03.17.
   */
-case class TailoredIncrementalGrounder() {
-
-  //var staticGroundRules: Seq[NormalRule] = Seq()
+case class Pregrounder() {
 
   var allRules: List[NormalRule] = null
   var inspection: StaticProgramInspection[NormalRule, Atom, Atom] = null
@@ -22,7 +20,7 @@ case class TailoredIncrementalGrounder() {
   def init(rules: Seq[NormalRule]): Unit = {
     allRules = rules.toList
     inspection = StaticProgramInspection[NormalRule, Atom, Atom](allRules)
-    grounder = GrounderInstance.incrementalAsp(inspection)
+    grounder = GrounderInstance.forAsp(inspection)
     rulesUpdated=true
   }
 
@@ -37,7 +35,7 @@ case class TailoredIncrementalGrounder() {
   private def grounderCall(rule: NormalRule, ensureGroundResult: Boolean): Set[NormalRule] = {
     if (rulesUpdated) {
       inspection = StaticProgramInspection[NormalRule, Atom, Atom](allRules)
-      grounder = GrounderInstance.incrementalAsp(inspection)
+      grounder = GrounderInstance.forAsp(inspection)
       rulesUpdated = false
     }
     grounder.ground(rule, ensureGroundResult)

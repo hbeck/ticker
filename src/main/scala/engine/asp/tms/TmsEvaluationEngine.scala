@@ -55,7 +55,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     val groundHeadsAsFacts: Set[NormalRule] = groundTimeVariableCalculations filter (_.isGround) map (g => AspFact[Atom](g.head))
 
     val inspectWithAllSignals = StaticProgramInspection.forAsp(AspProgram((groundTimeVariableCalculations ++ allHistoricalSignals ++ groundHeadsAsFacts).toList))
-    val grounder = GrounderInstance.oneShotAsp(inspectWithAllSignals)
+    val grounder = GrounderInstance.forAsp(inspectWithAllSignals)
 
     val grounded = groundTimeVariableCalculations flatMap (grounder.ground(_)) toSeq
 

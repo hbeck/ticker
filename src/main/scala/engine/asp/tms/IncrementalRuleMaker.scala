@@ -3,7 +3,7 @@ package engine.asp.tms
 import core._
 import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
 import core.grounding.Grounding
-import core.grounding.incremental.TailoredIncrementalGrounder
+import core.grounding.incremental.Pregrounder
 import core.lars._
 import engine.DefaultTrackedSignal
 import engine.asp._
@@ -13,7 +13,7 @@ import engine.asp._
   * Created by hb on 05.03.17.
   *
   */
-case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: TailoredIncrementalGrounder = TailoredIncrementalGrounder()) {
+case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: Pregrounder = Pregrounder()) {
 
   private val __Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
     val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(r)
