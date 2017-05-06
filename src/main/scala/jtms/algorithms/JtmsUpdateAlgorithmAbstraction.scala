@@ -70,7 +70,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
 
   def deregister(rule: NormalRule) = network.deregister(rule)
 
-  //TODO recompute only old and current repercussions in case of inconsistency
   //based on JTMS update algorithm
   override def add(rule: NormalRule): Unit = {
     register(rule)
@@ -82,7 +81,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
         return
       }
       if (network.invalid(rule)) {
-        //supp(rule.head) += findSpoiler(rule).get; return
         network.addSupport(rule.head, findSpoiler(rule).get)
         return
       }
@@ -101,7 +99,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     } else {
       if (!(network.allAtoms contains rule.head)) return
       if (network.status(rule.head) == out) return
-      //this should save some time!:
       if (network.suppRule(rule.head).isDefined && network.suppRule(rule.head).get != rule) return
       //.isDefined needed if previous state was inconsistent
       val atoms = network.repercussions(rule.head) + rule.head
@@ -122,14 +119,10 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
 
   override def set(model: collection.immutable.Set[Atom]): Boolean = {
     invalidateModel()
-    //model foreach (status(_) = in)
     model foreach { atom =>
-      //status = status.updated(atom,in)
       network.updateStatus(atom, in)
     }
-    //(allAtoms diff model) foreach (status(_) = out)
     (network.allAtoms diff model) foreach { atom =>
-      //status = status.updated(atom,out)
       network.updateStatus(atom, out)
     }
     try {
@@ -148,7 +141,7 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     network.status(a) match {
       case `in` => setInSupport(a)
       case `out` => setOutSupport(a)
-      case `unknown` => network.clearSupport(a) //supp(a) = Set()
+      case `unknown` => network.clearSupport(a)
     }
   }
 
@@ -156,8 +149,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     case Some(rule) => {
       network.setInSupport(a, rule)
       assert(a == rule.head)
-      //      jtms.setSupport(a, rule.body) //supp(a) = Set() ++ rule.body
-      //      jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
     }
     case _ => throw new IncrementalUpdateFailureException()
   }
@@ -167,8 +158,6 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     if (maybeAtoms exists (_.isEmpty)) {
       throw new IncrementalUpdateFailureException("could not find spoiler for every justification of atom " + a)
     }
-    //supp(a) = Set() ++ maybeAtoms map (_.get)
-    //    jtms.setSupport(a, maybeAtoms map (_.get))
     network.setOutSupport(a, maybeAtoms map (_.get))
   }
 
@@ -176,28 +165,16 @@ abstract class JtmsUpdateAlgorithmAbstraction(network: TruthMaintenanceNetwork, 
     if (recordStatusSeq) statusSeq = statusSeq :+ (rule.head, in, "set")
     network.updateStatus(rule.head, in)
     network.setInSupport(rule.head, rule)
-    //    jtms.suppRule = jtms.suppRule.updated(rule.head, Some(rule))
-    //    status(rule.head) = in
-    //    supp(rule.head) = Set() ++ rule.body
-    //    suppRule(rule.head) = Some(rule)
   }
 
   def setOut(a: Atom) = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (a, out, "set")
     network.updateStatus(a, out)
     setOutSupport(a)
-    //    jtms.suppRule = jtms.suppRule.updated(a, None)
-    //    status(a) = out
-    //    setOutSupport(a)
-    //    suppRule(a) = None
   }
 
   def setUnknown(a: Atom) = {
     network.updateStatus(a, unknown)
     network.clearSupport(a)
-    //    jtms.suppRule = jtms.suppRule.updated(a, None)
-    //    status(a) = unknown
-    //    supp(a) = Set()
-    //    suppRule(a) = None
   }
 }

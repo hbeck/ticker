@@ -2,7 +2,6 @@ package engine
 
 import core._
 import core.lars._
-import engine.asp.tms.IEEConfig
 import fixtures.JtmsIncrementalEngine
 import org.scalatest.FunSuite
 
@@ -20,7 +19,6 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
       h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
 
-    //IEEConfig.printRules = true
     val engine = defaultEngine(program)
 
     var model = engine.evaluate(TimePoint(0)).model
@@ -314,7 +312,6 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
   def checkEntailments(program: LarsProgram, expectedEntailmentTimePoints: Map[Atom,Set[Int]], stream:Map[Int,Set[Atom]]): Unit = {
 
-    IEEConfig.printRules = false
     val engine = defaultEngine(program)
 
     val maxInt:Int = expectedEntailmentTimePoints.values reduce { (l,r) => l ++ r} reduce Math.max

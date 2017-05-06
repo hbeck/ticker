@@ -1,27 +1,28 @@
 package engine.asp
 
-import core.{Atom, Predicate}
 import core.asp.{NormalProgram, NormalRule}
-import core.lars.{LarsBasedProgram, LarsRule, TimePoint}
+import core.lars.{LarsBasedProgram, LarsRule}
+import core.{Atom, Predicate}
 import engine.asp.tms.{AnnotatedNormalRule, TickBasedAspToIncrementalAsp}
 
 
 /**
   * Created by fm on 20/02/2017.
+  *
+  * to derive window atom encoding
   */
-//to derive window atom encoding
 trait WindowAtomEncoder {
 
   val allWindowRules: Seq[NormalRule]
 
   val length: Long
-  //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
+
   def ticksUntilWindowAtomIsOutdated(): TickDuration
 
   //non-instantiated incremental rules for (partial) pre-grounding
   def windowRuleTemplates(): Seq[AnnotatedNormalRule]
 
-  val groundingGuards: Set[Atom] //TODO at this to posBody of windowRuleTemplates? 0424
+  val groundingGuards: Set[Atom]
 
 }
 
@@ -46,7 +47,6 @@ case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomE
 case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndAtNowIdentityRules: Seq[NormalRule], backgroundKnowledge: Seq[NormalRule], needGuard: Set[Predicate]) extends NormalProgram with LarsBasedProgram {
 
   lazy val windowAtomEncoders = larsRuleEncodings flatMap (_.windowAtomEncoders)
-  //val baseRules = (larsRuleEncodings map (_.aspRule)) ++ (backgroundData map (AspFact(_))) //nowAndAtNowIdentityRules, which includes now(.)
 
   /*
    * one-shot stuff
@@ -78,12 +78,3 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   }
 
 }
-
-@deprecated
-case class IncrementalRules(toAdd: Seq[NormalRule], toRemove: Seq[NormalRule]) {
-  def ++(other: IncrementalRules) = IncrementalRules(toAdd ++ other.toAdd, toRemove ++ other.toRemove)
-}
-
-@deprecated
-case class TickPosition(time: TimePoint, count: Long) //TODO remove this
-

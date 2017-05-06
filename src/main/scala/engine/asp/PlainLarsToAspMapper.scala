@@ -29,7 +29,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
   // head: w_{bla}(X,T)
   override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]=Set()): WindowAtomEncoder = {
     val length = timePoints(window.windowSize.unit, window.windowSize.length)
-    val head = encodedWindowAtom(windowAtom) //TODO beautify
+    val head = encodedWindowAtom(windowAtom) //may be improved
     windowAtom.temporalModality match {
       case a: At => TimeAtEncoder(length, windowAtom.atom, head.asInstanceOf[PinnedAtAtom], a.time, groundingGuards)
       case Diamond => TimeDiamondEncoder(length, windowAtom.atom, head, groundingGuards)
@@ -38,7 +38,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) exten
   }
 
   override def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]=Set()): WindowAtomEncoder = {
-    val head = encodedWindowAtom(windowAtom) //TODO beautify
+    val head = encodedWindowAtom(windowAtom) //may be improved
     windowAtom.temporalModality match {
       case a: At => TupleAtEncoder(window.windowSize, windowAtom.atom, head.asInstanceOf[PinnedAtAtom], a.time, groundingGuards)
       case Diamond => TupleDiamondEncoder(window.windowSize, windowAtom.atom, head, groundingGuards)
@@ -152,7 +152,6 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, gr
     if (length == 0) {
       Seq(StaticRule(staticRule))
     } else {
-      //val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom)++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
       val spoilerRule: NormalRule = AspRule(spoilerAtom, Set(atom,Geq(TimeVariableWithOffset(TimePinVariable,-1),zero))++groundingGuards, Set(PinnedAtom.asPinnedAtAtom(atom, TimeVariableWithOffset(TimePinVariable,-1))))
       val expSp: TickDuration =  Tick(length,Void)
       Seq(StaticRule(staticRule),RuleWithTimeDurationOnly(spoilerRule,expSp,ExpirationObligatory))
@@ -165,7 +164,7 @@ case class TimeBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, gr
 case class TupleAtEncoder(length: Long, atom: Atom, windowAtomEncoding: PinnedAtAtom, atTime: Time, groundingGuards: Set[Atom]) extends TupleWindowEncoder {
   val D = Variable("DD")
 
-  // at atoms got their parameter already encoded
+  // at-atoms got their parameter already encoded
   override lazy val allWindowRules = (0 to length.toInt) map { i =>
     AspRule[Atom, Atom](windowAtomEncoding, Set(cnt(CountPinVariable), PinnedAtom.asPinnedAtCntAtom(atom, atTime, D), Plus(CountPinVariable, IntValue(-i), D)))
   }
