@@ -14,7 +14,6 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
   lazy val isFact: Boolean = pos.isEmpty && neg.isEmpty
 
-  //lazy val atoms: = body ++ Set(head) //TODO type
   def atoms: Set[TBody]
 
   lazy val isGround: Boolean = atoms forall (_.isGround)
@@ -99,6 +98,5 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 trait Fact[THead <: HeadAtom, TBody <: ExtendedAtom] extends Rule[THead, TBody] {
   val pos: Set[TBody] = Set()
   val neg: Set[TBody] = Set()
-  //override def isGround(): Boolean = head.isGround()
   override lazy val isFact: Boolean = true
 }
