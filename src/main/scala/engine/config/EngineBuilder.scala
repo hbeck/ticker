@@ -10,7 +10,7 @@ import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker, TmsEva
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.EvaluationTypes.EvaluationTypes
 import jtms.JtmsUpdateAlgorithm
-import jtms.algorithms.JtmsGreedy
+import jtms.algorithms.JtmsDoyle
 import jtms.networks.OptimizedNetwork
 
 import scala.concurrent.duration._
@@ -27,29 +27,24 @@ case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize:
 
   def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
 
-  //TODO hb: assuming correct understanding: due to the new mapping, we should simply have a "LarsToAsp" mapping, since the result
-  //is no longer "pinned" (in the sense that only some atoms get an additional time argument)
-  def configure() = AspEngineEvaluationConfiguration(larsProgram, withTickSize)
+  def configure() = ReasoningStrategyConfiguration(larsProgram, withTickSize)
 
   def withTickSize(tickSize: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, tickSize)
 }
 
-//TODO hb name misleading: if we use TMS, why would we call it "AspEngine"? the name hints at something like clingo or dlv
-case class AspEngineEvaluationConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
+case class ReasoningStrategyConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
 
   private lazy val aspMapped = PlainLarsToAspMapper(withTickSize)(program)
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
 
-  def withTms(): TmsConfiguration = {
-    TmsConfiguration(aspMapped)
-  }
+  def withTms(): TmsConfiguration = TmsConfiguration(aspMapped)
 
 }
 
-case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random))) {
+case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(new JtmsDoyle(new OptimizedNetwork(), new Random))) {
 
-  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(new JtmsDoyle(new OptimizedNetwork(), random)))
 
   def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
