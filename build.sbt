@@ -1,4 +1,4 @@
-name := "steen"
+name := "ticker"
 
 version := "1.0"
 
