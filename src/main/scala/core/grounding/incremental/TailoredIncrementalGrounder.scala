@@ -1,7 +1,7 @@
 package core.grounding.incremental
 
 import core.Atom
-import core.asp.{AspProgram, NormalRule}
+import core.asp.NormalRule
 import core.grounding.{GrounderInstance, RuleGrounder, StaticProgramInspection}
 
 /**
@@ -21,7 +21,7 @@ case class TailoredIncrementalGrounder() {
 
   def init(rules: Seq[NormalRule]): Unit = {
     allRules = rules.toList
-    inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules))
+    inspection = StaticProgramInspection[NormalRule, Atom, Atom](allRules)
     grounder = GrounderInstance.incrementalAsp(inspection)
     rulesUpdated=true
   }
@@ -36,7 +36,7 @@ case class TailoredIncrementalGrounder() {
 
   private def grounderCall(rule: NormalRule, ensureGroundResult: Boolean): Set[NormalRule] = {
     if (rulesUpdated) {
-      inspection = IncrementalProgramInspection.forAsp(AspProgram(allRules)) //TODO incremental
+      inspection = StaticProgramInspection[NormalRule, Atom, Atom](allRules)
       grounder = GrounderInstance.incrementalAsp(inspection)
       rulesUpdated = false
     }
