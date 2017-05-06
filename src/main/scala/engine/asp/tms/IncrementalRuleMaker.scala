@@ -2,8 +2,7 @@ package engine.asp.tms
 
 import core._
 import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
-import core.grounding.Grounding
-import core.grounding.incremental.Pregrounder
+import core.grounding.{Grounding, Pregrounder}
 import core.lars._
 import engine.DefaultTrackedSignal
 import engine.asp._

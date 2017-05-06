@@ -1,8 +1,7 @@
-package core.grounding.incremental
+package core.grounding
 
 import core.Atom
 import core.asp.NormalRule
-import core.grounding.{GrounderInstance, RuleGrounder, StaticProgramInspection}
 
 /**
   * Incremental ASP grounded tailored for use in Incremental Engine based on LARS mapping.

@@ -27,7 +27,7 @@ case class PlainLarsToReactiveMapper(engineTimeUnit: EngineTimeUnit = 1 second) 
     override val allWindowRules: Seq[NormalRule] = Seq()
 
     //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
-    override def ticksUntilWindowAtomIsOutdated(): TicksUntilOutdated = Tick(-1,-1)
+    override def ticksUntilWindowAtomIsOutdated(): TickDuration = Tick(-1,-1)
 
     //non-instantiated incremental rules for (partial) pre-grounding
     override def windowRuleTemplates(): Seq[AnnotatedNormalRule] = Seq()
