@@ -6,7 +6,6 @@ package core
 package object lars {
 
   type TimeVariable = Variable
-  //  type WindowSize = (Long, TimeUnit)
   type TupleCount = Long
   type Duration = Long
 
@@ -19,13 +18,7 @@ package object lars {
   val TimePinVariable = TimeVariableWithOffset(Variable(TimePinVariableName))
   val CountPinVariable = Variable(CountPinVariableName)
 
-  def TimeW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
-
-  //TODO hb TupleW
-
   def W(windowSize: TimeWindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)
-
-  def Fluent(atom: Atom) = WindowAtom(FluentWindow, Diamond, atom)
 
   type LarsRule = Rule[HeadAtom, ExtendedAtom]
 

@@ -109,7 +109,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
   def possibleValuesForVariable(rule: TRule, variable: Variable, ensureGroundResult: Boolean=true): Set[Value] = {
 
-    val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere //TODO move up
+    val coreRule = reduceToCore(rule) //window variables and variables in negative body must occur elsewhere
 
     //per convention, a variable now cannot occur in a signal only.
     //we test first for fact atoms, then we try intentional atoms.
@@ -169,7 +169,6 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
     values
   }
 
-  // TODO use type LookupSource = (Predicate,Int)
   var triedSources: Map[(Predicate,Int),Set[(Predicate,Int)]] = HashMap[(Predicate,Int),Set[(Predicate,Int)]]()
 
   def findValuesForPredicateArg(predicate: Predicate, argumentIdx: Int): Set[Value] = {

@@ -9,7 +9,6 @@ import core.Atom
 object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
-    //case SlidingTimeWindow(windowSize) => f"⊞^${windowSize.ticks(1 second)}" TODO current
     case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
     case FluentWindow => f"⊞^f"
   }
