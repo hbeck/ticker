@@ -16,7 +16,7 @@ import engine.asp.tms.policies.TmsPolicy
 @deprecated
 case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPolicy: TmsPolicy) extends EvaluationEngine {
 
-  val incrementalProgram = TickBasedAspToIncrementalAsp(larsProgramEncoding)
+  val incrementalProgram = IncrementalAspPreparation(larsProgramEncoding)
 
   val (groundRules, nonGroundRules) = incrementalProgram.rules.toSet.partition(_.isGround)
 

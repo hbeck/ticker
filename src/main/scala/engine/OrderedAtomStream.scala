@@ -64,7 +64,6 @@ case class SignalTracker[TTrackedSignal <: TrackedSignal](maxTimeWindowSizeInTic
 
   def discardOutdatedSignals(time: TimePoint): Seq[TTrackedSignal] = {
 
-    // TODO: currently we keep more atoms than needed (tuple-bases window!)
     val signalsToRemove = signalStream.filterKeys(t => t.value < time.value - maxTimeWindowSizeInTicks).
       filter(_._2.forall(_.count < tupleCount - maxTupleWindowSize))
 

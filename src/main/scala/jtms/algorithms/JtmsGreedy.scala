@@ -77,10 +77,6 @@ class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new 
       prevModel = prevModel.tail
       return Some(a)
     }
-
-    //TODO improve
-
-    //val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
     val atomSet = network.unknownAtoms filter (!_.isInstanceOf[PinnedAtom])
 
     if (atomSet.isEmpty) return None
@@ -158,8 +154,6 @@ class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new 
   def chooseOut(atom: Atom): Unit = {
     if (recordStatusSeq) statusSeq = statusSeq :+ (atom, out, "choose")
 
-    //status(a) = out
-    //status = status.updated(atom,out)
     network.updateStatus(atom, out)
 
     val maybeAtoms: Set[Option[Atom]] = network.openJustifications(atom) map { r => (r.pos find (network.status(_) == unknown)) }

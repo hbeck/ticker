@@ -15,7 +15,7 @@ import engine.asp._
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: Pregrounder = Pregrounder()) {
 
   private val __Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
-    val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(r)
+    val rule = IncrementalAspPreparation.stripPositionAtoms(r)
     val atom = ((rule.pos + rule.head) filter (!_.isInstanceOf[PinnedAtom])).head
     if (larsProgramEncoding.needGuard contains (atom.predicate)) {
       val guards = LarsToAspMapper.findGroundingGuards(larsProgramEncoding,atom)
@@ -28,7 +28,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   private val VoidTick = Tick(Void,Void)
 
   private val __baseRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings map { encoding =>
-    val rule = TickBasedAspToIncrementalAsp.stripPositionAtoms(encoding.aspRule)
+    val rule = IncrementalAspPreparation.stripPositionAtoms(encoding.aspRule)
     val ticks = encoding.ticksUntilOutdated()
     if (ticks == VoidTick) {
       StaticRule(rule)

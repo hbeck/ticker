@@ -39,7 +39,7 @@ object ClingoEvaluation {
       toSeq
 
     val atom = (predicateName, arguments) match {
-      case (TimeCntAtomPattern(predicate), Seq(IntValue(t), cnt: IntValue)) => PinnedAtom.asPinnedAtCntAtom(Atom(predicate), TimePoint(t), cnt) //TODO hb? what is "Atom(predicate)"?
+      case (TimeCntAtomPattern(predicate), Seq(IntValue(t), cnt: IntValue)) => PinnedAtom.asPinnedAtCntAtom(Atom(predicate), TimePoint(t), cnt)
       case (TimeAtomPattern(predicate), Seq(IntValue(t))) => PinnedAtom.asPinnedAtAtom(Atom(predicate), TimePoint(t))
       case _ => GroundAtom(Predicate(predicateName), arguments)
     }

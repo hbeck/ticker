@@ -26,7 +26,7 @@ case class ReadFromHttp(inputUnit: TimeUnit) extends ConnectToEngine {
           val time = parseTime(params)
           val atoms = parseAtoms(params)
           if (atoms.nonEmpty) {
-            engineRunner.append(time.map(engineRunner.convertToTicks), atoms)
+            engineRunner.append(time.map(engineRunner.convertToTimePoint), atoms)
             (200, f"OK, appending @$time $atoms")
           }
           else

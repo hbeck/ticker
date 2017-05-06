@@ -31,43 +31,39 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   var resultCallbacks: Seq[ResultCallback] = List()
 
-  @volatile private var ticks: TimePoint = TimePoint(0) //TODO hb "tick" has different meanings now. consolidate vocabulary.
+  @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
-  def convertToTicks(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
+  def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
 
-  def convertTicksToOutput(tick: TimePoint) = Duration(tick.value * engineSpeed.toMillis / outputSpeed.toMillis, outputSpeed.unit)
+  def convertOutput(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis / outputSpeed.toMillis, outputSpeed.unit)
 
-  def convertTicksToInputSpeed(tick: TimePoint) = Duration(Duration(tick.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
+  def convertInput(timePoint: TimePoint) = Duration(Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
 
-  private def updateTicks(): Unit = ticks = ticks + 1
+  private def updateBeat(): Unit = engineTimePoint = engineTimePoint + 1
 
   def evaluateModel(): Unit = {
-    // capture ticks (threading!)
-    val currentTicks = ticks
+    // capture engineTimePoint (threading!)
+    val currentTimePoint = engineTimePoint
 
-    val model = engine.evaluate(currentTicks)
-    resultCallbacks.foreach(callback => callback(model, currentTicks)) //TODO hb looks weird
+    val model = engine.evaluate(currentTimePoint)
+    resultCallbacks.foreach(callback => callback(model, currentTimePoint))
   }
 
-  def append(enteredTick: Option[TimePoint], atoms: Seq[Atom]): Unit = {
-    // TODO: discuss which time to use
-    // if we are not provided with a user entered time-point
-    // (capture ticks here or inside future (which is usually later))
-
+  def append(enteredTimePoint: Option[TimePoint], atoms: Seq[Atom]): Unit = {
     Future {
-      val tick = enteredTick.getOrElse(ticks)
+      val timePoint = enteredTimePoint.getOrElse(engineTimePoint)
 
-      val inputTicks = convertTicksToInputSpeed(tick)
+      val inputTimePoint = convertInput(timePoint)
 
-      println(f"Received input ${atoms.mkString(", ")} at T $inputTicks")
+      println(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 
-      engine.append(tick)(atoms: _*)
+      engine.append(timePoint)(atoms: _*)
     }
   }
 
   def start(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
-      override def run(): Unit = updateTicks
+      override def run(): Unit = updateBeat
     }, engineSpeed.toMillis, engineSpeed.toMillis)
 
     timer.scheduleAtFixedRate(new TimerTask {

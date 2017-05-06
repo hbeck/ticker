@@ -3,7 +3,6 @@ package engine.evaluation.policies
 import core.Atom
 import core.asp.NormalRule
 import core.lars.Duration
-import engine.asp.tms.GroundedNormalRule
 import engine.asp.tms.policies.LazyRemovePolicy
 import fixtures.TimeTestFixtures
 import jtms.algorithms.JtmsGreedy
@@ -16,9 +15,8 @@ import org.scalatest.Matchers._
   */
 class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
 
-  class JTmsSpy extends JtmsGreedy(new SimpleNetwork) {
+  class JtmsSpy extends JtmsGreedy(new SimpleNetwork) {
 
-    // TODO
 //    override def allAtoms() = addCalls flatMap(_.atoms) to
 
     var addCalls = List[NormalRule]()
@@ -41,7 +39,7 @@ class LazyRemovePolicySpecs extends FlatSpec with TimeTestFixtures {
   val sr = a
 
   case class LazyPolicy(laziness: Duration = 0) {
-    val spy = new JTmsSpy
+    val spy = new JtmsSpy
     val policy = new LazyRemovePolicy(spy, laziness)
   }
 

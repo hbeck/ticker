@@ -3,7 +3,7 @@ package engine.asp
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
-import engine.asp.tms.{AnnotatedNormalRule, TickBasedAspToIncrementalAsp}
+import engine.asp.tms.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 
 /**
@@ -54,7 +54,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   lazy val oneShotBaseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ backgroundKnowledge
 
   lazy val (groundBaseRules, nonGroundBaseRules) = oneShotBaseRules.
-    map(TickBasedAspToIncrementalAsp.stripPositionAtoms).
+    map(IncrementalAspPreparation.stripPositionAtoms).
     partition(_.isGround)
 
   lazy val oneShotWindowRules = windowAtomEncoders flatMap (_.allWindowRules)

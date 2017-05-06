@@ -10,7 +10,7 @@ import engine.asp._
   *
   * methods to remove tick-based information from mapped program (now, cnt stuff)
   */
-object TickBasedAspToIncrementalAsp {
+object IncrementalAspPreparation {
 
   def unpin(atom: AtomWithArguments): Atom = atom match {
     case p: PinnedAtAtom => unpin(p)

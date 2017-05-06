@@ -3,7 +3,7 @@ package evaluation.alternatingSupport
 import core.lars.TimePoint
 import engine.Result
 import engine.asp.{GroundAspRule, PlainLarsToAspMapper}
-import engine.asp.tms.{GroundRule, GroundedNormalRule, TickBasedAspToIncrementalAsp, TmsEvaluationEngine}
+import engine.asp.tms.{GroundRule, GroundedNormalRule, IncrementalAspPreparation, TmsEvaluationEngine}
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.config.{BuildEngine, EngineEvaluationConfiguration}
 import fixtures.{ConfigurableEvaluationSpec, JtmsGreedyLazyRemovePolicyEngine, TimeTestFixtures}
