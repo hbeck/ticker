@@ -1,7 +1,6 @@
 package engine.parser.factory
 
 import core.{Atom, Predicate}
-import core.lars.ExtendedAtom
 
 /**
   * Created by et on 21.03.17.

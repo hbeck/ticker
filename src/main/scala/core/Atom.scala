@@ -1,6 +1,6 @@
 package core
 
-import core.asp.{AspFact, BuilderHead, UserDefinedAspRule}
+import core.asp.{AspFact, BuilderHead}
 import core.lars._
 
 /**
@@ -36,7 +36,6 @@ sealed trait Atom extends HeadAtom {
 case class Predicate(caption: String) {
   override def toString = caption
 
-  @deprecated //better use atom constructor
   def apply(arguments: Any*) = Atom(this, arguments map {
     case a: Argument => a
     case x: Any => Argument.convertToArgument(x.toString)
@@ -59,7 +58,7 @@ object Falsum extends GroundAtom {
   override def toString = predicate.toString
 }
 
-//TODO allow with arguments!
+//(better with arguments)
 case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
 }
@@ -243,10 +242,8 @@ object PinnedAtom {
     }
   }
 
-  @deprecated //confusing use
+  @deprecated //(slightly confusing use)
   def apply(atom: Atom, time: Time): PinnedAtAtom = asPinnedAtAtom(atom,time)
-  @deprecated //confusing use
-  def apply(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = asPinnedAtCntAtom(atom,time,count)
 
   def asPinnedAtAtom(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
