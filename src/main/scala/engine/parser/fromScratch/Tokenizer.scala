@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 /**
   * Created by et on 12.03.17.
   */
+@deprecated
 object Tokenizer {
 
   def apply(input: String): Unit = {

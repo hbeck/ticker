@@ -2,7 +2,7 @@ package engine.parser
 
 
 import core.lars.LarsProgram
-import engine.parser.factory.ProgramFactory
+import engine.parser.factories.ProgramFactory
 
 import scala.io.Source
 
@@ -15,7 +15,7 @@ import scala.io.Source
   *
   * This class is a scala object, because i don't think there is any need for more than one instance of a parser.
   */
-object LarsParser extends SimpleLarsParser {
+object LarsParser extends LarsLexer {
 
   def apply(input: String, isPath: Boolean = true): LarsProgram = {
     var program = input
@@ -29,7 +29,6 @@ object LarsParser extends SimpleLarsParser {
     try source.mkString finally source.close()
   }
 
-//  def doTheThing(input:String): ParseResult[ProgramFactory] = parseAll(program,input)
   @throws[InvalidSyntaxException]
   private def doTheThing(input:String): ProgramFactory = parseAll(program,input) match {
     case Success(result,_) => result

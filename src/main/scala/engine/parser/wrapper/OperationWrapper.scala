@@ -1,6 +1,6 @@
 package engine.parser.wrapper
 
-import engine.parser.factory.{BodyTrait, ArgumentFactory}
+import engine.parser.factories.{BodyTrait, ArgumentFactory}
 
 /**
   * Created by et on 28.03.17.

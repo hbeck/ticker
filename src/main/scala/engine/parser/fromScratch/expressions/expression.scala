@@ -8,6 +8,7 @@ import scala.util.matching.Regex
 /**
   * Created by et on 11.03.17.
   */
+@deprecated
 sealed trait Expression {
 
   val importStmt = "import"
@@ -17,6 +18,7 @@ sealed trait Expression {
   override def toString: String = "This is an expression."
 }
 
+@deprecated
 case class ImportExpression(importp: String) extends Expression {
   private val stripped = importp.substring(importStmt.length())
   private val split = stripped.split(" as ")
@@ -25,6 +27,7 @@ case class ImportExpression(importp: String) extends Expression {
   val windowName: String = split(1)
 }
 
+@deprecated
 case class ProgramExpression(rows: List[String]) extends Expression {
   private val importList = rows.filter(_.startsWith(importStmt))
   val imports:List[ImportExpression] = createImports(importList)
@@ -44,6 +47,7 @@ case class ProgramExpression(rows: List[String]) extends Expression {
 
 }
 
+@deprecated
 case class RuleExpression(rule: String) extends Expression {
   private val msg = String.format("%s\n%s","Cannot find end of rule.",rule)
   if(!rule.last.equals('.')) throw new InvalidSyntaxException(msg)
@@ -67,6 +71,7 @@ case class RuleExpression(rule: String) extends Expression {
   }
 }
 
+@deprecated
 case class HeadExpression(headAtom: String) extends Expression {
   val head:Expression = createHeadAtomExp(headAtom, checkAtAtom(headAtom))
 
@@ -81,6 +86,7 @@ case class HeadExpression(headAtom: String) extends Expression {
   }
 }
 
+@deprecated
 case class BodyExpression(body: String) extends Expression {
   private val atoms = body.split(',').toList
 
@@ -114,15 +120,18 @@ case class BodyExpression(body: String) extends Expression {
   //TODO
 }
 
+@deprecated
 case class AtomExpression(atom: String) extends Expression {
   //TODO
 }
 
+@deprecated
 case class AtAtomExpression(atom: String) extends Expression {
 
   //TODO
 }
 
+@deprecated
 case class WindowAtomExpression(atoms: String) extends Expression {
 //  val atom = AtomExpression()
 //  val window = WindowExpression()
@@ -130,17 +139,20 @@ case class WindowAtomExpression(atoms: String) extends Expression {
 
 }
 
+@deprecated
 case class WindowExpression() extends Expression {
   val wtype = ""
   val params = WindowParamExpression()
   //TODO
 }
 
+@deprecated
 case class WindowParamExpression() extends Expression {
   val params:Map[String,Int] = Map()
   //TODO
 }
 
+@deprecated
 case class ArithmeticOperationExpression() extends Expression {
   //TODO
 }

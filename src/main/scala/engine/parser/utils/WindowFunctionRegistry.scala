@@ -1,8 +1,8 @@
 package engine.parser.utils
 
 import engine.parser.InvalidSyntaxException
-import engine.parser.factory.WindowFunctionFactory
-import engine.parser.factory.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
+import engine.parser.factories.WindowFunctionFactory
+import engine.parser.factories.slidingWindowFunctionFactory.{SlidingTimeWindowFactory, SlidingTupleWindowFactory}
 
 /**
   * Created by et on 14.04.17.
