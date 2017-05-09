@@ -23,13 +23,13 @@ object BuildEngine {
   def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTickSize: EngineTimeUnit = 1 second) {
+case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
 
-  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTickSize).build(evaluationType, evaluationModifier)
+  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTimePointDuration).build(evaluationType, evaluationModifier)
 
-  def configure() = ReasoningStrategyConfiguration(larsProgram, withTickSize)
+  def configure() = ReasoningStrategyConfiguration(larsProgram, withTimePointDuration)
 
-  def withTickSize(tickSize: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, tickSize)
+  def withTimePointDuration(duration: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, duration)
 }
 
 case class ReasoningStrategyConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {

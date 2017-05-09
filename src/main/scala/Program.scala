@@ -37,7 +37,7 @@ object Program {
 
         val engine = BuildEngine.
           withProgram(program).
-          withTickSize(config.inputSpeed).
+          withTimePointDuration(config.inputSpeed).
           withConfiguration(config.evaluationType, config.evaluationModifier)
 
         engine match {

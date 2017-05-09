@@ -36,7 +36,7 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
 
     //TODO hb: before this class was called, the following chain was already used.
     //shouldn't this (EngineEvaluationConfiguration) config replace the program: LarsProgram argument of this case class?
-    val config = BuildEngine.withProgram(program).withTickSize(tickSize)
+    val config = BuildEngine.withProgram(program).withTimePointDuration(tickSize)
 
     if (evaluationType == EvaluationTypes.Tms) {
       if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
