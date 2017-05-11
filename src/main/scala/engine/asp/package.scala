@@ -13,17 +13,17 @@ package object asp {
   val cnt = Predicate("cnt")
   val tickPredicate = Predicate("tick")
 
+  val TimePinVariableName = "NN"
+  val CountPinVariableName = "CC"
+  val TimePinVariable = TimeVariableWithOffset(Variable(TimePinVariableName))
+  val CountPinVariable = Variable(CountPinVariableName)
+
   def tickAtom(time: Argument, count: Argument): AtomWithArguments = AtomWithArguments(tickPredicate,Seq(time,count))
   def tickFact(time: Argument, count: Argument): AspFact[AtomWithArguments] = AspFact(tickAtom(time,count))
-  def tickRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
+  def tickFactAsNormalRule(time: Argument, count: Argument): NormalRule = AspFact(tickAtom(time,count))
 
-  //naming: *expiration* is a tick when a rule *must* be removed, whereas an *outdated* rule *can* be removed
-  //use -1 for infinity
-  type Expiration = Tick //time, count
-  //type Outdate = TickPair //time, count
-  type TicksUntilExpiration = Tick
-  type TicksUntilOutdated = Tick
-  val Void: Long = -1L
+  type TickDuration = Tick //subsumes previous TicksUntilExpired, TicksUntilOutdated
+  val Void: Long = -1L //states irrelevance of tick dimension
 
   val specialPinPredicates = Seq(now, cnt) //note that "tick" is not used for pinning!
 
@@ -31,7 +31,7 @@ package object asp {
   type PinnedFact = AspFact[AtomWithArguments]
   type PinnedProgram = AspProgram[AtomWithArguments, PinnedRule]
 
-  type PinnedModel = Set[Atom] //TODO AspModel?
+  type PinnedModel = Set[Atom]
   type PinnedStream = Set[PinnedFact]
 
   //keep original lars rule from which a pinned rule stems

@@ -10,8 +10,8 @@ import core.lars.LarsProgram
 case class LarsGrounding(program: LarsProgram) {
 
   val inspect = StaticProgramInspection.forLars(program)
-  val grounder = GrounderInstance.oneShotLars(inspect)
-  val groundRules = program.rules flatMap grounder.ground
+  val grounder = GrounderInstance.forLars(inspect)
+  val groundRules = program.rules flatMap (grounder.ground(_))
   val groundProgram = LarsProgram(groundRules)
 
 }

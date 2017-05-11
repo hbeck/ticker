@@ -1,8 +1,5 @@
 package core
 
-import core.lars.Time
-import engine.asp.{cnt, now}
-
 /**
   * Created by FM on 17.06.16.
   *
@@ -11,30 +8,6 @@ import engine.asp.{cnt, now}
   * of Atom
   */
 case class AtomModification(atom: Atom) {
-
-  //TODO why do we have this in addition to Pinned{Time,At}Atom?
-  def appendTimeAsArgument(time: Time): AtomWithArguments = {
-    val timeAsArgument: Argument = time
-
-    atom.predicate match {
-      case `cnt` => appendArguments(List(timeAsArgument))
-      case `now` => appendArguments(List(timeAsArgument))
-      case _ => PinnedAtom.asPinnedAtAtom(atom, time)
-    }
-  }
-
-  /* what is this
-  def apply(arguments: List[Argument]): AtomWithArguments = {
-    val (pred, atomArgs): (Predicate, Seq[Argument]) = atom match {
-      case aa: AtomWithArguments => (aa.predicate, aa.arguments)
-      case _ => (atom.predicate, Seq())
-    }
-    // TODO: is this cast needed?
-    Atom(pred, atomArgs ++ arguments).asInstanceOf[AtomWithArguments]
-  }
-  */
-
-  def apply(arguments: Argument*): AtomWithArguments = appendArguments(arguments.toList)
 
   def appendArguments(arguments: Seq[Argument]): AtomWithArguments = {
     atom match {

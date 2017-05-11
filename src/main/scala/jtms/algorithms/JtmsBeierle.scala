@@ -5,7 +5,6 @@ import java.util
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 import jtms._
-import jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
@@ -276,8 +275,8 @@ class JtmsBeierle(val jtms: TruthMaintenanceNetwork, random: Random) extends Jtm
   def unfoundedValid(rule: NormalRule) = jtms.posValid(rule)
 
 
-  def unregister(a: Atom): Unit = {
-    jtms.unregister(a)
+  def deregister(a: Atom): Unit = {
+    jtms.deregister(a)
     //suppRule remove a
     jtms.suppRule = jtms.suppRule - a
   }

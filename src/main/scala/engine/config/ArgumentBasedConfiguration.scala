@@ -21,14 +21,13 @@ object EvaluationTypes extends Enumeration {
 
 object EvaluationModifier extends Enumeration {
   type EvaluationModifier = Value
-  val GreedyLazyRemove, GreedyIncremental, DoyleLazyRemove, Learn, DoyleIncremental, Push, Pull, Reactive = Value
+  val GreedyLazyRemove, GreedyIncremental, DoyleLazyRemove, Learn, DoyleIncremental, Push, Pull = Value
 }
 
 
 case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTimeUnit) {
 
   def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
-
 
   def buildEngine(evaluationType: EvaluationTypes,
                   evaluationModifier: EvaluationModifier,

@@ -6,7 +6,7 @@ import core.lars.TimePoint
 /**
   * Created by FM on 15.06.16.
   */
-trait Argument { //TODO offset at too generic position ~> IntVariable etc
+trait Argument {
   def -(offset: Offset): Argument
 
   def +(offset: Offset): Argument
@@ -38,6 +38,8 @@ object Argument {
   }
 
   implicit def convertToValue(timePoint: TimePoint): Value = timePoint
+
+  implicit def convertToValue(intValue: IntValue): Value = intValue
 }
 
 trait Variable extends Argument {
@@ -59,7 +61,6 @@ trait ArgumentWithOffset extends Argument {
   def calculate(baseValue: Value): Value
 }
 
-//TODO hb review why offset?
 case class StringVariable(name: String) extends Variable {
   override def toString: String = name
 
@@ -110,16 +111,6 @@ case class StringValue(value: String) extends Value {
 
   override def hashCode(): Int = precomputedHash
 
-  /*
-  override def equals(other: Any) = other match {
-    case StringValue(s) => this.value == s
-    case IntValue(i) => this.value == ""+i
-    case TimePoint(i) => this.value == ""+i
-    case _ => false
-  }
-  */
-
-
 }
 
 case class IntValue(int: Int) extends Value {
@@ -155,6 +146,5 @@ object Value {
 
     StringValue(value)
   }
-
 
 }

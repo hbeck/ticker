@@ -12,6 +12,8 @@ import org.scalatest.OptionValues._
   */
 class RunningFluentSample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsGreedyLazyRemovePolicyEngine {
 
+  def Fluent(atom: Atom) = WindowAtom(FluentWindow, Diamond, atom)
+
   val on = StringValue("on")
   val off = StringValue("off")
 

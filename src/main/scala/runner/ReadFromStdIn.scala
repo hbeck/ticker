@@ -3,7 +3,6 @@ package runner
 import java.util.concurrent.TimeUnit
 
 import core.Atom
-import core.lars.TimePoint
 import unfiltered.util.Of.Int
 
 import scala.concurrent.duration.Duration
@@ -19,7 +18,7 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
       override def run(): Unit = Iterator.continually(scala.io.StdIn.readLine).
         map(parseInput).
         takeWhile(_._2.nonEmpty).
-        foreach(input => runner.append(input._1.map(runner.convertToTicks), input._2))
+        foreach(input => runner.append(input._1.map(runner.convertToTimePoint), input._2))
     }, "Read Input form keyboard")
 
     keyboardInput.setDaemon(false)

@@ -27,8 +27,8 @@ class ProgramContainingSlidingWindows extends TransformLarsSpec {
     val converted = converter.apply(program)
 
     val inspection = StaticProgramInspection.forAsp(AspProgram(converted.rules.toList))
-    val grounder = GrounderInstance.oneShotAsp(inspection)
-    val groundedRules = converted.rules flatMap grounder.ground
+    val grounder = GrounderInstance.forAsp(inspection)
+    val groundedRules = converted.rules flatMap (grounder.ground(_))
 
     assert(groundedRules.size == 8)
   }

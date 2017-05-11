@@ -73,7 +73,7 @@ object BitEvaluation extends BitProgram {
       ("0.1", all_01)
     )
 
-    val program = groundLarsProgram() //TODO optionally load from file
+    val program = groundLarsProgram()
 
     val preparedSignals = namedSignalProbabilities map { case (instance, prob) =>
       val signals = PrepareEvaluator.generateSignals(prob, random, 0, timePoints)
@@ -85,7 +85,6 @@ object BitEvaluation extends BitProgram {
     Console.out.println("Algorithm: " + option)
 
     val results = preparedSignals map {
-      //TODO time points with no atoms! - call with empty at the moment
       case (instance, signals) => {
         val engine = PrepareEvaluator.fromArguments(args, instance, program)
         evaluation(engine)(signals)

@@ -15,6 +15,8 @@ object RunningEvaluation {
 
 trait RunningSample {
 
+  def Fluent(atom: Atom) = WindowAtom(FluentWindow, Diamond, atom)
+
   val todo = Atom("todo")
   val task = Atom("task")
   val schedule = Atom("schedule")

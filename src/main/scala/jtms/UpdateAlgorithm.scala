@@ -1,6 +1,6 @@
 package jtms
 
-import core.Atom
+import core.{Atom, Model}
 import core.asp._
 import jtms.algorithms.JtmsDoyleHeuristics
 
@@ -18,8 +18,7 @@ trait JtmsUpdateAlgorithm extends ChoiceControl {
 
   def remove(rule: NormalRule)
 
-  //def recompute()
-  def getModel(): Option[Set[Atom]]
+  def getModel(): Option[Model]
 
   def set(model: Set[Atom]): Boolean
 

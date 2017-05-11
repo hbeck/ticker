@@ -10,6 +10,9 @@ import org.scalatest.Matchers._
   * Created by FM on 11.12.16.
   */
 class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullEngine {
+
+  def TimeW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
+
   val busG = Atom("busG")
   val tramB = Atom("tramB")
   val t37 = TimePoint(37)

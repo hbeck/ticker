@@ -5,7 +5,7 @@ import core._
 /**
   * Created by hb on 8/21/16.
   */
-case class Assignment(binding: Map[Variable, Value]) { //TODO crisis class due to inconsistent use of types
+case class Assignment(binding: Map[Variable, Value]) {
   def apply(arg: Argument): Option[Value] =
     arg match {
       case v: TimeVariableWithOffset => {
@@ -22,8 +22,7 @@ case class Assignment(binding: Map[Variable, Value]) { //TODO crisis class due t
           }
           case _ => {
             val lookupObj = TimeVariableWithOffset(v.variable, 0) //hack due to type mismatch of map
-            val boundValue = binding(lookupObj)
-            Some(v.calculate(boundValue))
+            binding.get(lookupObj).map(boundValue=> v.calculate(boundValue) )
           }
         }
       }

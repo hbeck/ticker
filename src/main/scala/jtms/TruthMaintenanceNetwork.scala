@@ -104,9 +104,9 @@ trait TruthMaintenanceNetwork {
 
   def register(a: Atom): Unit
 
-  def unregister(a: Atom): Unit
+  def deregister(a: Atom): Unit
 
-  def unregister(rule: NormalRule): Boolean
+  def deregister(rule: NormalRule): Boolean
 
   def trans[T](f: T => Set[T], t: T): Set[T] = {
     trans(f)(f(t))

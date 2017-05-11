@@ -1,43 +1,46 @@
 package jtms.evaluation
 
-import core.Atom
-import core.asp.{NormalRule, UserDefinedAspFact, UserDefinedAspRule}
-import jtms.JtmsUpdateAlgorithm
-
-import scala.util.Random
+import core.asp.NormalRule
 
 /**
   * Created by hb on 04.04.17.
   */
-trait StreamingTmsEvalInst {
+trait StreamingTmsEvalInst extends LarsEvaluationInstance {
 
-  def random: Random
+  val windowSize: Int
 
-  def timePoints: Int
+  //<manual TMS>
   def staticRules(): Seq[NormalRule]
-  def factsToAddAt(t: Int): Seq[NormalRule]
-  def rulesToAddAt(t: Int): Seq[NormalRule]
-  def rulesToRemoveAt(t: Int): Seq[NormalRule]
-  def factsToRemoveAt(t: Int): Seq[NormalRule]
-  def verifyModel(tms: JtmsUpdateAlgorithm, t: Int)
 
-  //
-  //helper methods
-  //
+  var addedFacts = Map[Int,Seq[NormalRule]]()
 
-  def rule(head: Atom, posBody: Set[Atom], negBody: Set[Atom]): NormalRule = {
-    UserDefinedAspRule[Atom](head, posBody, negBody)
+  def manualTmsFactsToAddAt(t: Int): Seq[NormalRule] = {
+    val rules = generateFactsToAddAt(t)
+    addedFacts = addedFacts + (t -> rules)
+    rules
+  }
+  def manualTmsFactsToRemoveAt(t: Int): Seq[NormalRule] = {
+    val u = t - windowSize - 1
+    addedFacts.get(u) match {
+      case Some(seq) => {
+        addedFacts = addedFacts - u
+        seq
+      }
+      case None => Seq()
+    }
   }
 
-  def rule(head: Atom, posBody: Atom): NormalRule = {
-    UserDefinedAspRule[Atom](head, Set(posBody), Set())
-  }
+  def manualTmsRulesToAddAt(t: Int) = immediatelyExpiringRulesFor(t) ++ rulesExpiringAfterWindow(t)
+  def manualTmsRulesToRemoveAt(t: Int) = immediatelyExpiringRulesFor(t-1) ++ rulesExpiringAfterWindow(t - windowSize - 1)
 
-  def rule(head: Atom, posBody: Atom, negBody: Atom): NormalRule = {
-    UserDefinedAspRule[Atom](head, Set(posBody), Set(negBody))
-  }
+  def immediatelyExpiringRulesFor(t: Int): Seq[NormalRule]
+  def rulesExpiringAfterWindow(t: Int): Seq[NormalRule]
 
-  def fact(head: Atom): NormalRule = UserDefinedAspFact[Atom](head)
+  def generateFactsToAddAt(t: Int): Seq[NormalRule] = generateSignalsToAddAt(t) map (pinnedFact(_,t))
+  //</manual TMS>
+
+
+
 
 }
 

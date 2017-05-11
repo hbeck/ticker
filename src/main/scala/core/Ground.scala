@@ -7,6 +7,7 @@ import core.lars._
 /**
   * Created by FM on 20.06.16.
   */
+@deprecated
 case class Ground(substitutions: Map[Variable, Value]) {
 
   def apply(atom: Atom): Atom = atom match {

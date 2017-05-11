@@ -45,8 +45,9 @@ object StatisticResult {
   def fromExecutionTimes(executionTimes: Seq[Duration]): StatisticResult = {
     if (executionTimes.isEmpty) {
       StatisticResult(Seq(Duration.Zero))
-    } else
+    } else {
       StatisticResult(executionTimes)
+    }
   }
 
   def fromMillis(executionTimes: Seq[Long]): StatisticResult = fromExecutionTimes(executionTimes.map(toDuration))

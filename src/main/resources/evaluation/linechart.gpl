@@ -1,0 +1,25 @@
+# Chart settings
+
+#set title "test"
+unset key
+
+set terminal png enhanced 
+set output "foo.png"
+
+# XYChart settings
+#set nologscale
+#set key autotitle columnhead
+set style data linespoints
+#set xr [*:*] noreverse
+set yr [0:*] noreverse
+set xlabel "Das ist meine X-Achse"
+set ylabel "Time [ms]"
+
+# XYData Plotting
+plot 'test.dat' using 2:xtic(1) with linespoints 
+
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

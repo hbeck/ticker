@@ -9,6 +9,8 @@ import jtms._
   */
 class OptimizedNetwork extends TruthMaintenanceNetwork {
 
+  val supportCleanupThreshold = 5000
+
   override def allAtoms() = __allAtoms
 
   var __allAtoms: Set[Atom] = Set()
@@ -39,7 +41,7 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
-    val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) + rule))
+    val ruleOccurrences =(rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) + rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
     rule.atoms foreach register
@@ -74,28 +76,31 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
   //
 
   //return true iff rules was present (and deleted)
-  def unregister(rule: NormalRule): Boolean = {
+  def deregister(rule: NormalRule): Boolean = {
     if (!(rules contains rule)) return false
 
     rules = rules - rule
 
-    __justifications = __justifications updated(rule.head, __justifications(rule.head) filter (_ != rule))
+    __justifications = __justifications updated(rule.head, __justifications(rule.head) - rule)
 
-    val ruleOccurrences = rule.atoms map (a => (a, __rulesAtomsOccursIn(a) - rule))
+
+    // not using set-semantics of atoms speeds up computation
+    val ruleOccurrences = (rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) - rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
+    // note: here we should use set semantics - its faster
     val atomsToBeRemoved = rule.atoms filter (a => __rulesAtomsOccursIn(a).isEmpty)
     val remainingAtoms = __allAtoms diff atomsToBeRemoved
 
     __cleanupSupportingData()
 
-    atomsToBeRemoved foreach unregister
+    atomsToBeRemoved foreach deregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
 
     true
   }
 
-  def unregister(a: Atom): Unit = {
+  def deregister(a: Atom): Unit = {
 
     __allAtoms = __allAtoms - a
 
@@ -114,11 +119,12 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   def __cleanupSupportingData(force: Boolean = false): Unit = {
     __cleanup = __cleanup + 1
-    if (__cleanup % 1000 == 0 || force) {
+    if (__cleanup % supportCleanupThreshold == 0 || force) {
       __cleanup = 0
 
-      __justifications = __justifications filter { case (atom, rules) => rules.nonEmpty }
-      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom, rules) => rules.nonEmpty }
+
+      __justifications = __justifications filter { case (atom, r) => r.nonEmpty }
+      __rulesAtomsOccursIn = __rulesAtomsOccursIn filter { case (atom, r) => r.nonEmpty }
     }
   }
 

@@ -4,8 +4,6 @@ import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}
 import core.grounding.LarsGrounding
 import core.lars._
-import engine.asp.PlainLarsToAspMapper
-import engine.asp.tms.{Pin, TickBasedAspToIncrementalAsp}
 
 /**
   * Created by hb on 8/28/16.
@@ -64,25 +62,6 @@ object Util {
     val pos = larsRule.pos map (_.asInstanceOf[Atom])
     val neg = larsRule.neg map (_.asInstanceOf[Atom])
     UserDefinedAspRule(head, pos, neg)
-  }
-
-  def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
-
-  def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
-
-
-  def aspProgramAt(groundLarsProgram: LarsProgram, time: Int, tickSize: EngineTimeUnit): NormalProgram = {
-
-    val aspProgramWithVariables = PlainLarsToAspMapper(tickSize)(groundLarsProgram)
-
-    val incrementalProgram = TickBasedAspToIncrementalAsp(aspProgramWithVariables)
-
-    val (groundRules, nonGroundRules) = incrementalProgram.rules partition (_.isGround)
-
-    val pin = Pin(Assignment(Map(TimePinVariable -> TimePoint(time))))
-    val pinnedRules: Seq[NormalRule] = nonGroundRules map pin.groundTickVariables
-
-    AspProgram((groundRules ++ pinnedRules).toList)
   }
 
 

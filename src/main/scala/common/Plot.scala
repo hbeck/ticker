@@ -14,6 +14,23 @@ import scala.io.Source
   */
 object Plot {
   def main(args: Array[String]): Unit = {
+    line()
+
+  }
+
+  def line(): Unit = {
+    val series = new MemXYSeries(Seq(1, 2, 3), Seq(1, 3, 4), "barfoo")
+    val data = new XYData(series)
+    val chart = new XYChart("test", data)
+    val plotter = new GnuplotPlotter(chart)
+
+    val file = File.createTempFile("plot", "testrun")
+    plotter.png(file.getParent() + "/", file.getName)
+
+    println(file)
+  }
+
+  def bar(): Unit = {
     val plot = Plot(File.createTempFile("plot", "testrun").getParent)
 
     val s = plot.simpleBarChart("test", Seq(("a", 1), ("b", 2), ("c", 1)))
@@ -36,7 +53,6 @@ object Plot {
     println(s.png().renderedFile)
 
     println(g.png().renderedFile)
-
   }
 }
 
@@ -135,7 +151,7 @@ case class Plot(outputDirectory: String, generateRandomFilename: Boolean = true)
 
     val chart = new BarChart(title, data)
     chart.showLegend = true
-        chart.pointSize = Some(4)
+    chart.pointSize = Some(4)
     chart.legendPosX = LegendPosX.Left
     chart.legendPosY = LegendPosY.Top
 

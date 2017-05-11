@@ -1,12 +1,40 @@
 package core.grounding
 
-import core._
+import core.asp.NormalRule
 import core.lars.Assignment
+import core.{RelationAtom, Value, Variable}
+
+import core.Atom
 
 /**
   * Created by hb on 08.03.17.
   */
 object Grounding {
+
+  def ensureRuleRelations(rule: NormalRule): Option[NormalRule] = {
+    if (rule.pos.map(_.predicate.caption).contains("geq")) {
+      val a = 0
+    }
+    if (relationsHold(rule)) {
+      Some(deleteAuxiliaryAtoms(rule))
+    } else {
+      None
+    }
+  }
+
+  def relationsHold(rule: NormalRule): Boolean = {
+    rule.pos collect { case ra:RelationAtom => ra } forall (_.groundingHolds())
+    //&& (rule.neg collect { case ra:RelationAtom => ra } forall (!_.groundingHolds())) //not used per convention
+  }
+
+  def deleteAuxiliaryAtoms(rule: NormalRule): NormalRule = {
+    val corePosAtoms: Set[Atom] = rule.pos filterNot (_.isInstanceOf[RelationAtom])
+    //val coreNegAtoms: Set[TBody] = rule.neg filterNot (_.isInstanceOf[RelationAtom]) //not used per convention
+    //rule.from(rule.head, corePosAtoms, coreNegAtoms).asInstanceOf[TRule]
+    rule.from(rule.head,corePosAtoms,rule.neg).asInstanceOf[NormalRule]
+  }
+
+  //
 
   // X -> { x1, x2 }
   // Y -> { y1, y2 }
@@ -31,12 +59,12 @@ object Grounding {
     for (s1 <- sets1; s2 <- sets2) yield s1 union s2
   }
 
-  def allGroundedRelationsHold(relationAtoms: Set[RelationAtom])(partialAssignment: Set[(Variable, Value)]): Boolean = {
-    val groundRelationAtoms: Set[RelationAtom] = relationAtoms map (assign(_, partialAssignment)) filter (_.isGround)
+  def allGroundedRelationsHold(relationAtoms: Set[RelationAtom],partialAssignment: Set[(Variable, Value)]): Boolean = {
+    val groundRelationAtoms: Set[RelationAtom] = relationAtoms map (assignRelationAtom(_, partialAssignment)) filter (_.isGround)
     groundRelationAtoms forall (_.groundingHolds())
   }
 
-  def assign(relationAtom: RelationAtom, partialBindings: Set[(Variable, Value)]): RelationAtom = {
+  def assignRelationAtom(relationAtom: RelationAtom, partialBindings: Set[(Variable, Value)]): RelationAtom = {
     val assignment = Assignment(partialBindings.toMap)
     relationAtom.assign(assignment).asInstanceOf[RelationAtom]
   }

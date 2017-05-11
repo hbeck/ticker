@@ -20,21 +20,23 @@ object JtmsLearn {
 }
 
 /**
-  * Refinement of JtmsGreedy that learns to avoid bad choices.
+  * EXPERIMENTAL
+  *
+  * (Refinement of JtmsGreedy that learns to avoid bad choices.)
+  *
+  *
   *
   */
+@deprecated
 class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), override val random: Random = new Random()) extends JtmsGreedy(network, random) {
 
   shuffle = false
 
   /*
-  stable:
-  */
-  /*
   override def updateGreedy(atoms: Set[Atom]) {
     atoms foreach setUnknown
     //test avoidance map before determining further consequences:
-    selectNextAtom() //TODO this place in particular the need to distinguish determined atoms and choice atoms
+    selectNextAtom()
     if (selectedAtom.isEmpty) {
       //atomsNeedingSupp() foreach setUnknown
       super.invalidateModel()
@@ -42,7 +44,7 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
       saveState()
     }
     while (hasUnknown) {
-      unknownAtoms foreach findStatus //TODO could limit to transitive consequences of previously set head atom
+      unknownAtoms foreach findStatus
       selectNextAtom()
       selectedAtom match {
         case Some(atom) => {
@@ -314,8 +316,8 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
     true
   }
 
-  override def unregister(rule: NormalRule): Boolean = {
-    val ruleExisted = super.unregister(rule)
+  override def deregister(rule: NormalRule): Boolean = {
+    val ruleExisted = super.deregister(rule)
     if (!ruleExisted) {
       return false
     } else if (network.dataIndependentRule(rule)) {
@@ -412,7 +414,7 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
 
     state = stateSnapshot()
 
-    val atomSet = (network.unknownAtoms diff network.signals) //filter (a => a.predicate.caption == "bit" || a.predicate.caption == "xx1") //TODO
+    val atomSet = (network.unknownAtoms diff network.signals)
     val atoms = if (shuffle && atomSet.size > 1)
       (random.shuffle(atomSet.toSeq))
     else
@@ -421,22 +423,7 @@ class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNe
 
     if (atoms.isEmpty) return
 
-    // TODO performance: find iterates over too many atoms - dict?
     val tabuAtoms = tabu.atomsToAvoid()
-
-    /*
-    // <new160826>
-    val nonContradictionAtoms = atoms filterNot (_.isInstanceOf[ContradictionAtom])
-    if (nonContradictionAtoms.isEmpty) {
-      selectedAtom = atoms find (!tabuAtoms.contains(_))
-    } else {
-      selectedAtom = nonContradictionAtoms find (!tabuAtoms.contains(_))
-      if (selectedAtom.isEmpty) {
-        selectedAtom = (atoms filter (_.isInstanceOf[ContradictionAtom])) find (!tabuAtoms.contains(_))
-      }
-    }
-    //</new160826>
-    */
 
     selectedAtom = atoms find (!tabuAtoms.contains(_))
     //    selectedAtom = atoms find (!tabu.atomsToAvoid().contains(_))

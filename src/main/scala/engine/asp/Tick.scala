@@ -28,10 +28,22 @@ object Tick {
     Tick(time,count)
   }
 
+  def max(p1: Tick, p2: Tick) = {
+    val time = maxWithVoidAsInfinity(p1.time,p2.time)
+    val count = maxWithVoidAsInfinity(p1.count,p2.count)
+    Tick(time,count)
+  }
+
   def minWithVoidAsInfinity(i: Long, j: Long): Long = {
     if (i == Void) return j
     if (j == Void) return i
     return math.min(i,j)
+  }
+
+  def maxWithVoidAsInfinity(i: Long, j: Long): Long = {
+    if (i == Void) return j
+    if (j == Void) return i
+    return math.max(i,j)
   }
 
 }

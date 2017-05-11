@@ -8,6 +8,6 @@ import core.lars.{ExtendedAtom, HeadAtom}
   */
 trait ProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAtom, TBody <: ExtendedAtom] {
 
-  def possibleVariableValues(rule: TRule): Map[Variable, Set[Value]]
+  def possibleVariableValues(rule: TRule, ensureGroundResult: Boolean): Map[Variable, Set[Value]]
 
 }

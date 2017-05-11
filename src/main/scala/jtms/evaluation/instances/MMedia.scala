@@ -1,17 +1,16 @@
 package jtms.evaluation.instances
 
-import core.asp.NormalRule
 import core._
+import core.asp.NormalRule
 import core.lars._
-import jtms.JtmsUpdateAlgorithm
-import jtms.evaluation.StreamingTmsStandardEvalInst
+import jtms.evaluation.StreamingTmsEvalInst
 
 import scala.util.Random
 
 /**
   * Created by hb on 04.04.17.
   */
-abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends StreamingTmsStandardEvalInst {
+abstract class MMedia(windowSize: Int, timePoints: Int, random: Random, val values: Seq[Int] = (0 to 30)) extends StreamingTmsEvalInst {
 
   val done = Atom("done")
   val lfu = Atom("lfu")
@@ -23,9 +22,8 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   val _high_at = Predicate("high_at")
   val _mid_at = Predicate("mid_at")
   val _low_at = Predicate("low_at")
-  val _rtm_at = Predicate("rtm_at")
-  val _lt = Predicate("lt")
-  val _leq = Predicate("leq")
+  val _rtm_at = Predicate("rtm50_at")
+  val _value = Predicate("value")
 
   val spoil_high = Atom("spoil_high")
   val spoil_mid = Atom("spoil_mid")
@@ -38,8 +36,9 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   def mid_at(arg1: Int) = AtomWithArguments(_mid_at,Seq(IntValue(arg1)))
   def low_at(arg1: Int) = AtomWithArguments(_low_at,Seq(IntValue(arg1)))
   def rtm_at(arg1: Int) = AtomWithArguments(_rtm_at,Seq(IntValue(arg1)))
-  def lt(arg1: Int, arg2: Int) = AtomWithArguments(_lt,Seq(IntValue(arg1),IntValue(arg2)))
-  def leq(arg1: Int, arg2: Int) = AtomWithArguments(_leq,Seq(IntValue(arg1),IntValue(arg2)))
+  def lt(arg1: Int, arg2: Int) = Lt(IntValue(arg1),IntValue(arg2))
+  def leq(arg1: Int, arg2: Int) = Leq(IntValue(arg1),IntValue(arg2))
+  def value(arg1: Int) = AtomWithArguments(_value,Seq(IntValue(arg1)))
 
   // LARS:
   val _alpha = Predicate("alpha")
@@ -48,17 +47,8 @@ abstract class MMedia(windowSize: Int, timePoints: Int, random: Random) extends 
   val low = Atom("low")
   val rtm50 = Atom("rtm50")
 
-  def alpha_at(arg1: Argument, arg2: Argument) = AtomWithArguments(_alpha_at,Seq(arg1,arg2))
-  def high_at(arg1: Argument) = AtomWithArguments(_high_at,Seq(arg1))
-  def mid_at(arg1: Argument) = AtomWithArguments(_mid_at,Seq(arg1))
-  def low_at(arg1: Argument) = AtomWithArguments(_low_at,Seq(arg1))
-  def rtm_at(arg1: Argument) = AtomWithArguments(_rtm_at,Seq(arg1))
-  def lt(arg1: Int, arg2: Argument) = AtomWithArguments(_lt,Seq(IntValue(arg1),arg2))
-  def lt(arg1: Argument, arg2: Int) = AtomWithArguments(_lt,Seq(arg1,IntValue(arg2)))
-  def lt(arg1: Argument, arg2: Argument) = AtomWithArguments(_lt,Seq(arg1,arg2))
-  def leq(arg1: Int, arg2: Argument) = AtomWithArguments(_leq,Seq(IntValue(arg1),arg2))
-  def leq(arg1: Argument, arg2: Int) = AtomWithArguments(_leq,Seq(arg1,IntValue(arg2)))
-  def leq(arg1: Argument, arg2: Argument) = AtomWithArguments(_leq,Seq(arg1,arg2))
+  def alpha(arg: Argument) = AtomWithArguments(_alpha,Seq(arg))
+  def value(arg: Argument) = AtomWithArguments(_value,Seq(arg))
 
 
   /*
@@ -69,13 +59,11 @@ random :- not done.
    */
   val E = Set[Atom]()
 
-  val maxAlphaValue = 30
-
   override val staticRules: Seq[NormalRule] = {
     var rules = Seq[NormalRule]()
     rules = rules :+ rule(done,lfu) :+ rule(done,lru) :+ rule(done,fifo) :+ rule(randomAtom,E,Set(done))
-    for (i <- 0 to maxAlphaValue) {
-      for (j <- 0 to maxAlphaValue) {
+    for (i <- values) {
+      for (j <- values) {
         if (i < j) {
           rules = rules :+ fact(lt(i,j))
         }
@@ -84,6 +72,7 @@ random :- not done.
         }
       }
     }
+    rules = rules ++ (factAtoms map fact)
     rules
   }
 
@@ -99,10 +88,10 @@ random :- not done.
 
   override def rulesExpiringAfterWindow(t: Int): Seq[NormalRule] = {
     var rules = Seq[NormalRule]()
-    for (v <- 0 to maxAlphaValue) {
-      rules = rules :+ rule(high_at(t),Set[Atom](alpha_at(v,t),leq(18,v)),E) //high_at(T) :- alpha_at(V,T), leq(18,V).
-      rules = rules :+ rule(mid_at(t),Set[Atom](alpha_at(v,t),leq(12,v), lt(v,18)),E) //mid_at(T) :- alpha_at(V,T), leq(12,V), lt(V,18).
-      rules = rules :+ rule(low_at(t),Set[Atom](alpha_at(v,t),lt(v,12)),E) //low_at(T) :- alpha_at(V,T), lt(V,12).
+    for (v <- values) {
+      rules = rules :+ rule(high_at(t),Set[Atom](value(v), alpha_at(v,t),leq(18,v)),E) //high_at(T) :- value(V), alpha_at(V,T), leq(18,V).
+      rules = rules :+ rule(mid_at(t),Set[Atom](value(v), alpha_at(v,t),leq(12,v), lt(v,18)),E) //mid_at(T) :- value(V), alpha_at(V,T), leq(12,V), lt(V,18).
+      rules = rules :+ rule(low_at(t),Set[Atom](value(v), alpha_at(v,t),lt(v,12)),E) //low_at(T) :- value(V), alpha_at(V,T), lt(V,12).
 
     }
     rules = rules :+
@@ -117,23 +106,18 @@ random :- not done.
     rules
   }
 
-  def larsProgram(windowSize: Int): LarsProgram = {
-
+  override def larsProgram(windowSize: Int): LarsProgram = {
     val T:Variable = StringVariable("T")
     val V:Variable = StringVariable("V")
 
-    def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
-    def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
-    def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
-    
     def s(ats: Atom*): Set[ExtendedAtom] = ats.toSet
 
     val n = windowSize
 
-    LarsProgram.from(
-      AtAtom(T,high) <= wAt(n,T,_alpha(V)) and leq(18,V),
-      AtAtom(T,mid) <= wAt(n,T,_alpha(V)) and leq(12,V) and lt(V,18),
-      AtAtom(T,low) <= wAt(n,T,_alpha(V)) and lt(V,12),
+    val rules = Seq[LarsRule](
+      AtAtom(T,high) <= value(V) and wAt(n,T,_alpha(V)) and Leq(IntValue(18),V),
+      AtAtom(T,mid) <= value(V) and wAt(n,T,_alpha(V)) and Leq(IntValue(12),V) and Lt(V,IntValue(18)),
+      AtAtom(T,low) <= value(V) and wAt(n,T,_alpha(V)) and Lt(V,IntValue(12)),
       lfu <= wB(n,high),
       lru <= wB(n,mid),
       fifo <= wB(n,low) and wD(n,rtm50),
@@ -141,45 +125,58 @@ random :- not done.
       done <= lru,
       done <= fifo,
       UserDefinedLarsRule(randomAtom,s(),s(done))
-    )
+    ) ++ (factAtoms map larsFact)
 
+    LarsProgram(rules)
+
+  }
+
+  def factAtoms(): Seq[Atom] = {
+    values map (value(_))
   }
 
 }
 
-case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints,random) {
+case class MMediaDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = Seq(5,15,25)) extends MMedia(windowSize,timePoints,random) {
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int) = {
-    val model = tms.getModel().get
+  override def verifyModel(optModel: Option[Model], t: Int) = {
+    if (optModel.isEmpty) assert(false)
+    val model = optModel.get
+    def has(atom: Atom) = contains(model,t,atom)
+    //def hasNot(atom: Atom) = notContains(model,t,atom)
+    //def hasSomeOf(ats: Atom*) = containsSomeOf(model,t,ats.toSeq)
     val q = t % 180
     if (q >= 0 && q < windowSize) {
-      assert(model.contains(randomAtom))
+      has(randomAtom)
     } else if (q >= windowSize && q < 60) {
-      assert(model.contains(randomAtom)) //low, if also rtm holds
+      has(randomAtom) //low, if also rtm holds
     } else if (q >= 60 && q < 60 + windowSize) {
-      assert(model.contains(randomAtom))
+      has(randomAtom)
     } else if (q >= (60 + windowSize) && q < 120) {
-      assert(model.contains(lru)) //mid
+      has(lru) //mid
     } else if (q >= 120 && q < (120 + windowSize)) {
-      assert(model.contains(randomAtom))
+      has(randomAtom)
     } else if (q >= (120 + windowSize) && q < 180) {
-      assert(model.contains(lfu)) //high
+      has(lfu) //high
     }
   }
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
-    Seq[NormalRule]() :+ fact(alpha_at(alphaValueFor(t),t))
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
+    Seq[Atom]() :+ alpha(alphaValueFor(t))
   }
 
-  def alphaValueFor(t: Int): Int = {
+  def alphaValueFor(t: Int): IntValue = {
     val q = t%180
-    if (0 <= q && q < 60) 5
-    else if (q >= 60 && q < 120) 15
-    else 25
+    if (0 <= q && q < 60) IntValue(5)
+    else if (q >= 60 && q < 120) IntValue(15)
+    else IntValue(25)
   }
+
 }
 
-case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random) extends MMedia(windowSize,timePoints, random) {
+case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, random: Random, override val values: Seq[Int] = (0 to 30)) extends MMedia(windowSize,timePoints, random) {
+
+  val simplify = values.size == 3
 
   abstract class Mode
   case object High extends Mode
@@ -191,7 +188,7 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
   var modeUntil = 1
   var lastRtm = -10000
 
-  override def generateFactsToAddAt(t: Int): Seq[NormalRule] = {
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (modeUntil == t) {
       mode = random.nextInt(4) match {
         case 0 => High
@@ -202,30 +199,32 @@ case class MMediaNonDeterministicEvalInst(windowSize: Int, timePoints: Int, rand
       modeUntil = t+2*windowSize
     }
     val v = mode match {
-      case High => 18 + random.nextInt(13)
-      case Mid => 12 + random.nextInt(6)
-      case _ => random.nextInt(12)
+      case High => if (simplify) 20 else (18 + random.nextInt(13))
+      case Mid => if (simplify) 15 else (12 + random.nextInt(6))
+      case _ => if (simplify) 10 else random.nextInt(12)
     }
-    var rules = Seq[NormalRule]() :+ fact(alpha_at(v,t))
+    var signals = Seq[Atom]() :+ alpha(IntValue(v))
     if (mode == Low) {
       if ((t-lastRtm > windowSize) || (random.nextDouble() < (1.0/(1.0*windowSize/2.0)))) {
-        rules = rules :+ fact(rtm_at(t)) //TODO in engine use atom rtm50
+        signals = signals :+ rtm50
         lastRtm = t
       }
     }
-    addedFacts = addedFacts + (t -> rules)
-    //println(f"$t -> $rules")
-    rules
+    //addedFacts = addedFacts + (t -> (signals map (fact(_))))
+    //println(f"$t -> $signals")
+    signals
   }
 
-  override def verifyModel(tms: JtmsUpdateAlgorithm, t: Int): Unit = {
-    val model = tms.getModel().get
+  override def verifyModel(optModel: Option[Model], t: Int): Unit = {
+    if (optModel.isEmpty) assert(false)
+    val model = optModel.get
+    def has(atom: Atom) = contains(model,t,atom)
     if (t >= (modeUntil-windowSize)) {
       mode match {
-        case High => assert(model.contains(lfu))
-        case Mid => assert(model.contains(lru))
-        case Low => assert(model.contains(fifo))
-        case _ => assert(model.contains(randomAtom))
+        case High => has(lfu)
+        case Mid => has(lru)
+        case Low => has(fifo)
+        case _ => has(randomAtom)
       }
     }
   }

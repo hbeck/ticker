@@ -1,0 +1,36 @@
+# define position of legend
+set key left top
+
+# define output format
+set terminal png enhanced
+set output "barchart.png"
+
+# remove this option if we want enhanced text mode 
+# (allowing a Latex like rendering, eg. using _ as subscript)
+set termoption noenhanced
+
+# Define the seperator (default is \t - Tab)
+set datafile separator ";"
+
+# BarChart settings
+set nologscale
+set yr [0.0:*] noreverse
+
+set xlabel ""
+set ylabel "Time [ms]"
+
+# BarData Plotting
+set style data histogram
+set style histogram cluster gap 1
+set style fill solid border -1
+
+# Plot a bar-chart with two columns
+
+plot 'barchart.dat' using 5:xtic(1) title columnheader(5) with  histogram fill pattern, \
+     '' using 4 title columnheader(4)
+
+
+unset output
+# Wrapup
+set terminal dumb
+refresh

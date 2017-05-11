@@ -52,20 +52,20 @@ class SimpleNetwork extends TruthMaintenanceNetwork {
     }
   }
 
-  override def unregister(a: Atom) = {
+  override def deregister(a: Atom) = {
     status = status - a
     cons = cons - a
     supp = supp - a
   }
 
-  override def unregister(rule: NormalRule): Boolean = {
+  override def deregister(rule: NormalRule): Boolean = {
     if (!(rules contains rule)) return false
 
     rules = rules - rule
 
     val remainingAtoms = rules flatMap (_.atoms)
 
-    (rule.atoms diff remainingAtoms) foreach unregister
+    (rule.atoms diff remainingAtoms) foreach deregister
     (rule.body intersect remainingAtoms) foreach removeDeprecatedCons(rule)
 
     true

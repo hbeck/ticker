@@ -1,0 +1,10 @@
+impl	instance	items	tp	winsize	total_time	init_time	add_time
+ClingoPush	B1	1	1000	20	26.158	0.018	0.026
+ClingoPush	B1	1	1000	40	55.898	0.021	0.055
+ClingoPush	B1	1	1000	80	425.853	0.019	0.425
+ClingoPush	B2	1	1000	20	24.138	0.018	0.024
+ClingoPush	B2	1	1000	40	38.478	0.019	0.038
+ClingoPush	B2	1	1000	80	71.827	0.024	0.071
+ClingoPush	B2	1	1000	120	104.723	0.023	0.104
+ClingoPush	B2	1	1000	160	148.257	0.031	0.148
+ClingoPush	B2	1	1000	200	181.991	0.028	0.181

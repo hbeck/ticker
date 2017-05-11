@@ -33,8 +33,6 @@ case class AspPushEvaluationEngine(val aspEvaluation: OneShotEvaluation) extends
     val keysToRemove = cachedResults.keySet filter (_.value >= time.value)
     keysToRemove foreach cachedResults.remove
 
-    // TODO: implement invalidation of result
-    // a results.remove(time) is probably not enough
     prepare(time)
   }
 }

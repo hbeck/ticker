@@ -36,7 +36,6 @@ sealed trait Atom extends HeadAtom {
 case class Predicate(caption: String) {
   override def toString = caption
 
-  @deprecated //better use atom constructor
   def apply(arguments: Any*) = Atom(this, arguments map {
     case a: Argument => a
     case x: Any => Argument.convertToArgument(x.toString)
@@ -59,7 +58,7 @@ object Falsum extends GroundAtom {
   override def toString = predicate.toString
 }
 
-//TODO allow with arguments!
+//(better with arguments)
 case class ContradictionAtom(predicate: Predicate) extends GroundAtom {
   override def toString = predicate.toString
 }
@@ -211,8 +210,8 @@ trait PinnedAtCntAtom extends PinnedAtAtom { // with PinnedCntAtom {
   override val pinnedArguments = Seq(time, cnt)
   def resetPin(time: Time, count: Argument): PinnedAtCntAtom = {
     (time, count) match {
-      case (t: TimePoint, v: Value) => GroundAtCntAtom(atom, t, v)
-      case _ => VariableAtCntAtom(atom, time, count)
+      case (t: TimePoint, v: Value) => GroundPinnedAtCntAtom(atom, t, v)
+      case _ => NonGroundPinnedCntAtAtom(atom, time, count)
     }
   }
 
@@ -243,10 +242,8 @@ object PinnedAtom {
     }
   }
 
-  @deprecated //confusing use
+  @deprecated //(slightly confusing use)
   def apply(atom: Atom, time: Time): PinnedAtAtom = asPinnedAtAtom(atom,time)
-  @deprecated //confusing use
-  def apply(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = asPinnedAtCntAtom(atom,time,count)
 
   def asPinnedAtAtom(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
@@ -260,14 +257,14 @@ object PinnedAtom {
   def asPinnedAtCntAtom(atom: Atom, time: Time, count: Argument): PinnedAtCntAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at_cnt")
     (time, count) match {
-      case (t: TimePoint, tv: Value) => GroundAtCntAtom(newAtom, t, tv)
-      case _ => VariableAtCntAtom(newAtom, time, count)
+      case (t: TimePoint, tv: Value) => GroundPinnedAtCntAtom(newAtom, t, tv)
+      case _ => NonGroundPinnedCntAtAtom(newAtom, time, count)
     }
   }
 
 }
 
-case class GroundAtCntAtom(override val atom: Atom, time: TimePoint, cnt: Value) extends PinnedAtCntAtom with GroundAtom with AtomWrapper
+case class GroundPinnedAtCntAtom(override val atom: Atom, time: TimePoint, override val cnt: Value) extends PinnedAtCntAtom with GroundAtom with AtomWrapper
 
 case class GroundPinnedAtAtom(override val atom: Atom, time: TimePoint) extends PinnedAtAtom with GroundAtom with AtomWrapper
 
@@ -287,18 +284,18 @@ case class NonGroundPinnedAtAtom(override val atom: Atom, time: Time) extends Pi
   }
 }
 
-case class VariableAtCntAtom(override val atom: Atom, override val time: Time, override val cnt: Argument) extends PinnedAtCntAtom with NonGroundAtom with AtomWrapper {
+case class NonGroundPinnedCntAtAtom(override val atom: Atom, time: Time, cnt: Argument) extends PinnedAtCntAtom with NonGroundAtom with AtomWrapper {
 
   override def isGround(): Boolean = false
 
-  //TODO curr
   override def assign(assignment: Assignment): Atom = {
     val assignedTime = assignmentForTime(assignment)
+    val assignedCount = assignmentForCount(assignment)
     val assignedAtom = atom.assign(assignment).asInstanceOf[Atom]
-    if (assignedAtom.isGround() && assignedTime.isInstanceOf[TimePoint]) {
-      GroundPinnedAtAtom(assignedAtom, assignedTime.asInstanceOf[TimePoint])
+    if (assignedAtom.isGround() && assignedTime.isInstanceOf[TimePoint] && assignedCount.isInstanceOf[IntValue]) {
+      GroundPinnedAtCntAtom(assignedAtom, assignedTime.asInstanceOf[TimePoint], assignedCount.asInstanceOf[IntValue])
     } else {
-      NonGroundPinnedAtAtom(assignedAtom, assignedTime)
+      NonGroundPinnedCntAtAtom(assignedAtom, assignedTime, assignedCount)
     }
   }
 

@@ -3,7 +3,7 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp._
-import core.grounding.{Grounding, LarsGrounding}
+import core.grounding.{Grounding, LarsGrounding, RuleGrounder}
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
 import jtms.evaluation.Util._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
@@ -17,6 +17,9 @@ import scala.collection.immutable.HashMap
   * Created by hb on 8/23/16.
   */
 class GrounderTests extends FunSuite {
+
+  def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
+  def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)
 
   val load = Load()
   import load._
