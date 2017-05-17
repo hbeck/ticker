@@ -195,6 +195,9 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.atAtom,"a 10").successful)
   }
   "window" should "be accepted" in {
+    assert(parser.parseAll(parser.window," [5 sec]").successful)
+    assert(parser.parseAll(parser.window," [5 #]").successful)
+    assert(parser.parseAll(parser.window," [5]").successful)
     assert(parser.parseAll(parser.window," [t]").successful)
     assert(parser.parseAll(parser.window," [t 5]").successful)
     assert(parser.parseAll(parser.window," [t 5 sec]").successful)
@@ -289,20 +292,20 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.fqdn,"head.string1 . string2.last").successful)
   }
   "importN" should "be accepted" in {
-    assert(parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
+    assert(parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
   }
 
   "importN" should "be rejected" in {
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw").successful)
-    assert(!parser.parseAll(parser.importN,"engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory stw\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as \n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw").successful)
+    assert(!parser.parseAll(parser.importN,"engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory stw\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as\n").successful)
+    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as \n").successful)
   }
 
   "program" should "be accepted" in {
-    assert(parser.parseAll(parser.program,"import engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n" +
-      "import engine.parser.factory.slidingWindowFunctionFactory.SlidingTupleWindowFactory as tup\n" +
+    assert(parser.parseAll(parser.program,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n" +
+      "import engine.parser.factories.slidingWindowFunctionFactory.SlidingTupleWindowFactory as tup\n" +
       "/* random comment\n" +
       " * over multiple\n" +
       " * lines\n" +
