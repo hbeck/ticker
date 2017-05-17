@@ -70,22 +70,22 @@ class LarsLexer extends JavaTokenParsers {
     case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
-/*  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~ integer ~ opt(space ~> str) ~ "]" ^^ {
-    case _ ~ num ~ None ~ _ => WindowFactory("t",List(ParamWrapper(num)))
-    case _ ~ num ~ unit ~ _ => unit.get match {
+  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~> optSpace ~> integer ~ opt(space ~> (str|"#") <~ optSpace) ~ "]" ^^ {
+    case num ~ None ~ _ => WindowFactory("t",List(ParamWrapper(num)))
+    case num ~ unit ~ _ => unit.get match {
       case "#" => WindowFactory(unit.get,List(ParamWrapper(num)))
       case _ => WindowFactory("t",List(ParamWrapper(num,unit.get)))}
-  }*/
+  }
 
-  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~ param <~ "]" ^^ {
+/*  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~ param <~ "]" ^^ {
     case _ ~ param =>
       var windowType = "t"
       if(param.unit.getOrElse("") == "#")
         windowType = "#"
       WindowFactory(windowType,List(param))
-  }
+  }*/
 
-  def param: Parser[ParamWrapper] = optSpace ~> float ~ opt(space ~ opt((str|"#") <~ optSpace)) ^^ {
+  def param: Parser[ParamWrapper] = optSpace ~> float ~ opt(space ~ opt(str <~ optSpace)) ^^ {
     case num ~ None => ParamWrapper(num,None)
     case num ~ str => ParamWrapper(num,str.get._2)
   }

@@ -1,5 +1,6 @@
 package engine.parser
 
+import engine.parser.wrapper.ParamWrapper
 import org.scalatest.FlatSpec
 
 /**
@@ -195,6 +196,18 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.atAtom,"a 10").successful)
   }
   "window" should "be accepted" in {
+    val slidingTimeWithUnit = parser.parseAll(parser.window," [5 sec]")
+    assert(slidingTimeWithUnit.get.w == "t")
+    assert(slidingTimeWithUnit.get.params == List(ParamWrapper("5","sec")))
+
+    val slidingTuple = parser.parseAll(parser.window," [5 #]")
+    assert(slidingTuple.get.w == "#")
+    assert(slidingTuple.get.params == List(ParamWrapper("5")))
+
+    val slidingTimeWithoutUnit = parser.parseAll(parser.window," [5]")
+    assert(slidingTimeWithoutUnit.get.w == "t")
+    assert(slidingTimeWithoutUnit.get.params == List(ParamWrapper("5")))
+    
     assert(parser.parseAll(parser.window," [5 sec]").successful)
     assert(parser.parseAll(parser.window," [5 #]").successful)
     assert(parser.parseAll(parser.window," [5]").successful)
@@ -206,6 +219,8 @@ class ParserUnitTests extends FlatSpec {
   }
   "window" should "be rejected" in {
     assert(!parser.parseAll(parser.window," []").successful)
+    assert(!parser.parseAll(parser.window," [5.0]").successful)
+    assert(!parser.parseAll(parser.window," [-5]").successful)
   }
   "optIn" should "be rejected" in {
     assert(!parser.parseAll(parser.optNotIn,"in ").successful)
