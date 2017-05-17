@@ -1,10 +1,13 @@
-high at T :- alpha(V) at T in [t 300], 18 <= V.
-mid at T :- alpha(V) at T in [t 300], 12 <= V, V < 18.
-low at T :- alpha(V) at T in [t 300], V < 12.
-lfu :- high always [t 300].
-lru :- mid always [t 300].
-fifo :- low always [t 300], rtm50 [t 300].
+high at T :- value(V), alpha(V) at T [t 300 sec], leq(18,V).
+mid at T :- value(V), alpha(V) at T [t 300 sec], leq(12,V), lt(V,18).
+low at T :- value(V), alpha(V) at T [t 300 sec], lt(V,12).
+lfu :- high always [t 300 sec].
+lru :- mid always [t 300 sec].
+fifo :- low always [t 300 sec], rtm50 [t 300 sec].
 done :- lfu.
 done :- lru.
 done :- fifo.
 random :- not done.
+value(5).
+value(15).
+value(25).

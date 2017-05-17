@@ -11,7 +11,7 @@ class ImportFactoryTest extends FlatSpec {
   behavior of "ImportFactoryTest"
 
   it should "register" in {
-    ImportFactory("engine.parser.factory.slidingWindowFunctionFactory.SlidingTimeWindowFactory",List(),"stw")
+    ImportFactory("engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory",List(),"stw")
     assert(ImportFactory.getWinfowFunction("stw") == SlidingTimeWindowFactory())
   }
 
