@@ -31,6 +31,7 @@ case class AspPushEvaluationEngine(val aspEvaluation: OneShotEvaluation) extends
     signalTracker.track(time, atoms)
 
     val keysToRemove = cachedResults.keySet filter (_.value >= time.value)
+
     keysToRemove foreach cachedResults.remove
 
     prepare(time)

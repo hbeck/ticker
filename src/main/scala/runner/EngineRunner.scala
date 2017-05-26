@@ -35,9 +35,9 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
 
-  def convertOutput(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis / outputSpeed.toMillis, outputSpeed.unit)
+  def convertToOutputSpeed(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis / outputSpeed.toMillis, outputSpeed.unit)
 
-  def convertInput(timePoint: TimePoint) = Duration(Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
+  def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
 
   private def updateBeat(): Unit = engineTimePoint = engineTimePoint + 1
 
@@ -51,9 +51,14 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, outputS
 
   def append(enteredTimePoint: Option[TimePoint], atoms: Seq[Atom]): Unit = {
     Future {
+      // if we are not provided with an explicit user entered time-point
+      // we add the atoms at the first time-point when they can be added in the engine
+      // (which is determined by calling the code inside the future;
+      // another strategy could be fixing the time-point at the moment when the atom arrives at the engine boundary,
+      // but this would lead to adding atoms always in the past)
       val timePoint = enteredTimePoint.getOrElse(engineTimePoint)
 
-      val inputTimePoint = convertInput(timePoint)
+      val inputTimePoint = convertToInputSpeed(timePoint)
 
       println(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 

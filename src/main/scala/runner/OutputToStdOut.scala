@@ -27,7 +27,7 @@ case class OutputToStdOut(onlyModelChanges: Boolean = true) extends ConnectToEng
   def evaluateModel(engineRunner: EngineRunner)(result: Result, ticks: TimePoint): Unit = {
 
     if (!onlyModelChanges || result.get != lastModel.get) {
-      val timeInOutput = engineRunner.convertOutput(ticks)
+      val timeInOutput = engineRunner.convertToOutputSpeed(ticks)
       result.get match {
         case Some(m) => println(f"Model at T $timeInOutput: $m")
         case None => println(f"No model at T $timeInOutput")
