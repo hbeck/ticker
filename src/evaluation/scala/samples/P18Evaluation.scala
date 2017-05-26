@@ -1,10 +1,15 @@
+import core.{Atom, Predicate, StringValue}
+import core.lars._
+
+import util.{AlgorithmResult, DumpData, PrepareEvaluator}
+
+import scala.collection.immutable.HashMap
+import scala.util.Random
 
 /**
   * Created by FM on 21.08.16.
   */
-object P18Evaluation { //extends P18Program {
-
-  /* TODO HB refactoring problems due to sloppy use of apply operators.
+object P18Evaluation extends P18Program {
 
   val all_001 = HashMap(x_1 -> 0.01, x_2 -> 0.01, x_3 -> 0.01, x_4 -> 0.01, y_1 -> 0.01, y_2 -> 0.01)
   val all_01 = HashMap(x_1 -> 0.1, x_2 -> 0.1, x_3 -> 0.1, x_4 -> 0.1, y_1 -> 0.1, y_2 -> 0.1)
@@ -34,13 +39,13 @@ object P18Evaluation { //extends P18Program {
 
       val allResults = allOptions map (o => evaluateTimings(o.toArray))
 
-      dump.plot(allResults)
+//      dump.plot(allResults)
 
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateTimings(args)
-      dump.plot(Seq(results))
+//      dump.plot(Seq(results))
       dumpToCsv(Seq(results))
     }
   }
@@ -89,13 +94,13 @@ object P18Evaluation { //extends P18Program {
 
       val allResults = allOptions map (o => evaluateFailures(o.toArray))
 
-      dump.plotFailures(allResults)
+//      dump.plotFailures(allResults)
 
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateFailures(args)
-      dump.plotFailures(Seq(results))
+//      dump.plotFailures(Seq(results))
       //      dumpToCsv(Seq(results))
     }
   }
@@ -230,13 +235,12 @@ trait P18Program {
     g(j) <= b_j(_1),
     g(j) <= b_j(_2),
 
-    h <= g(i),
-    h <= g(j),
+    Atom(h) <= g(i),
+    Atom(h) <= g(j),
 
-    u(_1) <= c_i(_1) and c_j(_2) not h not u(_1),
-    u(_2) <= c_i(_2) and c_j(_1) not h not u(_2)
+    u(_1) <= c_i(_1) and c_j(_2) not Atom(h) not u(_1),
+    u(_2) <= c_i(_2) and c_j(_1) not Atom(h) not u(_2)
   )
 
-   */
 
 }

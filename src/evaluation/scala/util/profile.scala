@@ -5,7 +5,7 @@ import scala.language.{implicitConversions, postfixOps}
 /**
   * Created by FM on 28.05.16.
   */
-package object profile {
+package object util {
 
   def withWarmup[R](code: => R): R = withWarmup(1)(code)
 

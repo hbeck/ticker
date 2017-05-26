@@ -16,3 +16,10 @@ scalacOptions += "-feature"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
 
+//lazy val main = Project(id = "Main",
+//  base = file("main"))
+//
+//lazy val dependent = Project(id = "Evaluation",
+//  base = file("evaluation")) dependsOn (main)
+
+unmanagedResourceDirectories in Compile += baseDirectory.value / "evaluation"

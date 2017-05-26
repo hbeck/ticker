@@ -1,7 +1,7 @@
-import common.Plot
+
 import core.lars._
 import core.{Atom, Model}
-import evaluation._
+import util.{AlgorithmResult, DumpData, PrepareEvaluator, UnequalResult}
 
 import scala.collection.immutable.HashMap
 import scala.util.Random
@@ -48,19 +48,19 @@ object DiamondBoxEvaluation extends DiamondBoxSpec {
 
       val allResults = allOptions map (o => evaluateTimings(o.toArray))
 
-      dump.plot(allResults)
+//      dump.plot(allResults)
 
       dumpToCsv(allResults)
 
-      val plot = Plot("diamondbox")
+//      val plot = Plot("diamondbox")
 
       val results = allResults.map { r => (r.caption, r.runs.map { run => (run.instanceCaption, run.appendResult.median.toMillis.toDouble) }) }
-      val r = plot.groupedBarChart("Perfomance-Diamond-Box-Sample", results).png()
-      println(r.renderedFile)
+//      val r = plot.groupedBarChart("Perfomance-Diamond-Box-Sample", results).png()
+//      println(r.renderedFile)
 
     } else {
       val results = evaluateTimings(args)
-      dump.plot(Seq(results))
+//      dump.plot(Seq(results))
       dumpToCsv(Seq(results))
     }
   }

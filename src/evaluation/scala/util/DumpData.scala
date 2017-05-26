@@ -1,7 +1,6 @@
-package evaluation
+package util
 
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 /**
   * Created by FM on 08.08.16.

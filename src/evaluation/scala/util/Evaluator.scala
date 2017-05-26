@@ -1,6 +1,6 @@
-package evaluation
+package util
 
-import engine.{StreamEntry, EvaluationEngine}
+import engine.{EvaluationEngine, StreamEntry}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -32,7 +32,7 @@ case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
     appendExecutionTimes.clear()
     evaluateExecutionTimes.clear()
 
-    profile.profileR(repetitions)(test)
+    util.profileR(repetitions)(test)
 
     TimingsConfigurationResult(
       instance,
