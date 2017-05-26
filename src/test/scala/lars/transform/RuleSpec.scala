@@ -61,10 +61,4 @@ class RuleSpec extends TransformLarsSpec {
     encodeRule(r) should have size 2
   }
 
-  "A rule containing a window atom wˆf d a" should "be transformed into 2 rules" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(FluentWindow, Diamond, a)))
-
-    encodeRule(r) should have size 2
-  }
-
 }

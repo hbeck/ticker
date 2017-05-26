@@ -8,8 +8,6 @@ import java.util.concurrent.TimeUnit
   */
 sealed trait WindowFunction
 
-object FluentWindow extends WindowFunction
-
 sealed trait SlidingWindow[T] extends WindowFunction {
   val windowSize: T
 }
