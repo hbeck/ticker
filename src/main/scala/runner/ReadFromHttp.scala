@@ -1,13 +1,13 @@
 package runner
 
 import java.net.InetSocketAddress
+import java.nio.charset.Charset
 
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import core.Atom
 import core.lars.TimeUnit
-import unfiltered.request.QueryParams
-import unfiltered.util.Of.Int
 
+import scala.collection.immutable.Stream.Empty
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,16 +22,17 @@ case class ReadFromHttp(inputUnit: TimeUnit) extends ConnectToEngine {
   def startWith(engineRunner: EngineRunner): Startable = {
     val server = SimpleHttpServer()
       .withContext("/") {
-        case "/input" => params => Future {
-          val time = parseTime(params)
-          val atoms = parseAtoms(params)
-          if (atoms.nonEmpty) {
-            engineRunner.append(time.map(engineRunner.convertToTimePoint), atoms)
-            (200, f"OK, appending @$time $atoms")
+        case "/input" => params =>
+          Future {
+            val time = parseTime(params)
+            val atoms = parseAtoms(params)
+            if (atoms.nonEmpty) {
+              engineRunner.append(time.map(engineRunner.convertToTimePoint), atoms)
+              (200, f"OK, appending @$time $atoms")
+            }
+            else
+              (400, f"Could not interpret $params")
           }
-          else
-            (400, f"Could not interpret $params")
-        }
       }
 
     server.start
@@ -76,7 +77,7 @@ case class SimpleHttpServer(port: Int = 8080) {
     httpServer.createContext("/", new HttpHandler {
       override def handle(exchange: HttpExchange): Unit = {
         val path = exchange.getRequestURI.getPath
-        val params = QueryParams.urldecode(exchange.getRequestURI.toString)
+        val params = splitQuery(exchange.getRequestURI.toString)
         val futureResponse = httpFunction(path)(params)
         //        implicit val executionContext = scala.concurrent.ExecutionContext.global
         futureResponse onComplete {
@@ -92,4 +93,25 @@ case class SimpleHttpServer(port: Int = 8080) {
   def start() = httpServer.start()
 
   def stop() = httpServer.stop(0)
+
+
+  import java.net.URLDecoder
+
+
+  def splitQuery(url: String) = {
+    var query_pairs: Map[String, Seq[String]] = Map()
+    val pairs = url.split("&")
+    for (pair <- pairs) {
+      val idx = pair.indexOf("=")
+      val key = if (idx > 0) URLDecoder.decode(pair.substring(0, idx), "UTF-8")
+      else pair
+      if (!query_pairs.contains(key))
+        query_pairs = query_pairs.updated(key, Seq())
+      val value = if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8")
+      else null
+      query_pairs = query_pairs.updated(key, query_pairs(key) ++ Seq(value))
+    }
+    query_pairs
+  }
+
 }

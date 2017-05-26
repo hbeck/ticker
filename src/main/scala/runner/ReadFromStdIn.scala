@@ -3,7 +3,6 @@ package runner
 import java.util.concurrent.TimeUnit
 
 import core.Atom
-import unfiltered.util.Of.Int
 
 import scala.concurrent.duration.Duration
 

@@ -5,10 +5,11 @@ import java.util.concurrent.TimeUnit
 import core.lars.{Box, Diamond, ExtendedAtom, HeadAtom, LarsFact, LarsProgram, LarsRule, SlidingTimeWindow, TimeWindowSize, WindowAtom, _}
 import core.{Argument, Atom, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
 import runner.Load._
-import unfiltered.util.Of.Int
+
 
 import scala.concurrent.duration.Duration
 import scala.io.{BufferedSource, Source}
+import scala.util.Try
 
 /**
   * Created by FM on 19.11.16.
@@ -184,4 +185,8 @@ case class Load(timeUnit: TimeUnit) {
     val rules = validLines map rule
     LarsProgram(rules.toList)
   }
+}
+
+object Int {
+  def unapply(s: String): Option[Int] = Try(s.toInt).toOption
 }
