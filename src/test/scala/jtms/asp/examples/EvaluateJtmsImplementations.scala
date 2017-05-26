@@ -2,7 +2,7 @@ package jtms.asp.examples
 
 import clingo.ClingoEvaluation
 import core.Evaluation
-import jtms.evaluation.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsGreedyEvaluation}
+import iclp.evaluation.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsGreedyEvaluation}
 import org.scalatest.FlatSpec
 
 /**

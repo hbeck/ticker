@@ -1,11 +1,12 @@
 package engine.evaluation
 
-import jtms.evaluation.Util
+import iclp.evaluation.Util
 import runner.Load._
 import engine.StreamEntry
 import evaluation._
 import evaluation.bit.BitProgram
 import runner.Load
+import util._
 
 import scala.util.Random
 

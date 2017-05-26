@@ -1,9 +1,9 @@
-package jtms.evaluation.instances
+package iclp.evaluation.instances
 
 import core._
 import core.asp.NormalRule
 import core.lars.{LarsProgram, LarsRule}
-import jtms.evaluation.StreamingTmsEvalInst
+import iclp.evaluation.StreamingTmsEvalInst
 
 import scala.util.Random
 

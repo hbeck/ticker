@@ -4,8 +4,9 @@ import java.util.concurrent.TimeUnit
 
 import core.Atom
 import core.lars.TimePoint
-import evaluation.{RunWithAllImplementations, StatisticResult, TimedEvaluationEngine}
-import fixtures.{ClingoPushEngine, ConfigurableEvaluationSpec, TimeTestFixtures, JtmsGreedyLazyRemovePolicyEngine}
+import evaluation.RunWithAllImplementations
+import fixtures.{ClingoPushEngine, ConfigurableEvaluationSpec, JtmsGreedyLazyRemovePolicyEngine, TimeTestFixtures}
+import util.{StatisticResult, TimedEvaluationEngine}
 
 import scala.language.implicitConversions
 import scala.concurrent.duration.{Deadline, Duration}

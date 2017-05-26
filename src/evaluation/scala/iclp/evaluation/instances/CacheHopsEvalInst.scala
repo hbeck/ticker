@@ -1,10 +1,10 @@
-package jtms.evaluation.instances
+package iclp.evaluation.instances
 
 import core._
 import core.asp.{AspProgram, NormalRule}
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import core.lars._
-import jtms.evaluation.{StreamingTmsEvalInst}
+import iclp.evaluation.{StreamingTmsEvalInst}
 
 import scala.util.Random
 

@@ -5,7 +5,7 @@ import core._
 import core.asp._
 import core.grounding.{Grounding, LarsGrounding, RuleGrounder}
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}
-import jtms.evaluation.Util._
+import iclp.evaluation.Util._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 import org.scalatest.FunSuite
 import runner.Load

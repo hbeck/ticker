@@ -1,12 +1,13 @@
-package jtms.evaluation
+package iclp.evaluation
 
 import common.Util.stopTime
 import core.lars._
 import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
 import engine.config.{BuildEngine, StartableEngineConfiguration}
 import engine.{EvaluationEngine, Result}
-import evaluation._
+
 import jtms.JtmsUpdateAlgorithm
+import util.StatisticResult
 
 import scala.concurrent.duration.Duration
 

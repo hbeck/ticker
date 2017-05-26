@@ -1,16 +1,16 @@
-package jtms.evaluation
+package iclp.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.algorithms.JtmsGreedy
+import jtms.algorithms.JtmsDoyle
 
 /**
-  * Created by hb on 25.03.16.
+  * Created by FM on 25.02.16.
   */
-class JtmsGreedyEvaluation extends Evaluation {
+class JtmsDoyleEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
-    val tmn = JtmsGreedy(program)
+    val tmn = JtmsDoyle(program)
 
     val singleModel = tmn.getModel.get
 

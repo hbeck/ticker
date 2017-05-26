@@ -1,7 +1,7 @@
 package evaluation.bit
 
 import core.grounding.LarsGrounding
-import jtms.evaluation.Util
+import iclp.evaluation.Util
 import runner.Load._
 import core.lars._
 import runner.Load

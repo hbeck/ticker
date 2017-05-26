@@ -1,8 +1,8 @@
-package jtms.evaluation
+package iclp.evaluation
 
 import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
-import jtms.evaluation.instances._
+import iclp.evaluation.instances._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 
 import scala.util.Random

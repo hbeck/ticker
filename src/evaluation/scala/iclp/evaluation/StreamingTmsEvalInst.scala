@@ -1,4 +1,4 @@
-package jtms.evaluation
+package iclp.evaluation
 
 import core.asp.NormalRule
 
