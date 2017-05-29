@@ -1,0 +1,12 @@
+sat(I,N) :- item(I), node(N),req(I,N) in [t 300], cache(I,N) in [t 300].
+sat(I,N) :- item(I), node(N),req(I,N) in [t 300], getFrom(I,N,M).
+sat(I,N) :- item(I), node(N), req(I,N) in [t 300], not sat(I,N).
+needAt(I,N) :- item(I), node(N),req(I,N) in [t 300], cache(I,N) not in [t 300].
+conn(N,M) :- edge(N,M), error(N,M) not [t 300].
+getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
+n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), M != M2.
+minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
+n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), K2 < K.
+itemReach(I,N,M,K) :- needAt(I,N), cache(I,M) [t 300], reach(N,M,K).
+reach(N,M,1) :- conn(N,M).
+reach(N,M,K) :- reach(N,M0,K0), conn(M0,M), N!=M, K=K0+1, length(K0), length(K).
