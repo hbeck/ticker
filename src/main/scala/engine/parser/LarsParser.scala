@@ -19,12 +19,15 @@ object LarsParser extends LarsLexer {
 
   def apply(input: String, isPath: Boolean = true): LarsProgram = {
     var program = input
-    if(isPath) program = readFile(input)
+    if (isPath) program = readFile(input)
 
     doTheThing(program).program
   }
 
   private def readFile(path: String): String = {
+    var url = Option(getClass.getResource(path))
+    if(url.isEmpty) throw new Exception("File at path "+path+" could not be found.")
+
     val source = Source.fromURL(getClass.getResource(path))
     try source.mkString finally source.close()
   }
