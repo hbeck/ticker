@@ -207,7 +207,7 @@ class ParserUnitTests extends FlatSpec {
     val slidingTimeWithoutUnit = parser.parseAll(parser.window," [5]")
     assert(slidingTimeWithoutUnit.get.w == "t")
     assert(slidingTimeWithoutUnit.get.params == List(ParamWrapper("5")))
-    
+
     assert(parser.parseAll(parser.window," [5 sec]").successful)
     assert(parser.parseAll(parser.window," [5 #]").successful)
     assert(parser.parseAll(parser.window," [5]").successful)

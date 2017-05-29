@@ -1,6 +1,7 @@
 package engine.parser.factories
 
 import core.Argument
+import engine.parser.InvalidSyntaxException
 import org.scalatest.FlatSpec
 
 /**
@@ -13,5 +14,11 @@ class ArgumentFactoryTest extends FlatSpec {
   it should "create Arguments from strings and numbers" in {
     assert(ArgumentFactory("A").arg == Argument.convertToArgument("A"))
     assert(ArgumentFactory(42).arg == Argument.convertToArgument("42"))
+  }
+
+  it should "fail for non strings and non numbers" in {
+    intercept[InvalidSyntaxException] {
+      ArgumentFactory('c').arg
+    }
   }
 }

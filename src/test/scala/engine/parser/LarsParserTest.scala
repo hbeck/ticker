@@ -72,25 +72,13 @@ class LarsParserTest extends FlatSpec {
     val program: LarsProgram = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
     val cacheHops = CacheHopsEvalInst1(10000,10,0,Random)
     val cacheHopsProgram = cacheHops.larsProgram(300)
-//    assert(cacheHopsProgram == program)
-    //TODO fix
+    assert(cacheHopsProgram.toString == program.toString)
   }
 
   "Program jtms.evaluation.instances.MMedia" should "not fail" in {
     val program: LarsProgram = LarsParser("/parser-programs/MMedia.lars")
     val mmedia = MMediaDeterministicEvalInst(300,10000,Random)
     val mmediaProgram = mmedia.larsProgram(300)
-    //TODO
-//    mmediaProgram.rules.foreach(rule =>
-//      if(program.rules.toSet.contains(rule)) {
-//        println("equals: "+rule)
-//      } else {
-//        println("equals not: "+rule)
-//      }
-//    )
-//    println("##########################################")
-//    println(mmediaProgram.rules.toSet diff program.rules.toSet)
-//    println(program.rules.toSet diff mmediaProgram.rules.toSet)
-//    assert(mmediaProgram == program)
+    assert(mmediaProgram.toString == program.toString)
   }
 }
