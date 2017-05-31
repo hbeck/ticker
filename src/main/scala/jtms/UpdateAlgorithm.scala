@@ -14,7 +14,7 @@ object JtmsUpdateAlgorithm {
     tmn
   }
 
-  def apply(): JtmsUpdateAlgorithm = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+  def apply(): JtmsUpdateAlgorithm = new JtmsDoyle(TruthMaintenanceNetwork())
 }
 
 
