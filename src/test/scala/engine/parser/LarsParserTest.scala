@@ -2,7 +2,7 @@ package engine.parser
 
 import core.{Argument, Atom, Plus}
 import core.lars.{HeadAtom, LarsProgram, LarsRule}
-import jtms.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst}
+import iclp.evaluation.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst}
 import org.scalatest.FlatSpec
 
 import scala.util.Random

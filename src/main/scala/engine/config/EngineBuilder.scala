@@ -25,7 +25,7 @@ object BuildEngine {
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
 
-  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(larsProgram, withTimePointDuration).build(evaluationType, evaluationModifier)
+  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(evaluationType, evaluationModifier)
 
   def configure() = ReasoningStrategyConfiguration(larsProgram, withTimePointDuration)
 

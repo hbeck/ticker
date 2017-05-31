@@ -2,13 +2,19 @@ package jtms
 
 import core.{Atom, Model}
 import core.asp._
-import jtms.algorithms.JtmsDoyleHeuristics
+import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics}
 
 /**
   * Created by FM on 13.10.16.
   */
 object JtmsUpdateAlgorithm {
-  def apply() = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+  def apply(P: NormalProgram): JtmsUpdateAlgorithm = {
+    val tmn = JtmsUpdateAlgorithm()
+    P.rules foreach tmn.add
+    tmn
+  }
+
+  def apply(): JtmsUpdateAlgorithm = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
 }
 
 
