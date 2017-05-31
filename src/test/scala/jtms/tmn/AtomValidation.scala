@@ -13,7 +13,6 @@ import org.scalatest.FlatSpec
 trait AtomValidation {
   this: FlatSpec =>
 
-  //TODO
   def atomValidation(tmn: JtmsDoyle, n: Atom): ((AtomValidator) => Any) => Any = {
     val nc = new AtomValidator(tmn, n)
 

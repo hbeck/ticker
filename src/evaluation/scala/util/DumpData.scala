@@ -8,7 +8,7 @@ import java.io.File
 case class DumpData(configCaption: String, instanceSizeCaption: String) {
 
   def printResults(filePath: String)(results: Seq[AlgorithmResult[TimingsConfigurationResult]]) {
-    printToFile(new File(filePath)) { printer => //TODO abstraction needed for comparison (clingo pull needs evaluate; others need append)
+    printToFile(new File(filePath)) { printer => 
       val captions = Seq(
         configCaption,
         instanceSizeCaption,

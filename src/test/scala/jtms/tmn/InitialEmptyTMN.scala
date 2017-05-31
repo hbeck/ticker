@@ -16,8 +16,7 @@ class InitialEmptyTMN extends FlatSpec {
   val assumptionA = AspFact(Atom("A"))
   val program = AspProgram(assumptionA)
 
-  val EmptyTMN = JtmsDoyle(AspProgram()) //TODO
-
+  val EmptyTMN = JtmsDoyle(AspProgram())
   val tmn = {
     JtmsDoyle(program)
   }
