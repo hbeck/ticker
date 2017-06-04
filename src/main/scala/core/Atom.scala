@@ -235,9 +235,6 @@ object PinnedAtom {
     }
   }
 
-  @deprecated //(slightly confusing use)
-  def apply(atom: Atom, time: Time): PinnedAtAtom = asPinnedAtAtom(atom,time)
-
   def asPinnedAtAtom(atom: Atom, time: Time): PinnedAtAtom = {
     val newAtom = appendToPredicateCaption(atom,"_at")
     time match {

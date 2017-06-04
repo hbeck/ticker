@@ -20,9 +20,9 @@ class AspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
   def LarsToAspProgram: PlainLarsToAspMapper = engine.asp.PlainLarsToAspMapper(1 second)
 
   "A rule containing a normal Atom" should "not be modified" in {
-    val rule: AspRule[AtomWithArguments] = AspRule(PinnedAtom(b, t0), PinnedAtom(a, t0))
+    val rule: AspRule[AtomWithArguments] = AspRule(PinnedAtom.asPinnedAtAtom(b, t0), PinnedAtom.asPinnedAtAtom(a, t0))
 
-    IncrementalAspPreparation(rule, Set()) should be(AspRule(b, PinnedAtom(a, t0)))
+    IncrementalAspPreparation(rule, Set()) should be(AspRule(b, PinnedAtom.asPinnedAtAtom(a, t0)))
   }
 
   "Window-Atoms" should "have no pinned head" in {

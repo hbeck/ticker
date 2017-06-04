@@ -91,7 +91,7 @@ case class Load(timeUnit: TimeUnit) {
         val args = atomArguments take atomArguments.size - 1 map arg
         val atom = Atom(p, args)
         val time = Integer.parseInt(atomArguments.last.toString)
-        PinnedAtom(atom, time)
+        PinnedAtom.asPinnedAtAtom(atom, time)
       } else {
         val p = Predicate(atomName)
         val args = atomArguments map arg
@@ -159,7 +159,7 @@ case class Load(timeUnit: TimeUnit) {
     val aa: AtomWithArguments = xatom(s).asInstanceOf[AtomWithArguments]
     val timeArg = Integer.parseInt(aa.arguments.last.toString)
     val otherArgs = aa.arguments.take(aa.arguments.size - 1)
-    LarsFact(PinnedAtom(AtomWithArguments(aa.predicate, otherArgs), timeArg))
+    LarsFact(PinnedAtom.asPinnedAtAtom(AtomWithArguments(aa.predicate, otherArgs), timeArg))
   }
 
 

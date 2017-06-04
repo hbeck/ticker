@@ -106,7 +106,7 @@ case class TmsEvaluationEngine(larsProgramEncoding: LarsProgramEncoding, tmsPoli
     case p: PinnedAtAtom => p
     case GroundAtomWithArguments(p: Predicate, Seq(t: TimePoint)) => GroundPinnedAtAtom(Atom(p), t)
     // in incremental mode we assume that all (resulting) atoms are meant to be at T
-    case a: Atom => PinnedAtom(a, timePoint)
+    case a: Atom => PinnedAtom.asPinnedAtAtom(a, timePoint)
   }
 
   def discardOutdatedAuxiliaryAtoms(time: TimePoint) = {

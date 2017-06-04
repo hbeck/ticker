@@ -116,7 +116,7 @@ object LarsEvaluation {
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
     if (profiling && iterationNr == 0) {
       println("waiting to start profiling, press return")
-      readLine()
+      scala.io.StdIn.readLine()
       println("running")
     }
 

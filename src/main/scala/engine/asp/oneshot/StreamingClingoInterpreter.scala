@@ -51,7 +51,7 @@ object StreamingClingoInterpreter {
       case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
     }
 
-    PinnedAtom(atomWithoutTime, value)
+    PinnedAtom.asPinnedAtAtom(atomWithoutTime, value)
   }
 
 }

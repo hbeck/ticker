@@ -12,14 +12,14 @@ class TransformExtendedAtomsSpec extends TransformLarsSpec {
     assert(DefaultLarsToPinnedProgram.encodingAtom(a) == a(T))
   }
   "An atom a(1)" should "be transformed into a_at(1,T)" in {
-    assert(DefaultLarsToPinnedProgram.encodingAtom(a("1")) == PinnedAtom(a("1"), T))
+    assert(DefaultLarsToPinnedProgram.encodingAtom(a("1")) == PinnedAtom.asPinnedAtAtom(a("1"), T))
   }
 
   "An at-atom @_t1 a" should "be transformed into a(t1)" in {
     assert(DefaultLarsToPinnedProgram.encodingAtom(AtAtom(t1, a)) == a(t1))
   }
   "An at-atom @_t1 a(1)" should "be transformed into a_at(1,t1)" in {
-    assert(DefaultLarsToPinnedProgram.encodingAtom(AtAtom(t1, a("1"))) == PinnedAtom(a("1"), t1))
+    assert(DefaultLarsToPinnedProgram.encodingAtom(AtAtom(t1, a("1"))) == PinnedAtom.asPinnedAtAtom(a("1"), t1))
   }
 
   "The window-atom wˆ1 d a" should "be transformed into w_te_1_d_a(T)" in {

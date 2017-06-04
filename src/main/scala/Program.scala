@@ -89,7 +89,7 @@ object Program {
           if (d lt Duration.Zero)
             Left("inputSpeed must be > 0")
           else
-            Right()
+            Right(():Unit)
         ).
         action((x, c) => c.copy(inputSpeed = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
@@ -99,7 +99,7 @@ object Program {
           if (d lt Duration.Zero)
             Left("outputSpeed must be > 0")
           else
-            Right()
+            Right(():Unit)
         ).
         action((x, c) => c.copy(outputSpeed = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
@@ -112,7 +112,7 @@ object Program {
         if (c.inputSpeed >= c.outputSpeed)
           Left("inputSpeed must be lower than output")
         else
-          Right()
+          Right(():Unit)
       )
 
       this.checkConfig(c =>
@@ -121,7 +121,7 @@ object Program {
         else if (c.evaluationType != EvaluationTypes.Clingo && (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push))
           Left("Invalid EvaluationModifier for evaluation Type")
         else
-          Right()
+          Right(():Unit)
       )
 
       help("help").text("Specify init parameters for running th engine")
