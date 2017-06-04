@@ -16,7 +16,7 @@ object Time {
   implicit def convertToTimeVariable(variable: Variable): Time = TimeVariableWithOffset(variable)
 }
 
-case class TimePoint(value: Long) extends Time with Value {
+case class TimePoint(value: Long) extends Time with Value with NumericArgument {
 
   def -(duration: Offset) = TimePoint(value - duration)
 
@@ -27,11 +27,11 @@ case class TimePoint(value: Long) extends Time with Value {
   }
 
   override def equals(other: Any) = other match {
-    case v:Value => this.toString == v.toString
+    case v: Value => this.toString == v.toString
     case _ => false
   }
 
-  private lazy val precomputedHash = (""+value).hashCode //uniformity with IntValue and StringValue
+  private lazy val precomputedHash = ("" + value).hashCode //uniformity with IntValue and StringValue
 
   override def hashCode(): Int = precomputedHash
 }

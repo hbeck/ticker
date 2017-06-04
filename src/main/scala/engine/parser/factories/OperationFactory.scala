@@ -37,7 +37,7 @@ case class OperationFactory(left: ArgumentFactory, func: String, right: Operatio
     case _ => true
   }
 
-  private def getTernaryRelation(arg1: Argument, arg2: OperationWrapper): TernaryNumericRelationAtom =
+  private def getTernaryRelation(arg1: NumericArgument, arg2: OperationWrapper): TernaryNumericRelationAtom =
     arg2.arith.get match {
     case "+" => Plus(arg2.op1.arg,arg2.op2.get.arg,arg1)
     case "-" => Minus(arg2.op1.arg,arg2.op2.get.arg,arg1)
@@ -48,7 +48,7 @@ case class OperationFactory(left: ArgumentFactory, func: String, right: Operatio
   }
 
   @throws[InvalidSyntaxException]
-  private def getBinaryRelation(func: String, arg: Argument, arg2: Argument): BinaryRelationAtom = func match {
+  private def getBinaryRelation(func: String, arg: NumericArgument, arg2: NumericArgument): BinaryRelationAtom = func match {
     case "=" => Eq(arg,arg2)
     case ">" => Gt(arg,arg2)
     case "<" => Lt(arg,arg2)

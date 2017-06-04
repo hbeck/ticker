@@ -1,6 +1,6 @@
 package engine.parser.factories
 
-import core.{Argument, IntValue, Variable}
+import core.{Argument, IntValue, NumericArgument, Variable}
 import engine.parser.InvalidSyntaxException
 
 /**
@@ -8,10 +8,10 @@ import engine.parser.InvalidSyntaxException
   */
 case class ArgumentFactory(operand: Any) {
 
-  lazy val arg: Argument = create(operand)
+  lazy val arg: NumericArgument = create(operand)
 
   @throws[InvalidSyntaxException]
-  def create(operand: Any): Argument = operand match {
+  def create(operand: Any): NumericArgument = operand match {
     case arg: Double  => IntValue(arg.##)
     case arg: Int     => IntValue(arg)
     case arg: String  => Variable(arg)
