@@ -24,13 +24,6 @@ sealed trait Atom extends HeadAtom {
     case a: Atom => this.cachedHash == a.cachedHash
     case _ => false
   }
-
-  @deprecated //confusing use, use Predicate instead, or Atom(arguments)
-  def apply(arguments: Any*): AtomWithArguments = {
-    val args: Seq[Argument] =  arguments map (a => Argument.convertToArgument(a.toString))
-    AtomModification(this).appendArguments(args)
-  }
-
 }
 
 case class Predicate(caption: String) {
@@ -310,7 +303,7 @@ object Atom {
 
   def apply(caption:String):Atom = PredicateAtom(Predicate(caption))
 
-  def apply(predicate: Predicate) = PredicateAtom(predicate)
+  def apply(predicate: Predicate):Atom = PredicateAtom(predicate)
 
   def apply(predicate: Predicate, arguments: Seq[Argument]) = arguments forall (_.isInstanceOf[Value]) match {
     case true => GroundAtom(predicate, arguments map (_.asInstanceOf[Value]))

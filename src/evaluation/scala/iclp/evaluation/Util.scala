@@ -50,6 +50,7 @@ object Util {
     }
   }
 
+
   //use only for asp fragment!
   def asAspProgram(larsProgram: LarsProgram): NormalProgram = {
     val aspRules: Seq[NormalRule] = larsProgram.rules map (asAspRule(_))

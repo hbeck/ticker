@@ -12,11 +12,11 @@ import scala.util.Random
   */
 abstract class MMediaDim(windowSize: Int, timePoints: Int, maxDimensions: Int, random: Random) extends StreamingTmsEvalInst {
 
-  val done = Atom("done")
-  val lfu = Atom("lfu")
-  val lru = Atom("lru")
-  val fifo = Atom("fifo")
-  val randomAtom = Atom("random")
+  val done = Predicate("done")
+  val lfu = Predicate("lfu")
+  val lru = Predicate("lru")
+  val fifo = Predicate("fifo")
+  val randomAtom = Predicate("random")
 
   val _alpha_at = Predicate("alpha_at")
   val _high_at = Predicate("high_at")
@@ -26,13 +26,13 @@ abstract class MMediaDim(windowSize: Int, timePoints: Int, maxDimensions: Int, r
   val _value = Predicate("value")
 
 
-  val spoil_high = Atom("spoil_high")
-  val spoil_mid = Atom("spoil_mid")
-  val spoil_low = Atom("spoil_low")
+  val spoil_high = Predicate("spoil_high")
+  val spoil_mid = Predicate("spoil_mid")
+  val spoil_low = Predicate("spoil_low")
 
-  val dim = Atom("dim")
+  val dim = Predicate("dim")
 
-  val wrtm = Atom("wrtm")
+  val wrtm = Predicate("wrtm")
 
   def alpha_at(arg1: Int, arg2: Int) = AtomWithArguments(_alpha_at, Seq(IntValue(arg1), IntValue(arg2)))
 
@@ -52,10 +52,10 @@ abstract class MMediaDim(windowSize: Int, timePoints: Int, maxDimensions: Int, r
 
   // LARS:
   val _alpha = Predicate("alpha")
-  val high = Atom("high")
-  val mid = Atom("mid")
-  val low = Atom("low")
-  val rtm50 = Atom("rtm50")
+  val high = Predicate("high")
+  val mid = Predicate("mid")
+  val low = Predicate("low")
+  val rtm50 = Predicate("rtm50")
 
   def alpha(arg: Argument, dim: Argument) = AtomWithArguments(_alpha, Seq(arg, dim))
 

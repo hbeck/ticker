@@ -39,13 +39,13 @@ object P18Evaluation extends P18Program {
 
       val allResults = allOptions map (o => evaluateTimings(o.toArray))
 
-//      dump.plot(allResults)
+      //      dump.plot(allResults)
 
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateTimings(args)
-//      dump.plot(Seq(results))
+      //      dump.plot(Seq(results))
       dumpToCsv(Seq(results))
     }
   }
@@ -94,13 +94,13 @@ object P18Evaluation extends P18Program {
 
       val allResults = allOptions map (o => evaluateFailures(o.toArray))
 
-//      dump.plotFailures(allResults)
+      //      dump.plotFailures(allResults)
 
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateFailures(args)
-//      dump.plotFailures(Seq(results))
+      //      dump.plotFailures(Seq(results))
       //      dumpToCsv(Seq(results))
     }
   }
@@ -111,7 +111,7 @@ object P18Evaluation extends P18Program {
 
     val evaluationOptions = HashMap(
       //      ("P4: 0.01", all_001) -> Seq(P_4),
-//      ("P4: 0.25", all_025) -> Seq(P_4)
+      //      ("P4: 0.25", all_025) -> Seq(P_4)
       ("P4: 1", all_1) -> Seq(P_4)
     )
 
@@ -164,10 +164,13 @@ trait P18Program {
   val i = StringValue("i")
   val j = StringValue("j")
 
-  val a_i = a(i)
-  val b_i = b(i)
-  val c_i = c(i)
-  val d_i = d(i)
+  def a_i(v: StringValue) = a(i, v)
+
+  def b_i(v: StringValue) = b(i, v)
+
+  def c_i(v: StringValue) = c(i, v)
+
+  def d_i(v: StringValue) = d(i, v)
 
   val _1 = StringValue("1")
   val _2 = StringValue("2")
@@ -199,10 +202,13 @@ trait P18Program {
     d_i(_2) <= c_i(_2)
   )
 
-  val a_j = a(j)
-  val b_j = b(j)
-  val c_j = c(j)
-  val d_j = d(j)
+  def a_j(v: StringValue) = a(j, v)
+
+  def b_j(v: StringValue) = b(j, v)
+
+  def c_j(v: StringValue) = c(j, v)
+
+  def d_j(v: StringValue) = d(j, v)
 
   val P_2: Seq[LarsRule] = Seq(
     a_j(_1) <= tuDi50(x_1),

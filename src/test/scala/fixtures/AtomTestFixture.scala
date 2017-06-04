@@ -25,4 +25,6 @@ trait AtomTestFixture {
   val x = Atom("x")
   val y = Atom("y")
   val z = Atom("z")
+
+  implicit def testHelperBuilder(atom: Atom): TestHelper = new TestHelper(atom)
 }

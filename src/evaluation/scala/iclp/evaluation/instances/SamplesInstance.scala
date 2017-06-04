@@ -18,9 +18,9 @@ object Low extends Randomness
   */
 abstract class SamplesInstance(windowSize: Int, instanceCount: Int, randomness: Randomness, random: Random) extends StreamingTmsEvalInst {
 
-  val value = Atom("value")
-  val b = Atom("b")
-  val h = Atom("h")
+  val value = Predicate("value")
+  val b = Predicate("b")
+  val h = Predicate("h")
 
   val T: Variable = StringVariable("T")
 
