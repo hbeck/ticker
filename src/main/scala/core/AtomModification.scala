@@ -11,8 +11,8 @@ case class AtomModification(atom: Atom) {
 
   def appendArguments(arguments: Seq[Argument]): AtomWithArguments = {
     atom match {
-      case p:PredicateAtom => AtomWithArguments(p.predicate,arguments)
-      case a:AtomWithArguments => AtomWithArguments(a.predicate,a.arguments ++ arguments)
+      case a: AtomWithArguments => AtomWithArguments(a.predicate, a.arguments ++ arguments)
+      case p: GroundAtom => AtomWithArguments(p.predicate, arguments)
     }
   }
 

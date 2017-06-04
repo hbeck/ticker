@@ -10,6 +10,7 @@ object Format {
 
   def apply(windowFunction: WindowFunction) = windowFunction match {
     case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
+    case SlidingTimeWindow(windowSize) => f"⊞_t^$windowSize"
   }
 
   def apply(temporalOperator: TemporalModality) = temporalOperator match {

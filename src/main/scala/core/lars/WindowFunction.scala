@@ -1,8 +1,5 @@
 package core.lars
 
-import java.util.concurrent.TimeUnit
-
-
 /**
   * Created by FM on 01.05.16.
   */
@@ -24,7 +21,7 @@ case class SlidingTupleWindow(windowSize: TupleCount) extends SlidingWindow[Tupl
 
 //case class SlidingSpecificTupleWindow(windowSize: TupleCount) extends SlidingWindow
 
-case class TimeWindowSize(length: Long, unit: TimeUnit = TimeUnit.SECONDS)
+case class TimeWindowSize(length: Long, unit: TimeUnit = java.util.concurrent.TimeUnit.SECONDS)
 
 object TimeWindowSize {
   implicit val ordering = Ordering.by((time: TimeWindowSize) => time.unit.toMillis(time.length))

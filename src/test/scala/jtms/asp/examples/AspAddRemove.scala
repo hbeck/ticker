@@ -16,7 +16,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
   //def jtmsImpl = JtmsDoyle
   //def jtmsImpl = JtmsGreedy
   def jtmsImpl() = new JtmsLearn()
-  def jtmsImpl(program: NormalProgram) = JtmsLearn(program)
+  def jtmsImpl(program: NormalProgram):JtmsUpdateAlgorithmAbstraction = JtmsLearn(program)
 
   val none = Set[Atom]()
 
