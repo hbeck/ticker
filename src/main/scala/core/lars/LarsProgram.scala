@@ -15,7 +15,7 @@ trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
   lazy val atAtoms: Set[HeadAtom] = larsRules flatMap {
     _.atoms collect {
       case a: AtAtom => a
-      case WindowAtom(_, At(t), a) => AtAtom(t,a)
+      case WindowAtom(_, At(t), a) => AtAtom(t, a)
     }
   } toSet
 
@@ -34,6 +34,8 @@ trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
     case true => 0
     case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
   }
+
+  lazy val intensionalAtoms = larsRules map (_.head.atom) toSet
 
 }
 
@@ -77,6 +79,9 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
   }
 
   lazy val atoms: Set[Atom] = (extendedAtoms map (_.atom)) -- relationalAtoms
+
+  lazy val extensionalAtoms = atoms -- intensionalAtoms -- relationalAtoms
+
 
   override def toString(): String = {
     val sb = new StringBuilder

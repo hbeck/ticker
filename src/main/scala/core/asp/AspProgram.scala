@@ -8,7 +8,7 @@ import core.{Atom, Program}
   */
 trait AspProgram[TAtom <: Atom, TRule <: AspRule[TAtom]] extends Program[TRule,TAtom,TAtom] {
   val rules: Seq[TRule]
-  lazy val atoms = this.rules.flatMap(_.atoms).toSet
+  lazy val atoms: Set[TAtom] = this.rules.flatMap(_.atoms).toSet
 }
 
 case class AppendableAspProgram(rules: List[NormalRule]) extends NormalProgram {

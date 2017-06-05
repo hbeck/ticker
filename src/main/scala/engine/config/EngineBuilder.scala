@@ -1,8 +1,9 @@
 package engine.config
 
 import clingo.{ClingoConversion, ClingoProgramWithLars}
+import core.Atom
 import core.lars.{EngineTimeUnit, LarsProgram}
-import engine.EvaluationEngine
+import engine.{AtomResultFilter, EvaluationEngine, EvaluationEngineWithResultFilter}
 import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
@@ -50,12 +51,19 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 
   def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
 
-  def withIncremental() = StartableEngineConfiguration(IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy))
+  def withIncremental() = StartableEngineConfiguration(
+    IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy),
+    larsProgramEncoding.intensionalAtoms
+  )
 
 }
 
 object TmsConfiguration {
-  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy))
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration =
+    StartableEngineConfiguration(
+      IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
+      config.larsProgramEncoding.intensionalAtoms
+    )
 }
 
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
@@ -73,12 +81,24 @@ case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
 case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
 
-  def usePull() = StartableEngineConfiguration(AspPullEvaluationEngine(aspEvaluation))
+  def usePull() = StartableEngineConfiguration(
+    AspPullEvaluationEngine(aspEvaluation),
+    aspEvaluation.program.intensionalAtoms
+  )
 
-  def usePush() = StartableEngineConfiguration(AspPushEvaluationEngine(aspEvaluation))
+  def usePush() = StartableEngineConfiguration(
+    AspPushEvaluationEngine(aspEvaluation),
+    aspEvaluation.program.intensionalAtoms
+  )
 
 }
 
-case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine) {
-  def start() = evaluationEngine
+case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine, restrictTo: Set[Atom]) {
+
+
+  def filterTo(restrictTo: Set[Atom]) = StartableEngineConfiguration(evaluationEngine, restrictTo)
+
+  def start() = EvaluationEngineWithResultFilter(evaluationEngine, AtomResultFilter(restrictTo))
+
+  def startWithoutFilter() = evaluationEngine
 }

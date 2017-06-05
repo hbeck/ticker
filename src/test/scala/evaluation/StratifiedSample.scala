@@ -10,7 +10,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine{
+class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val program = LarsProgram.from(
     a <= b and c not d,
 
@@ -24,7 +24,8 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
   )
 
   "An empty program" should "lead to model c" in {
-    evaluationEngine.evaluate(t0).get.value should contain only (c)
+    val result = evaluationEngine.evaluate(t0).get.value
+    result should contain only (c)
   }
 
   "Given {0...10 -> r}" should "lead to Model a, r, b, c at t10" in {
