@@ -45,7 +45,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
     assert(engine.allTimePoints(t2).map(_.signal) == Seq(atom))
   }
 
-  "Adding to atoms after each other" should "result in only atom at t1" in {
+  "Adding to atoms after each other" should "result in both atoms at t1" in {
     val engine = stream
 
     engine.track(t0, Seq(atom))
@@ -54,7 +54,7 @@ class OrderedAtomStreamSpecs extends FlatSpec with TimeTestFixtures {
 
     engine.track(t1, Seq(atom2))
 
-    assert(engine.allTimePoints(t1).map(_.signal) == Seq(atom2))
+    assert(engine.allTimePoints(t1).map(_.signal) == Seq(atom, atom2))
   }
 
   "Adding two atoms at the same time point" should "allow both to be queried" in {
