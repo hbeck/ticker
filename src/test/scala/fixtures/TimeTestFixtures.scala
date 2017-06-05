@@ -15,4 +15,5 @@ trait TimeTestFixtures extends AtomTestFixture {
 
   val U = Variable("U")
   val T = engine.asp.TimePinVariable
+  val C = engine.asp.CountPinVariable
 }

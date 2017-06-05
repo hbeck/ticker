@@ -13,14 +13,11 @@ class HeadSpecs extends TransformLarsSpec {
   "The head for wˆ1 d a" should "be the Atom (w_te_1_d_a)" in {
     DefaultLarsToPinnedProgram.encodedWindowAtom(w_te_1_d_a).toString should include("w_te_1_d_a")
   }
-  it should "have arity 1" in {
-    DefaultLarsToPinnedProgram.encodedWindowAtom(w_te_1_d_a).arity should be(1)
-  }
-  it should "have TimeVariable T as argument" in {
-    DefaultLarsToPinnedProgram.encodedWindowAtom(w_te_1_d_a).toString should include("T")
+  it should "have arity 0" in {
+    DefaultLarsToPinnedProgram.encodedWindowAtom(w_te_1_d_a).arity should be(0)
   }
 
-  "The head for wˆ1 b a" should "be w_te_1_b_a(T)" in {
-    DefaultLarsToPinnedProgram.encodedWindowAtom(WindowAtom(st1, Box, a)) should equal(Atom("w_te_1_b_a")(T))
+  "The head for wˆ1 b a" should "be w_te_1_b_a" in {
+    DefaultLarsToPinnedProgram.encodedWindowAtom(WindowAtom(st1, Box, a)) should equal(Atom("w_te_1_b_a"))
   }
 }

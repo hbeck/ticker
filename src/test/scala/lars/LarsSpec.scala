@@ -35,7 +35,10 @@ class LarsSpec extends FlatSpec with AtomTestFixture {
     assert(formatted.head contains "not b")
 
     assert(formatted.last contains "@_1 c :-")
-    assert(formatted.last contains "⊞^5 ☐")
-    assert(formatted.last contains "not ⊞^1 @_3 a")
+    assert(formatted.last contains "⊞_t^")
+    assert(formatted.last contains "[5 SECONDS]")
+    assert(formatted.last contains "☐ b")
+    assert(formatted.last contains "not ⊞_t^")
+    assert(formatted.last contains "@_3 a")
   }
 }

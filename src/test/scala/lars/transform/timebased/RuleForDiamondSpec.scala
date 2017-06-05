@@ -1,7 +1,8 @@
 package lars.transform.timebased
 
+import core.PinnedAtom
 import core.lars.{Diamond, SlidingTimeWindow, WindowAtom}
-import engine.asp.{PlainLarsToAspMapper}
+import engine.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -26,14 +27,20 @@ class RuleForDiamondSpec extends TransformLarsSpec {
     forAll(rulesForDiamond(w_te_1_d_a)) { rule => rule.head.toString should include("w_te_1_d_a") }
   }
   it should "contain a(T) for one element" in {
-    forExactly(1, rulesForDiamond(w_te_1_d_a)) { rule => rule.body should contain(a(T)) }
+    forExactly(1, rulesForDiamond(w_te_1_d_a)) { rule => rule.body should contain(PinnedAtom.asPinnedAtAtom(a, T)) }
   }
   it should "contain a(T - 1)" in {
-    forExactly(1, rulesForDiamond(w_te_1_d_a)) { rule => rule.body should contain(a(T - 1)) }
+    forExactly(1, rulesForDiamond(w_te_1_d_a)) { rule => rule.body should contain(PinnedAtom.asPinnedAtAtom(a, T - 1)) }
   }
 
   "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3), a(T)" in {
-    rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(a(T), a(T - 1), a(T - 2), a(T - 3))
+    rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(
+
+      PinnedAtom.asPinnedAtAtom(a, T),
+      PinnedAtom.asPinnedAtAtom(a, T - 1),
+      PinnedAtom.asPinnedAtAtom(a, T - 2),
+      PinnedAtom.asPinnedAtAtom(a, T - 3)
+    )
   }
 
   "The rule for w^1s d a at tick size of 1ms" should "return 1001 rules" in {

@@ -8,10 +8,12 @@ import core.Atom
   */
 object Format {
 
-  def apply(windowFunction: WindowFunction) = windowFunction match {
+  def apply(windowFunction: WindowFunction): String = windowFunction match {
     case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
-    case SlidingTimeWindow(windowSize) => f"⊞_t^$windowSize"
+    case SlidingTimeWindow(windowSize) => f"⊞_t^${Format(windowSize)}"
   }
+
+  def apply(windowSize: TimeWindowSize): String = f"[${windowSize.length} ${windowSize.unit.toString}]"
 
   def apply(temporalOperator: TemporalModality) = temporalOperator match {
     case Diamond => "◇"

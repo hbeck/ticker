@@ -55,7 +55,7 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 }
 
 object TmsConfiguration {
-  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(TmsEvaluationEngine(config.larsProgramEncoding, config.policy))
+  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration = StartableEngineConfiguration(IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy))
 }
 
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {

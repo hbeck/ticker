@@ -1,6 +1,6 @@
 package lars.transform
 
-import core.asp.AspRule
+import core.asp.{AspFact, AspRule}
 import core.lars.{LarsFact, LarsProgram}
 import org.scalatest.Matchers._
 
@@ -14,10 +14,10 @@ class ProgramSpec extends TransformLarsSpec {
 
     DefaultLarsToPinnedProgram(p).rules should have size 1
   }
-  it should "contain a(T)." in {
+  it should "contain a." in {
     val p = LarsProgram.from(LarsFact(a))
 
-    DefaultLarsToPinnedProgram(p).rules should contain(AspRule(a(T), Set(now(T))))
+    DefaultLarsToPinnedProgram(p).rules should contain(AspFact(a))
   }
 
   "A program with two different Facts a. b." should "be transformed into 2 rules a(T). b(T)." in {

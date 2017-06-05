@@ -29,34 +29,35 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
       rule => rule.head.toString should startWith("w_te_1_at_U_a")
     }
   }
-  it should "return  reach_w_te_1_at_U_a(T + 1, T)" in {
+  it should "return  reach_w_te_1_at_U_a(T + 1)" in {
     forExactly(1, rulesForAtTimeVariable(w_te_1_at_U_a)) {
-      rule => headArguments(rule.head) should contain inOrder(TimeVariableWithOffset("T", -1), TimeVariableWithOffset("T"))
+      rule => headArguments(rule.head) should contain(TimeVariableWithOffset(T.variable, -1))
     }
   }
-  it should "return  reach_w_te_1_at_U_a(T, T)" in {
+  it should "return  reach_w_te_1_at_U_a(T)" in {
     forExactly(1, rulesForAtTimeVariable(w_te_1_at_U_a)) {
-      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq(TimeVariableWithOffset("T"), TimeVariableWithOffset("T"))
+      rule => headArguments(rule.head) should contain theSameElementsInOrderAs Seq(TimeVariableWithOffset(T.variable))
     }
   }
 
-  it should "have tow heads with Time-Variables T,T" in {
+  it should "have two heads with Time-Variables T" in {
     forExactly(1, rulesForAtTimeVariable(w_te_1_at_U_a)) {
-      rule => headArguments(rule.head) should contain inOrder(T - 1, T)
+      rule => headArguments(rule.head) should contain(T - 1)
     }
   }
 
   it should "contain a(T) for one element" in {
-    forExactly(1, rulesForAtTimeVariable(w_te_1_at_U_a)) { rule => rule.body should contain(a(T)) }
+    forExactly(1, rulesForAtTimeVariable(w_te_1_at_U_a)) { rule => rule.body should contain(PinnedAtom.asPinnedAtAtom(a, T)) }
   }
 
-  "The rule for w^2 at_U a" should "have rules with heads w_te_2_at_U_a(T-2,T), w_te_2_at_U_a(T-1, T), w_te_2_at_U_a(T,T), w_te_2_at_U_a(U,T)" in {
-    val windowAtom = Atom("w_te_2_at_U_a")
+  "The rule for w^2 at_U a" should "have rules with heads w_te_2_at_U_a(T-2), w_te_2_at_U_a(T-1), w_te_2_at_U_a(T), w_te_2_at_U_a(U)" in {
+    def windowAtom(t: Time) = PinnedAtom.asPinnedAtAtom(Atom("w_te_2_at_U_a"), t)
+
     val body = rulesForAtTimeVariable(WindowAtom(SlidingTimeWindow(2), At(U), a)) map (_.head)
     body should contain allOf(
-      windowAtom(T - 2)(T),
-      windowAtom(T - 1)(T),
-      windowAtom(T)(T)
+      windowAtom(T - 2),
+      windowAtom(T - 1),
+      windowAtom(T)
     )
   }
 
