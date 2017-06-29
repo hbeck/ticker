@@ -6,7 +6,7 @@ import core.lars.{ExtendedAtom, HeadAtom, LarsProgram}
 /**
   * Created by et on 22.03.17.
   */
-case class ProgramFactory(imports: List[ImportFactory], ruleLst: List[RuleFactory]) {
+case class ProgramFactory(ruleLst: List[RuleFactory]) {
 
   lazy val rules: List[Rule[HeadAtom,ExtendedAtom]] = createRules(ruleLst)
   lazy val program: LarsProgram = createProgram(rules)

@@ -276,25 +276,6 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.rule,"a :- /* comment */ b.").successful)
   }
 
-  "fqdn" should "be accepted" in {
-    assert(parser.parseAll(parser.fqdn,"head.string1.string2.last").successful)
-    assert(parser.parseAll(parser.fqdn,"head").successful)
-  }
-  "fqdn" should "be rejected" in {
-    assert(!parser.parseAll(parser.fqdn,"head.string1 . string2.last").successful)
-  }
-/*  "importN" should "be accepted" in {
-    assert(parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
-  }
-
-  "importN" should "be rejected" in {
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw").successful)
-    assert(!parser.parseAll(parser.importN,"engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory stw\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as\n").successful)
-    assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as \n").successful)
-  }*/
-
   "program" should "be accepted" in {
     assert(parser.parseAll(parser.program,"/* random comment\n" +
       " * over multiple\n" +

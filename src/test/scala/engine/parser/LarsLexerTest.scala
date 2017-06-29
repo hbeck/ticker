@@ -17,19 +17,6 @@ class LarsLexerTest extends FlatSpec {
   private val lines = try source.mkString finally source.close()
   private val parser = new ParserRunner
 
-//  "The parser" should "not throw any exceptions" in {
-//    assert(parser.parseProgram(lines).successful)
-//  }
-
-/*  "The parser" should "recognize the import statement" in {
-    assert(parser.parseImport("import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as bar\n").successful)
-  }
-
-  "The parser" should "recognize the import statement with an argument" in {
-//    assert(parser.parseImport("engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as bar\n").successful)
-    assert(parser.parseImport("import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory( 20 ) as foo\n").successful)
-  }*/
-
   "Atoms" should "be in lower case letters and may have parameters" in {
     assert(parser.parseAtom("a").successful &&
               !parser.parseAtom("A").successful &&
@@ -48,13 +35,10 @@ class LarsLexerTest extends FlatSpec {
     assert(parser.parseRule("a:- not b.").successful)
   }
 
-//  an [InvalidSyntaxException] should be thrownBy parser.parseRule("not a:- b.")
-
 "Rules with negation in the head" should "not be recognized" in {
   intercept[InvalidSyntaxException] {
     parser.parseRule("not a:- b.").get.ruleHead
   }
-//  assert(!parser.parseRule("not a:- b.").successful)
   }
 
   "Rules with @-atoms in the head" should " be recognized" in {
@@ -94,11 +78,11 @@ class LarsLexerTest extends FlatSpec {
   }
 
   "A rule body" should "recognize atoms, @-atoms and window atoms" in {
-    assert(parser.parseBody("a, b at T, c in [t 5], T=3+4").successful)
+    assert(parser.parseBody("a, b at T, c in [5], T=3+4").successful)
   }
 
   "A rule body" should "recognize atoms, @-atoms, window atoms (all possibly with a preceding not) " +
     "and operations" in {
-    assert(parser.parseBody("not a,b at T,c in [t 5],d always            in [t 3,4,5], T=3+4").successful)
+    assert(parser.parseBody("not a,b at T,c in [5 sec],d always            in [3], T=3+4").successful)
   }
 }

@@ -64,10 +64,6 @@ class LarsParserTest extends FlatSpec {
     assert(result == check)
   }
 
-/*  "A program with imports, rules, and comments" should "be accepted and parsed" in {
-    val program: LarsProgram = LarsParser("/parser-programs/TestProgram1.lars")
-  }*/
-
   "Program jtms.evaluation.instances.CacheHopsEvalInst" should "not fail" in {
     val program: LarsProgram = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
     val cacheHops = CacheHopsEvalInst1(10000,10,0,Random)

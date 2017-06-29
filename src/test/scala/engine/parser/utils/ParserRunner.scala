@@ -12,7 +12,6 @@ class ParserRunner() extends LarsLexer {
   def parseProgram(input: String): ParseResult[Any] = parseAll(program,input)
 
   /* These have been implemented to test smaller portions of a lars program. Maybe remove them or comment out. */
-  def parseImport(input: String): ParseResult[ImportFactory] = parseAll(importN,input)
   def parseRule(input: String): ParseResult[RuleFactory] = parseAll(rule,input)
   def parseHead(input: String): ParseResult[AtomTrait] = parseAll(head,input)
   def parseBody(input: String): ParseResult[List[BodyTrait]] = parseAll(body,input)
