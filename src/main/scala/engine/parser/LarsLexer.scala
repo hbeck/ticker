@@ -18,15 +18,19 @@ class LarsLexer extends JavaTokenParsers {
     case imp ~_ ~ rl => ProgramFactory(imp,rl)
   }
 
+  @deprecated
   def importN: Parser[ImportFactory] = rep(comment) ~> "import" ~> space ~ fqdn ~ opt("("~> rep1sep(param,",") ~ optSpace <~ ")") ~ space ~ "as" ~ space ~ str <~ rep(comment) <~ rep1(newline,newline) ^^ {
     case _ ~ str1 ~ None ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,List(),str2)
     case _ ~ str1 ~ params ~ _ ~ _ ~ _ ~ str2 => ImportFactory(str1,params.get._1,str2)
   }
 
+  @deprecated
   def fqdn: Parser[String] = filepath | classpath
 
+  @deprecated
   def filepath: Parser[String] = "/" ~ rep1(str,"/"|str) ^^ {case root ~ str => root+""+str.mkString}
 
+  @deprecated
   def classpath: Parser[String] = rep1(str,"."|str) ^^ (str => str.mkString)
 
 
@@ -65,25 +69,18 @@ class LarsLexer extends JavaTokenParsers {
 
   def window: Parser[WindowFactory] = shortWindow | genericWindow
 
+  @deprecated
   def genericWindow: Parser[WindowFactory] = optSpace ~> "[" ~> str ~ opt(space ~> repsep(param,",")) <~ "]" ^^ {
     case wType ~ None => WindowFactory(wType,List())
     case wType ~ lst  => WindowFactory(wType,lst.get)
   }
 
-  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~> optSpace ~> integer ~ opt(space ~> (str) <~ optSpace) ~ "]" ^^ {
+  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~> optSpace ~> integer ~ opt(space ~> str <~ optSpace) ~ "]" ^^ {
     case num ~ None ~ _ => WindowFactory("t",List(ParamWrapper(num)))
     case num ~ unit ~ _ => unit.get match {
       case "#" => WindowFactory(unit.get,List(ParamWrapper(num)))
       case _ => WindowFactory("t",List(ParamWrapper(num,unit.get)))}
   }
-
-/*  def shortWindow: Parser[WindowFactory] = optSpace ~> "[" ~ param <~ "]" ^^ {
-    case _ ~ param =>
-      var windowType = "t"
-      if(param.unit.getOrElse("") == "#")
-        windowType = "#"
-      WindowFactory(windowType,List(param))
-  }*/
 
   def param: Parser[ParamWrapper] = optSpace ~> float ~ opt(space ~ opt(str <~ optSpace)) ^^ {
     case num ~ None => ParamWrapper(num,None)
@@ -141,7 +138,7 @@ class LarsLexer extends JavaTokenParsers {
 
   def str: Parser[String] = rep1(char) ^^ (str => str.mkString)
 
-  def char: Parser[Char] = """[a-zA-Z0-9_#@]""".r ^^ (_.head) //"""[^\n\r\t +-/*%^<>=!,.:\[\]\{\}\(\)]""".r ^^ (_.head)
+  def char: Parser[Char] = """[a-zA-Z0-9_#@]""".r ^^ (_.head)
 
   def upperChar: Parser[Char] = """[A-Z]""".r ^^ (_.head)
 

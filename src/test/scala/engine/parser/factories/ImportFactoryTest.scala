@@ -6,6 +6,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by et on 22.04.17.
   */
+@deprecated
 class ImportFactoryTest extends FlatSpec {
 
   behavior of "ImportFactoryTest"

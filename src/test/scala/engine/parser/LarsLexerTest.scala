@@ -21,14 +21,14 @@ class LarsLexerTest extends FlatSpec {
 //    assert(parser.parseProgram(lines).successful)
 //  }
 
-  "The parser" should "recognize the import statement" in {
+/*  "The parser" should "recognize the import statement" in {
     assert(parser.parseImport("import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as bar\n").successful)
   }
 
   "The parser" should "recognize the import statement with an argument" in {
 //    assert(parser.parseImport("engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as bar\n").successful)
     assert(parser.parseImport("import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory( 20 ) as foo\n").successful)
-  }
+  }*/
 
   "Atoms" should "be in lower case letters and may have parameters" in {
     assert(parser.parseAtom("a").successful &&

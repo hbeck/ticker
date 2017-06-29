@@ -12,8 +12,6 @@ class ParserUnitTests extends FlatSpec {
   private val arith = List("+","-","/","*","%","^")
   private val comp = List("=",">=","<=","!=","<",">")
 
-  //  "newline" should "be accepted" in {}
-  //  "newline" should "be rejected" in {}
   "optSpace" should "accept multiple space characters" in {
     assert(parser.parseAll(parser.optSpace,"       ").successful)
   }
@@ -59,10 +57,7 @@ class ParserUnitTests extends FlatSpec {
     assert(parser.parseAll(parser.str,"A_regular_string").successful)
     assert(parser.parseAll(parser.str,"4_str1ng_w1th_numb3rs").successful)
   }
-  //  "digit" should "be accepted" in {}
-  //  "digit" should "be rejected" in {}
-  //  "number" should "be accepted" in {}
-  //  "number" should "be rejected" in {}
+
   "str" should "be rejected" in {
     assert(!parser.parseAll(parser.str,"Strings do not contain whitespaces").successful)
   }
@@ -76,7 +71,7 @@ class ParserUnitTests extends FlatSpec {
     assert(parser.parse(parser.lineComment,"% foo and bar are words\n comment ends with line").get ==
       "% foo and bar are words\n")
   }
-  //  "lineComment" should "be rejected" in {}
+
   "newBlockComment" should "accept anything that is between /* */ or %* *% or any combination of the two" in {
     assert(parser.parseAll(parser.blockComment,"/* foo\n * bar\n * next line\n *%").successful)
   }
@@ -86,13 +81,10 @@ class ParserUnitTests extends FlatSpec {
   "blockComment" should "be accepted with %* ... *%" in {
     assert(parser.parseAll(parser.blockComment,"%* random text line one \n\r\r\r\n and in line n *%").successful)
   }
-  //  "blockComment" should "be rejected" in {}
   "comment" should "be accepted" in {
     assert(parser.parseAll(parser.comment,"/*block comment\n * foo \n */").successful)
     assert(parser.parseAll(parser.comment,"// and a line comment\n").successful)
   }
-  //  "comment" should "be rejected" in {}
-
 
   "A variable starting with an upper case character" should "be accepted" in {
     assert(parser.parseAll(parser.variable,"V").successful)
@@ -115,11 +107,9 @@ class ParserUnitTests extends FlatSpec {
   "arithmetic" should "be accepted" in {
     arith.foreach { c => assert(parser.parseAll(parser.arithmetic,c).successful) }
   }
-  //  "arithmetic" should "be rejected" in {}
   "compare" should "be accepted" in {
     comp.foreach { c => assert(parser.parseAll(parser.compare,c).successful) }
   }
-  //  "compare" should "be rejected" in {}
   "arithOperation" should "be accepted" in {
     arith.foreach { c => assert(parser.parseAll(parser.arithOperation,"1"+c+"1").successful) }
   }
@@ -147,9 +137,6 @@ class ParserUnitTests extends FlatSpec {
   "operation" should "be rejected" in {
     assert(!parser.parseAll(parser.operation,"0+1=1+0").successful)
   }
-
-  //  "neg" should "be accepted" in {}
-  //  "neg" should "be rejected" in {}
 
   "param" should "be accepted" in {
     assert(parser.parseAll(parser.param,"1").successful)
@@ -208,14 +195,12 @@ class ParserUnitTests extends FlatSpec {
     assert(slidingTimeWithoutUnit.get.w == "t")
     assert(slidingTimeWithoutUnit.get.params == List(ParamWrapper("5")))
 
-    assert(parser.parseAll(parser.window," [5 sec]").successful)
     assert(parser.parseAll(parser.window," [5 #]").successful)
     assert(parser.parseAll(parser.window," [5]").successful)
-    assert(parser.parseAll(parser.window," [t]").successful)
-    assert(parser.parseAll(parser.window," [t 5]").successful)
-    assert(parser.parseAll(parser.window," [t 5 sec]").successful)
-    assert(parser.parseAll(parser.window," [t 5 sec,10 min,4]").successful)
-    assert(parser.parseAll(parser.window," [t 5, 10 ,4]").successful)
+    assert(parser.parseAll(parser.window," [10]").successful)
+    assert(parser.parseAll(parser.window," [5 sec]").successful)
+    assert(parser.parseAll(parser.window," [5 min]").successful)
+    assert(parser.parseAll(parser.window," [5 h]").successful)
   }
   "window" should "be rejected" in {
     assert(!parser.parseAll(parser.window," []").successful)
@@ -237,54 +222,46 @@ class ParserUnitTests extends FlatSpec {
     assert(parser.parseAll(parser.optNotIn," not ").successful)
   }
   "boxWAtom" should "be accepted" in {
-    assert(parser.parseAll(parser.boxWAtom,"a always in [t]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"a always not in [t]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"not a always in [t]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"not a always not in [t]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"a always [t]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"a always [t 5]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"a always [t 5]").successful)
-    assert(parser.parseAll(parser.boxWAtom,"a always[t 5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always in [5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always not in [5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"not a always in [5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"not a always not in [5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [5]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [10]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always [10]").successful)
+    assert(parser.parseAll(parser.boxWAtom,"a always[10]").successful)
   }
-  //  "boxWAtom" should "be rejected" in {}
   "diamWAtom" should "be accepted" in {
-    assert(parser.parseAll(parser.diamWAtom,"a in [t]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a not in [t]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"not a in [t]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"not a not in [t]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a [t]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a [t 5]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a [t 5]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a[t 5]").successful)
-    assert(parser.parseAll(parser.diamWAtom,"a(A)[t 5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a in [5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a not in [5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"not a in [5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"not a not in [5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [5]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [10]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a [10]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a[10]").successful)
+    assert(parser.parseAll(parser.diamWAtom,"a(A)[10]").successful)
   }
   "diamWAtom" should "be rejected" in {
     assert(!parser.parseAll(parser.diamWAtom,"a []").successful)
   }
   "atWAtom" should "be accepted" in {
-    assert(parser.parseAll(parser.atWAtom,"a at T in [t]").successful)
-    assert(parser.parseAll(parser.atWAtom,"a at T not in [t]").successful)
-    assert(parser.parseAll(parser.atWAtom,"not a at T in [t]").successful)
-    assert(parser.parseAll(parser.atWAtom,"not a at T not in [t]").successful)
-    assert(parser.parseAll(parser.atWAtom,"a at T [t]").successful)
-    assert(parser.parseAll(parser.atWAtom,"a at T [t 5]").successful)
-    assert(parser.parseAll(parser.atWAtom,"a at 10 [t 5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T in [5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T not in [5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"not a at T in [5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"not a at T not in [5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T [5]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at T [10]").successful)
+    assert(parser.parseAll(parser.atWAtom,"a at 10 [10]").successful)
   }
   "atWAtom" should "be rejected" in {
-    assert(!parser.parseAll(parser.atWAtom,"a at [t]").successful)
+    assert(!parser.parseAll(parser.atWAtom,"a at [5]").successful)
   }
 
-  //  "bodyElement" should "be accepted" in {}
-  //  "bodyElement" should "be rejected" in {}
   "body" should "be accepted" in {
-    assert(parser.parseAll(parser.body,"a,not b,c at T,d always in [t], e at T in [t 5], f in [t], g [t], " +
-      "h not in [t], not i always not [t], 10 = 5+5, A<B, C = 1+2, C > D").successful)
+    assert(parser.parseAll(parser.body,"a,not b,c at T,d always in [5], e at T in [10], f in [5], g [5], " +
+      "h not in [5], not i always not [5], 10 = 5+5, A<B, C = 1+2, C > D").successful)
   }
-  //  "body" should "be rejected" in {}
-  //  "head" should "be accepted" in {}
-  //  "head" should "be rejected" in {}
-  //  "ruleBase" should "be accepted" in {}
-  //  "ruleBase" should "be rejected" in {}
   "rule" should "be accepted" in {
     assert(parser.parseAll(parser.rule,"a :- b.").successful)
     assert(parser.parseAll(parser.rule,"/*comment?*/a :- b.").successful)
@@ -306,7 +283,7 @@ class ParserUnitTests extends FlatSpec {
   "fqdn" should "be rejected" in {
     assert(!parser.parseAll(parser.fqdn,"head.string1 . string2.last").successful)
   }
-  "importN" should "be accepted" in {
+/*  "importN" should "be accepted" in {
     assert(parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n").successful)
   }
 
@@ -316,18 +293,15 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory stw\n").successful)
     assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as\n").successful)
     assert(!parser.parseAll(parser.importN,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as \n").successful)
-  }
+  }*/
 
   "program" should "be accepted" in {
-    assert(parser.parseAll(parser.program,"import engine.parser.factories.slidingWindowFunctionFactory.SlidingTimeWindowFactory as stw\n" +
-      "import engine.parser.factories.slidingWindowFunctionFactory.SlidingTupleWindowFactory as tup\n" +
-      "/* random comment\n" +
+    assert(parser.parseAll(parser.program,"/* random comment\n" +
       " * over multiple\n" +
       " * lines\n" +
       " */\n" +
       "\n" +
       "a :- b.\n" +
-      "c at 2399 :- a in [t 5], d, e at 25000, f always in [tup 30].//foo\n").successful)
+      "c at 2399 :- a in [5 sec], d, e at 25000, f always in [30 #].//foo\n").successful)
   }
-//  "program" should "be rejected" in {}
 }

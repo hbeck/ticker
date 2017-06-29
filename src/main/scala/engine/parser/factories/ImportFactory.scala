@@ -11,10 +11,12 @@ import engine.parser.wrapper.ParamWrapper
   * Created by et on 22.03.17.
   */
 
+@deprecated
 case class ImportFactory(importClass: String, params: List[ParamWrapper], name: String) {
   ImportFactory.register(importClass,params,name)
 }
 
+@deprecated
 object ImportFactory {
 
   private var importFactories: Map[String,WindowFunctionFactory] = defaultFactories
