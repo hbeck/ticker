@@ -24,7 +24,6 @@ class ParserRunner() extends LarsLexer {
   def parseArithmetic(input: String): ParseResult[String] = parseAll(arithmetic,input)
   def parseBool(input: String): ParseResult[String] = parseAll(compare,input)
   def parseOperation(input: String): ParseResult[OperationFactory] = parseAll(operation,input)
-  def parseParam(input: String): ParseResult[ParamWrapper] = parseAll(param,input)
   def parseNeg(input: String): ParseResult[Boolean] = parseAll(neg,input)
   def parseComment(input: String): ParseResult[Any] = parseAll(comment,input)
   def parseStr(input: String): ParseResult[String] = parseAll(str,input)

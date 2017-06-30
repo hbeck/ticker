@@ -56,11 +56,6 @@ class LarsLexer extends JavaTokenParsers {
       case _ => WindowFactory("t",List(ParamWrapper(num,unit.get)))}
   }
 
-  def param: Parser[ParamWrapper] = optSpace ~> float ~ opt(space ~ opt(str <~ optSpace)) ^^ {
-    case num ~ None => ParamWrapper(num,None)
-    case num ~ str => ParamWrapper(num,str.get._2)
-  }
-
   def atAtom: Parser[AtAtomFactory] = atom ~ space ~ neg ~ "at" ~ space ~ (float ^^ (f => f.toString)
     |upperChar ~ opt(str) ^^ {
     case c ~ None => c.toString

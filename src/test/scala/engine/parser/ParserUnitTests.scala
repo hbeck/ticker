@@ -138,14 +138,6 @@ class ParserUnitTests extends FlatSpec {
     assert(!parser.parseAll(parser.operation,"0+1=1+0").successful)
   }
 
-  "param" should "be accepted" in {
-    assert(parser.parseAll(parser.param,"1").successful)
-    assert(parser.parseAll(parser.param,"1.0").successful)
-    assert(parser.parseAll(parser.param,"1.0 Einheit").successful)
-  }
-  "param" should "be rejected" in {
-    assert(!parser.parseAll(parser.param,"random words").successful)
-  }
   "predicate" should "be accepted" in {
     assert(parser.parseAll(parser.predicate,"pRediCate").successful)
     assert(parser.parseAll(parser.predicate,"pR3_d1_C4t3").successful)
