@@ -15,9 +15,7 @@ case class SlidingTimeWindowFactory(params: List[ParamWrapper] = List())
 
   @throws[InvalidSyntaxException]
   override def create(params: List[ParamWrapper]): WindowFunction = {
-    if(params.isEmpty) return SlidingTimeWindow(5*60)
-
-    if(params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.")
+    if(params.isEmpty || params.length > 1) throw new InvalidSyntaxException("Sliding time windows can take only one parameter, but "+params.length+" were given.")
 
     val value = params.head.value.toLong
     if(params.head.unit.isDefined) {

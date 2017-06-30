@@ -203,6 +203,8 @@ class ParserUnitTests extends FlatSpec {
     assert(parser.parseAll(parser.window," [5 h]").successful)
   }
   "window" should "be rejected" in {
+    assert(!parser.parseAll(parser.window," [t 5]").successful)
+    assert(!parser.parseAll(parser.window," [5,6]").successful)
     assert(!parser.parseAll(parser.window," []").successful)
     assert(!parser.parseAll(parser.window," [5.0]").successful)
     assert(!parser.parseAll(parser.window," [-5]").successful)
