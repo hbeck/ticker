@@ -13,6 +13,7 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 
 
 scalacOptions += "-feature"
+scalacOptions += "-deprecation"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
 

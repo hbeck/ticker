@@ -1,6 +1,6 @@
 package engine.asp.tms
 
-import core._
+import core.{PinnedAtom, _}
 import core.asp.NormalRule
 import core.lars.TimePoint
 import engine._
@@ -89,10 +89,10 @@ case class IncrementalEvaluationEngine(incrementalRuleMaker: IncrementalRuleMake
       val t = expiration.time
       val c = expiration.count
       if (t != Void) {
-        rulesExpiringAtTime = rulesExpiringAtTime updated (t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
+        rulesExpiringAtTime = rulesExpiringAtTime updated(t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
       }
       if (c != Void) {
-        rulesExpiringAtCount = rulesExpiringAtCount updated (c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
+        rulesExpiringAtCount = rulesExpiringAtCount updated(c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
       }
     }
 

@@ -34,24 +34,27 @@ object StreamingClingoInterpreter {
 
   val numberFormat = """\d+""".r
 
-  def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): PinnedAtom = atom.arguments.last match {
+  def convertToPinnedAtom(atom: AtomWithArguments, timePoint: TimePoint): Atom = atom.arguments.last match {
     case StringValue(v) => convertValue(atom, v)
     case IntValue(v) => convertValue(atom, v)
     case _ => throw new IllegalArgumentException("Can only handle values as last argument")
   }
 
-  def convertValue(atom: AtomWithArguments, value: String): PinnedAtom = numberFormat.findFirstIn(value) match {
+  def convertValue(atom: AtomWithArguments, value: String): Atom = numberFormat.findFirstIn(value) match {
     case Some(number) => convertValue(atom, number.toLong)
     case None => throw new IllegalArgumentException(f"Cannot convert '$value' into a TimePoint for a PinnedAtom")
   }
 
-  def convertValue(atom: AtomWithArguments, value: Long): PinnedAtom = {
+  def convertValue(atom: AtomWithArguments, value: Long): Atom = {
     val atomWithoutTime = atom.arguments.init match {
       case Nil => PredicateAtom(atom.predicate)
       case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
     }
 
-    PinnedAtom.asPinnedAtAtom(atomWithoutTime, value)
+    if (engine.asp.specialPinPredicates contains atom.predicate)
+      atomWithoutTime.appendArguments(Seq(IntValue(value.toInt)))
+    else
+      PinnedAtom.asPinnedAtAtom(atomWithoutTime, value)
   }
 
 }

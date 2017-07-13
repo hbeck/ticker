@@ -53,7 +53,7 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 
   def withIncremental() = StartableEngineConfiguration(
     IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy),
-    larsProgramEncoding.intensionalAtoms
+    larsProgramEncoding.intensionalAtoms ++ larsProgramEncoding.signals
   )
 
 }
@@ -62,7 +62,7 @@ object TmsConfiguration {
   implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration =
     StartableEngineConfiguration(
       IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
-      config.larsProgramEncoding.intensionalAtoms
+      config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals
     )
 }
 
@@ -83,12 +83,12 @@ case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
 
   def usePull() = StartableEngineConfiguration(
     AspPullEvaluationEngine(aspEvaluation),
-    aspEvaluation.program.intensionalAtoms
+    aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
   )
 
   def usePush() = StartableEngineConfiguration(
     AspPushEvaluationEngine(aspEvaluation),
-    aspEvaluation.program.intensionalAtoms
+    aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
   )
 
 }

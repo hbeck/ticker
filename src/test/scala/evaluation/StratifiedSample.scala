@@ -28,19 +28,19 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
     result should contain only (c)
   }
 
-  "Given {0...10 -> r}" should "lead to Model a, r, b, c at t10" in {
+  "Given {0...10 -> r}" should "lead to Model a,  b, c at t10" in {
     (0 to 10) foreach (evaluationEngine.append(_)(r))
 
-    evaluationEngine.evaluate(10).get.value should contain allOf(a, r, b, c)
+    evaluationEngine.evaluate(10).get.value should contain allOf(a, b, c)
   }
 
-  "Given {0...10 -> r, 5 -> y}" should "lead to Model a, r, b, c ,f at t10" in {
+  "Given {0...10 -> r, 5 -> y}" should "lead to Model a, b, c ,f at t10" in {
     (0 to 10) foreach (t => {
       evaluationEngine.append(t)(r)
       if (t == 5) evaluationEngine.append(5)(y)
     })
 
-    evaluationEngine.evaluate(10).get.value should contain allOf(a, r, b, c, f)
+    evaluationEngine.evaluate(10).get.value should contain allOf(a, b, c, f)
   }
 
   "Given {0...100 -> {r, s}}" should "not lead to a at any time" in {

@@ -35,7 +35,9 @@ trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
     case false => slidingTupleWindowsAtoms.maxBy(_.windowSize).windowSize
   }
 
-  lazy val intensionalAtoms = larsRules map (_.head.atom) toSet
+  lazy val intensionalAtoms: Set[Atom] = larsRules map (_.head.atom) toSet
+
+  lazy val signals: Set[Atom] = windowAtoms.map(_.atom) -- intensionalAtoms
 
 }
 
