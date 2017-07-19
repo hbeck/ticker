@@ -4,7 +4,7 @@ import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
-import engine.config.EvaluationTypes.EvaluationTypes
+import engine.config.Reasoner.Reasoner
 import jtms.TruthMaintenanceNetwork
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
@@ -14,9 +14,9 @@ import scala.util.Random
 /**
   * Created by FM on 29.08.16.
   */
-object EvaluationTypes extends Enumeration {
-  type EvaluationTypes = Value
-  val Tms, Clingo = Value
+object Reasoner extends Enumeration {
+  type Reasoner = Value
+  val Ticker, Clingo = Value
 }
 
 object EvaluationModifier extends Enumeration {
@@ -27,14 +27,14 @@ object EvaluationModifier extends Enumeration {
 
 case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
 
-  def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
+  def build(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 
-  def buildEngine(evaluationType: EvaluationTypes,
+  def buildEngine(evaluationType: Reasoner,
                   evaluationModifier: EvaluationModifier,
                   network: TruthMaintenanceNetwork = new OptimizedNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
-    if (evaluationType == EvaluationTypes.Tms) {
+    if (evaluationType == Reasoner.Ticker) {
       if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
         return Some(greedyTms(config, network, random))
       } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
@@ -46,7 +46,7 @@ case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
       } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
         return Some(incrementalTms(config, network, random))
       }
-    } else if (evaluationType == EvaluationTypes.Clingo) {
+    } else if (evaluationType == Reasoner.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
         return Some(clingoPush(config))
       } else if (evaluationModifier == EvaluationModifier.Pull) {

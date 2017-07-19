@@ -9,7 +9,7 @@ import engine.asp.oneshot._
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
 import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker}
 import engine.config.EvaluationModifier.EvaluationModifier
-import engine.config.EvaluationTypes.EvaluationTypes
+import engine.config.Reasoner.Reasoner
 import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.JtmsDoyle
 import jtms.networks.OptimizedNetwork
@@ -26,7 +26,7 @@ object BuildEngine {
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
 
-  def withConfiguration(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(evaluationType, evaluationModifier)
+  def withConfiguration(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(evaluationType, evaluationModifier)
 
   def configure() = ReasoningStrategyConfiguration(larsProgram, withTimePointDuration)
 

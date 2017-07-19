@@ -2,10 +2,12 @@
 import java.io.File
 
 import Program.InputTypes.InputTypes
-import core.lars.{Format, LarsProgram}
+import core.Atom
+import core.lars.{Format, LarsBasedProgram, LarsProgram}
+import engine.EvaluationEngine
 import engine.config.EvaluationModifier.EvaluationModifier
-import engine.config.EvaluationTypes._
-import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
+import engine.config.Reasoner._
+import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import runner._
 
 import scala.concurrent.duration._
@@ -20,40 +22,31 @@ object Program {
 
     val myargs = Seq(
       "--program", "src/test/resources/test.rules",
-      "--evaluationType", "Clingo",
-      "--evaluationModifier", "Push",
+      "--reasoner", "Clingo",
       "--inputType", "Http,StdIn",
-      "--inputSpeed", "1s",
-      "--outputSpeed", "1min"
+      "--timeunit", "1s",
+      "--outputEvery", "2signals"
     ).toArray
 
-    parseParameters(args) match {
+    parseParameters(myargs) match {
       case Some(config) => {
-        val program = Load(config.inputSpeed.unit).readProgram(Source.fromFile(config.programFile))
+        val program = config.parseProgram
 
         printProgram(program)
 
         println()
 
-        val engine = BuildEngine.
-          withProgram(program).
-          withTimePointDuration(config.inputSpeed).
-          withConfiguration(config.evaluationType, config.evaluationModifier)
+        val engine = config.buildEngine(program)
 
-        engine match {
-          case Some(e) => {
-            val runner = EngineRunner(e, config.inputSpeed, config.outputSpeed)
-            config.inputs foreach {
-              case InputTypes.Http => runner.connect(ReadFromHttp(config.outputSpeed.unit))
-              case InputTypes.StdIn => runner.connect(ReadFromStdIn(config.outputSpeed.unit))
-            }
-            runner.connect(OutputToStdOut())
-            runner.start()
-          }
-          case None => throw new RuntimeException("Could not build engine!")
+        val runner = EngineRunner(engine, config.timeUnit, config.outputEvery)
+        config.inputs foreach {
+          case InputTypes.Http => runner.connect(ReadFromHttp(config.timeUnit._2))
+          case InputTypes.StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
         }
+        runner.connect(OutputToStdOut(config.outputEvery))
+        runner.start()
       }
-      case None => throw new RuntimeException("Could not parse arguments")
+      case None => throw new RuntimeException("Could not parse all arguments correcly")
     }
   }
 
@@ -76,53 +69,49 @@ object Program {
         action((x, c) => c.copy(programFile = x)).
         text("program is a required file property")
 
-      opt[EvaluationTypes]('e', "evaluationType").required().valueName("<evaluation type>").
-        action((x, c) => c.copy(evaluationType = x)).
-        text("An evaluation type is required, possible values: " + EvaluationTypes.values)
+      opt[Reasoner]('r', "reasoner").required().valueName("<reasoner type>").
+        action((x, c) => c.copy(reasoner = x)).
+        text("An reasoner required, possible values: " + Reasoner.values)
 
-      opt[EvaluationModifier]('m', "evaluationModifier").optional().valueName("<evaluation modifier>").
-        action((x, c) => c.copy(evaluationModifier = x)).
-        text("An evaluation type is required, possible values: " + EvaluationModifier.values)
-
-      opt[Duration]("inputSpeed").optional().valueName("<value><unit>").
+      opt[Duration]("timeunit").optional().valueName("<value><unit>").
         validate(d =>
           if (d lt Duration.Zero)
             Left("inputSpeed must be > 0")
           else
-            Right(():Unit)
+            Right((): Unit)
         ).
-        action((x, c) => c.copy(inputSpeed = x)).
+        action((x, c) => c.copy(timeUnit = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[Duration]("outputSpeed").optional().valueName("<value><unit>").
-        validate(d =>
-          if (d lt Duration.Zero)
-            Left("outputSpeed must be > 0")
-          else
-            Right(():Unit)
+      opt[OutputEvery]("outputEvery").optional().valueName("diff | signal | time | <value>signals | <value><time-unit>").
+        validate(d => d match {
+          case Signal(count) if count < 0 => Left("signal count must be > 0")
+          case Time(duration) if duration lt Duration.Zero => Left("duration must be > 0")
+          case _ => Right((): Unit)
+        }
         ).
-        action((x, c) => c.copy(outputSpeed = x)).
+        action((x, c) => c.copy(outputEvery = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
       opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
         action((x, c) => c.copy(inputs = x))
         .text("Possible Input Types: " + InputTypes.values)
 
-      this.checkConfig(c =>
-        if (c.inputSpeed >= c.outputSpeed)
-          Left("inputSpeed must be lower than output")
-        else
-          Right(():Unit)
-      )
+      //      this.checkConfig(c =>
+      //        if (c.timeUnit >= c.outputSpeed)
+      //          Left("inputSpeed must be lower than output")
+      //        else
+      //          Right((): Unit)
+      //      )
 
-      this.checkConfig(c =>
-        if (c.evaluationType == EvaluationTypes.Clingo && c.evaluationModifier != EvaluationModifier.Pull && c.evaluationModifier != EvaluationModifier.Push)
-          Left("Invalid EvaluationModifier for evaluation Type")
-        else if (c.evaluationType != EvaluationTypes.Clingo && (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push))
-          Left("Invalid EvaluationModifier for evaluation Type")
-        else
-          Right(():Unit)
-      )
+      //      this.checkConfig(c =>
+      //        if (c.reasoner == Reasoner.Clingo && c.evaluationModifier != EvaluationModifier.Pull && c.evaluationModifier != EvaluationModifier.Push)
+      //          Left("Invalid EvaluationModifier for evaluation Type")
+      //        else if (c.reasoner != Reasoner.Clingo && (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push))
+      //          Left("Invalid EvaluationModifier for evaluation Type")
+      //        else
+      //          Right((): Unit)
+      //      )
 
       help("help").text("Specify init parameters for running th engine")
 
@@ -132,8 +121,23 @@ object Program {
   }
 
 
-  implicit val evaluationTypesRead: scopt.Read[EvaluationTypes.Value] =
-    scopt.Read.reads(EvaluationTypes withName)
+  private val SignalPattern = "(\\d+)signals".r
+
+  implicit val outputEveryRead: scopt.Read[OutputEvery] =
+    scopt.Read.reads(s => s.toLowerCase match {
+      case "diff" => Diff
+      case "signal" => Signal(1)
+      case "time" => Time(1 second)
+      case SignalPattern(count) => Signal(count.toInt)
+      case _ => {
+        // TODO: parse time units
+        Time(2 seconds)
+      }
+    })
+
+
+  implicit val evaluationTypesRead: scopt.Read[Reasoner.Value] =
+    scopt.Read.reads(Reasoner withName)
 
 
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
@@ -147,13 +151,42 @@ object Program {
     val StdIn, Http = Value
   }
 
-  case class Config(evaluationType: EvaluationTypes = EvaluationTypes.Tms,
-                    evaluationModifier: EvaluationModifier = EvaluationModifier.GreedyLazyRemove,
+  case class Config(reasoner: Reasoner = Reasoner.Ticker,
                     programFile: File,
-                    inputSpeed: Duration = 100 milliseconds,
-                    outputSpeed: Duration = 1 second,
-                    inputs: Seq[InputTypes] = Seq(InputTypes.StdIn)
-                   )
+                    timeUnit: Duration = 1 second,
+                    outputEvery: OutputEvery = Diff,
+                    inputs: Seq[InputTypes] = Seq(InputTypes.StdIn),
+                    filter: Option[Set[String]] = None
+                   ) {
+
+    def parseProgram = {
+      val program = Load(timeUnit.unit).readProgram(Source.fromFile(programFile))
+
+      program
+    }
+
+    def buildEngine(program: LarsProgram): EvaluationEngine = {
+      val engineBuilder = BuildEngine.
+        withProgram(program).
+        withTimePointDuration(timeUnit)
+
+      val startableEngine = reasoner match {
+        case Reasoner.Ticker =>
+          engineBuilder.configure().withTms().withIncremental()
+        case Reasoner.Clingo => outputEvery match {
+          case Time(_) => engineBuilder.configure().withClingo().use().usePull()
+          case _ => engineBuilder.configure().withClingo().use().usePush()
+        }
+      }
+
+      filter match {
+        case Some(atoms) if atoms.nonEmpty => startableEngine.filterTo(atoms.map(Atom(_))).start()
+        case _ => startableEngine.start()
+      }
+    }
+
+
+  }
 
 }
 

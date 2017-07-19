@@ -11,10 +11,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 14.11.16.
   */
-case class OutputToStdOut(onlyModelChanges: Boolean = true) extends ConnectToEngine {
-  val timer = new java.util.Timer()
-
-  @volatile var lastModel: Result = NoResult
+case class OutputToStdOut(outputType: OutputEvery) extends ConnectToEngine {
 
   def startWith(engineRunner: EngineRunner): Startable = {
     engineRunner.registerOutput(evaluateModel(engineRunner))
@@ -26,13 +23,10 @@ case class OutputToStdOut(onlyModelChanges: Boolean = true) extends ConnectToEng
 
   def evaluateModel(engineRunner: EngineRunner)(result: Result, ticks: TimePoint): Unit = {
 
-    if (!onlyModelChanges || result.get != lastModel.get) {
-      val timeInOutput = engineRunner.convertToOutputSpeed(ticks)
-      result.get match {
-        case Some(m) => println(f"Model at T $timeInOutput: $m")
-        case None => println(f"No model at T $timeInOutput")
-      }
-      lastModel = result
+    val timeInOutput = engineRunner.convertToInputSpeed(ticks).toSeconds
+    result.get match {
+      case Some(m) => println(f"Model at T $timeInOutput: $m")
+      case None => println(f"No model at T $timeInOutput")
     }
   }
 }

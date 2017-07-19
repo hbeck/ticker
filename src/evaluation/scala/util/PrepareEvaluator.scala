@@ -2,7 +2,7 @@ package util
 
 import core.Atom
 import core.lars.{LarsProgram, TimePoint}
-import engine.config.{BuildEngine, EvaluationModifier, EvaluationTypes}
+import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.{EvaluationEngine, StreamEntry}
 
 import scala.util.Random
@@ -15,7 +15,7 @@ object PrepareEvaluator {
       printUsageAndExit(args, "Supply the correct arguments")
     }
 
-    val evaluationType = EvaluationTypes withName args(0) //tms or clingo
+    val evaluationType = Reasoner withName args(0) //tms or clingo
     val evaluationStrategy = EvaluationModifier withName args(1) //greedy, learn or doyle; resp. pull or push
 
     val engine = BuildEngine.
