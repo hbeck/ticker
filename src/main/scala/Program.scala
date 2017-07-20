@@ -8,6 +8,7 @@ import engine.EvaluationEngine
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
+import engine.parser.LarsParser
 import runner._
 
 import scala.concurrent.duration._
@@ -159,11 +160,7 @@ object Program {
                     filter: Option[Set[String]] = None
                    ) {
 
-    def parseProgram = {
-      val program = Load(timeUnit.unit).readProgram(Source.fromFile(programFile))
-
-      program
-    }
+    def parseProgram = LarsParser(programFile.toURI.toURL)
 
     def buildEngine(program: LarsProgram): EvaluationEngine = {
       val engineBuilder = BuildEngine.
