@@ -2,8 +2,9 @@
 import java.io.File
 
 import Program.InputTypes.InputTypes
+import common.Util
 import core.Atom
-import core.lars.{Format, LarsBasedProgram, LarsProgram}
+import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
 import engine.EvaluationEngine
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner._
@@ -36,6 +37,17 @@ object Program {
         printProgram(program)
 
         println()
+
+        println(f"Engine Configuration: " + Util.prettyPrint(config))
+
+        println()
+
+        val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
+          exists {
+            t => Duration(t.windowSize.length, t.windowSize.unit) lt config.timeUnit
+          }
+        if (timeWindowSmallerThanEngineUnit)
+          throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the engine timeUnit.")
 
         val engine = config.buildEngine(program)
 
@@ -70,7 +82,7 @@ object Program {
         action((x, c) => c.copy(programFile = x)).
         text("program is a required file property")
 
-      opt[Reasoner]('r', "reasoner").required().valueName("<reasoner type>").
+      opt[Reasoner]('r', "reasoner").optional().valueName("<reasoner type>").
         action((x, c) => c.copy(reasoner = x)).
         text("An reasoner required, possible values: " + Reasoner.values)
 
@@ -84,19 +96,20 @@ object Program {
         action((x, c) => c.copy(timeUnit = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[OutputEvery]("outputEvery").optional().valueName("diff | signal | time | <value>signals | <value><time-unit>").
-        validate(d => d match {
+      opt[OutputEvery]("outputEvery").
+        optional().
+        valueName("diff | signal | time | <value>signals | <value><time-unit>").
+        validate {
           case Signal(count) if count < 0 => Left("signal count must be > 0")
           case Time(duration) if duration lt Duration.Zero => Left("duration must be > 0")
           case _ => Right((): Unit)
-        }
-        ).
+        }.
         action((x, c) => c.copy(outputEvery = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
       opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
-        action((x, c) => c.copy(inputs = x))
-        .text("Possible Input Types: " + InputTypes.values)
+        action((x, c) => c.copy(inputs = x)).
+        text("Possible Input Types: " + InputTypes.values)
 
       //      this.checkConfig(c =>
       //        if (c.timeUnit >= c.outputSpeed)
@@ -114,13 +127,12 @@ object Program {
       //          Right((): Unit)
       //      )
 
-      help("help").text("Specify init parameters for running th engine")
-
+      help("help").
+        text("Specify init parameters for running the engine")
     }
 
     parser.parse(args, Config(programFile = new File("")))
   }
-
 
   private val SignalPattern = "(\\d+)signals".r
 
@@ -130,9 +142,8 @@ object Program {
       case "signal" => Signal(1)
       case "time" => Time(1 second)
       case SignalPattern(count) => Signal(count.toInt)
-      case _ => {
-        // TODO: parse time units
-        Time(2 seconds)
+      case s => {
+        Time(Duration.create(s))
       }
     })
 
