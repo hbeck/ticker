@@ -1,4 +1,3 @@
-
 import java.io.File
 
 import Program.InputTypes.InputTypes
@@ -6,14 +5,13 @@ import common.Util
 import core.Atom
 import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
 import engine.EvaluationEngine
-import engine.config.EvaluationModifier.EvaluationModifier
+
 import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
 import runner._
 
 import scala.concurrent.duration._
-import scala.io.Source
 
 /**
   * Created by FM on 05.11.16.
@@ -111,22 +109,6 @@ object Program {
         action((x, c) => c.copy(inputs = x)).
         text("Possible Input Types: " + InputTypes.values)
 
-      //      this.checkConfig(c =>
-      //        if (c.timeUnit >= c.outputSpeed)
-      //          Left("inputSpeed must be lower than output")
-      //        else
-      //          Right((): Unit)
-      //      )
-
-      //      this.checkConfig(c =>
-      //        if (c.reasoner == Reasoner.Clingo && c.evaluationModifier != EvaluationModifier.Pull && c.evaluationModifier != EvaluationModifier.Push)
-      //          Left("Invalid EvaluationModifier for evaluation Type")
-      //        else if (c.reasoner != Reasoner.Clingo && (c.evaluationModifier == EvaluationModifier.Pull || c.evaluationModifier == EvaluationModifier.Push))
-      //          Left("Invalid EvaluationModifier for evaluation Type")
-      //        else
-      //          Right((): Unit)
-      //      )
-
       help("help").
         text("Specify init parameters for running the engine")
     }
@@ -139,24 +121,19 @@ object Program {
   implicit val outputEveryRead: scopt.Read[OutputEvery] =
     scopt.Read.reads(s => s.toLowerCase match {
       case "diff" => Diff
-      case "signal" => Signal(1)
+      case "signal" => Signal()
       case "time" => Time(1 second)
       case SignalPattern(count) => Signal(count.toInt)
-      case s => {
-        Time(Duration.create(s))
-      }
+      case shouldBeTime => Time(Duration.create(shouldBeTime))
     })
-
 
   implicit val evaluationTypesRead: scopt.Read[Reasoner.Value] =
     scopt.Read.reads(Reasoner withName)
-
 
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
   implicit val inputTypesRead: scopt.Read[InputTypes.Value] =
     scopt.Read.reads(InputTypes withName)
-
 
   object InputTypes extends Enumeration {
     type InputTypes = Value
@@ -186,17 +163,11 @@ object Program {
           case _ => engineBuilder.configure().withClingo().use().usePush()
         }
       }
-
       filter match {
         case Some(atoms) if atoms.nonEmpty => startableEngine.filterTo(atoms.map(Atom(_))).start()
         case _ => startableEngine.start()
       }
     }
-
-
   }
 
 }
-
-
-
