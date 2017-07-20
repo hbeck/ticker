@@ -20,7 +20,7 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-    val myargs = Seq(
+    val sampleArgs = Seq(
       "--program", "src/test/resources/test.rules",
       "--reasoner", "Clingo",
       "--inputType", "Http,StdIn",
@@ -28,7 +28,7 @@ object Program {
       "--outputEvery", "2signals"
     ).toArray
 
-    parseParameters(myargs) match {
+    parseParameters(args) match {
       case Some(config) => {
         val program = config.parseProgram
 
