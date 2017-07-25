@@ -41,8 +41,9 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
     engineTimePoint = engineTimePoint + 1
     output match {
       case t: Time if t.shouldUpdateWithNewData(engineTimePoint) => {
-        var timePoint = engineTimePoint
+        val timePoint = engineTimePoint
         t.registerUpdate(timePoint)
+
         Future {
           evaluateModel(timePoint)
         }
@@ -61,7 +62,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
     val model = engine.evaluate(currentTimePoint)
 
     output match {
-      case Diff  => {
+      case Diff => {
         if (Diff.shouldUpdateWithNewData(model))
           publishModelChange()
 
@@ -106,25 +107,16 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
   def start(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
-      override def run(): Unit = updateBeat
+      override def run(): Unit = updateBeat()
     }, engineSpeed.toMillis, engineSpeed.toMillis)
-    if (output.isInstanceOf[Time]) {
-      output.asInstanceOf[Time].registerEngineSpeed(engineSpeed)
+
+    output match {
+      case time: Time =>
+        time.registerEngineSpeed(engineSpeed)
+      case _ =>
     }
-    //    output match {
-    //      case Time(outputSpeed) => {
-    //
-    //        timer.scheduleAtFixedRate(new TimerTask {
-    //          override def run(): Unit = Future {
-    //            evaluateModel()
-    //          }
-    //        }, outputSpeed.toMillis, outputSpeed.toMillis)
-    //      }
-    //      case _ => /* noop */
-    //    }
 
-
-    connectors.foreach(startable => startable())
+    connectors.foreach(start => start())
 
     // forces the caller thread to wait
     Thread.currentThread().join()

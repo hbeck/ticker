@@ -22,22 +22,21 @@ sealed trait TrackOutputEvery[TUpdate] extends OutputEvery {
 case class Signal(interval: Int = 1) extends TrackOutputEvery[Seq[Atom]] {
   private var lastUpdate: Int = 0
 
-  def shouldUpdateWithNewData(signals: Seq[Atom]) = lastUpdate + signals.size >= interval
+  def shouldUpdateWithNewData(signals: Seq[Atom]): Boolean = lastUpdate + signals.size >= interval
 
-  def registerUpdate(signals: Seq[Atom]) = lastUpdate = (lastUpdate + signals.size) % interval
+  def registerUpdate(signals: Seq[Atom]): Unit = lastUpdate = (lastUpdate + signals.size) % interval
 }
 
 case class Time(interval: Duration = 1 second) extends TrackOutputEvery[TimePoint] {
   private var lastUpdateAt: Duration = 0 micro
   private var engineSpeed: Duration = 1 micro
 
-  def shouldUpdateWithNewData(time: TimePoint) = convertToDuration(time) - lastUpdateAt >= interval
+  def shouldUpdateWithNewData(time: TimePoint): Boolean = convertToDuration(time) - lastUpdateAt >= interval
 
-  def registerUpdate(signals: TimePoint) = lastUpdateAt = convertToDuration(signals)
+  def registerUpdate(signals: TimePoint): Unit = lastUpdateAt = convertToDuration(signals)
 
-  def registerEngineSpeed(engineSpeed: Duration) = this.engineSpeed = engineSpeed
+  def registerEngineSpeed(engineSpeed: Duration): Unit = this.engineSpeed = engineSpeed
 
-  //  private def convertToOutputSpeed(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis / interval.toMillis, interval.unit)
   private def convertToDuration(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS)
 
 }
@@ -45,8 +44,8 @@ case class Time(interval: Duration = 1 second) extends TrackOutputEvery[TimePoin
 object Diff extends TrackOutputEvery[Result] {
   private var lastResult: Result = NoResult
 
-  def shouldUpdateWithNewData(newResult: Result) = !(newResult equals lastResult)
+  def shouldUpdateWithNewData(newResult: Result): Boolean = !(newResult equals lastResult)
 
-  def registerUpdate(newResult: Result) = lastResult = newResult
+  def registerUpdate(newResult: Result): Unit = lastResult = newResult
 
 }
