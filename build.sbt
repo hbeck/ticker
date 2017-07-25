@@ -21,11 +21,9 @@ import sbtassembly.AssemblyPlugin._
 import sbt.Package.ManifestAttributes
 
 lazy val commonSettings = Seq(
-  //  version := "0.1-SNAPSHOT",
-  //  organization := "com.example",
-  //  scalaVersion := "2.12.2",
+
   test in assembly := {}
-  //  managedResourceDirectories+=baseDirectory.value / "main"
+
 )
 
 lazy val ticker = (project in file(".")).
@@ -35,14 +33,6 @@ lazy val ticker = (project in file(".")).
   settings(
     mainClass in assembly := Some("Program"),
     test in assembly := {}
-    //    compile := baseDirectory.value / "main",
-    //    test in assembly := {},
-    //    sourceDirectory := baseDirectory.value / "main",
-    //    sourceDirectories := Seq(baseDirectory.value / "main"),
-    //    sources := Seq(baseDirectory.value / "main")
-
-
-    // more settings here ...
   )
 
 //
