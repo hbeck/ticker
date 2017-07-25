@@ -5,7 +5,6 @@ version := "1.0"
 scalaVersion := "2.12.2"
 cancelable in Global := true
 
-//libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
@@ -17,10 +16,40 @@ scalacOptions += "-deprecation"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
 
-//lazy val main = Project(id = "Main",
-//  base = file("main"))
-//
-//lazy val dependent = Project(id = "Evaluation",
-//  base = file("evaluation")) dependsOn (main)
+import sbtassembly.AssemblyPlugin._
 
-unmanagedResourceDirectories in Compile += baseDirectory.value / "evaluation"
+import sbt.Package.ManifestAttributes
+
+lazy val commonSettings = Seq(
+  //  version := "0.1-SNAPSHOT",
+  //  organization := "com.example",
+  //  scalaVersion := "2.12.2",
+  test in assembly := {}
+  //  managedResourceDirectories+=baseDirectory.value / "main"
+)
+
+lazy val ticker = (project in file(".")).
+  settings(commonSettings: _*).
+  configs(IntegrationTest).
+  settings(Defaults.itSettings: _*).
+  settings(
+    mainClass in assembly := Some("Program"),
+    test in assembly := {}
+    //    compile := baseDirectory.value / "main",
+    //    test in assembly := {},
+    //    sourceDirectory := baseDirectory.value / "main",
+    //    sourceDirectories := Seq(baseDirectory.value / "main"),
+    //    sources := Seq(baseDirectory.value / "main")
+
+
+    // more settings here ...
+  )
+
+//
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+  case _ => MergeStrategy.first
+}
+excludeFilter in assembly ~= {
+  exclude => exclude && FileFilter.globFilter("src/test/**/*.*")
+}
