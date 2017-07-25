@@ -35,7 +35,7 @@ case class ReadFromHttp(inputUnit: TimeUnit) extends ConnectToEngine {
           }
       }
 
-    server.start
+    server.start _
   }
 
   def parseTime(params: QueryParams): Option[Duration] = {

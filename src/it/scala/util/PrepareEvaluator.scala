@@ -43,7 +43,9 @@ object PrepareEvaluator {
 
   def fromArguments(args: Seq[String], instance: String, program: LarsProgram) = {
     Console.out.println(f"Evaluating ${instance}")
+
     def engineBuilder(): EvaluationEngine = PrepareEvaluator.buildEngineFromArguments(args, program)
+
     Evaluator(instance, engineBuilder)
   }
 

@@ -28,7 +28,7 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
     println("Or time and List of Atoms: @<time>: <atom>,<atom>")
     println("eg: @15: a,b(1),d(2)")
 
-    keyboardInput.start
+    keyboardInput.start _
   }
 
   def parseInput(line: String): (Option[Duration], Seq[Atom]) = {

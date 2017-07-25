@@ -41,8 +41,6 @@ case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
         return Some(greedyTmsIncremental(config, network, random)) //TODO
       } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
         return Some(doyleTms(config, network, random))
-      } else if (evaluationModifier == EvaluationModifier.Learn) {
-        return Some(learnTms(config, new OptimizedNetworkForLearn(), random))
       } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
         return Some(incrementalTms(config, network, random))
       }
@@ -79,16 +77,6 @@ case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
 
   def doyleTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
     val tms = new JtmsDoyle(network, random)
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def learnTms(config: EngineEvaluationConfiguration, network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(network, random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 

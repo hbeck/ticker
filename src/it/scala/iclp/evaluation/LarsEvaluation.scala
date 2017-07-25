@@ -34,7 +34,7 @@ object LarsEvaluation {
 
   val separator = "\t"
 
-  def printHeader(outputValues: Seq[(String,Any)]): Unit = {
+  def printHeader(outputValues: Seq[(String, Any)]): Unit = {
     println(outputValues.map(_._1).mkString(separator))
   }
 
@@ -79,7 +79,7 @@ object LarsEvaluation {
     )
 
     def timeOutput(a: Any) = a match {
-      case d: Duration => ((1.0)*d.toMillis)/1000.0 //sec
+      case d: Duration => ((1.0) * d.toMillis) / 1000.0 //sec
       //case d: Duration => d.toMillis
       case _ => a
     }
@@ -90,6 +90,7 @@ object LarsEvaluation {
         case (k, d: Duration) => println(f"$k -> ${timeOutput(d)}")
         case (k, i: Integer) => println(f"$k -> $i")
         case (k, s: String) => println(f"$k -> $s")
+        case (k, s) => println(f"$k -> $s")
       }
       println()
     }
@@ -107,8 +108,8 @@ object LarsEvaluation {
   }
 
   def run(config: Config): List[ExecutionTimePerRun] = {
-    val runIndexes = ((-1 * config.preRuns) to config.runs-1)
-    runIndexes.map(evaluateRun(_,config)).toList.drop(config.preRuns)
+    val runIndexes = ((-1 * config.preRuns) to config.runs - 1)
+    runIndexes.map(evaluateRun(_, config)).toList.drop(config.preRuns)
   }
 
   var tms: JtmsUpdateAlgorithm = null //debugging
@@ -120,7 +121,9 @@ object LarsEvaluation {
       println("running")
     }
 
-    if (config.withDebug) { print(" " + iterationNr) }
+    if (config.withDebug) {
+      print(" " + iterationNr)
+    }
 
     val instance = config.makeInstance(iterationNr)
     val builder = BuildEngine.withProgram(instance.larsProgram(instance.windowSize))
@@ -140,7 +143,7 @@ object LarsEvaluation {
 
     val runSingleTimepoint = runTimepoint(instance, engine, config) _
 
-    val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints-1)) map runSingleTimepoint toList
+    val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints - 1)) map runSingleTimepoint toList
 
     val appendStats = StatisticResult.fromMillis(timings.map(_.appendTime))
     val evaluateStats = StatisticResult.fromMillis(timings.map(_.evaluateTime))
@@ -165,7 +168,7 @@ object LarsEvaluation {
       result = engine.evaluate(time)
     }
 
-    if (t==config.printRulesAt && config.implementation.toLowerCase.startsWith("doyle")) {
+    if (t == config.printRulesAt && config.implementation.toLowerCase.startsWith("doyle")) {
       println(f"\ntms rules at t=$t")
       tms.rules foreach println
       println()
@@ -175,7 +178,7 @@ object LarsEvaluation {
       instance.verifyModel(result.get, t)
     }
 
-    if (t==config.printModelAt) {
+    if (t == config.printModelAt) {
       println(f"\nmodel at t=$t")
       result.get match {
         case None => println("(none)")
