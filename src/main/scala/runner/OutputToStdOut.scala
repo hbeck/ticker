@@ -11,7 +11,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 14.11.16.
   */
-case class OutputToStdOut(outputType: OutputEvery) extends ConnectToEngine {
+object OutputToStdOut extends ConnectToEngine {
 
   def startWith(engineRunner: EngineRunner): Startable = {
     engineRunner.registerOutput(evaluateModel(engineRunner))

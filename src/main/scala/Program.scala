@@ -4,8 +4,7 @@ import Program.InputTypes.InputTypes
 import common.Util
 import core.Atom
 import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
-import engine.EvaluationEngine
-
+import engine.{EvaluationEngine, NoResult}
 import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
@@ -54,7 +53,7 @@ object Program {
           case InputTypes.Http => runner.connect(ReadFromHttp(config.timeUnit._2))
           case InputTypes.StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
         }
-        runner.connect(OutputToStdOut(config.outputEvery))
+        runner.connect(OutputToStdOut)
         runner.start()
       }
       case None => throw new RuntimeException("Could not parse all arguments correcly")
@@ -99,7 +98,7 @@ object Program {
         valueName("diff | signal | time | <value>signals | <value><time-unit>").
         validate {
           case Signal(count) if count < 0 => Left("signal count must be > 0")
-          case Time(duration) if duration lt Duration.Zero => Left("duration must be > 0")
+          case Time(Some(duration)) if duration lt Duration.Zero => Left("duration must be > 0")
           case _ => Right((): Unit)
         }.
         action((x, c) => c.copy(outputEvery = x)).
@@ -111,6 +110,16 @@ object Program {
 
       help("help").
         text("Specify init parameters for running the engine")
+
+      checkConfig(c => {
+        c.outputEvery match {
+          case Time(Some(duration)) if duration lt c.timeUnit =>
+            reportWarning("outputEvery time interval is less than the engine timeUnit. The output time interval will be set to the engine unit")
+          case _ =>
+        }
+
+        Right((): Unit)
+      })
     }
 
     parser.parse(args, Config(programFile = new File("")))
@@ -122,9 +131,9 @@ object Program {
     scopt.Read.reads(s => s.toLowerCase match {
       case "diff" => Diff
       case "signal" => Signal()
-      case "time" => Time(1 second)
+      case "timeunit" => Time()
       case SignalPattern(count) => Signal(count.toInt)
-      case shouldBeTime => Time(Duration.create(shouldBeTime))
+      case shouldBeTime => Time(Some(Duration.create(shouldBeTime)))
     })
 
   implicit val evaluationTypesRead: scopt.Read[Reasoner.Value] =

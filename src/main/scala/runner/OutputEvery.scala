@@ -11,41 +11,45 @@ import scala.concurrent.duration._
 /**
   * Created by fm on 19/07/2017.
   */
-sealed trait OutputEvery
+sealed trait OutputTracking
 
-sealed trait TrackOutputEvery[TUpdate] extends OutputEvery {
-  def shouldUpdateWithNewData(data: TUpdate): Boolean
-
+sealed trait OutputTrackingEvery[TUpdate] extends OutputTracking {
   def registerUpdate(data: TUpdate): Unit
+
+  def shouldUpdateWithNewData(data: TUpdate): Boolean
 }
 
-case class Signal(interval: Int = 1) extends TrackOutputEvery[Seq[Atom]] {
+case class SignalTracking(interval: Int = 1) extends OutputTrackingEvery[Seq[Atom]] {
+
   private var lastUpdate: Int = 0
 
   def shouldUpdateWithNewData(signals: Seq[Atom]): Boolean = lastUpdate + signals.size >= interval
 
-  def registerUpdate(signals: Seq[Atom]): Unit = lastUpdate = (lastUpdate + signals.size) % interval
+  def registerUpdate(signals: Seq[Atom]) = lastUpdate = (lastUpdate + signals.size) % interval
 }
 
-case class Time(interval: Duration = 1 second) extends TrackOutputEvery[TimePoint] {
-  private var lastUpdateAt: Duration = 0 micro
-  private var engineSpeed: Duration = 1 micro
+case class TimeTracking(interval: Duration = 1 second, engineSpeed: Duration) extends OutputTrackingEvery[TimePoint] {
+
+  private var lastUpdateAt: Duration = 0 seconds
 
   def shouldUpdateWithNewData(time: TimePoint): Boolean = convertToDuration(time) - lastUpdateAt >= interval
 
-  def registerUpdate(signals: TimePoint): Unit = lastUpdateAt = convertToDuration(signals)
+  def registerUpdate(signals: TimePoint): Unit = {
+    if (shouldUpdateWithNewData(signals))
+      lastUpdateAt = convertToDuration(signals)
+  }
 
-  def registerEngineSpeed(engineSpeed: Duration): Unit = this.engineSpeed = engineSpeed
+  //  def registerEngineSpeed(engineSpeed: Duration): Unit = this.engineSpeed = engineSpeed
 
   private def convertToDuration(timePoint: TimePoint) = Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS)
 
 }
 
-object Diff extends TrackOutputEvery[Result] {
-  private var lastResult: Result = NoResult
+object DiffTracking extends OutputTrackingEvery[Result] {
+  var lastResult: Result = NoResult
 
   def shouldUpdateWithNewData(newResult: Result): Boolean = !(newResult equals lastResult)
 
-  def registerUpdate(newResult: Result): Unit = lastResult = newResult
+  def registerUpdate(newResult: Result) = lastResult = newResult
 
 }

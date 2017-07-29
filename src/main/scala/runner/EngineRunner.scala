@@ -5,9 +5,9 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import core.Atom
 import core.lars.TimePoint
-import engine.{EvaluationEngine, Result}
+import engine.{EvaluationEngine, NoResult, Result}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ConnectToEngine {
@@ -33,22 +33,29 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
+  @volatile private var outputTracking: OutputTracking = output match {
+    case Diff => DiffTracking
+    case Time(None) => TimeTracking(engineSpeed, engineSpeed)
+    case Time(Some(interval)) => TimeTracking(interval, engineSpeed)
+    case Signal(interval) => SignalTracking(interval)
+  }
+
   def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
 
   def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
 
   private def updateBeat(): Unit = {
     engineTimePoint = engineTimePoint + 1
-    output match {
-      case t: Time if t.shouldUpdateWithNewData(engineTimePoint) => {
+
+    outputTracking match {
+      case t: TimeTracking if wasUpdated(t, engineTimePoint) => {
         val timePoint = engineTimePoint
-        t.registerUpdate(timePoint)
 
         Future {
           evaluateModel(timePoint)
         }
       }
-      case Diff => Future {
+      case DiffTracking => Future {
         evaluateModel(engineTimePoint)
       }
       case _ => /* noop*/
@@ -61,12 +68,10 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
   def evaluateModel(currentTimePoint: TimePoint): Unit = {
     val model = engine.evaluate(currentTimePoint)
 
-    output match {
-      case Diff => {
-        if (Diff.shouldUpdateWithNewData(model))
+    outputTracking match {
+      case DiffTracking => {
+        if (wasUpdated(DiffTracking, model))
           publishModelChange()
-
-        Diff.registerUpdate(model)
       }
       case _ => publishModelChange()
     }
@@ -74,6 +79,15 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
     def publishModelChange() = resultCallbacks.foreach(callback => callback(model, currentTimePoint))
   }
 
+
+  def wasUpdated[T](outputTrackingEvery: OutputTrackingEvery[T], model: T) = {
+    val updated = outputTrackingEvery.shouldUpdateWithNewData(model)
+
+
+    outputTrackingEvery.registerUpdate(model)
+
+    updated
+  }
 
   def append(enteredTimePoint: Option[TimePoint], atoms: Seq[Atom]): Unit = {
     if (atoms.nonEmpty) {
@@ -91,13 +105,12 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
         engine.append(timePoint)(atoms: _*)
 
-        output match {
-          case Diff => evaluateModel()
-          case s: Signal => {
-            if (s.shouldUpdateWithNewData(atoms)) {
+        outputTracking match {
+          case DiffTracking => evaluateModel()
+          case s: SignalTracking => {
+            if (wasUpdated(s, atoms)) {
               evaluateModel()
             }
-            s.registerUpdate(atoms)
           }
           case _ => /* noop */
         }
@@ -109,12 +122,6 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
     timer.scheduleAtFixedRate(new TimerTask {
       override def run(): Unit = updateBeat()
     }, engineSpeed.toMillis, engineSpeed.toMillis)
-
-    output match {
-      case time: Time =>
-        time.registerEngineSpeed(engineSpeed)
-      case _ =>
-    }
 
     connectors.foreach(start => start())
 
