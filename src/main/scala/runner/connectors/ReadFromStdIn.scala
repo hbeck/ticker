@@ -1,8 +1,9 @@
-package runner
+package runner.connectors
 
 import java.util.concurrent.TimeUnit
 
 import core.Atom
+import runner._
 
 import scala.concurrent.duration.Duration
 
@@ -15,7 +16,7 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
 
     val keyboardInput = new Thread(new Runnable() {
       override def run(): Unit = Iterator.continually(scala.io.StdIn.readLine).
-        map(parseInput).
+        map(parseInput(inputUnit)).
         takeWhile(_._2.nonEmpty).
         foreach(input => runner.append(input._1.map(runner.convertToTimePoint), input._2))
     }, "Read Input form keyboard")
@@ -30,25 +31,6 @@ case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
 
     keyboardInput.start _
   }
-
-  def parseInput(line: String): (Option[Duration], Seq[Atom]) = {
-    if (line.startsWith("@")) {
-      val parts = line.split(':')
-      (parseTime(parts(0)), parseAtoms(parts(1)))
-    } else {
-      (None, parseAtoms(line))
-    }
-  }
-
-  def parseTime(time: String) = time.trim.replace("@", "") match {
-    case Int(x) => Some(Duration(x, inputUnit))
-    case _ => None
-  }
-
-  def parseAtoms(atoms: String) = atoms.
-    split(',').
-    map(_.trim).
-    map(Load.signal)
 
 
 }

@@ -1,6 +1,5 @@
 import java.io.File
 
-import Program.InputTypes.InputTypes
 import common.Util
 import core.Atom
 import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
@@ -9,6 +8,7 @@ import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
 import runner._
+import runner.connectors.{OutputToStdOut, ReadFromSocket, ReadFromStdIn}
 
 import scala.concurrent.duration._
 
@@ -50,8 +50,8 @@ object Program {
 
         val runner = EngineRunner(engine, config.timeUnit, config.outputEvery)
         config.inputs foreach {
-          case InputTypes.Http => runner.connect(ReadFromHttp(config.timeUnit._2))
-          case InputTypes.StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
+          case Socket(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
+          case StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
         }
         runner.connect(OutputToStdOut)
         runner.start()
@@ -106,7 +106,7 @@ object Program {
 
       opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
         action((x, c) => c.copy(inputs = x)).
-        text("Possible Input Types: " + InputTypes.values)
+        text("Possible Input Types: read from input with 'StdIn', read from a socket with 'socket:<port>'")
 
       help("help").
         text("Specify init parameters for running the engine")
@@ -141,19 +141,24 @@ object Program {
 
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
-  implicit val inputTypesRead: scopt.Read[InputTypes.Value] =
-    scopt.Read.reads(InputTypes withName)
+  private val SocketPattern = "socket:(\\d+)".r
+  implicit val inputTypesRead: scopt.Read[InputTypes] = scopt.Read.reads(s => s.toLowerCase match {
+    case "stdin" => StdIn
+    case SocketPattern(port) => Socket(port.toInt)
+  })
 
-  object InputTypes extends Enumeration {
-    type InputTypes = Value
-    val StdIn, Http = Value
-  }
+
+  sealed trait InputTypes
+
+  object StdIn extends InputTypes
+
+  case class Socket(port: Int) extends InputTypes
 
   case class Config(reasoner: Reasoner = Reasoner.Ticker,
                     programFile: File,
                     timeUnit: Duration = 1 second,
                     outputEvery: OutputEvery = Diff,
-                    inputs: Seq[InputTypes] = Seq(InputTypes.StdIn),
+                    inputs: Seq[InputTypes] = Seq(StdIn),
                     filter: Option[Set[String]] = None
                    ) {
 

@@ -1,12 +1,8 @@
-package runner
-
-import java.util.TimerTask
+package runner.connectors
 
 import core.lars.TimePoint
-import engine.{NoResult, Result}
-
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
+import engine.Result
+import runner.{ConnectToEngine, EngineRunner, Startable}
 
 /**
   * Created by FM on 14.11.16.
