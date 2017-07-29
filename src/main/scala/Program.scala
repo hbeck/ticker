@@ -64,10 +64,10 @@ object Program {
     println(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
 
     if (program.rules.length <= 10) {
-      Format(program) foreach println
+      Format.parsed(program) foreach println
     } else {
       println("First 10 rules:")
-      Format(program.rules.take(10)) foreach println
+      Format.parsed(program.rules.take(10)) foreach println
     }
   }
 

@@ -26,7 +26,7 @@ class LarsSpec extends FlatSpec with AtomTestFixture {
 
     val program = LarsProgram.from(r1, r2)
 
-    val formatted = Format(program)
+    val formatted = Format.symbolic(program)
 
     assert(formatted.size == 2)
     assert(formatted.head contains "c :-")
