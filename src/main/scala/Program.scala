@@ -50,7 +50,7 @@ object Program {
 
         val runner = EngineRunner(engine, config.timeUnit, config.outputEvery)
         config.inputs foreach {
-          case Socket(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
+          case SocketInput(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
           case StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
         }
         runner.connect(OutputToStdOut)
@@ -108,6 +108,10 @@ object Program {
         action((x, c) => c.copy(inputs = x)).
         text("Possible Input Types: read from input with 'StdIn', read from a socket with 'socket:<port>'")
 
+      opt[Seq[OutputTypes]]('o', "outputType").optional().valueName("<output type>,<output type>,...").
+        action((x, c) => c.copy(outputs = x)).
+        text("Possible Output Types: write to output with 'StdOut', write to a socket with 'socket:<port>'")
+
       help("help").
         text("Specify init parameters for running the engine")
 
@@ -144,7 +148,12 @@ object Program {
   private val SocketPattern = "socket:(\\d+)".r
   implicit val inputTypesRead: scopt.Read[InputTypes] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdin" => StdIn
-    case SocketPattern(port) => Socket(port.toInt)
+    case SocketPattern(port) => SocketInput(port.toInt)
+  })
+
+  implicit val outputTypesRead: scopt.Read[OutputTypes] = scopt.Read.reads(s => s.toLowerCase match {
+    case "stdout" => StdOut
+    case SocketPattern(port) => SocketOutput(port.toInt)
   })
 
 
@@ -152,13 +161,20 @@ object Program {
 
   object StdIn extends InputTypes
 
-  case class Socket(port: Int) extends InputTypes
+  case class SocketInput(port: Int) extends InputTypes
+
+  sealed trait OutputTypes
+
+  object StdOut extends OutputTypes
+
+  case class SocketOutput(port: Int) extends OutputTypes
 
   case class Config(reasoner: Reasoner = Reasoner.Ticker,
                     programFile: File,
                     timeUnit: Duration = 1 second,
                     outputEvery: OutputEvery = Diff,
                     inputs: Seq[InputTypes] = Seq(StdIn),
+                    outputs: Seq[OutputTypes] = Seq(StdOut),
                     filter: Option[Set[String]] = None
                    ) {
 

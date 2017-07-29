@@ -20,7 +20,7 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
     () => {
       val init = Try(connectToSocket(engineRunner))
       if (init.isFailure) {
-        println("Socket connection could not be initialized")
+        println("InputSocket connection could not be initialized")
         init.failed.get.printStackTrace()
       }
     }
