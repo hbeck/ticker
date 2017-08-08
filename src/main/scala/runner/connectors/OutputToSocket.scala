@@ -21,20 +21,15 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
 
   def startWith(engineRunner: EngineRunner): Startable = {
     engineRunner.registerOutput(evaluateModel(engineRunner))
+    val server = new ServerSocket(port)
+    server.setReuseAddress(true)
 
     () => {
-
-      val server = new ServerSocket(9999)
-
-      new Thread(new Runnable {
-        override def run(): Unit = while (true) {
-          val s = server.accept()
-
-          val out = new PrintStream(s.getOutputStream())
-
-          clients = clients :+ (s, out)
-        }
-      }).start()
+      while (true) {
+        val socket = server.accept()
+        println("New socket connection received")
+        new PrintServerSocket(socket).start()
+      }
     }
   }
 
@@ -56,4 +51,13 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
     o._2.close()
     o._1.close()
   })
+
+  private class PrintServerSocket(socket: Socket) extends Thread("Print Model To Socket") {
+    override def run(): Unit = {
+      val out = new PrintStream(socket.getOutputStream())
+
+      clients = clients :+ (socket, out)
+    }
+  }
+
 }

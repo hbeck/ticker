@@ -8,7 +8,7 @@ import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
 import runner._
-import runner.connectors.{OutputToStdOut, ReadFromSocket, ReadFromStdIn}
+import runner.connectors.{OutputToSocket, OutputToStdOut, ReadFromSocket, ReadFromStdIn}
 
 import scala.concurrent.duration._
 
@@ -53,7 +53,11 @@ object Program {
           case SocketInput(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
           case StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
         }
-        runner.connect(OutputToStdOut)
+        config.outputs foreach {
+          case StdOut => runner.connect(OutputToStdOut)
+          case SocketOutput(port) => runner.connect(OutputToSocket(port))
+        }
+
         runner.start()
       }
       case None => throw new RuntimeException("Could not parse all arguments correcly")

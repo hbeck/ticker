@@ -123,8 +123,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
       override def run(): Unit = updateBeat()
     }, engineSpeed.toMillis, engineSpeed.toMillis)
 
-    connectors.foreach(start => start())
-
+    connectors.foreach(startable => new Thread(() => startable()).start())
     // forces the caller thread to wait
     Thread.currentThread().join()
   }

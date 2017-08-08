@@ -1,6 +1,6 @@
 package runner.connectors
 
-import java.net.{InetAddress, Socket}
+import java.net.{InetAddress, InetSocketAddress, Socket}
 
 import core.Atom
 import core.lars.TimeUnit
@@ -23,14 +23,15 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
         println("InputSocket connection could not be initialized")
         init.failed.get.printStackTrace()
       }
+
     }
   }
 
   private def connectToSocket(engineRunner: EngineRunner) = {
 
     val socket = new Socket(InetAddress.getByName("localhost"), port)
-    lazy val in = new BufferedSource(socket.getInputStream).getLines()
 
+    lazy val in = new BufferedSource(socket.getInputStream).getLines()
 
     in.foreach(input => {
       val (time, atoms) = parser(input)
