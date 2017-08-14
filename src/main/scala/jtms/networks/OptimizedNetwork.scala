@@ -1,6 +1,6 @@
 package jtms.networks
 
-import core.Atom
+import core.{Atom, ContradictionAtom, Falsum}
 import core.asp.NormalRule
 import jtms._
 
@@ -10,28 +10,72 @@ import jtms._
 class OptimizedNetwork extends TruthMaintenanceNetwork {
 
   val supportCleanupThreshold = 5000
-
-  override def allAtoms() = __allAtoms
-
-  var __allAtoms: Set[Atom] = Set()
-
-  var __choiceAtoms: Set[Atom] = Set()
-
-  override def justifications(a: Atom) = __justifications(a)
-
   var __justifications: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __rulesAtomsOccursIn: Map[Atom, Set[NormalRule]] = Map.empty.withDefaultValue(Set())
 
   var __atomsWithStatus: Map[Status, Set[Atom]] = Map.empty.withDefaultValue(Set())
 
-  override def inAtoms = __atomsWithStatus(in)
+  var __allAtoms: Set[Atom] = Set()
 
-  override def outAtoms: Set[Atom] = __atomsWithStatus(out)
+  var __choiceAtoms: Set[Atom] = Set()
 
-  override def unknownAtoms: Set[Atom] = __atomsWithStatus(unknown)
+  def allAtoms() = __allAtoms
 
-  override def hasUnknown: Boolean = unknownAtoms.nonEmpty
+  def justifications(a: Atom) = __justifications(a)
+
+  def inAtoms = __atomsWithStatus(in)
+
+  def outAtoms: Set[Atom] = __atomsWithStatus(out)
+
+  def unknownAtoms: Set[Atom] = __atomsWithStatus(unknown)
+
+  def hasUnknown: Boolean = unknownAtoms.nonEmpty
+
+  // re-implementation of SimpleNetwork definition.
+  // Some implementations could be optimized, but they are currently not a bottleneck!
+
+  def facts: Set[NormalRule] = rules filter (_.isFact)
+
+  def factAtoms: Set[Atom] = facts map (_.head)
+
+  def ruleHeads = rules map (_.head)
+
+  def atomsNeedingSupp: Set[Atom] = ruleHeads diff factAtoms
+
+  def underivableAtoms = allAtoms diff ruleHeads
+
+  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
+
+  def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
+
+  def antecedents(a: Atom): Set[Atom] = if (status(a) == in)
+    supp(a)
+  else
+    Set()
+
+  def valid(rule: NormalRule): Boolean =
+    (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
+
+  def invalid(rule: NormalRule): Boolean =
+    (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
+
+  def posValid(rule: NormalRule): Boolean =
+    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
+
+  def openJustifications(a: Atom): Set[NormalRule] = justifications(a) filter (!invalid(_))
+
+  def unknownCons(a: Atom): Set[Atom] = cons(a) filter (status(_) == unknown)
+
+  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
+    if (!(justifications(rule.head) exists (_.body contains a))) {
+      cons = cons.updated(a, cons(a) - rule.head)
+    }
+  }
+
+  // re-implementation of SimpleNetwork definition.
+  // Some implementations could be optimized, but they are currently not a bottleneck!
+
 
   //return true iff rule is new
   def register(rule: NormalRule): Boolean = {
@@ -41,7 +85,7 @@ class OptimizedNetwork extends TruthMaintenanceNetwork {
 
     __justifications = __justifications updated(rule.head, __justifications(rule.head) + rule)
 
-    val ruleOccurrences =(rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) + rule))
+    val ruleOccurrences = (rule.atoms toSeq) map (a => (a, __rulesAtomsOccursIn(a) + rule))
     __rulesAtomsOccursIn = __rulesAtomsOccursIn ++ ruleOccurrences
 
     rule.atoms foreach register
