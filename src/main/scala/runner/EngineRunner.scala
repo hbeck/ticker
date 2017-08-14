@@ -3,6 +3,7 @@ package runner
 import java.util.TimerTask
 import java.util.concurrent.{Executors, TimeUnit}
 
+import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimePoint
 import engine.{EvaluationEngine, NoResult, Result}
@@ -20,6 +21,8 @@ trait ConnectToEngine {
   * Created by FM on 10.11.16.
   */
 case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output: OutputEvery) {
+
+  val logger = Logger[EngineRunner]
 
   type ResultCallback = (Result, TimePoint) => Unit
 
@@ -101,7 +104,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
         val inputTimePoint = convertToInputSpeed(timePoint)
 
-        println(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
+        logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 
         engine.append(timePoint)(atoms: _*)
 

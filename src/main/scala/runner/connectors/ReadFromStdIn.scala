@@ -2,6 +2,7 @@ package runner.connectors
 
 import java.util.concurrent.TimeUnit
 
+import com.typesafe.scalalogging.Logger
 import core.Atom
 import runner._
 

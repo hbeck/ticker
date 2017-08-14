@@ -3,6 +3,7 @@ package runner.connectors
 import java.io.PrintStream
 import java.net.{ServerSocket, Socket}
 
+import com.typesafe.scalalogging.Logger
 import common.Resource
 import core.lars.TimePoint
 import engine.Result
@@ -14,6 +15,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.io.BufferedSource
 
 case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
+
+  val logger = Logger[OutputToSocket]
 
   type ConnectedClients = (Socket, PrintStream)
 
@@ -27,7 +30,7 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
     () => {
       while (true) {
         val socket = server.accept()
-        println("New socket connection received")
+        logger.debug("New socket connection received")
         new PrintServerSocket(socket).start()
       }
     }

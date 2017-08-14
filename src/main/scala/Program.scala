@@ -1,5 +1,6 @@
 import java.io.File
 
+import com.typesafe.scalalogging.Logger
 import common.Util
 import core.Atom
 import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
@@ -17,6 +18,8 @@ import scala.concurrent.duration._
   */
 object Program {
 
+  val logger = Logger("Program")
+
   def main(args: Array[String]): Unit = {
 
     val sampleArgs = Seq(
@@ -33,11 +36,7 @@ object Program {
 
         printProgram(program)
 
-        println()
-
-        println(f"Engine Configuration: " + Util.prettyPrint(config))
-
-        println()
+        logger.info(f"Engine Configuration: " + Util.prettyPrint(config))
 
         val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
           exists {
@@ -65,14 +64,9 @@ object Program {
   }
 
   def printProgram(program: LarsProgram): Unit = {
-    println(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
+    logger.info(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
 
-    if (program.rules.length <= 10) {
-      Format.parsed(program) foreach println
-    } else {
-      println("First 10 rules:")
-      Format.parsed(program.rules.take(10)) foreach println
-    }
+    Format.parsed(program).foreach(logger.info(_))
   }
 
   def parseParameters(args: Array[String]) = {
