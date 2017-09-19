@@ -9,7 +9,7 @@ Provides an engine for executing stream reasoning tasks in a LARS-influenced Syn
 ## Writing a program
 Current version of the program parser supports the following notation:
 
-TODO: Eddie syntax
+TODO: Eddie syntax description
 
 ### Sample Program
 
@@ -52,4 +52,51 @@ Most useful options include:
 * `--outputType <type 1>,<type ...>` specifies multiple output sinks for models
     * `StdOut` for printing models to standard output
     * `socket:<port>` for writing model changes to a port
+    
+## Running Ticker
 
+To execute ticker as a separate program and stream input signals from an external source,
+ the following possibilities are currently implemented.
+
+### Receive input from Std-In and output to Std-Out
+
+Ticker can be started to read input data from Std-Input and write it into Std-Ouput.
+
+```sh
+tail -F input.txt | java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/test.rules >> out.txt
+```
+
+Reads data from a `input.txt` file and writes all model updates into 'out.txt'
+
+### Connect input and output streams via sockets
+
+Ticker can be configured to receive input signals from a plain system socket over a specified port. 
+
+#### Listen to a (local) socket
+
+Prior to starting ticker a socket must be opened: `nc -l 9999`. 
+With this connection input values are written to ticker.
+
+#### Staring ticker
+
+Ticker can then be started with the following parameters, 
+important are the correct socket socket ports `9999` and `9998`.
+ 
+```sh
+java -jar target/scala-2.12/ticker-assembly-1.0.jar \
+                             --program src/test/resources/test.rules \
+                             --reasoner Clingo \
+                             --inputType socket:9999 \
+                             --timeunit 1s \
+                             --outputEvery diff \
+                             --outputType socket:9998
+```                             
+#### Connect to a (local) socket
+
+Connecting to a socket for receiving output values and model computations: `nc localhost 9999` 
+
+## Creating a Ticker build
+
+First `sbt compile` should be executed. 
+
+Then a new jar-package can be created with `sbt assembly`.
