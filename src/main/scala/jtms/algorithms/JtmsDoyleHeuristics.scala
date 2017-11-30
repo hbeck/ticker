@@ -1,10 +1,22 @@
 package jtms.algorithms
 
 import core.Atom
-import core.asp.NormalRule
+import core.asp.{NormalProgram, NormalRule}
 import jtms.TruthMaintenanceNetwork
 
 import scala.util.Random
+
+object JtmsDoyleHeuristics {
+
+  def apply(P: NormalProgram): JtmsDoyleHeuristics = {
+    val tmn = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+    P.rules foreach tmn.add
+    tmn
+  }
+
+  def apply(): JtmsDoyleHeuristics = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+
+}
 
 /**
   * Created by hb on 12.04.17. Doyle with additional Heuristics
