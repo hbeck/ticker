@@ -343,6 +343,64 @@ class GrounderTests extends FunSuite {
     assert(tms.getModel.get == model)
   }
 
+  test("gt10-pre") {
+
+    val ax1 = fact("a(x1)")
+    val ax2 = fact("a(x2)")
+    val by = fact("b(y)")
+
+    val ri1 = rule("i(X,Y) :- a(X), b(Y)")
+    val ri2 = rule("i(X,Y) :- i(Y,X)")
+    //val ri2 = rule("i(Y,X) :- i(X,Y)")
+
+    val p = program(ax1,ax2,by,ri1,ri2)
+
+    val manualGrounding: Set[LarsRule] = {
+      for (x <- Set("x1","x2"); y <- Set("y")) yield {
+        val axy = Assignment(Map(v("X") -> x, v("Y") -> y))
+        val ayx = Assignment(Map(v("Y") -> x, v("X") -> y))
+        Set[LarsRule](
+          ri1.assign(axy),
+          ri2.assign(axy),
+          ri2.assign(ayx))
+      }
+    }.flatten
+
+    val rules = Seq[LarsRule](ax1,ax2,by) ++ manualGrounding
+
+    val gp = LarsProgram(rules)
+    val grounder = LarsGrounding(p)
+
+    def pos(rule: LarsRule, variable: String, strings: Set[String]) = {
+      assert(grounder.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
+    }
+
+    pos(ri1,"X",Set("x1","x2"))
+    pos(ri1,"Y",Set("y"))
+    pos(ri2,"X",Set("x1","x2","y"))
+    pos(ri2,"Y",Set("x1","x2","y"))
+
+    assert(grounder.groundProgram.rules.contains(rule("i(y,x1) :- i(x1,y)")))
+    assert(grounder.groundProgram.rules.contains(rule("i(x1,y) :- i(y,x1)")))
+
+    //println(LarsProgram(grounder.groundProgram.rules))
+
+    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //
+    //    println("only in computed: "+LarsProgram(onlyInComputed))
+    //    println("only in expected: "+LarsProgram(onlyInExpected))
+
+    assert(grounder.groundProgram == gp)
+
+    val model = modelFromClingo("b(y) a(x1) a(x2) i(x1,y) i(x2,y) i(y,x2) i(y,x1)")
+
+    val asp = asAspProgram(grounder.groundProgram)
+    val tms = jtmsInst(asp)
+    assert(tms.getModel.get == model)
+  }
+
+
   test("gt10") {
 
     val ax1 = fact("a(x1)")
@@ -352,16 +410,22 @@ class GrounderTests extends FunSuite {
 
     val ri1 = rule("i(X,Y) :- a(X), b(Y)")
     val ri2 = rule("i(X,Y) :- i(Y,X)")
+    val rj1 = rule("j(X,Y) :- a(X), b(Y)")
+    val rj2 = rule("j(Y,X) :- j(X,Y)")
+    val rk1 = rule("k(X,Y) :- i(X,Y)")
+    val rk2 = rule("k(X,Y) :- i(Y,X)")
+    val rk3 = rule("k(Y,X) :- i(X,Y)")
+    val rk4 = rule("k(Y,X) :- i(Y,X)")
 
-    val p = program(ax1,ax2,by3,by4,ri1,ri2)
+    val p = program(ax1,ax2,by3,by4,ri1,ri2,rj1,rj2,rk1,rk2,rk3,rk4)
 
     val manualGrounding: Set[LarsRule] = {
       for (x <- Set("x1", "x2"); y <- Set("y3", "y4")) yield {
-        val a1 = Assignment(Map(v("X") -> x, v("Y") -> y))
-        val gri1: LarsRule = ri1.assign(a1)
-        val a2 = Assignment(Map(v("Y") -> x, v("X") -> y))
-        val gri2: LarsRule = ri2.assign(a2)
-        Set[LarsRule](gri1, gri2)
+        val axy = Assignment(Map(v("X") -> x, v("Y") -> y))
+        val ayx = Assignment(Map(v("Y") -> x, v("X") -> y))
+        Set[LarsRule]() ++
+          (Set(ri1,rj1) map (_.assign(axy))) ++
+          (Set(ri2,rj2,rk1,rk2,rk3,rk4) flatMap (r => Set(r.assign(axy),r.assign(ayx))))
       }
     }.flatten
 
@@ -370,10 +434,25 @@ class GrounderTests extends FunSuite {
     val gp = LarsProgram(rules)
     val grounder = LarsGrounding(p)
 
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("X")) == strVals("x1","x2"))
-    assert(grounder.inspect.possibleValuesForVariable(ri1,v("Y")) == strVals("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("X")) == strVals("y3","y4"))
-    assert(grounder.inspect.possibleValuesForVariable(ri2,v("Y")) == strVals("x1","x2"))
+    def pos(rule: LarsRule, variable: String, strings: Set[String]) = {
+      assert(grounder.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
+    }
+
+    pos(ri1,"X",Set("x1","x2"))
+    pos(ri1,"Y",Set("y3","y4"))
+    pos(ri2,"X",Set("x1","x2","y3","y4"))
+    pos(ri2,"Y",Set("x1","x2","y3","y4"))
+
+    pos(rj1,"X",Set("x1","x2"))
+    pos(rj1,"Y",Set("y3","y4"))
+    pos(rj2,"X",Set("x1","x2","y3","y4"))
+    pos(rj2,"Y",Set("x1","x2","y3","y4"))
+
+    for (rule <- Set[LarsRule](rk1,rk2,rk3,rk4)) {
+      for (variable <- Set("X","Y")) {
+        pos(rule,variable,Set("x1","x2","y3","y4"))
+      }
+    }
 
     val r:LarsRule = rule("i(y3,x1) :- i(x1,y3)")
     assert(grounder.groundProgram.rules.contains(r))
@@ -388,7 +467,7 @@ class GrounderTests extends FunSuite {
 
     assert(grounder.groundProgram == gp)
 
-    val model = modelFromClingo("a(x1) a(x2) b(y3) b(y4) i(x1,y3) i(x2,y3) i(x1,y4) i(x2,y4) i(y3,x1) i(y3,x2) i(y4,x1) i(y4,x2)")
+    val model = modelFromClingo("b(y3) b(y4) a(x1) a(x2) i(x1,y3) i(x2,y3) i(x1,y4) i(x2,y4) i(y4,x2) i(y4,x1) i(y3,x2) i(y3,x1) j(x1,y3) j(x2,y3) j(x1,y4) j(x2,y4) j(y4,x2) j(y4,x1) j(y3,x2) j(y3,x1) k(x1,y3) k(x2,y3) k(x1,y4) k(x2,y4) k(y4,x2) k(y4,x1) k(y3,x2) k(y3,x1)")
 
     val asp = asAspProgram(grounder.groundProgram)
     val tms = jtmsInst(asp)
@@ -921,6 +1000,6 @@ class GrounderTests extends FunSuite {
     //    println("projected model: "+projectedModel)
 
     assert(models contains projectedModel)
-  }  
+  }
 
 }

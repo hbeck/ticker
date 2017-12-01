@@ -84,7 +84,6 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
 
   lazy val extensionalAtoms = atoms -- intensionalAtoms -- relationalAtoms
 
-
   override def toString(): String = {
     val sb = new StringBuilder
     sb.append("{")
@@ -107,4 +106,5 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
 object LarsProgram {
   // apply won't work as we have the same signature as the case class :-/
   def from(rules: LarsRule*): LarsProgram = LarsProgram(rules)
+  def from(rules: Set[LarsRule]): LarsProgram = LarsProgram(rules.toSeq)
 }

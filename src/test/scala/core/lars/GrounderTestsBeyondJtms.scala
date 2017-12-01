@@ -281,14 +281,14 @@ class GrounderTestsBeyondJtms extends FunSuite {
       val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
 
       //println(inputProgram)
-      val grounder = printTime("grounding time") {
+      val larsGrounding = printTime("grounding time") {
         LarsGrounding(inputProgram)
       }
 
-      //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
-      println(LarsProgram(grounder.groundRules))
+      //larsGrounding.groundRules foreach (r => println(LarsProgram(Seq(r))))
+      println(LarsProgram.from(larsGrounding.groundRules))
 
-      //printInspect(grounder)
+      //printInspect(larsGrounding)
 
       //
       // variables to iterate over
@@ -308,22 +308,22 @@ class GrounderTestsBeyondJtms extends FunSuite {
       inputProgram.rules foreach { r =>
         for ((variable, possibleValues) <- possibleValuesMap) {
           if (r.variables.contains(variable)) {
-            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
+            if (larsGrounding.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
               println("rule: " + r)
               println("variable: " + variable.name)
               println("expected values: " + possibleValues)
-              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
+              println("actual values:   " + larsGrounding.inspect.possibleValuesForVariable(r, variable))
               assert(false)
             }
           }
         }
       }
 
-      println("#rules in ground program: " + grounder.groundProgram.rules.size)
+      println("#rules in ground program: " + larsGrounding.groundProgram.rules.size)
 
-      // printInspect(grounder)
+      // printInspect(larsGrounding)
 
-      asAspProgram(grounder.groundProgram)
+      asAspProgram(larsGrounding.groundProgram)
 
     } else { //no grounding, use predefined program
       val filename = "/ground-programs/bit1.rules"
@@ -426,14 +426,14 @@ class GrounderTestsBeyondJtms extends FunSuite {
       val inputProgram = LarsProgram(bitEncodingProgram.rules ++ facts)
 
       //println(inputProgram)
-      val grounder = printTime("grounding time") {
+      val larsGrounding = printTime("grounding time") {
         LarsGrounding(inputProgram)
       }
 
-      //grounder.groundRules foreach (r => println(LarsProgram(Seq(r))))
-      println(LarsProgram(grounder.groundRules))
+      //larsGrounding.groundRules foreach (r => println(LarsProgram(Seq(r))))
+      println(LarsProgram.from(larsGrounding.groundRules))
 
-      //printInspect(grounder)
+      //printInspect(larsGrounding)
 
       //
       // variables to iterate over
@@ -453,22 +453,22 @@ class GrounderTestsBeyondJtms extends FunSuite {
       inputProgram.rules foreach { r =>
         for ((variable, possibleValues) <- possibleValuesMap) {
           if (r.variables.contains(variable)) {
-            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
+            if (larsGrounding.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
               println("rule: " + r)
               println("variable: " + variable.name)
               println("expected values: " + possibleValues)
-              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
+              println("actual values:   " + larsGrounding.inspect.possibleValuesForVariable(r, variable))
               assert(false)
             }
           }
         }
       }
 
-      println("#rules in ground program: " + grounder.groundProgram.rules.size)
+      println("#rules in ground program: " + larsGrounding.groundProgram.rules.size)
 
-      // printInspect(grounder)
+      // printInspect(larsGrounding)
 
-      asAspProgram(grounder.groundProgram)
+      asAspProgram(larsGrounding.groundProgram)
 
     } else { //no grounding, use predefined program
       val filename = "/ground-programs/bit2.rules"

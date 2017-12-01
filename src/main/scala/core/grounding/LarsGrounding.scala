@@ -1,18 +1,27 @@
 package core.grounding
 
-import core.lars.LarsProgram
+import core.lars.{ExtendedAtom, HeadAtom, LarsProgram, LarsRule}
 
 /**
   * applicable only to lars programs without "@"
   *
   * Created by hb on 8/21/16.
   */
-case class LarsGrounding(program: LarsProgram) {
+object LarsGrounding {
 
-  val inspect = StaticProgramInspection.forLars(program)
-  val grounder = GrounderInstance.forLars(inspect)
-  val groundRules = program.rules flatMap (grounder.ground(_))
-  val groundProgram = LarsProgram(groundRules)
+  def apply(program: LarsProgram): LarsGrounding = {
+    val inspect: StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = StaticProgramInspection.forLars(program)
+    val grounder: RuleGrounder[LarsRule, HeadAtom, ExtendedAtom] = GrounderInstance.forLars(inspect)
+    val groundRules: Set[LarsRule] = program.rules flatMap (grounder.ground(_)) toSet
+    val groundProgram: LarsProgram = LarsProgram.from(groundRules)
+    LarsGrounding(inspect,grounder,groundRules,groundProgram)
+  }
+}
+
+case class LarsGrounding(inspect: StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom],
+                         grounder: RuleGrounder[LarsRule, HeadAtom, ExtendedAtom],
+                         groundRules: Set[LarsRule],
+                         groundProgram: LarsProgram) {
 
 }
 

@@ -1,8 +1,6 @@
 package evaluation.bit
 
 import core.grounding.LarsGrounding
-import iclp.evaluation.Util
-import runner.Load._
 import core.lars._
 import runner.Load
 
@@ -36,7 +34,7 @@ trait BitProgram {
   val inputProgram = LarsProgram(nonGroundRules ++ facts)
 
   def groundLarsProgram() = {
-    val grounder = LarsGrounding(inputProgram)
-    LarsProgram(grounder.groundRules)
+    val larsGrounding = LarsGrounding(inputProgram)
+    LarsProgram.from(larsGrounding.groundRules)
   }
 }

@@ -68,12 +68,12 @@ class StreamingTests extends FunSuite {
       */
 
       //println(inputProgram)
-      val grounder = printTime("grounding time") {
+      val larsGrounding = printTime("grounding time") {
         LarsGrounding(inputProgram)
       }
 
-      println(LarsProgram(grounder.groundRules))
-      //printInspect(grounder)
+      println(LarsProgram.from(larsGrounding.groundRules))
+      //printInspect(larsGrounding)
 
       //
       // variables to iterate over
@@ -93,17 +93,17 @@ class StreamingTests extends FunSuite {
       inputProgram.rules foreach { r =>
         for ((variable, possibleValues) <- possibleValuesMap) {
           if (r.variables.contains(variable)) {
-            if (grounder.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
+            if (larsGrounding.inspect.possibleValuesForVariable(r, variable) != possibleValues) {
               println("rule: " + r)
               println("variable: " + variable.name)
               println("expected values: " + possibleValues)
-              println("actual values:   " + grounder.inspect.possibleValuesForVariable(r, variable))
+              println("actual values:   " + larsGrounding.inspect.possibleValuesForVariable(r, variable))
               assert(false)
             }
           }
         }
       }
-      grounder.groundProgram
+      larsGrounding.groundProgram
 
     } else { //no grounding, use predefined program
     val filename = "/ground-programs/bit2.rules"
