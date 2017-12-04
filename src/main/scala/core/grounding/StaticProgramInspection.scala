@@ -244,6 +244,7 @@ case class StaticProgramInspection[TRule <: Rule[THead, TBody], THead <: HeadAto
 
 object StaticProgramInspection {
   def forLars(program: LarsProgram): StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom](program.rules)
+  def forLars(rules: Seq[LarsRule]): StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom](rules)
 
   def forAsp(program: NormalProgram): StaticProgramInspection[NormalRule, Atom, Atom] = StaticProgramInspection[NormalRule, Atom, Atom](program.rules)
 }

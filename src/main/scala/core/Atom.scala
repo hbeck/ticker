@@ -305,9 +305,14 @@ object Atom {
 
   def apply(predicate: Predicate): Atom = PredicateAtom(predicate)
 
-  def apply(predicate: Predicate, arguments: Seq[Argument]) = arguments forall (_.isInstanceOf[Value]) match {
-    case true => GroundAtom(predicate, arguments map (_.asInstanceOf[Value]))
-    case false => NonGroundAtom(predicate, arguments)
+  def apply(predicate: Predicate, arguments: Seq[Argument]) = {
+    RelationAtom.asRelationAtom(predicate, arguments) match {
+      case Some(atom) => atom
+      case _ => arguments forall (_.isInstanceOf[Value]) match {
+        case true => GroundAtom(predicate, arguments map (_.asInstanceOf[Value]))
+        case false => NonGroundAtom(predicate, arguments)
+      }
+    }
   }
 
   implicit def headAtomToBuilder(atom: Atom): BuilderHead = new BuilderHead(atom)
@@ -333,6 +338,33 @@ trait RelationAtom extends AtomWithArguments {
   def int(arg: Argument) = Integer.parseInt(arg.cachedString)
 }
 
+object RelationAtom {
+  //return new RelationAtom if the predicate is known as such
+  def asRelationAtom(predicate: Predicate, arguments: Seq[Argument]): Option[Atom] = {
+    predicate match {
+      case Eq.predicate => Some(Eq(arguments(0),arguments(1)))
+      case Neq.predicate => Some(Neq(arguments(0),arguments(1)))
+      case Leq.predicate => Some(Leq(arguments(0),arguments(1)))
+      case Geq.predicate => Some(Geq(arguments(0),arguments(1)))
+      case Lt.predicate => Some(Lt(arguments(0),arguments(1)))
+      case Gt.predicate => Some(Gt(arguments(0),arguments(1)))
+      case Plus.predicate => Some(Plus(arguments(0),arguments(1),arguments(2)))
+      case Minus.predicate => Some(Minus(arguments(0),arguments(1),arguments(2)))
+      case Times.predicate => Some(Times(arguments(0),arguments(1),arguments(2)))
+      case Divide.predicate => Some(Divide(arguments(0),arguments(1),arguments(2)))
+      case Modulo.predicate => Some(Modulo(arguments(0),arguments(1),arguments(2)))
+      case Power.predicate => Some(Power(arguments(0),arguments(1),arguments(2)))
+      case LeqLeq.predicate => Some(LeqLeq(arguments(0),arguments(1),arguments(2)))
+      case LtLt.predicate => Some(LtLt(arguments(0),arguments(1),arguments(2)))
+      case LtLeq.predicate => Some(LtLeq(arguments(0),arguments(1),arguments(2)))
+      case LeqLt.predicate => Some(LeqLt(arguments(0),arguments(1),arguments(2)))
+      case Incr.predicate => Some(Incr(arguments(0),arguments(1)))
+      case _ => None
+    }
+  }
+
+}
+
 abstract class BinaryRelationAtom(x: Argument, y: Argument) extends RelationAtom {
 
   val arguments: Seq[Argument] = Seq(x, y)
@@ -356,10 +388,7 @@ abstract class BinaryRelationAtom(x: Argument, y: Argument) extends RelationAtom
 }
 
 abstract class BinaryNumericRelationAtom(x: NumericArgument, y: NumericArgument) extends BinaryRelationAtom(x, y) {
-  override def newInstance(nx: Argument, ny: Argument): RelationAtom = newInstance(nx.asInstanceOf[NumericArgument], ny.asInstanceOf[NumericArgument]);
-
-  def newInstance(nx: NumericArgument, ny: NumericArgument): RelationAtom
-
+  override def newInstance(nx: Argument, ny: Argument): RelationAtom
 }
 
 abstract class TernaryRelationAtom(x: Argument, y: Argument, z: Argument) extends RelationAtom {
@@ -388,145 +417,213 @@ abstract class TernaryRelationAtom(x: Argument, y: Argument, z: Argument) extend
 abstract class TernaryNumericRelationAtom(x: Argument, y: Argument, z: Argument) extends TernaryRelationAtom(x, y, z) {
   val arguments: Seq[Argument] = Seq(x, y, z)
 
-  override def newInstance(nx: Argument, ny: Argument, nz: Argument): RelationAtom = newInstance(nx.asInstanceOf[NumericArgument], ny.asInstanceOf[NumericArgument], nz.asInstanceOf[NumericArgument])
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument): RelationAtom
+  //= newInstance(nx.asInstanceOf[NumericArgument], ny.asInstanceOf[NumericArgument], nz.asInstanceOf[NumericArgument])
+  //def newInstance(x: Argument, y: Argument, nz: NumericArgument)
+}
 
-  def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument)
+object Eq {
+  val predicate: Predicate = Predicate("eq")
 }
 
 case class Eq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("eq")
+  override val predicate: Predicate = Eq.predicate
 
   override def groundingHolds(): Boolean = x == y
 
   override def newInstance(nx: Argument, ny: Argument) = Eq(nx, ny)
 }
 
+object Neq {
+  val predicate: Predicate = Predicate("neq")
+}
+
 case class Neq(x: Argument, y: Argument) extends BinaryRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("neq")
+  override val predicate: Predicate = Neq.predicate
 
   override def groundingHolds(): Boolean = x != y
 
   override def newInstance(nx: Argument, ny: Argument) = Neq(nx, ny)
 }
 
+object Leq {
+  val predicate: Predicate = Predicate("leq")
+}
+
 case class Leq(x: NumericArgument, y: NumericArgument) extends BinaryNumericRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("leq")
+  override val predicate: Predicate = Leq.predicate
 
   override def groundingHolds(): Boolean = int(x) <= int(y)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument) = Leq(nx, ny)
+  override def newInstance(nx: Argument, ny: Argument) = Leq(nx, ny)
+}
+
+object Geq {
+  val predicate: Predicate = Predicate("geq")
 }
 
 case class Geq(x: NumericArgument, y: NumericArgument) extends BinaryNumericRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("geq")
+  override val predicate: Predicate = Geq.predicate
 
   override def groundingHolds(): Boolean = int(x) >= int(y)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument) = Geq(nx, ny)
+  override def newInstance(nx: Argument, ny: Argument) = Geq(nx, ny)
+}
+
+object Lt {
+  val predicate: Predicate = Predicate("lt")
 }
 
 case class Lt(x: NumericArgument, y: NumericArgument) extends BinaryNumericRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("lt")
+  override val predicate: Predicate = Lt.predicate
 
   override def groundingHolds(): Boolean = int(x) < int(y)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument) = Lt(nx, ny)
+  override def newInstance(nx: Argument, ny: Argument) = Lt(nx, ny)
+}
+
+object Gt {
+  val predicate: Predicate = Predicate("gt")
 }
 
 case class Gt(x: NumericArgument, y: NumericArgument) extends BinaryNumericRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("gt")
+  override val predicate: Predicate = Gt.predicate
 
   override def groundingHolds(): Boolean = int(x) > int(y)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument) = Gt(nx, ny)
+  override def newInstance(nx: Argument, ny: Argument) = Gt(nx, ny)
+}
+
+object Plus {
+  val predicate: Predicate = Predicate("plus")
 }
 
 case class Plus(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("plus")
+  override val predicate: Predicate = Plus.predicate
 
   override def groundingHolds(): Boolean = int(x) + int(y) == int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Plus(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Plus(nx, ny, nz)
+}
+
+object Minus {
+  val predicate: Predicate = Predicate("minus")
 }
 
 case class Minus(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("minus")
+  override val predicate: Predicate = Minus.predicate
 
   override def groundingHolds(): Boolean = int(x) - int(y) == int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Minus(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Minus(nx, ny, nz)
+}
+
+object Times {
+  val predicate: Predicate = Predicate("times")
 }
 
 case class Times(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("times")
+  override val predicate: Predicate = Times.predicate
 
   override def groundingHolds(): Boolean = int(x) * int(y) == int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Times(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Times(nx, ny, nz)
+}
+
+object Divide {
+  val predicate: Predicate = Predicate("divide")
 }
 
 case class Divide(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("divide")
+  override val predicate: Predicate = Divide.predicate
 
   override def groundingHolds(): Boolean = int(x) / int(y) == int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Divide(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Divide(nx, ny, nz)
+}
+
+object Power {
+  val predicate: Predicate = Predicate("power")
 }
 
 case class Power(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("power")
+  override val predicate: Predicate = Power.predicate
 
   override def groundingHolds(): Boolean = Math.pow(int(x), int(y)).toInt == int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Power(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Power(nx, ny, nz)
+}
+
+object Modulo {
+  val predicate: Predicate = Predicate("modulo")
 }
 
 case class Modulo(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("modulo")
+  override val predicate: Predicate = Modulo.predicate
 
   override def groundingHolds(): Boolean = int(x) > 0 && (int(x) % int(y) == int(z))
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = Modulo(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = Modulo(nx, ny, nz)
+}
+
+object LeqLeq {
+  val predicate: Predicate = Predicate("leqleq")
 }
 
 case class LeqLeq(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("leqleq")
+  override val predicate: Predicate = LeqLeq.predicate
 
   override def groundingHolds(): Boolean = int(x) <= int(y) && int(y) <= int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = LeqLeq(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLeq(nx, ny, nz)
+}
+
+object LtLt {
+  val predicate: Predicate = Predicate("ltlt")
 }
 
 case class LtLt(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("ltlt")
+  override val predicate: Predicate = LtLt.predicate
 
   override def groundingHolds(): Boolean = int(x) < int(y) && int(y) < int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = LtLt(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LtLt(nx, ny, nz)
+}
+
+object LtLeq {
+  val predicate: Predicate = Predicate("ltleq")
 }
 
 case class LtLeq(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("ltleq")
+  override val predicate: Predicate = LtLeq.predicate
 
   override def groundingHolds(): Boolean = int(x) < int(y) && int(y) <= int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = LtLeq(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LtLeq(nx, ny, nz)
+}
+
+object LeqLt {
+  val predicate: Predicate = Predicate("leqlt")
 }
 
 case class LeqLt(x: NumericArgument, y: NumericArgument, z: NumericArgument) extends TernaryNumericRelationAtom(x, y, z) {
-  override val predicate: Predicate = Predicate("leqlt")
+  override val predicate: Predicate = LeqLt.predicate
 
   override def groundingHolds(): Boolean = int(x) <= int(y) && int(y) < int(z)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument, nz: NumericArgument) = LeqLt(nx, ny, nz)
+  override def newInstance(nx: Argument, ny: Argument, nz: Argument) = LeqLt(nx, ny, nz)
+}
+
+object Incr {
+  val predicate: Predicate = Predicate("incr")
 }
 
 case class Incr(x: NumericArgument, y: NumericArgument) extends BinaryNumericRelationAtom(x, y) {
-  override val predicate: Predicate = Predicate("incr")
+  override val predicate: Predicate = Incr.predicate
 
   override def groundingHolds(): Boolean = int(x) + 1 == int(y)
 
-  override def newInstance(nx: NumericArgument, ny: NumericArgument) = Incr(nx, ny)
+  override def newInstance(nx: Argument, ny: Argument) = Incr(nx, ny)
 }
 
 

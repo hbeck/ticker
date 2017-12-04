@@ -45,14 +45,18 @@ trait NumericArgument extends Argument {
 }
 
 object NumericArgument{
-
-
-    implicit def convertToNumericArgument(nameOrValue: String): NumericArgument = {
-      if (nameOrValue.head.isUpper)
-        StringVariable(nameOrValue)
-      else
-        IntValue(Integer.parseInt(nameOrValue))
+  implicit def convertToNumericArgument(nameOrValue: String): NumericArgument = {
+    if (nameOrValue.head.isUpper)
+      StringVariable(nameOrValue)
+    else
+      IntValue(Integer.parseInt(nameOrValue))
+  }
+  implicit def convertToNumericArgument(argument: Argument): NumericArgument = {
+    argument match {
+      case na:NumericArgument => na
+      case _ => throw new RuntimeException("cannot convert to numeric argument: "+argument)
     }
+  }
 }
 
 trait Variable extends NumericArgument {

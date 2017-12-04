@@ -9,12 +9,38 @@ import core.lars.{ExtendedAtom, HeadAtom, LarsProgram, LarsRule}
   */
 object LarsGrounding {
 
+  var useFixedPointCalc = true
+
   def apply(program: LarsProgram): LarsGrounding = {
-    val inspect: StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = StaticProgramInspection.forLars(program)
-    val grounder: RuleGrounder[LarsRule, HeadAtom, ExtendedAtom] = GrounderInstance.forLars(inspect)
-    val groundRules: Set[LarsRule] = program.rules flatMap (grounder.ground(_)) toSet
-    val groundProgram: LarsProgram = LarsProgram.from(groundRules)
-    LarsGrounding(inspect,grounder,groundRules,groundProgram)
+
+    var inspect: StaticProgramInspection[LarsRule, HeadAtom, ExtendedAtom] = null
+    var grounder: RuleGrounder[LarsRule, HeadAtom, ExtendedAtom] = null
+    var currRules: Set[LarsRule] = program.rules.toSet
+
+    var prevGroundRules: Set[LarsRule] = Set()
+    var currGroundRules: Set[LarsRule] = Set()
+
+    var fixedPoint=false
+    while (!fixedPoint) {
+      inspect = StaticProgramInspection.forLars(currRules.toSeq)
+      grounder = GrounderInstance.forLars(inspect)
+      currGroundRules = currRules.flatMap(grounder.ground(_))
+      if (useFixedPointCalc) {
+        if (currGroundRules == prevGroundRules) {
+          fixedPoint = true
+        } else {
+          prevGroundRules = currGroundRules
+          currRules = currRules ++ currGroundRules
+        }
+      } else {
+        fixedPoint = true
+      }
+
+    }
+
+    val groundProgram: LarsProgram = LarsProgram.from(currGroundRules)
+
+    LarsGrounding(inspect,grounder,currGroundRules,groundProgram)
   }
 }
 

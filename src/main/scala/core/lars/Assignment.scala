@@ -8,6 +8,7 @@ import core._
 case class Assignment(binding: Map[Variable, Value]) {
   def apply(arg: Argument): Option[Value] =
     arg match {
+      case s: StringVariable => binding get s
       case v: TimeVariableWithOffset => {
         v.offset match {
           case 0 => {

@@ -355,24 +355,27 @@ class GrounderTests extends FunSuite {
 
     val p = program(ax1,ax2,by,ri1,ri2)
 
-    val manualGrounding: Set[LarsRule] = {
-      for (x <- Set("x1","x2"); y <- Set("y")) yield {
-        val axy = Assignment(Map(v("X") -> x, v("Y") -> y))
-        val ayx = Assignment(Map(v("Y") -> x, v("X") -> y))
-        Set[LarsRule](
-          ri1.assign(axy),
-          ri2.assign(axy),
-          ri2.assign(ayx))
-      }
-    }.flatten
+    val manualGrounding: Set[LarsRule] = Set(
+      "i(x1,y) :- a(x1), b(y)",
+      "i(x2,y) :- a(x2), b(y)",
+      "i(x1,x1) :- i(x1,x1)",
+      "i(x2,x2) :- i(x2,x2)",
+      "i(x1,x2) :- i(x2,x1)",
+      "i(x2,x1) :- i(x1,x2)",
+      "i(x1,y) :- i(y,x1)",
+      "i(x2,y) :- i(y,x2)",
+      "i(y,y) :- i(y,y)",
+      "i(y,x1) :- i(x1,y)",
+      "i(y,x2) :- i(x2,y)"
+    ) map (rule(_))
 
     val rules = Seq[LarsRule](ax1,ax2,by) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = LarsGrounding(p)
+    val larsGrounding = LarsGrounding(p)
 
     def pos(rule: LarsRule, variable: String, strings: Set[String]) = {
-      assert(grounder.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
+      assert(larsGrounding.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
     }
 
     pos(ri1,"X",Set("x1","x2"))
@@ -380,22 +383,22 @@ class GrounderTests extends FunSuite {
     pos(ri2,"X",Set("x1","x2","y"))
     pos(ri2,"Y",Set("x1","x2","y"))
 
-    assert(grounder.groundProgram.rules.contains(rule("i(y,x1) :- i(x1,y)")))
-    assert(grounder.groundProgram.rules.contains(rule("i(x1,y) :- i(y,x1)")))
+    assert(larsGrounding.groundProgram.rules.contains(rule("i(y,x1) :- i(x1,y)")))
+    assert(larsGrounding.groundProgram.rules.contains(rule("i(x1,y) :- i(y,x1)")))
 
-    //println(LarsProgram(grounder.groundProgram.rules))
+    //println(LarsProgram(larsGrounding.groundProgram.rules))
 
-    //    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-    //    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    //    val onlyInComputed = for (r <- larsGrounding.groundProgram.rules if (!gp.rules.contains(r))) yield r
+    //    val onlyInExpected = for (r <- gp.rules if (!larsGrounding.groundProgram.rules.contains(r))) yield r
     //
     //    println("only in computed: "+LarsProgram(onlyInComputed))
     //    println("only in expected: "+LarsProgram(onlyInExpected))
 
-    assert(grounder.groundProgram == gp)
+    assert(larsGrounding.groundProgram == gp)
 
     val model = modelFromClingo("b(y) a(x1) a(x2) i(x1,y) i(x2,y) i(y,x2) i(y,x1)")
 
-    val asp = asAspProgram(grounder.groundProgram)
+    val asp = asAspProgram(larsGrounding.groundProgram)
     val tms = jtmsInst(asp)
     assert(tms.getModel.get == model)
   }
@@ -432,10 +435,10 @@ class GrounderTests extends FunSuite {
     val rules = Seq[LarsRule](ax1,ax2,by3,by4) ++ manualGrounding
 
     val gp = LarsProgram(rules)
-    val grounder = LarsGrounding(p)
+    val larsGrounding = LarsGrounding(p)
 
     def pos(rule: LarsRule, variable: String, strings: Set[String]) = {
-      assert(grounder.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
+      assert(larsGrounding.inspect.possibleValuesForVariable(rule,v(variable)) == strings.map(Value(_)))
     }
 
     pos(ri1,"X",Set("x1","x2"))
@@ -454,22 +457,27 @@ class GrounderTests extends FunSuite {
       }
     }
 
-    val r:LarsRule = rule("i(y3,x1) :- i(x1,y3)")
-    assert(grounder.groundProgram.rules.contains(r))
+    for (ruleString <- Seq(
+      "i(x1,y4) :- i(y4,x1)", "i(y4,x1) :- i(x1,y4)",
+      "j(x1,y4) :- j(y4,x1)", "j(y4,x1) :- j(x1,y4)",
+      "k(x1,y4) :- i(y4,x1)", "k(y4,x1) :- i(x1,y4)",
+      "k(x1,y4) :- i(x1,y4)", "k(y4,x1) :- i(y4,x1)")) {
 
-    //println(LarsProgram(grounder.groundProgram.rules))
+      assert(larsGrounding.groundProgram.rules.contains(rule(ruleString)))
 
-//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+    }
+
+    //println(LarsProgram(larsGrounding.groundProgram.rules))
+
+//    val onlyInComputed = for (r <- larsGrounding.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!larsGrounding.groundProgram.rules.contains(r))) yield r
 //
 //    println("only in computed: "+LarsProgram(onlyInComputed))
 //    println("only in expected: "+LarsProgram(onlyInExpected))
 
-    assert(grounder.groundProgram == gp)
-
     val model = modelFromClingo("b(y3) b(y4) a(x1) a(x2) i(x1,y3) i(x2,y3) i(x1,y4) i(x2,y4) i(y4,x2) i(y4,x1) i(y3,x2) i(y3,x1) j(x1,y3) j(x2,y3) j(x1,y4) j(x2,y4) j(y4,x2) j(y4,x1) j(y3,x2) j(y3,x1) k(x1,y3) k(x2,y3) k(x1,y4) k(x2,y4) k(y4,x2) k(y4,x1) k(y3,x2) k(y3,x1)")
 
-    val asp = asAspProgram(grounder.groundProgram)
+    val asp = asAspProgram(larsGrounding.groundProgram)
     val tms = jtmsInst(asp)
     assert(tms.getModel.get == model)
   }
@@ -790,10 +798,10 @@ class GrounderTests extends FunSuite {
     /*
       % every machine can process only one task at a time
       :- assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2),
-         duration(T1,D), sum(P1,D,Z), lt(P2,Z).
+         duration(T1,D), plus(P1,D,Z), lt(P2,Z).
      */
 
-    val r = rule("vals(M,T1,T2,P1,P2,D,Z) :- timepoint(Z), assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), sum(P1,D,Z), lt(P2,Z)")
+    val r = rule("vals(M,T1,T2,P1,P2,D,Z) :- timepoint(Z), assign(M,T1,P1), assign(M,T2,P2), neq(T1,T2), leq(P1,P2), duration(T1,D), plus(P1,D,Z), lt(P2,Z)")
 
     val facts: Seq[LarsRule] = Seq(
       fact("assign(m1,t1,0)"),
@@ -818,9 +826,9 @@ class GrounderTests extends FunSuite {
     assert(facts forall (_.head.isInstanceOf[GroundAtom]))
 
     val inputProgram = LarsProgram(facts ++ Seq(r))
-    val grounder = LarsGrounding(inputProgram)
+    val larsGrounding = LarsGrounding(inputProgram)
 
-    //println(grounder.groundProgram)
+    //println(larsGrounding.groundProgram)
 
     //
     // initial tests, variables to iterate over
@@ -836,13 +844,13 @@ class GrounderTests extends FunSuite {
     val valuesZ = intVals(list0to10: _*)
     val valuesD = intVals("4","2","3")
 
-    assert(grounder.inspect.possibleValuesForVariable(r,v("M")) == valuesM)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("T1")) == valuesT1)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("T2")) == valuesT2)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("P1")) == valuesP1)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("P2")) == valuesP2)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("Z")) == valuesZ)
-    assert(grounder.inspect.possibleValuesForVariable(r,v("D")) == valuesD)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("M")) == valuesM)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("T1")) == valuesT1)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("T2")) == valuesT2)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("P1")) == valuesP1)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("P2")) == valuesP2)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("Z")) == valuesZ)
+    assert(larsGrounding.inspect.possibleValuesForVariable(r,v("D")) == valuesD)
 
     //
     //  craft expected ground program
@@ -876,21 +884,21 @@ class GrounderTests extends FunSuite {
 
     val gp = LarsProgram(rules)
 //
-//    val onlyInComputed = for (r <- grounder.groundProgram.rules if (!gp.rules.contains(r))) yield r
-//    val onlyInExpected = for (r <- gp.rules if (!grounder.groundProgram.rules.contains(r))) yield r
+//    val onlyInComputed = for (r <- larsGrounding.groundProgram.rules if (!gp.rules.contains(r))) yield r
+//    val onlyInExpected = for (r <- gp.rules if (!larsGrounding.groundProgram.rules.contains(r))) yield r
 //
 //    println("only in computed: "+LarsProgram(onlyInComputed))
 //    println("only in expected: "+LarsProgram(onlyInExpected))
 
-    // printInspect(grounder)
+    // printInspect(larsGrounding)
 
-    assert(grounder.groundProgram == gp)
+    assert(larsGrounding.groundProgram == gp)
 
     // ground rule that needs to fire:
     // from clingo:
     // vals(m2,t2,t3,1,2,2,3) :- 1+2=3, assign(m2,t2,1), 1<=2, duration(t2,2), 2<3, t2!=t3, timepoint(3), assign(m2,t3,2).
-    val firingRule = rule("vals(m2,t2,t3,1,2,2,3) :- assign(m2,t2,1), duration(t2,2), timepoint(3), assign(m2,t3,2)")
-    assert(grounder.groundProgram.rules contains firingRule)
+    val firingRule = rule("vals(m2,t2,t3,1,2,2,3) :- timepoint(3), assign(m2,t2,1), assign(m2,t3,2), duration(t2,2)")
+    assert(larsGrounding.groundProgram.rules contains firingRule)
 
     val clingoModelStr =
       "assign(m1,t1,0) assign(m2,t2,1) assign(m2,t3,2) duration(t1,4) duration(t2,2) duration(t3,3) "+
@@ -899,15 +907,15 @@ class GrounderTests extends FunSuite {
 
     val model = modelFromClingo(clingoModelStr)
 
-    val asp = asAspProgram(grounder.groundProgram)
+    val asp = asAspProgram(larsGrounding.groundProgram)
     val tms = jtmsInst(asp)
     assert(tms.getModel.get == model)
   }
 
   test("gt rel 2") {
 
-    val r1 = rule("c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z), sum(X,Y,Z), lt(Z,2)")
-    val r2 = rule("d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z), sum(X,Y,Z), lt(Z,2)")
+    val r1 = rule("c(X,Y) :- a(X), b(Y), not d(X,Y), int(Z), plus(X,Y,Z), lt(Z,2)")
+    val r2 = rule("d(X,Y) :- a(X), b(Y), not c(X,Y), int(Z), plus(X,Y,Z), lt(Z,2)")
 
     val facts: Seq[LarsRule] = Seq(
       fact("int(0)"),
