@@ -25,9 +25,10 @@ object Program {
     val sampleArgs = Seq(
       "--program", "src/test/resources/test.rules",
       "--reasoner", "Clingo",
-      "--inputType", "Http,StdIn",
+      "--inputType", "StdIn,socket:9999",
       "--timeunit", "1s",
-      "--outputEvery", "2signals"
+      "--outputEvery", "diff",
+      "--outputType", "StdOut,socket:9998"
     ).toArray
 
     parseParameters(args) match {
