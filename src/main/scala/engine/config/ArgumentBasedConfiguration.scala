@@ -1,13 +1,10 @@
 package engine.config
 
-import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
-import jtms.TruthMaintenanceNetwork
-import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
+import jtms.{Jtms, TruthMaintenanceNetwork}
 
 import scala.util.Random
 
@@ -21,9 +18,8 @@ object Reasoner extends Enumeration {
 
 object EvaluationModifier extends Enumeration {
   type EvaluationModifier = Value
-  val GreedyLazyRemove, GreedyIncremental, DoyleLazyRemove, Learn, DoyleIncremental, Push, Pull = Value
+  val LazyRemove, Incremental, Push, Pull = Value
 }
-
 
 case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
 
@@ -31,19 +27,24 @@ case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
 
   def buildEngine(evaluationType: Reasoner,
                   evaluationModifier: EvaluationModifier,
-                  network: TruthMaintenanceNetwork = new OptimizedNetwork(),
+                  network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
     if (evaluationType == Reasoner.Ticker) {
-      if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
-        return Some(greedyTms(config, network, random))
-      } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
-        return Some(greedyTmsIncremental(config, network, random)) //TODO
-      } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
-        return Some(doyleTms(config, network, random))
-      } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
-        return Some(incrementalTms(config, network, random))
+      evaluationModifier match {
+        case EvaluationModifier.LazyRemove => return Some(jtmsLazyRemove(config, network, random))
+        case EvaluationModifier.Incremental => return Some(jtmsIncremental(config, network, random))
+        case _ => None
       }
+//      if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
+//        return Some(jtmsGreedyLazyRemove(config, network, random))
+//      } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
+//        return Some(jtmsGreedyIncremental(config, network, random))
+//      } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
+//        return Some(jtmsDoyleHeuristicsLazyRemove(config, network, random))
+//      } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
+//        return Some(jtmsDoyleHeuristicsIncremental(config, network, random))
+//      }
     } else if (evaluationType == Reasoner.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
         return Some(clingoPush(config))
@@ -55,48 +56,31 @@ case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
     None
   }
 
-  def greedyTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = new JtmsGreedy(network, random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
+  //TODO hb does it make sense?
+  def jtmsLazyRemove(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
+    val jtms = Jtms(network, random)
+    jtms.recordStatusSeq = false
+    jtms.recordChoiceSeq = false
 
-    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
+    config.configure().withJtms().withPolicy(LazyRemovePolicy(jtms)).start()
   }
 
-  def greedyTmsIncremental(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = new JtmsGreedy(network, random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
+  def jtmsIncremental(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
+    val jtms = Jtms(network, random)
+    jtms.recordStatusSeq = false
+    jtms.recordChoiceSeq = false
 
-    config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
-  }
-
-  def doyleTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
-    val tms = new JtmsDoyle(network, random)
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def incrementalTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork, random: Random) = {
-    val tms = new JtmsDoyle(network, random)
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-    tms.doSelfSupportCheck = false
-    tms.doConsistencyCheck = false
-    config.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
+    //TODO hb ".withIncremental" should not be needed
+    config.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(jtms)).withIncremental().start()
   }
 
 
+  //TODO hb "use.use.."?
   def clingoPush(config: EngineEvaluationConfiguration) = {
     config.configure().withClingo().use().usePush().start()
   }
 
+  //TODO hb "use.use.."?
   def clingoPull(config: EngineEvaluationConfiguration) = {
     config.configure().withClingo().use().usePull().start()
   }

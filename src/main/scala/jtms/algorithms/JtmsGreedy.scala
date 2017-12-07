@@ -10,16 +10,16 @@ import scala.util.Random
 object JtmsGreedy {
 
   def apply(P: NormalProgram): JtmsGreedy = {
-    val jtms = new JtmsGreedy(new OptimizedNetwork())
+    val jtms = new JtmsGreedy()
     P.rules foreach jtms.add
     jtms
   }
 
-  def apply(): JtmsGreedy = new JtmsGreedy(TruthMaintenanceNetwork())
+  def apply(): JtmsGreedy = new JtmsGreedy()
 
 }
 
-class JtmsGreedy(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsAbstraction(network, random) {
+class JtmsGreedy(override val network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), override val random: Random = new Random()) extends Jtms(network, random) {
 
   var prevModel = network.inAtoms
 

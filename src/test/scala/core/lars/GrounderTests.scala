@@ -4,7 +4,7 @@ import core._
 import core.asp._
 import core.grounding.{Grounding, LarsGrounding}
 import iclp.evaluation.Util._
-import jtms.algorithms.JtmsDoyleHeuristics
+import jtms.Jtms
 import org.scalatest.FunSuite
 import runner.Load
 import runner.Load._
@@ -14,7 +14,7 @@ import runner.Load._
   */
 class GrounderTests extends FunSuite {
 
-  def jtmsInst(P: NormalProgram): JtmsDoyleHeuristics = JtmsDoyleHeuristics(P)
+  def jtmsInst(P: NormalProgram): Jtms = Jtms(P)
 
   def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
   def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)

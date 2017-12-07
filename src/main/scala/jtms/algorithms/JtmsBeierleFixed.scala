@@ -12,10 +12,10 @@ import scala.util.Random
   */
 object JtmsBeierleFixed {
 
-  def apply() = new JtmsBeierleFixed(TruthMaintenanceNetwork())
+  def apply() = new JtmsBeierleFixed()
 
   def apply(P: NormalProgram): JtmsBeierleFixed = {
-    val jtms = new JtmsBeierleFixed(TruthMaintenanceNetwork())
+    val jtms = new JtmsBeierleFixed()
     P.rules foreach jtms.add
     jtms
   }
@@ -30,7 +30,7 @@ object JtmsBeierleFixed {
   * but fixes some bugs.
   *
   */
-class JtmsBeierleFixed(network: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsBeierle(network, random) {
+class JtmsBeierleFixed(network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random()) extends JtmsBeierle(network, random) {
 
   override def update(L: Predef.Set[Atom]) {
     //try {

@@ -12,18 +12,18 @@ import scala.collection.mutable
 /**
   * Created by FM on 12.06.16.
   */
-case class LazyRemovePolicy(tms: Jtms = Jtms(), laziness: Duration = 0) extends TmsPolicy {
+case class LazyRemovePolicy(jtms: Jtms = Jtms(), laziness: Duration = 0) extends JtmsPolicy {
 
   val markedForDelete: mutable.Map[TimePoint, Set[NormalRule]] = mutable.Map()
   val reverseDeleteMap: mutable.Map[NormalRule, TimePoint] = mutable.Map()
 
-  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => tms.add(x))
+  override def initialize(groundRules: Seq[NormalRule]) = groundRules foreach (x => jtms.add(x))
 
   override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = {
     rules foreach markAsDeleted(timePoint)
   }
 
-  override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
+  override def getModel(timePoint: TimePoint): Result = Result(jtms.getModel())
 
   override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = {
     val markedAsDeleteEntries = reverseDeleteMap filter { case (rule, _) => rules contains rule }
@@ -31,7 +31,7 @@ case class LazyRemovePolicy(tms: Jtms = Jtms(), laziness: Duration = 0) extends 
     markedAsDeleteEntries foreach { case (rule, timePoint) => unmarkAsDeleted(rule, timePoint) }
 
     val newRules = rules filterNot markedAsDeleteEntries.contains
-    newRules foreach (x => tms.add(x))
+    newRules foreach (x => jtms.add(x))
 
     removeExpiredRules(timePoint)
   }
@@ -61,7 +61,7 @@ case class LazyRemovePolicy(tms: Jtms = Jtms(), laziness: Duration = 0) extends 
     expiredTimePoints.foreach(t => {
       val rules = markedForDelete.remove(t).get
       rules foreach (r => {
-        tms.remove(r)
+        jtms.remove(r)
         reverseDeleteMap remove (r)
       })
     })

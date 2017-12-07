@@ -31,7 +31,7 @@ class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtu
   val defaultEngine = (p: LarsProgram) => BuildEngine.
     withProgram(p).
     configure().
-    withTms().
+    withJtms().
     withPolicy(LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random(1)), 10)).
     start()
 

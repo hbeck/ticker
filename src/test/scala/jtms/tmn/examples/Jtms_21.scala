@@ -12,17 +12,15 @@ class Jtms_21 extends JtmsSpec {
   val j7 = AspRule(N_contr, Set(b), Set(c))
 
   def JTMS_DDB = {
-    val tmn = JTMS
-
-    tmn.add(j7)
-
-    tmn
+    val jtms = jtmsSpec
+    jtms.add(j7)
+    jtms
   }
 
   def JTMS_DDB_addA = {
-    val tmn = JTMS_DDB
-    tmn.add(AspFact(a))
-    tmn
+    val jtms = JTMS_DDB
+    jtms.add(AspFact(a))
+    jtms
   }
 
   "The model" should "be inconsistent" in {

@@ -4,7 +4,6 @@ import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import jtms._
-import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
 /**
@@ -24,11 +23,7 @@ class JtmsSpec extends FlatSpec with AtomTestFixture{
 
   val program = AspProgram(j1, j2, j3, j4a, j4b, j5, j6)
 
+  def jtmsSpec = Jtms(program)
 
-  def JTMS = {
-    val tmn = JtmsDoyle(program)
-
-    tmn
-  }
 }
 

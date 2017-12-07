@@ -3,15 +3,14 @@ package engine.config
 import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.Atom
 import core.lars.{EngineTimeUnit, LarsProgram}
-import engine.{AtomResultFilter, EvaluationEngine, EvaluationEngineWithResultFilter}
 import engine.asp._
 import engine.asp.oneshot._
-import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, TmsPolicy}
+import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, JtmsPolicy}
 import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
+import engine.{AtomResultFilter, EvaluationEngine, EvaluationEngineWithResultFilter}
 import jtms.Jtms
-import jtms.algorithms.JtmsDoyle
 import jtms.networks.OptimizedNetwork
 
 import scala.concurrent.duration._
@@ -21,7 +20,7 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
+  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program) //TODO hb why evaluation?
 }
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
@@ -39,17 +38,17 @@ case class ReasoningStrategyConfiguration(program: LarsProgram, withTickSize: En
 
   def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
 
-  def withTms(): TmsConfiguration = TmsConfiguration(aspMapped)
+  def withJtms(): JtmsConfiguration = JtmsConfiguration(aspMapped)
 
 }
 
-case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: TmsPolicy = LazyRemovePolicy(new JtmsDoyle(new OptimizedNetwork(), new Random))) {
+case class JtmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: JtmsPolicy = ImmediatelyAddRemovePolicy()) {
 
-  def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(new JtmsDoyle(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = JtmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(Jtms(new OptimizedNetwork(), random)))
 
-  def useTms(jtms: Jtms) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
+  def useJtms(jtms: Jtms) = JtmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
-  def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
+  def withPolicy(jtmsPolicy: JtmsPolicy) = JtmsConfiguration(larsProgramEncoding, jtmsPolicy)
 
   def withIncremental() = StartableEngineConfiguration(
     IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy),
@@ -58,8 +57,8 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 
 }
 
-object TmsConfiguration {
-  implicit def toEvaluationModeConfig(config: TmsConfiguration): StartableEngineConfiguration =
+object JtmsConfiguration {
+  implicit def toEvaluationModeConfig(config: JtmsConfiguration): StartableEngineConfiguration =
     StartableEngineConfiguration(
       IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
       config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals

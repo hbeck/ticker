@@ -185,7 +185,7 @@ object Program {
 
       val startableEngine = reasoner match {
         case Reasoner.Ticker =>
-          engineBuilder.configure().withTms().withIncremental()
+          engineBuilder.configure().withJtms().withIncremental()
         case Reasoner.Clingo => outputEvery match {
           case Time(_) => engineBuilder.configure().withClingo().use().usePull()
           case _ => engineBuilder.configure().withClingo().use().usePush()

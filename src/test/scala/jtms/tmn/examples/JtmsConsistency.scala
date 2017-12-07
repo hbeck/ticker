@@ -3,9 +3,10 @@ package jtms.tmn.examples
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom, Predicate}
 import jtms._
-import jtms.algorithms.JtmsDoyle
 import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
+
+import scala.util.Random
 
 /**
   * Created by hb on 12.03.16.
@@ -43,14 +44,14 @@ class JtmsConsistency extends FunSuite {
 
   test("a :- not b. then b.") {
 
-    val tmn = JtmsDoyle()
-    tmn.add(AspRule(a,none,Set(b)))
-    var model = tmn.getModel.get
+    val jtms = Jtms()
+    jtms.add(AspRule(a,none,Set(b)))
+    var model = jtms.getModel.get
     assert(model.size == 1)
     assert(model contains a)
 
-    tmn.add(AspRule(b,none,none))
-    model = tmn.getModel.get
+    jtms.add(AspRule(b,none,none))
+    model = jtms.getModel.get
     assert(model.size == 1)
     assert(model contains b)
 
@@ -58,125 +59,125 @@ class JtmsConsistency extends FunSuite {
 
   test("a :- not b. b :- not a.  b.") {
 
-    val tmn = JtmsDoyle()
-    tmn.add(AspRule(a,none,Set(b)))
-    tmn.add(AspRule(b,none,Set(a)))
-    var model = tmn.getModel.get
+    val jtms = Jtms()
+    jtms.add(AspRule(a,none,Set(b)))
+    jtms.add(AspRule(b,none,Set(a)))
+    var model = jtms.getModel.get
     assert(model == Set(a))
 
-    tmn.add(AspRule(b,none,none))
-    model = tmn.getModel.get
+    jtms.add(AspRule(b,none,none))
+    model = jtms.getModel.get
     assert(model == Set(b))
 
   }
 
   test("P1: a :- not b.  b :- not a.  n :- a.") {
     for (i <- 1 to times) {
-      val tmn = JtmsDoyle()
-      tmn.add(AspRule(a, none, Set(b)))
-      tmn.add(AspRule(b, none, Set(a))) //-> {a}
+      val jtms = Jtms()
+      jtms.add(AspRule(a, none, Set(b)))
+      jtms.add(AspRule(b, none, Set(a))) //-> {a}
 
-      var model = tmn.getModel.get
+      var model = jtms.getModel.get
       assert(model == Set(a))
 
-      tmn.add(AspRule(n, a))
-      model = tmn.getModel.get
+      jtms.add(AspRule(n, a))
+      model = jtms.getModel.get
       assert(model == Set(b))
     }
   }
 
   test("P2: b :- not a.  n :- b, not c.") { //JTMS_21 base case
     for (i <- 1 to times) {
-      val tmn0 = JtmsDoyle()
+      val jtms0 = Jtms()
 
-      tmn0.add(AspRule(n, Set(b), Set(c)))
-      assert(tmn0.getModel.get == Set[Atom]())
+      jtms0.add(AspRule(n, Set(b), Set(c)))
+      assert(jtms0.getModel.get == Set[Atom]())
 
-      tmn0.add(AspRule(b, none, Set(a)))
-      assert(tmn0.getModel.get == Set(a)) //diff to ASP, which has None
+      jtms0.add(AspRule(b, none, Set(a)))
+      assert(jtms0.getModel.get == Set(a)) //diff to ASP, which has None
 
-      val tmn1 = JtmsDoyle()
+      val jtms1 = Jtms()
 
-      tmn1.add(AspRule(b, none, Set(a)))
-      assert(tmn1.getModel.get == Set(b))
+      jtms1.add(AspRule(b, none, Set(a)))
+      assert(jtms1.getModel.get == Set(b))
 
-      tmn1.add(AspRule(n, Set(b), Set(c)))
-      assert(tmn1.getModel.get == Set(a)) //diff to ASP, which has None
+      jtms1.add(AspRule(n, Set(b), Set(c)))
+      assert(jtms1.getModel.get == Set(a)) //diff to ASP, which has None
     }
   }
 
   test("P3: a :- c.  c :- a.  b :- not a.  n :- b, not c.") {
     for (i <- 1 to times) {
-      val tmn = JtmsDoyle()
-      tmn.add(AspRule(a, c))
+      val jtms = Jtms()
+      jtms.add(AspRule(a, c))
 
-      assert(tmn.getModel.get.isEmpty)
+      assert(jtms.getModel.get.isEmpty)
 
-      tmn.add(AspRule(c, a))
-      assert(tmn.getModel.get.isEmpty)
+      jtms.add(AspRule(c, a))
+      assert(jtms.getModel.get.isEmpty)
 
-      tmn.add(AspRule(b, none, Set(a)))
-      assert(tmn.getModel.get.size == 1)
-      assert(tmn.getModel.get contains b)
+      jtms.add(AspRule(b, none, Set(a)))
+      assert(jtms.getModel.get.size == 1)
+      assert(jtms.getModel.get contains b)
 
-      tmn.add(AspRule(n, Set(b), Set(c)))
-      assert(tmn.getModel.get == Set(a,c)) //diff to ASP, which has None
+      jtms.add(AspRule(n, Set(b), Set(c)))
+      assert(jtms.getModel.get == Set(a,c)) //diff to ASP, which has None
     }
   }
 
   test("P4:  a :- c.  c :- a.  b :- not a.  n :- b, not c.  a.") {
     for (i <- 1 to times) {
-      val tmnBefore = JtmsDoyle()
-      tmnBefore.add(AspRule(a, c)) //{}
-      tmnBefore.add(AspRule(c, a)) //{}
-      tmnBefore.add(AspRule(b, none, Set(a))) //{b}
+      val jtmsBefore = Jtms()
+      jtmsBefore.add(AspRule(a, c)) //{}
+      jtmsBefore.add(AspRule(c, a)) //{}
+      jtmsBefore.add(AspRule(b, none, Set(a))) //{b}
       //
-      tmnBefore.add(AspRule(a,none,none)) //{a,c}
-      assert(tmnBefore.getModel.get == Set[Atom](a,c))
-      tmnBefore.add(AspRule(n, Set(b), Set(c))) //{a,c}
-      assert(tmnBefore.getModel.get == Set[Atom](a,c))
+      jtmsBefore.add(AspRule(a,none,none)) //{a,c}
+      assert(jtmsBefore.getModel.get == Set[Atom](a,c))
+      jtmsBefore.add(AspRule(n, Set(b), Set(c))) //{a,c}
+      assert(jtmsBefore.getModel.get == Set[Atom](a,c))
 
 
-      val tmnAfter = JtmsDoyle()
-      tmnAfter.add(AspRule(a, c)) //{}
-      tmnAfter.add(AspRule(c, a)) //{}
-      tmnAfter.add(AspRule(b, none, Set(a))) //{b}
+      val jtmsAfter = Jtms()
+      jtmsAfter.add(AspRule(a, c)) //{}
+      jtmsAfter.add(AspRule(c, a)) //{}
+      jtmsAfter.add(AspRule(b, none, Set(a))) //{b}
       //
-      tmnAfter.add(AspRule(n, Set(b), Set(c))) //None
-      assert(tmnAfter.getModel.get == Set(a,c)) //diff to ASP, which has none
-      tmnAfter.add(AspRule(a,none,none)) //{a,c}
-      assert(tmnAfter.getModel.get == Set[Atom](a,c))
+      jtmsAfter.add(AspRule(n, Set(b), Set(c))) //None
+      assert(jtmsAfter.getModel.get == Set(a,c)) //diff to ASP, which has none
+      jtmsAfter.add(AspRule(a,none,none)) //{a,c}
+      assert(jtmsAfter.getModel.get == Set[Atom](a,c))
 
     }
   }
 
   //inconsistent
   test(":- not a") {
-    val tmn = JtmsDoyle()
-    tmn.add(AspRule(n,none,Set(a)))
-    assert(tmn.getModel == None)
+    val jtms = Jtms()
+    jtms.add(AspRule(n,none,Set(a)))
+    assert(jtms.getModel == None)
   }
 
   //inconsistent
   test("a. :- a.") {
-    val tmn = JtmsDoyle()
-    tmn.add(AspFact(a))
-    tmn.add(AspRule(n,a))
-    assert(tmn.getModel == None)
+    val jtms = Jtms()
+    jtms.add(AspFact(a))
+    jtms.add(AspRule(n,a))
+    assert(jtms.getModel == None)
   }
 
   //consistent: 'inactive' odd loop
   test("a. a :- not a.") {
 
-    val tmnFactFirst = JtmsDoyle()
-    tmnFactFirst.add(AspFact(a))
-    tmnFactFirst.add(AspRule(a,Set(),Set(a)))
-    assert(tmnFactFirst.getModel.get == Set(a))
+    val jtmsFactFirst = Jtms()
+    jtmsFactFirst.add(AspFact(a))
+    jtmsFactFirst.add(AspRule(a,Set(),Set(a)))
+    assert(jtmsFactFirst.getModel.get == Set(a))
 
-    val tmnRuleFirst = JtmsDoyle()
-    tmnRuleFirst.add(AspRule(a,Set(),Set(a)))
-    tmnRuleFirst.add(AspFact(a))
-    assert(tmnRuleFirst.getModel.get == Set(a))
+    val jtmsRuleFirst = Jtms()
+    jtmsRuleFirst.add(AspRule(a,Set(),Set(a)))
+    jtmsRuleFirst.add(AspFact(a))
+    assert(jtmsRuleFirst.getModel.get == Set(a))
   }
 
   //inconsistent: direct odd loop
@@ -222,61 +223,61 @@ class JtmsConsistency extends FunSuite {
   test("even loop. a :- b not. b :- not c. c :- not d. d :- not a.") { //{a,c} or {b,d}
 
     for (i <- 1 to times) {
-      val tmn = JtmsDoyle()
-      tmn.add(AspRule(a, none, Set(b)))
-      tmn.add(AspRule(b, none, Set(c)))
-      tmn.add(AspRule(c, none, Set(d)))
-      tmn.add(AspRule(d, none, Set(c)))
-      assert(tmn.getModel.get == Set(a,c))
+      val jtms = Jtms()
+      jtms.add(AspRule(a, none, Set(b)))
+      jtms.add(AspRule(b, none, Set(c)))
+      jtms.add(AspRule(c, none, Set(d)))
+      jtms.add(AspRule(d, none, Set(c)))
+      assert(jtms.getModel.get == Set(a,c))
 
-      //tmn.add(Rule(n,Set(a)))
-      //assert(tmn.getModel.get == Set[Atom](b,c)) //ASP would be {b,d} !!
+      //jtms.add(Rule(n,Set(a)))
+      //assert(jtms.getModel.get == Set[Atom](b,c)) //ASP would be {b,d} !!
     }
   }
 
 
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
-    val tmn1 = JtmsDoyle()
-    tmn1.add(AspRule(a,b))
-    tmn1.add(AspRule(b,none,Set(c)))
-    assert(tmn1.getModel.get == Set(a,b))
+    val jtms1 = Jtms()
+    jtms1.add(AspRule(a,b))
+    jtms1.add(AspRule(b,none,Set(c)))
+    assert(jtms1.getModel.get == Set(a,b))
 
-    tmn1.add(AspRule(c,none,Set(a)))
-    assert(tmn1.getModel.get == Set(a,b))
+    jtms1.add(AspRule(c,none,Set(a)))
+    assert(jtms1.getModel.get == Set(a,b))
 
-    tmn1.add(AspRule(n,c)) //:- c
+    jtms1.add(AspRule(n,c)) //:- c
     //force other
-    assert(tmn1.getModel.get == Set(a,b))
+    assert(jtms1.getModel.get == Set(a,b))
 
     //other insertion order of last two
-    val tmn2 = JtmsDoyle()
-    tmn2.add(AspRule(a,b)) //a :- b
-    tmn2.add(AspRule(c,none,Set(a))) //c :- not a
-    assert(tmn2.getModel.get == Set(c)) //{c}
+    val jtms2 = Jtms()
+    jtms2.add(AspRule(a,b)) //a :- b
+    jtms2.add(AspRule(c,none,Set(a))) //c :- not a
+    assert(jtms2.getModel.get == Set(c)) //{c}
 
-    tmn2.add(AspRule(b,none,Set(c))) // b :- not c
-    assert(tmn2.getModel.get == Set(c)) //{c} (or {a,b})
+    jtms2.add(AspRule(b,none,Set(c))) // b :- not c
+    assert(jtms2.getModel.get == Set(c)) //{c} (or {a,b})
 
-    tmn2.add(AspRule(n,c)) //:- c
+    jtms2.add(AspRule(n,c)) //:- c
     //force other
-    assert(tmn2.getModel.get == Set(a,b))
+    assert(jtms2.getModel.get == Set(a,b))
 
   }
 
   test("P6. a :- b.  b :- not c.  c :- not a.  n :- a.") {
 
     val net1 = new OptimizedNetwork()
-    val update = new JtmsDoyle(net1)
+    val jtms1 = Jtms(net1,new Random())
 
-    update.add(AspRule(a,b)) //a :- b
-    assert(update.getModel.get == Set())
+    jtms1.add(AspRule(a,b)) //a :- b
+    assert(jtms1.getModel.get == Set())
 
-    update.add(AspRule(b,none,Set(c))) //b :- not c
-    assert(update.getModel.get == Set(a,b))
+    jtms1.add(AspRule(b,none,Set(c))) //b :- not c
+    assert(jtms1.getModel.get == Set(a,b))
 
-    update.add(AspRule(c,none,Set(a))) //c :- not a
-    assert(update.getModel.get == Set(a,b))
+    jtms1.add(AspRule(c,none,Set(a))) //c :- not a
+    assert(jtms1.getModel.get == Set(a,b))
 
     assert(net1.supp(a)==Set(b))
     assert(net1.supp(b)==Set(c))
@@ -312,20 +313,20 @@ class JtmsConsistency extends FunSuite {
 //    assert(net1.foundations(x) == Set(a,b,c))
 //    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
 
-    update.add(AspRule(n,Set(a,b))) //:- a,b
+    jtms1.add(AspRule(n,Set(a,b),none)) //:- a,b
     //force other
-    assert(update.getModel.get == Set(c))
+    assert(jtms1.getModel.get == Set(c))
 
     //TODO
     //other insertion order
     val net2 = new OptimizedNetwork()
-    val update2 = new JtmsDoyle(net2)
+    val update2 = Jtms(net2, new Random())
 
     update2.add(AspRule(a,b)) //a :- b
     update2.add(AspRule(b,none,Set(c))) // b :- not c  => {a,b}
     assert(update2.getModel.get == Set(a,b)) //{a,b}
 
-    update2.add(AspRule(n,Set(a,b))) //:- a,b
+    update2.add(AspRule(n,Set(a,b),none)) //:- a,b
     assert(update2.getModel == None)
 
     update2.add(AspRule(c,none,Set(a))) //c :- not a
@@ -334,24 +335,24 @@ class JtmsConsistency extends FunSuite {
   }
 
   test("doyle time room") {
-    val tmn = JtmsDoyle()
-    tmn.add(AspRule(t1,none,Set(t2)))
-    tmn.add(AspRule(r1,none,Set(r2)))
-    assert(tmn.getModel.get == Set(t1,r1))
+    val jtms = Jtms()
+    jtms.add(AspRule(t1,none,Set(t2)))
+    jtms.add(AspRule(r1,none,Set(r2)))
+    assert(jtms.getModel.get == Set(t1,r1))
 
-    tmn.add(AspRule(n,Set(t1,r1)))
-    assert(tmn.getModel.get == Set(t1,r2)) //not an answer set!
+    jtms.add(AspRule(n,Set(t1,r1),none))
+    assert(jtms.getModel.get == Set(t1,r2)) //not an answer set!
   }
 
   test("elkan p228") {
-    val tmn = JtmsDoyle()
-    tmn.add(AspRule(f,none,Set(a,c)))
-    tmn.add(AspRule(b,none,Set(a)))
-    tmn.add(AspRule(a,none,Set(b)))
-    assert(tmn.getModel.get == Set(b,f))
+    val jtms = Jtms()
+    jtms.add(AspRule(f,none,Set(a,c)))
+    jtms.add(AspRule(b,none,Set(a)))
+    jtms.add(AspRule(a,none,Set(b)))
+    assert(jtms.getModel.get == Set(b,f))
 
-    tmn.add(AspRule(n,f))
-    assert(tmn.getModel.get == Set(a))
+    jtms.add(AspRule(n,f))
+    assert(jtms.getModel.get == Set(a))
   }
 
 }

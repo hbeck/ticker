@@ -9,12 +9,12 @@ import scala.util.Random
 object JtmsDoyle {
 
   def apply(P: NormalProgram): JtmsDoyle = {
-    val jtms = new JtmsDoyle(TruthMaintenanceNetwork())
+    val jtms = new JtmsDoyle()
     P.rules foreach jtms.add
     jtms
   }
 
-  def apply(): JtmsDoyle = new JtmsDoyle(TruthMaintenanceNetwork())
+  def apply(): JtmsDoyle = new JtmsDoyle()
 
 }
 
@@ -27,7 +27,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsAbstraction(network, random) {
+class JtmsDoyle(override val network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), override val random: Random = new Random()) extends Jtms(network, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

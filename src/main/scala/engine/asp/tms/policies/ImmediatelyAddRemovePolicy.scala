@@ -8,7 +8,7 @@ import jtms.Jtms
 /**
   * Created by FM on 12.06.16.
   */
-case class ImmediatelyAddRemovePolicy(tms: Jtms = Jtms()) extends TmsPolicy {
+case class ImmediatelyAddRemovePolicy(tms: Jtms = Jtms()) extends JtmsPolicy {
 
   override def initialize(rules: Seq[NormalRule]) = rules foreach (tms.add(_))
 

@@ -7,7 +7,7 @@ import engine.Result
 /**
   * Created by FM on 12.06.16.
   */
-trait TmsPolicy {
+trait JtmsPolicy {
   def initialize(rules: Seq[NormalRule])
 
   def add(timePoint: TimePoint)(rules: Seq[NormalRule])

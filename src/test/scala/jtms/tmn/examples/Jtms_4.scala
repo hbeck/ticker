@@ -1,20 +1,20 @@
 package jtms.tmn.examples
 
 import jtms.tmn.AtomValidation
-import jtms.{in, out}
+import jtms.{Jtms, in, out}
 
 /**
   * Created by FM on 05.02.16.
   */
 class Jtms_4 extends JtmsSpec with AtomValidation {
 
-  val tmn = {
-    val tmn = JTMS
-    tmn.set(Set(e, b, d))
-    tmn
+  val jtms = {
+    val jtms = Jtms()
+    jtms.set(Set(e, b, d))
+    jtms
   }
 
-  "Atom A" must behave like   atomValidation(tmn, a) { validator =>
+  "Atom A" must behave like atomValidation(jtms, a) { validator =>
     validator.state(out)
     validator.Rules(j1)
     validator.SJ(None)
@@ -27,7 +27,7 @@ class Jtms_4 extends JtmsSpec with AtomValidation {
     validator.Foundations()
   }
 
-  "Atom B" must behave like atomValidation(tmn, b) { validator =>
+  "Atom B" must behave like atomValidation(jtms, b) { validator =>
     validator.state(in)
     validator.Rules(j2)
     validator.SJ(Some(j2))
@@ -40,7 +40,7 @@ class Jtms_4 extends JtmsSpec with AtomValidation {
     validator.Foundations(a)
   }
 
-  "Atom C" must behave like atomValidation(tmn, c) { validator =>
+  "Atom C" must behave like atomValidation(jtms, c) { validator =>
     validator.state(out)
     validator.Rules(j3)
     validator.SJ(None)
@@ -53,7 +53,7 @@ class Jtms_4 extends JtmsSpec with AtomValidation {
     validator.Foundations()
   }
 
-  "Atom D" must behave like atomValidation(tmn, d) { validator =>
+  "Atom D" must behave like atomValidation(jtms, d) { validator =>
     validator.state(in)
     validator.Rules(j4a,j4b)
     validator.SJ(Some(j4a))
@@ -66,7 +66,7 @@ class Jtms_4 extends JtmsSpec with AtomValidation {
     validator.Foundations(b, a)
   }
 
-  "Atom E" must behave like atomValidation(tmn, e) { validator =>
+  "Atom E" must behave like atomValidation(jtms, e) { validator =>
     validator.state(in)
     validator.Rules(j5)
     validator.SJ(Some(j5))
@@ -79,7 +79,7 @@ class Jtms_4 extends JtmsSpec with AtomValidation {
     validator.Foundations()
   }
 
-  "Atom F" must behave like atomValidation(tmn, f) { validator =>
+  "Atom F" must behave like atomValidation(jtms, f) { validator =>
     validator.state(out)
     validator.Rules(j6)
     validator.SJ(None)

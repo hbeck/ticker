@@ -9,19 +9,19 @@ import scala.util.Random
 object JtmsDoyleHeuristics {
 
   def apply(P: NormalProgram): JtmsDoyleHeuristics = {
-    val jtms = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+    val jtms = new JtmsDoyleHeuristics()
     P.rules foreach jtms.add
     jtms
   }
 
-  def apply(): JtmsDoyleHeuristics = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+  def apply(): JtmsDoyleHeuristics = new JtmsDoyleHeuristics()
 
 }
 
 /**
   * Created by hb on 12.04.17. Doyle with additional Heuristics
   */
-class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork, override val random: Random = new Random()) extends JtmsDoyle(network,random) {
+class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), override val random: Random = new Random()) extends JtmsDoyle(network,random) {
 
   var prevModel = network.inAtoms
 

@@ -134,7 +134,7 @@ object LarsEvaluation {
         case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
         case _ => {
           tms = config.makeTms(instance.random)
-          builder.configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
+          builder.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
         }
       }
 

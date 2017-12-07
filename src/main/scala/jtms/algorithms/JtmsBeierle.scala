@@ -11,7 +11,7 @@ import scala.util.Random
 object JtmsBeierle {
 
   def apply(P: NormalProgram): JtmsBeierle = {
-    val tmn = new JtmsBeierle(TruthMaintenanceNetwork(), new Random())
+    val tmn = new JtmsBeierle()
     P.rules foreach tmn.add
     tmn
   }
@@ -27,7 +27,7 @@ object JtmsBeierle {
   *
   * Created by hb on 12/22/15; 03/25/16
   */
-class JtmsBeierle(val network: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsAbstraction(network, random) {
+class JtmsBeierle(override val network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), override val random: Random = new Random()) extends Jtms(network, random) {
 
   var shuffle = true //debugging
 

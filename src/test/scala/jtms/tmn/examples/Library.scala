@@ -4,7 +4,6 @@ import clingo.ClingoEvaluation
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import jtms._
-import jtms.algorithms.JtmsDoyle
 import jtms.asp.examples.EvaluateJtmsImplementations
 import jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
@@ -102,9 +101,9 @@ class Library extends FlatSpec with LibraryBehavior with EvaluateJtmsImplementat
 
 class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBehavior {
 
-  def Tmn = JtmsDoyle(program)
+  def jtms = Jtms(program)
 
-  "Atom V" must behave like atomValidation(Tmn, V) { validator =>
+  "Atom V" must behave like atomValidation(jtms, V) { validator =>
     validator.state(in)
     validator.Rules(j1)
     validator.SJ(Some(j1))
@@ -117,7 +116,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions(P, A)
   }
 
-  "Atom P" must behave like atomValidation(Tmn, P) { validator =>
+  "Atom P" must behave like atomValidation(jtms, P) { validator =>
     validator.state(in)
     validator.Rules(j2)
     validator.SJ(Some(j2))
@@ -130,7 +129,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions(A)
   }
 
-  "Atom A" must behave like atomValidation(Tmn, A) { validator =>
+  "Atom A" must behave like atomValidation(jtms, A) { validator =>
     validator.state(in)
     validator.Rules(j5)
     validator.SJ(Some(j5))
@@ -143,7 +142,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions()
   }
 
-  "Atom F" must behave like atomValidation(Tmn, F) { validator =>
+  "Atom F" must behave like atomValidation(jtms, F) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -155,7 +154,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.ACons(P, P_not)
     validator.Repercussions(P, A, P_not, Falsum)
   }
-  "Atom G" must behave like atomValidation(Tmn, G) { validator =>
+  "Atom G" must behave like atomValidation(jtms, G) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -169,7 +168,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
   }
 
 
-  "Atom H" must behave like atomValidation(Tmn, H) { validator =>
+  "Atom H" must behave like atomValidation(jtms, H) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -181,7 +180,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.ACons(A, A_not)
     validator.Repercussions(A, A_not, Falsum)
   }
-  "Atom N" must behave like atomValidation(Tmn, N) { validator =>
+  "Atom N" must behave like atomValidation(jtms, N) { validator =>
     validator.state(out)
     validator.Rules()
     validator.SJ(None)
@@ -194,7 +193,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions(A, A_not, Falsum)
   }
 
-  "Atom P_not" must behave like atomValidation(Tmn, P_not) { validator =>
+  "Atom P_not" must behave like atomValidation(jtms, P_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j3, j4)
@@ -207,7 +206,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions(Falsum)
   }
 
-  "Atom A_not" must behave like atomValidation(Tmn, A_not) { validator =>
+  "Atom A_not" must behave like atomValidation(jtms, A_not) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j8, j7)
@@ -220,7 +219,7 @@ class LibraryAtomValidation extends FlatSpec with AtomValidation with LibraryBeh
     validator.Repercussions(Falsum)
   }
 
-  "Atom N_cont" must behave like atomValidation(Tmn, Falsum) { validator =>
+  "Atom N_cont" must behave like atomValidation(jtms, Falsum) { validator =>
     validator.state(out)
     validator.SJ(None)
     validator.Rules(j6, j9)
