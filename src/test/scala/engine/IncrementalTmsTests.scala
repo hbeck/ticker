@@ -14,16 +14,27 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
 
     val b = Atom(Predicate("b"),Seq(StringVariable("X")))
     val h = Atom(Predicate("h"),Seq(StringVariable("X")))
+    val g = Atom(Predicate("g"),Seq(StringVariable("X")))
+    val gy = Atom(Predicate("g"),Seq(StringValue("y")))
 
+    //h(X) :- win2 D b(X)
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
+      h <= g and WindowAtom(SlidingTimeWindow(2), Diamond, b),
+      gy
     )
+
+    val by = Atom(Predicate("b"),Seq(StringValue("y")))
+    val hy = Atom(Predicate("h"),Seq(StringValue("y")))
+
+
+    println(program)
 
     val engine = defaultEngine(program)
 
     var model = engine.evaluate(TimePoint(0)).model
-    assert(model.size == 0) //
+    assert(model.size == 0) // due to filter on intensional atoms + signals
 
+    //b(y)
     val signal = Atom(Predicate("b"),Seq(StringValue("y")))
 
     engine.append(TimePoint(0))(signal)
@@ -46,6 +57,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     model = engine.evaluate(TimePoint(2)).model
     assert(model contains inference)
 
+    println("evaluate 3 (time incr)")
     model = engine.evaluate(TimePoint(3)).model
     assert(!(model contains inference))
 
@@ -58,42 +70,32 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
     assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("2")))))
     assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("3")))))
 
+    println("evaluate 3 (count incr with b(y))")
     engine.append(TimePoint(3))(signal)
     model = engine.evaluate(TimePoint(3)).model
 
     assert(model contains inference)
     assert(model contains Atom(Predicate("b"),Seq(StringValue("y"))))
-    val bat3 = Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3")))
-    var found = false
-    for (a <- model) {
-      if (a equals bat3) {
-        found = true
-        //println("hash in set:    "+a.hashCode)
-        //println("hash of manual: "+bat3.hashCode)
-      }
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3")))))
+    assert(!(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2")))))
 
-    }
-    assert(found)
-    assert(model contains bat3)
-    assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
-
+    println("evaluate 5")
     model = engine.evaluate(TimePoint(5)).model
 
     assert(model contains inference)
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
-    assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3")))))
+    assert(!(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2")))))
 
+    println("evaluate 6")
     model = engine.evaluate(TimePoint(6)).model
 
     assert(!(model contains inference))
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
-    assert(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3"))))
-    assert(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2"))))
+    assert(!(model contains Atom(Predicate("b_at"),Seq(StringValue("y"),StringValue("3")))))
+    assert(!(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2")))))
 
   }
-
 
   val p = Atom(Predicate("p"))
   val p1 = Atom(Predicate("p1"))

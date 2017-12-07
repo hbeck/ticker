@@ -95,7 +95,6 @@ case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
 
 case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine, restrictTo: Set[Atom]) {
 
-
   def filterTo(restrictTo: Set[Atom]) = StartableEngineConfiguration(evaluationEngine, restrictTo)
 
   def start() = EvaluationEngineWithResultFilter(evaluationEngine, AtomResultFilter(restrictTo))

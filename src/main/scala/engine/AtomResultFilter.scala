@@ -1,6 +1,5 @@
 package engine
 
-import clingo.ClingoEvaluation
 import core._
 import core.lars.TimePoint
 
@@ -23,7 +22,7 @@ case class AtomResultFilter(restrictTo: Set[Atom]) {
 
   val restrictToPredicates = restrictTo.map(_.predicate)
 
-  val fixedAuxiliaryAtomPredicates = asp.specialPinPredicates toSet
+  val fixedAuxiliaryAtomPredicates = asp.specialPinPredicates.toSet
 
   def filter(timePoint: TimePoint, result: Result): Result = {
     result.get match {
@@ -33,9 +32,8 @@ case class AtomResultFilter(restrictTo: Set[Atom]) {
 
         val filteredAfterTime = withoutAuxiliary collect {
           case GroundPinnedAtAtom(atom, t) if t == timePoint => convertAtom(atom)
-          case p: PredicateAtom => p
+          case g: GroundAtom => g
         }
-
 
         val restrictedOnly = filteredAfterTime filter { a => restrictToPredicates.contains(a.predicate) }
 
