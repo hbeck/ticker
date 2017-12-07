@@ -23,7 +23,7 @@ class JtmsSpec extends FlatSpec with AtomTestFixture{
 
   val program = AspProgram(j1, j2, j3, j4a, j4b, j5, j6)
 
-  def jtmsSpec = Jtms(program)
+  def JTMS() = Jtms(program)
 
 }
 

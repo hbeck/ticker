@@ -12,7 +12,7 @@ class Jtms_21 extends JtmsSpec {
   val j7 = AspRule(N_contr, Set(b), Set(c))
 
   def JTMS_DDB = {
-    val jtms = jtmsSpec
+    val jtms = JTMS
     jtms.add(j7)
     jtms
   }

@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
 import jtms.tmn.AtomValidation
-import jtms.{Jtms, in, out}
+import jtms.{in, out}
 
 /**
   * Created by FM on 05.02.16.
@@ -9,7 +9,7 @@ import jtms.{Jtms, in, out}
 class Jtms_4 extends JtmsSpec with AtomValidation {
 
   val jtms = {
-    val jtms = Jtms()
+    val jtms = JTMS()
     jtms.set(Set(e, b, d))
     jtms
   }

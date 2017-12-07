@@ -1,8 +1,9 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom, Predicate}
-import jtms._
+import fixtures.AtomTestFixture
+import jtms.Jtms
 import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 
@@ -11,65 +12,13 @@ import scala.util.Random
 /**
   * Created by hb on 12.03.16.
   */
-class JtmsConsistency extends FunSuite {
-
-  val a = Atom("a")
-  val b = Atom("b")
-  val c = Atom("c")
-  val d = Atom("d")
-//  val e = Atom("e")
-  val f = Atom("f")
-  val t1 = Atom("t1")
-  val t2 = Atom("t2")
-  val r1 = Atom("r1")
-  val r2 = Atom("r2")
-  val x = Atom("x")
+class Constraints extends FunSuite with AtomTestFixture{
 
   val n = ContradictionAtom(Predicate("n"))
 
   val none = Set[Atom]()
 
   val times = 100
-
-  test("a") {
-    val tmn = Jtms()
-    var model = tmn.getModel.get
-    assert(model.isEmpty)
-
-    tmn.add(AspFact(a))
-    model = tmn.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
-  }
-
-  test("a :- not b. then b.") {
-
-    val jtms = Jtms()
-    jtms.add(AspRule(a,none,Set(b)))
-    var model = jtms.getModel.get
-    assert(model.size == 1)
-    assert(model contains a)
-
-    jtms.add(AspRule(b,none,none))
-    model = jtms.getModel.get
-    assert(model.size == 1)
-    assert(model contains b)
-
-  }
-
-  test("a :- not b. b :- not a.  b.") {
-
-    val jtms = Jtms()
-    jtms.add(AspRule(a,none,Set(b)))
-    jtms.add(AspRule(b,none,Set(a)))
-    var model = jtms.getModel.get
-    assert(model == Set(a))
-
-    jtms.add(AspRule(b,none,none))
-    model = jtms.getModel.get
-    assert(model == Set(b))
-
-  }
 
   test("P1: a :- not b.  b :- not a.  n :- a.") {
     for (i <- 1 to times) {
@@ -181,60 +130,44 @@ class JtmsConsistency extends FunSuite {
   }
 
   //inconsistent: direct odd loop
-//  test("a :- not a.") {
-//
-//    val tmn = JtmsRefactored()
-//    tmn.add(Rule(a,Set(),Set(a)))
-//    assert(tmn.getModel == None)
-//
-//  }
+  //  test("a :- not a.") {
+  //
+  //    val tmn = JtmsRefactored()
+  //    tmn.add(Rule(a,Set(),Set(a)))
+  //    assert(tmn.getModel == None)
+  //
+  //  }
 
   //inconsistent: indirect odd loop
-//  test("a :- b. b :- c. c :- not a.") {
-//
-//    for (i <- 1 to times) {
-//      val tmn = TMN()
-//      tmn.add(Rule(a, b))
-//      tmn.add(Rule(b, c))
-//      tmn.add(Rule(c, none, Set(a)))
-//      assert(tmn.getModel == None)
-//
-//      tmn.add(Rule(c))
-//      assert(tmn.getModel.get == Set[Atom](a, b, c))
-//    }
-//  }
+  //  test("a :- b. b :- c. c :- not a.") {
+  //
+  //    for (i <- 1 to times) {
+  //      val tmn = TMN()
+  //      tmn.add(Rule(a, b))
+  //      tmn.add(Rule(b, c))
+  //      tmn.add(Rule(c, none, Set(a)))
+  //      assert(tmn.getModel == None)
+  //
+  //      tmn.add(Rule(c))
+  //      assert(tmn.getModel.get == Set[Atom](a, b, c))
+  //    }
+  //  }
 
   //inconsistent: indirect odd loop
-//  test("a :- b. b :- c. c :- d. d :- not a.") {
-//
-//    for (i <- 1 to times) {
-//      val tmn = TMN()
-//      tmn.add(Rule(a, b))
-//      tmn.add(Rule(b, c))
-//      tmn.add(Rule(c, d))
-//      tmn.add(Rule(d, none, Set(a)))
-//      assert(tmn.getModel == None)
-//
-//      tmn.add(Rule(d))
-//      assert(tmn.getModel.get == Set[Atom](a, b, c, d))
-//    }
-//  }
-
-  test("even loop. a :- b not. b :- not c. c :- not d. d :- not a.") { //{a,c} or {b,d}
-
-    for (i <- 1 to times) {
-      val jtms = Jtms()
-      jtms.add(AspRule(a, none, Set(b)))
-      jtms.add(AspRule(b, none, Set(c)))
-      jtms.add(AspRule(c, none, Set(d)))
-      jtms.add(AspRule(d, none, Set(c)))
-      assert(jtms.getModel.get == Set(a,c))
-
-      //jtms.add(Rule(n,Set(a)))
-      //assert(jtms.getModel.get == Set[Atom](b,c)) //ASP would be {b,d} !!
-    }
-  }
-
+  //  test("a :- b. b :- c. c :- d. d :- not a.") {
+  //
+  //    for (i <- 1 to times) {
+  //      val tmn = TMN()
+  //      tmn.add(Rule(a, b))
+  //      tmn.add(Rule(b, c))
+  //      tmn.add(Rule(c, d))
+  //      tmn.add(Rule(d, none, Set(a)))
+  //      assert(tmn.getModel == None)
+  //
+  //      tmn.add(Rule(d))
+  //      assert(tmn.getModel.get == Set[Atom](a, b, c, d))
+  //    }
+  //  }
 
   test("P5. a :- b.  b :- not c.  c :- not a.  n :- c.") {
 
@@ -304,14 +237,14 @@ class JtmsConsistency extends FunSuite {
     assert(net1.repercussions(b)==Set(a,b,c))
     assert(net1.repercussions(c)==Set(a,b,c))
 
-//    net1.add(Rule(a,d))
-//    assert(net1.cons(d)==Set(a))
-//    assert(net1.aff(d)==Set())
-//    assert(net1.repercussions(d)==Set())
+    //    net1.add(Rule(a,d))
+    //    assert(net1.cons(d)==Set(a))
+    //    assert(net1.aff(d)==Set())
+    //    assert(net1.repercussions(d)==Set())
 
-//    net1.add(Rule(x,Set(a,b)))
-//    assert(net1.foundations(x) == Set(a,b,c))
-//    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
+    //    net1.add(Rule(x,Set(a,b)))
+    //    assert(net1.foundations(x) == Set(a,b,c))
+    //    assert((Set(a,b,c) filter (net1.isAssumption(_))) == Set(b))
 
     jtms1.add(AspRule(n,Set(a,b),none)) //:- a,b
     //force other
@@ -334,6 +267,11 @@ class JtmsConsistency extends FunSuite {
 
   }
 
+  val t1 = Atom("t1")
+  val t2 = Atom("t2")
+  val r1 = Atom("r1")
+  val r2 = Atom("r2")
+
   test("doyle time room") {
     val jtms = Jtms()
     jtms.add(AspRule(t1,none,Set(t2)))
@@ -346,12 +284,12 @@ class JtmsConsistency extends FunSuite {
 
   test("elkan p228") {
     val jtms = Jtms()
-    jtms.add(AspRule(f,none,Set(a,c)))
-    jtms.add(AspRule(b,none,Set(a)))
-    jtms.add(AspRule(a,none,Set(b)))
-    assert(jtms.getModel.get == Set(b,f))
+    jtms.add(AspRule(f, none, Set(a, c)))
+    jtms.add(AspRule(b, none, Set(a)))
+    jtms.add(AspRule(a, none, Set(b)))
+    assert(jtms.getModel.get == Set(b, f))
 
-    jtms.add(AspRule(n,f))
+    jtms.add(AspRule(n, f))
     assert(jtms.getModel.get == Set(a))
   }
 

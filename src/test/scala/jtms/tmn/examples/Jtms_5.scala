@@ -3,7 +3,6 @@ package jtms.tmn.examples
 import common.sets.symmdiff
 import core.Atom
 import core.asp.AspFact
-import jtms.Jtms
 
 /**
   * Created by FM on 06.02.16.
@@ -14,7 +13,7 @@ class Jtms_5 extends JtmsSpec {
 
   var diff: Set[Atom] = Set();
   val jtms = {
-    val jtms = Jtms()
+    val jtms = JTMS()
     jtms.set(Set(e, b, d))
     val m1 = jtms.getModel().get
     jtms.add(j0)
