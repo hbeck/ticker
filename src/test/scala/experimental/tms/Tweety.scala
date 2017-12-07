@@ -1,4 +1,4 @@
-package jtms.tmn.examples
+package experimental.tms
 
 import core._
 import core.asp._

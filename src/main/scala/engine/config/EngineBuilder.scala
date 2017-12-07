@@ -10,7 +10,7 @@ import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
 import engine.{AtomResultFilter, EvaluationEngine, EvaluationEngineWithResultFilter}
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import jtms.networks.OptimizedNetwork
 
 import scala.concurrent.duration._
@@ -20,7 +20,7 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program) //TODO hb why evaluation?
+  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program) //TODO hb why experimental.evaluation?
 }
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {

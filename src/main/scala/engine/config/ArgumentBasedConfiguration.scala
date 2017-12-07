@@ -4,7 +4,8 @@ import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
-import jtms.{Jtms, TruthMaintenanceNetwork}
+import jtms.algorithms.Jtms
+import jtms.networks.TruthMaintenanceNetwork
 
 import scala.util.Random
 

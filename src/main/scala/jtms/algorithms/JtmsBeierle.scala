@@ -5,6 +5,7 @@ import java.util
 import core._
 import core.asp.{AspRuleFromBacktracking, NormalProgram, NormalRule}
 import jtms._
+import jtms.networks.TruthMaintenanceNetwork
 
 import scala.util.Random
 

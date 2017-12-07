@@ -3,8 +3,7 @@ package jtms.asp.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import fixtures.AtomTestFixture
-import jtms.Jtms
-import jtms.algorithms.{JtmsBeierleFixed, JtmsGreedy, JtmsLearn}
+import jtms.algorithms.{Jtms, JtmsBeierleFixed, JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 /**

@@ -1,4 +1,4 @@
-package evaluation.bit
+package experimental.evaluation.bit
 
 import core.grounding.LarsGrounding
 import core.lars._

@@ -24,7 +24,7 @@ class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures 
   )
 
 
-  it should "lead to different evaluation results" in {
+  it should "lead to different experimental.evaluation results" in {
     info("Adding atoms one after another at the same timepoint")
 
     val engine = evaluationEngine

@@ -3,7 +3,8 @@ package jtms.asp
 import core.Atom
 import core.asp.NormalRule
 import jtms.algorithms.JtmsGreedy
-import jtms.{Status, TruthMaintenanceNetwork}
+import jtms.Status
+import jtms.networks.TruthMaintenanceNetwork
 import org.scalatest.FlatSpec
 
 /**

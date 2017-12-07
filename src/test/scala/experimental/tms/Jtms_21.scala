@@ -1,4 +1,4 @@
-package experimental.jtms
+package experimental.tms
 
 import core.asp.{AspFact, AspRule}
 import core.{ContradictionAtom, Predicate}

@@ -11,7 +11,7 @@ sealed trait SlidingWindow[T] extends WindowFunction {
 
 /*
     abstractions for *writing* a LARS program.
-    in contrast, evaluation will be at the level of time points. modelling this could amount to
+    in contrast, experimental.evaluation will be at the level of time points. modelling this could amount to
     sealed trait SlidingWindow[Tick](windowSize: Int) extends WindowFunction
  */
 

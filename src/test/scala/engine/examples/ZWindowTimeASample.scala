@@ -63,11 +63,11 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
 
   //
   //  val clingoBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withClingo().use()
-  //  "Using Clingo-Pull" should behave like evaluation(clingoBaseConfig.usePull().start())
-  //  "Using Clingo-Push" should behave like evaluation(clingoBaseConfig.usePush().start())
+  //  "Using Clingo-Pull" should behave like experimental.evaluation(clingoBaseConfig.usePull().start())
+  //  "Using Clingo-Push" should behave like experimental.evaluation(clingoBaseConfig.usePush().start())
   //
   //  val tmsBaseConfig = BuildEngine.withProgram(larsProgram).useAsp().withTms().use()
-  //  "Using ASP-TMS pull" should behave like evaluation(tmsBaseConfig.usePull().start())
-  //  "Using ASP-TMS Push" should behave like evaluation(tmsBaseConfig.usePush().start())
+  //  "Using ASP-TMS pull" should behave like experimental.evaluation(tmsBaseConfig.usePull().start())
+  //  "Using ASP-TMS Push" should behave like experimental.evaluation(tmsBaseConfig.usePush().start())
 
 }

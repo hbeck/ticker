@@ -2,8 +2,7 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.Jtms
-import jtms.algorithms.JtmsDoyle
+import jtms.algorithms.{Jtms, JtmsDoyle}
 import org.scalatest.FlatSpec
 
 

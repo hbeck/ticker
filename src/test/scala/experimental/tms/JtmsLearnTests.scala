@@ -1,10 +1,10 @@
-package experimental.jtms
+package experimental.tms
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
 import fixtures.AtomTestFixture
 import jtms._
-import jtms.algorithms.{JtmsGreedy, JtmsLearn}
+import jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap

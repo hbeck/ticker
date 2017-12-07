@@ -1,9 +1,9 @@
-package experimental.jtms
+package experimental.tms
 
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom, Predicate}
 import fixtures.AtomTestFixture
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 

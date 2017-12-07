@@ -1,7 +1,6 @@
 package iclp.evaluation
 
-import jtms.Jtms
-import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
+import jtms.algorithms._
 import iclp.evaluation.instances._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 

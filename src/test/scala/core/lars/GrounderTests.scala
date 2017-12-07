@@ -4,7 +4,7 @@ import core._
 import core.asp._
 import core.grounding.{Grounding, LarsGrounding}
 import iclp.evaluation.Util._
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import org.scalatest.FunSuite
 import runner.Load
 import runner.Load._

@@ -1,4 +1,4 @@
-package evaluation
+package experimental.evaluation
 
 import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy

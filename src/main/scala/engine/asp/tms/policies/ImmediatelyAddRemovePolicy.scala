@@ -3,7 +3,7 @@ package engine.asp.tms.policies
 import core.asp._
 import core.lars.TimePoint
 import engine.Result
-import jtms.Jtms
+import jtms.algorithms.Jtms
 
 /**
   * Created by FM on 12.06.16.

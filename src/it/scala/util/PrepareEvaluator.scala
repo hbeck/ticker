@@ -28,7 +28,7 @@ object PrepareEvaluator {
       Console.println(f"Engine: $evaluationType $evaluationStrategy")
       return engine.get
     } else {
-      printUsageAndExit(args, "wrong combination of evaluation-type/modifier specified")
+      printUsageAndExit(args, "wrong combination of experimental.evaluation-type/modifier specified")
       return null
     }
   }

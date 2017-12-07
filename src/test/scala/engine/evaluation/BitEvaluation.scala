@@ -3,8 +3,8 @@ package engine.evaluation
 import iclp.evaluation.Util
 import runner.Load._
 import engine.StreamEntry
-import evaluation._
-import evaluation.bit.BitProgram
+import experimental.evaluation._
+import experimental.evaluation.bit.BitProgram
 import runner.Load
 import util._
 

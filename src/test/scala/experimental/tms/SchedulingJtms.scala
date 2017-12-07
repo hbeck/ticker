@@ -1,8 +1,8 @@
-package experimental.jtms
+package experimental.tms
 
 import core._
 import core.asp.{AspProgram, AspRule}
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import org.scalatest.FlatSpec
 
 /**

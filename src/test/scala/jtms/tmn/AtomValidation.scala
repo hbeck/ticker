@@ -2,7 +2,8 @@ package jtms.tmn
 
 import core.Atom
 import core.asp.NormalRule
-import jtms.{Jtms, Status}
+import jtms.Status
+import jtms.algorithms.Jtms
 import org.scalatest.FlatSpec
 
 /**

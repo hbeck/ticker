@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core.asp.{AspFact, NormalRule}
 import core.{Atom, Predicate}
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import org.scalatest.FlatSpec
 
 /**

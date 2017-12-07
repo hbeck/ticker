@@ -1,7 +1,8 @@
 package jtms.asp
 
 import core.Atom
-import jtms.{ChoiceControl, TruthMaintenanceNetwork$, Jtms}
+import jtms.ChoiceControl
+import jtms.algorithms.Jtms
 
 /**
   * Created by hb on 5/31/16.

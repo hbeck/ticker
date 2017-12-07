@@ -5,8 +5,7 @@ import core.lars._
 import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
 import engine.config.{BuildEngine, StartableEngineConfiguration}
 import engine.{EvaluationEngine, Result}
-
-import jtms.Jtms
+import jtms.algorithms.Jtms
 import util.StatisticResult
 
 import scala.concurrent.duration.Duration

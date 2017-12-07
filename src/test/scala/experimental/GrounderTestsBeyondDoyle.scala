@@ -1,22 +1,23 @@
-package core.lars
+package experimental
 
 import common.Util.printTime
 import core._
 import core.asp._
 import core.grounding.LarsGrounding
+import core.lars.{LarsProgram, LarsRule}
 import iclp.evaluation.Util._
-import jtms.algorithms.JtmsLearn
-import jtms.networks.OptimizedNetworkForLearn
 import org.scalatest.FunSuite
 import runner.Load
 import runner.Load._
+import jtms.algorithms.JtmsLearn
+import jtms.networks.OptimizedNetworkForLearn
 
 import scala.collection.immutable.HashMap
 
 /**
   * Created by hb on 8/23/16.
   */
-class GrounderTestsBeyondJtms extends FunSuite {
+class GrounderTestsBeyondDoyle extends FunSuite {
 
   def ground(p: LarsProgram) = LarsGrounding(p).groundProgram
   def program(rules: LarsRule*): LarsProgram = LarsProgram(rules)

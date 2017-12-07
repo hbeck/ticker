@@ -1,4 +1,4 @@
-package experimental.jtms
+package experimental.tms
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}

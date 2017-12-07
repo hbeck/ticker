@@ -1,8 +1,8 @@
-package jtms
+package jtms.networks
 
 import core._
 import core.asp.NormalRule
-import jtms.networks.OptimizedNetwork
+import jtms.Status
 
 import scala.annotation.tailrec
 import scala.collection.immutable.HashMap

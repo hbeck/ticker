@@ -3,6 +3,7 @@ package jtms.tmn.examples
 import core.Atom
 import core.asp.{AspFact, AspRule}
 import jtms._
+import jtms.algorithms.Jtms
 import org.scalatest.FunSuite
 
 /**

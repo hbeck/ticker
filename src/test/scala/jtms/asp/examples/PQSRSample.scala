@@ -44,12 +44,12 @@ class PQSRSample extends FlatSpec with EvaluateAspImplementations {
   }
 
   //constraints not implemented
-//  def withKillClause(evaluation: Evaluation) = {
+//  def withKillClause(experimental.evaluation: Evaluation) = {
 //    val c = ContradictionAtom(Predicate("c"))
 //    val p = programQFirst + Rule(c, Set(q), Set(r)) //Q first!
 //
 //    it should "generate only one model" in {
-//      val model = evaluation(p)
+//      val model = experimental.evaluation(p)
 //
 //      assert(model contains Set(s))
 //    }

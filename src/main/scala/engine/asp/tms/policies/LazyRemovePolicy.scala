@@ -3,9 +3,7 @@ package engine.asp.tms.policies
 import core.asp._
 import core.lars.{Duration, TimePoint}
 import engine.Result
-import engine.asp.GroundAspRule
-import engine.asp.tms.GroundRule
-import jtms.{TruthMaintenanceNetwork$, Jtms}
+import jtms.algorithms.Jtms
 
 import scala.collection.mutable
 

@@ -72,7 +72,7 @@ object PlainLarsToAspMapper {
 }
 
 /*
-   at this point we have a representation for multiple evaluation modes:
+   at this point we have a representation for multiple experimental.evaluation modes:
    - for one-shot solving, everything is there by ruleEncodings plus the allWindowRules in windowAtomEncoders
    - for incremental solving, we use ruleEncodings + incrementalRulesAt (at every time point)
 

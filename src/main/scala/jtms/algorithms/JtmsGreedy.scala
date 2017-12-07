@@ -3,7 +3,7 @@ package jtms.algorithms
 import core._
 import core.asp.{NormalProgram, NormalRule}
 import jtms._
-import jtms.networks.OptimizedNetwork
+import jtms.networks.{OptimizedNetwork, TruthMaintenanceNetwork}
 
 import scala.util.Random
 

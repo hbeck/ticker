@@ -2,12 +2,12 @@ package jtms.asp.examples
 
 import core.Atom
 import core.asp.{AspFact, AspProgram, AspRule}
+import experimental.tms.TweetyBehavior
 import fixtures.AtomTestFixture
 import jtms.algorithms.JtmsLearn
 import jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 import jtms.in
 import jtms.networks.OptimizedNetworkForLearn
-import jtms.tmn.examples.TweetyBehavior
 import org.scalatest.FlatSpec
 
 /**

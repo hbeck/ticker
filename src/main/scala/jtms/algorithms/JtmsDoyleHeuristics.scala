@@ -2,7 +2,7 @@ package jtms.algorithms
 
 import core.Atom
 import core.asp.{NormalProgram, NormalRule}
-import jtms.TruthMaintenanceNetwork
+import jtms.networks.TruthMaintenanceNetwork
 
 import scala.util.Random
 

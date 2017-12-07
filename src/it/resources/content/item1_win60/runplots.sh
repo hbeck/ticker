@@ -6,7 +6,7 @@ winSize=60
 tmsFile="plot_tms.txt"
 clingoFile="plot_clingo.txt"
 classpath='../../../../../../target/scala-2.11/classes/:../../../../../../out/artifacts/steen_jar/*'
-program=iclp.evaluation.LarsEvaluation
+program=iclp.experimental.evaluation.LarsEvaluation
 timePoints=(100 200 300 400 500 600 700 800 900 1000)
 
 java -cp $classpath $program inst content1 pre $pre runs $runs tp 10 winsize 20 items $items impl ClingoPush header only >> $tmsFile

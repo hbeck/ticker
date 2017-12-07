@@ -1,9 +1,9 @@
-package jtms
+package jtms.algorithms
 
 import core.Atom
 import core.asp._
-import jtms.algorithms._
-import jtms.networks.OptimizedNetworkForLearn
+import jtms._
+import jtms.networks.{OptimizedNetworkForLearn, TruthMaintenanceNetwork}
 
 import scala.util.Random
 

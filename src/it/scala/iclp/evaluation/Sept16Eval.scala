@@ -7,7 +7,7 @@ import common.Util.stopTime
 import core._
 import core.asp._
 import jtms._
-import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
+import jtms.algorithms.{Jtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.OptimizedNetwork
 import runner.Load
 
