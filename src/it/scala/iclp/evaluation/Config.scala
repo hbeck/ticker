@@ -1,6 +1,6 @@
 package iclp.evaluation
 
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import jtms.algorithms.{JtmsDoyle, JtmsDoyleHeuristics, JtmsGreedy, JtmsLearn}
 import iclp.evaluation.instances._
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
@@ -102,7 +102,7 @@ case class Config(var args: Map[String, String]) {
     }
   }
 
-  def makeTms(random: Random): JtmsUpdateAlgorithm = {
+  def makeTms(random: Random): Jtms = {
     val tms = args(IMPL) match {
       case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), random)
       case DOYLE => new JtmsDoyle(new OptimizedNetwork(), random)

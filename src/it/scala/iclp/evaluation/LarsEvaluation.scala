@@ -6,7 +6,7 @@ import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
 import engine.config.{BuildEngine, StartableEngineConfiguration}
 import engine.{EvaluationEngine, Result}
 
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import util.StatisticResult
 
 import scala.concurrent.duration.Duration
@@ -112,7 +112,7 @@ object LarsEvaluation {
     runIndexes.map(evaluateRun(_, config)).toList.drop(config.preRuns)
   }
 
-  var tms: JtmsUpdateAlgorithm = null //debugging
+  var tms: Jtms = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
     if (profiling && iterationNr == 0) {

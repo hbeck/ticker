@@ -61,7 +61,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
   }
 
-  def printAvoidanceMap(tms: JtmsUpdateAlgorithm): Unit = {
+  def printAvoidanceMap(tms: Jtms): Unit = {
     if (!tms.isInstanceOf[JtmsLearn]) return
     val jtms = tms.asInstanceOf[JtmsLearn]
     println(jtms.tabu)
@@ -69,7 +69,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
 
 
   //returns true if failure
-  def failsToCompute(tms: JtmsUpdateAlgorithm, model: Set[Atom]): Boolean = {
+  def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
     if (tms.getModel == None) {
 //      if (tms.isInstanceOf[JtmsLearn]) {
 //        val jtms = tms.asInstanceOf[JtmsLearn]
@@ -84,7 +84,7 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
     }
   }
 
-  def failsToCompute(tms: JtmsUpdateAlgorithm, condition: => Boolean): Boolean = {
+  def failsToCompute(tms: Jtms, condition: => Boolean): Boolean = {
     if (tms.getModel == None) {
 //      if (tms.isInstanceOf[JtmsLearn]) {
 //        val jtms = tms.asInstanceOf[JtmsLearn]

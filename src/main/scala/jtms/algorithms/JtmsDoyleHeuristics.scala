@@ -9,9 +9,9 @@ import scala.util.Random
 object JtmsDoyleHeuristics {
 
   def apply(P: NormalProgram): JtmsDoyleHeuristics = {
-    val tmn = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
-    P.rules foreach tmn.add
-    tmn
+    val jtms = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())
+    P.rules foreach jtms.add
+    jtms
   }
 
   def apply(): JtmsDoyleHeuristics = new JtmsDoyleHeuristics(TruthMaintenanceNetwork())

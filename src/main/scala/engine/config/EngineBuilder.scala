@@ -10,7 +10,7 @@ import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy, Tm
 import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import jtms.algorithms.JtmsDoyle
 import jtms.networks.OptimizedNetwork
 
@@ -47,7 +47,7 @@ case class TmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: Tm
 
   def withRandom(random: Random) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(new JtmsDoyle(new OptimizedNetwork(), random)))
 
-  def useTms(jtms: JtmsUpdateAlgorithm) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
+  def useTms(jtms: Jtms) = TmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
   def withPolicy(tmsPolicy: TmsPolicy) = TmsConfiguration(larsProgramEncoding, tmsPolicy)
 

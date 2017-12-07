@@ -1,6 +1,6 @@
-package jtms.asp.examples
+package experimental.jtms.constraints
 
-import core.{Predicate, Atom, ContradictionAtom}
+import core.{Atom, ContradictionAtom, Predicate}
 import fixtures.AtomTestFixture
 import org.scalatest.FunSuite
 

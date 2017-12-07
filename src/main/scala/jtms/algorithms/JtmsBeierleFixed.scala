@@ -15,9 +15,9 @@ object JtmsBeierleFixed {
   def apply() = new JtmsBeierleFixed(TruthMaintenanceNetwork())
 
   def apply(P: NormalProgram): JtmsBeierleFixed = {
-    val tmn = new JtmsBeierleFixed(TruthMaintenanceNetwork())
-    P.rules foreach tmn.add
-    tmn
+    val jtms = new JtmsBeierleFixed(TruthMaintenanceNetwork())
+    P.rules foreach jtms.add
+    jtms
   }
 
 }
@@ -30,7 +30,7 @@ object JtmsBeierleFixed {
   * but fixes some bugs.
   *
   */
-class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsBeierle(jtms, random) {
+class JtmsBeierleFixed(network: TruthMaintenanceNetwork, random: Random = new Random()) extends JtmsBeierle(network, random) {
 
   override def update(L: Predef.Set[Atom]) {
     //try {
@@ -50,12 +50,12 @@ class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Rando
 
   //fix (choose) status
   override def step5a(atom: Atom): Unit = {
-    if (jtms.status(atom) != unknown)
+    if (network.status(atom) != unknown)
       return
 
     print(atom)
 
-    jtms.justifications(atom) find unfoundedValid match {
+    network.justifications(atom) find unfoundedValid match {
       case Some(rule) => {
         if (!ACons(atom).isEmpty) {
           /*
@@ -84,7 +84,7 @@ class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Rando
           //if (rule.neg exists (status(_) == in)) { //odd loop detection
           //  throw new IncrementalUpdateFailureException()
           //}
-          for (u <- jtms.unknownCons(atom)) {
+          for (u <- network.unknownCons(atom)) {
             //* here other variant is chosen. deliberately? [1]
             step5a(u)
           }
@@ -93,7 +93,7 @@ class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Rando
       case None => {
         //all justifications(atom) are unfounded invalid
         setOut(atom) //diff to beierle: findSpoiler allows unknown atoms!
-        for (u <- jtms.unknownCons(atom)) {
+        for (u <- network.unknownCons(atom)) {
           step5a(u)
         }
       }
@@ -106,13 +106,13 @@ class JtmsBeierleFixed(jtms: TruthMaintenanceNetwork, random: Random = new Rando
     if (regular.isDefined) return regular
 
     if (random.nextDouble() < 0.5) {
-      rule.pos find (jtms.status(_) == unknown) match {
-        case None => rule.neg find (jtms.status(_) == unknown)
+      rule.pos find (network.status(_) == unknown) match {
+        case None => rule.neg find (network.status(_) == unknown)
         case opt => opt
       }
     } else {
-      rule.neg find (jtms.status(_) == unknown) match {
-        case None => rule.pos find (jtms.status(_) == unknown)
+      rule.neg find (network.status(_) == unknown) match {
+        case None => rule.pos find (network.status(_) == unknown)
         case opt => opt
       }
     }

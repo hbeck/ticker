@@ -3,12 +3,12 @@ package engine.asp.tms.policies
 import core.asp._
 import core.lars.TimePoint
 import engine.Result
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 
 /**
   * Created by FM on 12.06.16.
   */
-case class ImmediatelyAddRemovePolicy(tms: JtmsUpdateAlgorithm = JtmsUpdateAlgorithm()) extends TmsPolicy {
+case class ImmediatelyAddRemovePolicy(tms: Jtms = Jtms()) extends TmsPolicy {
 
   override def initialize(rules: Seq[NormalRule]) = rules foreach (tms.add(_))
 

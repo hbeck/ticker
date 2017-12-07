@@ -31,7 +31,7 @@ class JtmsConsistency extends FunSuite {
   val times = 100
 
   test("a") {
-    val tmn = JtmsUpdateAlgorithm()
+    val tmn = Jtms()
     var model = tmn.getModel.get
     assert(model.isEmpty)
 

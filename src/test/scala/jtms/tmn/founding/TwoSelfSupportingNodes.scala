@@ -2,7 +2,7 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
@@ -17,7 +17,7 @@ class TwoSelfSupportingNodes extends FlatSpec with AtomTestFixture {
 
   val program = AspProgram(r1, r2)
 
-  val tmn = JtmsUpdateAlgorithm(program)
+  val tmn = Jtms(program)
 
   "A program containing only two self supporting nodes" should "have no model" in {
     assert(tmn.getModel.get == Set())

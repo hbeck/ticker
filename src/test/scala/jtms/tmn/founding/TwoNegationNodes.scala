@@ -2,7 +2,7 @@ package jtms.tmn.founding
 
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
@@ -16,7 +16,7 @@ class TwoNegationNodes extends FlatSpec with AtomTestFixture {
 
   val program = AspProgram(r1, r2)
 
-  def tmn = JtmsUpdateAlgorithm(program)
+  def tmn = Jtms(program)
 
   val modelA = {
     val t = tmn

@@ -11,10 +11,10 @@ import scala.util.Random
 object JtmsLearn {
 
   def apply(P: NormalProgram): JtmsLearn = {
-    val net = new JtmsLearn()
-    net.shuffle = false
-    P.rules foreach net.add
-    net
+    val jtms = new JtmsLearn()
+    jtms.shuffle = false
+    P.rules foreach jtms.add
+    jtms
   }
 
 }
@@ -27,7 +27,6 @@ object JtmsLearn {
   *
   *
   */
-@deprecated
 class JtmsLearn(override val network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), override val random: Random = new Random()) extends JtmsGreedy(network, random) {
 
   shuffle = false

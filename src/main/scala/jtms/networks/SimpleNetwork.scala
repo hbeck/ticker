@@ -8,6 +8,7 @@ import jtms._
   * Created by FM on 29.10.16.
   */
 class SimpleNetwork extends TruthMaintenanceNetwork {
+
   def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
 
   def facts: Set[NormalRule] = rules filter (_.isFact)
@@ -56,7 +57,6 @@ class SimpleNetwork extends TruthMaintenanceNetwork {
       cons = cons.updated(a, cons(a) - rule.head)
     }
   }
-
 
   override def clearSupport(a: Atom): Unit = {
     supp = supp.updated(a, Set())

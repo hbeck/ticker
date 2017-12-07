@@ -9,9 +9,9 @@ import scala.util.Random
 object JtmsDoyle {
 
   def apply(P: NormalProgram): JtmsDoyle = {
-    val tmn = new JtmsDoyle(TruthMaintenanceNetwork())
-    P.rules foreach tmn.add
-    tmn
+    val jtms = new JtmsDoyle(TruthMaintenanceNetwork())
+    P.rules foreach jtms.add
+    jtms
   }
 
   def apply(): JtmsDoyle = new JtmsDoyle(TruthMaintenanceNetwork())
@@ -27,7 +27,7 @@ object JtmsDoyle {
   *
   * Created by hb on 12/22/15.
   */
-class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsUpdateAlgorithmAbstraction(network, random) {
+class JtmsDoyle(val network: TruthMaintenanceNetwork, val random: Random = new Random()) extends JtmsAbstraction(network, random) {
 
   var doSelfSupportCheck = false
   var doConsistencyCheck = false //detect wrong computation of odd loop, report inconsistency

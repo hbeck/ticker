@@ -287,7 +287,7 @@ object StreamingTmsEval {
     pw.close
   }
 
-  def printModel(tms: JtmsUpdateAlgorithm): Unit = {
+  def printModel(tms: Jtms): Unit = {
     println("model for " + tms.getClass.getSimpleName)
     tms.getModel match {
       case Some(m) => println(m); println("#atoms: " + m.size)

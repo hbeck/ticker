@@ -151,7 +151,7 @@ object Sept16Eval {
   val _models = "models"
   val _failures = "failures"
 
-  def runIteration(program: NormalProgram, tms: JtmsUpdateAlgorithm): Map[String, Long] = {
+  def runIteration(program: NormalProgram, tms: Jtms): Map[String, Long] = {
 
     var models = 0L
     var failures = 0L
@@ -198,7 +198,7 @@ object Sept16Eval {
     pw.close
   }
 
-  def printModel(tms: JtmsUpdateAlgorithm): Unit = {
+  def printModel(tms: Jtms): Unit = {
     println("model for " + tms.getClass.getSimpleName)
     tms.getModel match {
       case Some(m) => println(m); println("#atoms: " + m.size)

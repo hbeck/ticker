@@ -2,7 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp._
-import jtms.JtmsUpdateAlgorithm
+import jtms.Jtms
 import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
@@ -76,7 +76,7 @@ class AspBuilderTests extends FlatSpec {
       )
     })
 
-    val tmn = JtmsUpdateAlgorithm(program)
+    val tmn = Jtms(program)
 
     assert(tmn.getModel().isDefined)
   }
