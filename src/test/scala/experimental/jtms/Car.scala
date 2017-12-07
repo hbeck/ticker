@@ -1,4 +1,4 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}

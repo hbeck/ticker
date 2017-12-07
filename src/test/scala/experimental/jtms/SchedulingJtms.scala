@@ -1,4 +1,4 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import core._
 import core.asp.{AspProgram, AspRule}
@@ -8,7 +8,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by FM on 17.03.16.
   */
-class Scheduling extends FlatSpec {
+class SchedulingJtms extends FlatSpec {
 
   // Example according to Doyle paper, page 252
 

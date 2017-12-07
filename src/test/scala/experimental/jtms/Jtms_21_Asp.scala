@@ -1,23 +1,20 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import core._
 import core.asp.{AspRule, NormalRule}
-import jtms.asp.examples.EvaluateJtmsImplementations
+import jtms.asp.examples.{EvaluateAspImplementations, JtmsSpecAsp}
 import org.scalatest.FlatSpec
 
 /**
   * Created by FM on 11.02.16.
   */
-trait Jtms_21_Behavior extends JtmsSpec {
+trait Jtms_21_Behavior_Asp extends JtmsSpecAsp {
   this: FlatSpec =>
 
   val Falsum = new ContradictionAtom(Predicate("f"))
-  val j7: NormalRule = AspRule.pos(b).neg(c).head(Falsum)
+  val j7: NormalRule = AspRule(Falsum,Set(b),Set(c))
 
-  def p = {
-    val p = program + j7
-    p
-  }
+  val p = program + j7
 
   def example21(evaluation: Evaluation): Unit = {
     it should "not generate a model" in {
@@ -26,19 +23,17 @@ trait Jtms_21_Behavior extends JtmsSpec {
         assert(model == None)
       }
 
-
       // this is not a founded/sounded model!
       // a and c are supporting each other
       // -> do a check on the final model
       // -> we need do do DDB with all variants
       // --> if there is no model with any possible enumeration -> fail
 
-
     }
   }
 }
 
-class Jtms_21_Spec extends JtmsSpec with Jtms_21_Behavior with EvaluateJtmsImplementations {
+class Jtms_21_Asp extends JtmsSpecAsp with Jtms_21_Behavior_Asp with EvaluateAspImplementations {
   "The example 21" should behave like theSame(example21)
 
 }

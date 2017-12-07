@@ -1,7 +1,8 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import core.asp.{AspFact, AspRule}
 import core.{ContradictionAtom, Predicate}
+import jtms.tmn.examples.JtmsSpec
 
 /**
   * Created by FM on 11.02.16.

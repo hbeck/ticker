@@ -1,7 +1,7 @@
-package jtms.asp.examples
+package experimental.jtms
 
-import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
 import core._
+import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
 import fixtures.AtomTestFixture
 import jtms._
 import jtms.algorithms.{JtmsGreedy, JtmsLearn}

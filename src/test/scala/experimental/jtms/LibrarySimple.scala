@@ -1,4 +1,4 @@
-package jtms.asp.examples
+package experimental.jtms
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
@@ -43,7 +43,7 @@ class LibrarySimple extends FunSuite {
   }
 
   test("3") {
-    assert(JtmsGreedy(program + AspRule(Falsum,Set(A))).getModel == None)
+    assert(JtmsGreedy(program + AspRule(Falsum,Set(A),Set())).getModel == None)
   }
 
   test("4") {

@@ -1,7 +1,7 @@
 package jtms.tmn.examples
 
+import core.Atom
 import core.asp.{AspFact, AspRule}
-import core.{Atom, ContradictionAtom, Predicate}
 import jtms._
 import org.scalatest.FunSuite
 
@@ -16,9 +16,6 @@ class JtmsNegation extends FunSuite {
   val d = Atom("d")
 //  val e = Atom("e")
   val f = Atom("f")
-
-
-  val n = ContradictionAtom(Predicate("n"))
 
   val none = Set[Atom]()
 

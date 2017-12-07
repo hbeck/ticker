@@ -3,7 +3,7 @@ package jtms.asp.examples
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.algorithms.JtmsGreedy
+import jtms.Jtms
 import org.scalatest.FlatSpec
 
 /**
@@ -21,9 +21,8 @@ class JtmsSpecAsp extends FlatSpec with AtomTestFixture {
   val j6 = AspRule(f, Set(c, e))
 
   val program = AspProgram(j1, j2, j3, j4a, j4b, j5, j6)
-  //val program = Program(j5, j3, j1, j2, j4a, j4b, j6)
 
-  def Network = JtmsGreedy(program)
+  def JTMS = Jtms(program)
 
 }
 

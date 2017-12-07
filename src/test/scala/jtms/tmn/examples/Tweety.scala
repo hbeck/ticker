@@ -15,8 +15,6 @@ trait TweetyBehavior {
   val F = Atom("fliegen_koennen")
   val F_not = Atom("nicht_fliegen_koennen")
 
-  val Falsum = new ContradictionAtom(Predicate("f"))
-
   val j0 = AspRule.pos(P).head(F_not)
   val j1 = AspRule.pos(P).head(V)
   val j2 = AspRule.pos(V).neg(F_not).head(F)

@@ -195,7 +195,7 @@ class Deletion extends FlatSpec with AtomTestFixture {
   "Removing an additional rule form the JTMS 5 sample" should "result in the original model" in {
     // arrange
     val setup = new Jtms_5_Asp
-    val tms = setup.net
+    val tms = setup.jtms
 
     assert(tms.getModel.get == Set(setup.a, setup.c, setup.d, setup.e, setup.f))
 

@@ -1,4 +1,4 @@
-package jtms.tmn.examples
+package experimental.jtms
 
 import clingo.ClingoEvaluation
 import core._
