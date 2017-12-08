@@ -1,6 +1,6 @@
 package evaluation
 
-import engine.EngineStreamSpec
+import engine.{AtExamples, EngineStreamSpec}
 import engine.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
 import fixtures._
 import org.scalatest.{Spec, Suite, Suites}
@@ -16,7 +16,8 @@ abstract class AllStreamingSamples extends Suites(
   new YWindowDiamondASample,
 
   new StratifiedSample,
-  new JtmsEssenceSimpleWindowSample
+  new JtmsEssenceSimpleWindowSample,
+  new AtExamples
 ) with ConfigurableEvaluationSuite
 
 

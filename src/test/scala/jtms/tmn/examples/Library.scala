@@ -26,7 +26,7 @@ trait LibraryBehavior {
   val A_not = Atom("nicht_ausleihbar")
   val H = Atom("im_Handapperart_einer_Veranstaltung")
 
-  val Falsum = new ContradictionAtom(Predicate("f"))
+  val Falsum = ContradictionAtom(Predicate("f"))
 
   val j1 = AspFact(V)
   val j2 = AspRule.pos(V).neg(F, G).head(P)

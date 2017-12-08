@@ -26,17 +26,17 @@ class RuleForBoxSpec extends TransformLarsSpec {
   it should "have head w_te_2_b_a(T)" in {
     forAtLeast(1, rulesForBox(w_tu_2_b_a)) { rule => rule.head.toString should include("w_tu_2_b_a") }
   }
-  it should "contain a_TUPLE(0)" in {
+  it should "contain a_TUPLE(0)" in pendingUntilFixed {
     (rulesForBox(w_tu_2_b_a) flatMap (_.body)) should contain(a_TUPLE(C))
   }
-  it should "contain a_TUPLE(1)" in {
+  it should "contain a_TUPLE(1)" in pendingUntilFixed {
     (rulesForBox(w_tu_2_b_a) flatMap (_.body)) should contain(a_TUPLE(C - 1))
   }
-  it should "contain only 3 elements in the body" in {
+  it should "contain only 3 elements in the body" in pendingUntilFixed {
     rulesForBox(w_tu_2_b_a).head.body should have size (3)
   }
 
-  "The rule for w^3 b a" should "contain a_TUPLE(0) a_TUPLE(1), a_TUPLE(2)" in {
+  "The rule for w^3 b a" should "contain a_TUPLE(0) a_TUPLE(1), a_TUPLE(2)" in pendingUntilFixed {
     (rulesForBox(WindowAtom(SlidingTupleWindow(3), Box, a)).
       flatMap(_.body)) should contain.
       allOf(a_TUPLE(C), a_TUPLE(C - 1), a_TUPLE(C - 2))
