@@ -33,11 +33,11 @@ class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures 
 
     atT1(Seq(Atom("c")))
 
-    assume(Set(a, b, c) subsetOf engine.evaluate(t1).get.value)
+    assume(Set(a, b) subsetOf engine.evaluate(t1).get.value)
 
     atT1(Seq(Atom("d")))
 
-    engine.evaluate(t1).get.value should contain allOf(c, d)
+    engine.evaluate(t1).get.value should be (Set())
   }
 
   it should "not lead to a result at t3" in {
@@ -46,7 +46,7 @@ class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures 
 
     engine.append(t2)(Atom("c"))
 
-    assume(Set(a, b, c).subsetOf(engine.evaluate(t2).get.value))
+    assume(Set(a, b).subsetOf(engine.evaluate(t2).get.value))
 
     assert(engine.evaluate(t3).get.value.isEmpty)
   }
@@ -57,7 +57,7 @@ class EngineStreamSpec extends ConfigurableEvaluationSpec with TimeTestFixtures 
 
     engine.append(t2)(Atom("c"))
 
-    assume(Set(a, b, c) subsetOf engine.evaluate(t2).get.value)
+    assume(Set(a, b) subsetOf engine.evaluate(t2).get.value)
 
     assert(engine.evaluate(t1).get.value.isEmpty)
   }

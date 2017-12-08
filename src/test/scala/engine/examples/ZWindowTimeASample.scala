@@ -10,24 +10,6 @@ import org.scalatest.OptionValues._
   * Created by FM on 26.04.16.
   */
 class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
-  val aspProgram =
-    """
-    z(X) :- w2ta(U,T), X = U + 1.
-    w2ta(U,T) :- now(T), reach(U,T), a(U).
-    reach(U,T) :- now(T), U=T-2..T.
-
-    i(T) :- w1d_z(T).
-
-    w1d_z(T) :- z(U), now(T), U >= T - 1, U <= T.
-
-    #show a/1.
-    #show z/1.
-    #show i/1.
-    """.stripMargin
-
-  val aspExpressions = aspProgram.split('\n') toSet
-
-  val w1d_a = Atom("w1d_a")
 
   /**
     *
@@ -37,9 +19,9 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
     * *output**** z
     * *output**** i  i
     */
-    //TODO obs hb: shouldn't make a difference in pinning whether T or U is used (but is!)
+  //TODO obs hb: shouldn't make a difference in pinning whether T or U is used (but is!)
   val program = LarsProgram.from(
-    AtAtom(TimeVariableWithOffset(U)+1, z) <= W(2, At(U), a), //@_{U+1}z :- w2 @_U a
+    AtAtom(TimeVariableWithOffset(U) + 1, z) <= W(2, At(U), a), //@_{U+1}z :- w2 @_U a
     //AtAtom(TimeVariableWithOffset(T,1), z) <= W(2, At(T), a), //TODO hb: must also work! (T vs U)
     i <= W(1, Diamond, z) //i :- w1 D z
   )

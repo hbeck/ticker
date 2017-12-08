@@ -13,6 +13,8 @@ class RuleBuilder(bodyPos: Set[Atom] = Set(), bodyNeg: Set[Atom] = Set()) {
   def neg(atoms: Atom*) = new RuleBuilder(bodyPos, bodyNeg ++ atoms)
 
   def head(head: Atom) = new UserDefinedAspRule(head, bodyPos, bodyNeg)
+
+  def head(predicate: Predicate) = new UserDefinedAspRule(Atom(predicate), bodyPos, bodyNeg)
 }
 
 
@@ -27,8 +29,8 @@ class BuilderHead(val head: Atom) {
 object AspProgramBuilder {
   def rule(rule: NormalRule) = new AspProgramBuilder(Set(rule))
 
-  def apply(atomsToRules: PartialFunction[Seq[Atom], Set[NormalRule]]): AppendableAspProgram = {
-    val atoms = Stream.iterate(0)(x => x + 1).map(x => Atom("atom" + x))
+  def apply(atomsToRules: PartialFunction[Seq[Predicate], Set[NormalRule]]): AppendableAspProgram = {
+    val atoms = Stream.iterate(0)(x => x + 1).map(x => Predicate("atom" + x))
 
     val rules = atomsToRules(atoms)
 

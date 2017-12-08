@@ -20,10 +20,10 @@ class ProgramContainingSlidingWindows extends TransformLarsSpec {
   "a :- wˆ2 d b" should "be transformed into 7 rules" in {
     val converted = converter.apply(program)
 
-    assert(converted.rules.size == 7)
+    assert(converted.rules.size == 6)
   }
 
-  it should "be partial grounded into 8 rules" in {
+  it should "be partial grounded into 7 rules" in {
     val converted = converter.apply(program)
 
     val inspection = StaticProgramInspection.forAsp(AspProgram(converted.rules.toList))

@@ -11,8 +11,8 @@ case class AtomModification(atom: Atom) {
 
   def appendArguments(arguments: Seq[Argument]): AtomWithArguments = {
     atom match {
-      case p:PredicateAtom => AtomWithArguments(p.predicate,arguments)
-      case a:AtomWithArguments => AtomWithArguments(a.predicate,a.arguments ++ arguments)
+      case a: AtomWithArguments => AtomWithArguments(a.predicate, a.arguments ++ arguments)
+      case p: GroundAtom => AtomWithArguments(p.predicate, arguments)
     }
   }
 
@@ -25,14 +25,6 @@ case class AtomModification(atom: Atom) {
   def asSpecificCountReference(time: Argument, count: Argument): Atom = AtomWithArguments(Predicate("cnt_specific_" + atom.predicate.caption), appendArguments(time, count))
 
   def asAtReference(time: Argument): Atom = AtomWithArguments(Predicate("at_" + atom.predicate.caption), appendArguments(time))
-
-  def asFluentReference(): AtomWithArguments = {
-    val arguments = atom match {
-      case aa: AtomWithArguments => aa.arguments
-      case a: Atom => Seq()
-    }
-    AtomWithArguments(Predicate(atom.predicate.toString + "_FLUENT"), arguments)
-  }
 
   def arguments(): Seq[Argument] = atom match {
     case aa: AtomWithArguments => aa.arguments

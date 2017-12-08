@@ -62,6 +62,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
     sb.append(head)
     if (pos.isEmpty && neg.isEmpty) {
+      sb.append(".")
       return result
     }
     sb.append(" :- ")
@@ -75,6 +76,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
     }
 
     if (neg.isEmpty) {
+      sb.append(".")
       return result
     }
     if (pos.nonEmpty) {
@@ -83,7 +85,7 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
 
     //neg
     if (neg.size == 1) {
-      sb.append(neg.head)
+      sb.append("not ").append(neg.head)
     } else if (neg.size > 1) {
       sb.append(neg.head)
       neg.tail foreach (sb.append(", not ").append(_))

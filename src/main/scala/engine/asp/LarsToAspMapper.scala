@@ -32,7 +32,6 @@ trait LarsToAspMapper {
     val window = windowFunction match {
       case SlidingTimeWindow(size) => f"w_te_${timePoints(size.unit, size.length)}"
       case SlidingTupleWindow(size) => f"w_tu_$size"
-      case FluentWindow => f"w_fl"
     }
     val operator = temporalModality match {
       case Diamond => "d"

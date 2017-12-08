@@ -2,6 +2,7 @@ package jtms.tmn
 
 import core._
 import core.asp._
+import jtms.JtmsUpdateAlgorithm
 import jtms.algorithms.JtmsDoyle
 import org.scalatest.FlatSpec
 
@@ -28,7 +29,7 @@ class AspBuilderTests extends FlatSpec {
     val f = Atom("f")
 
     val j1 = a :- c // Rule.pos(c).head(a) //Rule(a,c)  // a :- c
-    val j2 = b :- not( a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
+    val j2 = b :- not(a) //Rule.neg(a).head(b) //Rule(b,none,Set(a))
     val j3 = AspRule.pos(a).head(c)
     val j4a = AspRule.pos(b).head(d)
     val j4b = AspRule.pos(c).head(d)
@@ -66,16 +67,16 @@ class AspBuilderTests extends FlatSpec {
 
     val program = AspProgramBuilder({
       case a #:: b #:: c #:: d #:: atoms => Set(
-        a :- b not (c("1", "a")),
-        c :- b("1", "a"),
-        b :- not(d) not (d),
-        Falsum :- d,
+        Atom(a) :- Atom(b) not (c("1", "a")),
+        Atom(c) :- b("1", "a"),
+        Atom(b) :- not(Atom(d)) not (Atom(d)),
+        Falsum :- Atom(d),
         //        :- d,
-        b
+        Atom(b)
       )
     })
 
-    val tmn = JtmsDoyle(program) //TODO
+    val tmn = JtmsUpdateAlgorithm(program)
 
     assert(tmn.getModel().isDefined)
   }

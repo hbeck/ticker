@@ -4,7 +4,7 @@ import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
-import engine.config.EvaluationTypes.EvaluationTypes
+import engine.config.Reasoner.Reasoner
 import jtms.TruthMaintenanceNetwork
 import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
@@ -14,9 +14,9 @@ import scala.util.Random
 /**
   * Created by FM on 29.08.16.
   */
-object EvaluationTypes extends Enumeration {
-  type EvaluationTypes = Value
-  val Tms, Clingo = Value
+object Reasoner extends Enumeration {
+  type Reasoner = Value
+  val Ticker, Clingo = Value
 }
 
 object EvaluationModifier extends Enumeration {
@@ -25,32 +25,26 @@ object EvaluationModifier extends Enumeration {
 }
 
 
-case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTimeUnit) {
+case class ArgumentBasedConfiguration(config: EngineEvaluationConfiguration) {
 
-  def build(evaluationType: EvaluationTypes, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
+  def build(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 
-  def buildEngine(evaluationType: EvaluationTypes,
+  def buildEngine(evaluationType: Reasoner,
                   evaluationModifier: EvaluationModifier,
                   network: TruthMaintenanceNetwork = new OptimizedNetwork(),
                   random: Random = new Random(1)): Option[EvaluationEngine] = {
 
-    //TODO hb: before this class was called, the following chain was already used.
-    //shouldn't this (EngineEvaluationConfiguration) config replace the program: LarsProgram argument of this case class?
-    val config = BuildEngine.withProgram(program).withTickSize(tickSize)
-
-    if (evaluationType == EvaluationTypes.Tms) {
+    if (evaluationType == Reasoner.Ticker) {
       if (evaluationModifier == EvaluationModifier.GreedyLazyRemove) {
         return Some(greedyTms(config, network, random))
       } else if (evaluationModifier == EvaluationModifier.GreedyIncremental) {
         return Some(greedyTmsIncremental(config, network, random)) //TODO
       } else if (evaluationModifier == EvaluationModifier.DoyleLazyRemove) {
         return Some(doyleTms(config, network, random))
-      } else if (evaluationModifier == EvaluationModifier.Learn) {
-        return Some(learnTms(config, new OptimizedNetworkForLearn(), random))
       } else if (evaluationModifier == EvaluationModifier.DoyleIncremental) {
         return Some(incrementalTms(config, network, random))
       }
-    } else if (evaluationType == EvaluationTypes.Clingo) {
+    } else if (evaluationType == Reasoner.Clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
         return Some(clingoPush(config))
       } else if (evaluationModifier == EvaluationModifier.Pull) {
@@ -83,16 +77,6 @@ case class ArgumentBasedConfiguration(program: LarsProgram, tickSize: EngineTime
 
   def doyleTms(config: EngineEvaluationConfiguration, network: TruthMaintenanceNetwork = new OptimizedNetwork(), random: Random = new Random(1)) = {
     val tms = new JtmsDoyle(network, random)
-    tms.recordStatusSeq = false
-    tms.recordChoiceSeq = false
-
-    config.configure().withTms().withPolicy(LazyRemovePolicy(tms)).start()
-  }
-
-  def learnTms(config: EngineEvaluationConfiguration, network: OptimizedNetworkForLearn = new OptimizedNetworkForLearn(), random: Random = new Random(1)) = {
-    val tms = new JtmsLearn(network, random)
-    tms.doConsistencyCheck = false
-    tms.doJtmsSemanticsCheck = false
     tms.recordStatusSeq = false
     tms.recordChoiceSeq = false
 

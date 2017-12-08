@@ -4,7 +4,7 @@ import core.lars.LarsProgram
 import engine.EvaluationEngine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
-import jtms.algorithms.{JtmsGreedy, JtmsLearn}
+import jtms.algorithms.{JtmsDoyle, JtmsGreedy, JtmsLearn}
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 
 import scala.util.Random
@@ -80,8 +80,7 @@ trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
 trait JtmsIncrementalEngine extends EvaluationEngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
-    tms.shuffle = true
+    val tms = new JtmsDoyle(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
     BuildEngine.withProgram(p).configure().withTms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()

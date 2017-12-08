@@ -1,11 +1,12 @@
 package engine.evaluation
 
-import jtms.evaluation.Util
+import iclp.evaluation.Util
 import runner.Load._
 import engine.StreamEntry
 import evaluation._
 import evaluation.bit.BitProgram
 import runner.Load
+import util._
 
 import scala.util.Random
 
@@ -47,12 +48,12 @@ object BitEvaluation extends BitProgram {
       )
 
       val allResults = callSetups map (evaluateFast(_, timePoints))
-      dump plot allResults
+//      dump plot allResults
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateFast(args, timePoints)
-      dump plot Seq(results)
+//      dump plot Seq(results)
       dumpToCsv(Seq(results))
     }
   }
@@ -110,12 +111,12 @@ object BitEvaluation extends BitProgram {
       )
 
       val allResults = callSetups map (evaluateFailures(_, timePoints))
-      dump plotFailures allResults
+//      dump plotFailures allResults
       dumpToCsv(allResults)
 
     } else {
       val results = evaluateFailures(args, timePoints)
-      dump plotFailures Seq(results)
+//      dump plotFailures Seq(results)
       dumpToCsv(Seq(results))
     }
   }

@@ -1,0 +1,36 @@
+hit(I,N) :- item(I), node(N), req(I,N) [300 sec], cache(I,N) [300 sec].
+get(I,N) :- item(I), node(N), req(I,N) [300 sec], getFrom(I,N,M).
+fail(I,N) :- item(I), node(N), req(I,N) [300 sec], not hit(I,N), not get(I,N).
+needAt(I,N) :- item(I), node(N), req(I,N) [300 sec], cache(I,N) not [300 sec].
+conn(N,M) :- edge(N,M), error(N,M) not [300 sec].
+getFrom(I,N,M) :- needAt(I,N), minReach(I,N,M), not n_getFrom(I,N,M).
+n_getFrom(I,N,M2) :- getFrom(I,N,M), minReach(I,N,M2), neq(M,M2).
+minReach(I,N,M) :- itemReach(I,N,M,K), not n_minReach(I,N,M,K).
+n_minReach(I,N,M,K) :- itemReach(I,N,M,K), itemReach(I,N,M2,K2), lt(K2,K).
+itemReach(I,N,M,K) :- needAt(I,N), cache(I,M) [300 sec], reach(N,M,K).
+reach(N,M,1) :- conn(N,M). reach(N,M,K) :- length(K0), incr(K0,K), conn(M0,M), length(K), reach(N,M0,K0), neq(N,M).
+edge(8,4).
+edge(4,5).
+edge(3,4).
+edge(1,8).
+edge(6,7).
+edge(5,6).
+edge(1,6).
+edge(1,2).
+edge(2,3).
+node(3).
+node(2).
+node(7).
+node(8).
+node(6).
+node(1).
+node(4).
+node(5).
+length(1).
+length(2).
+length(3).
+length(4).
+length(5).
+length(6).
+length(7).
+length(8).

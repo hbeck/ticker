@@ -33,10 +33,20 @@ case class UnknownResult(info: String = "") extends Result {
 }
 
 object Result {
+
+  private case class ResultModel(override val model: Model) extends Result {
+    override def get: Option[Model] = Some(model)
+  }
+
+  def apply(m: Model): Result = {
+    if (m.isEmpty)
+      EmptyResult
+    else
+      ResultModel(m)
+  }
+
   def apply(model: Option[Model]): Result = model match {
     case None => NoResult
-    case Some(m) => new Result {
-      override def get: Option[Model] = Some(m)
-    }
+    case Some(m) => Result(m)
   }
 }

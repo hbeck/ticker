@@ -3,7 +3,7 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
-import jtms.evaluation.Util
+import iclp.evaluation.Util
 import runner.Load._
 import jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
@@ -149,7 +149,7 @@ class StreamingTests extends FunSuite {
     def makePinnedAtom(level:Int, timepoint: Int) = {
       val p = Predicate("signal")
       val a = GroundAtomWithArguments(p,Seq[Value](Value(""+level)))
-      PinnedAtom(a, TimePoint(timepoint))
+      PinnedAtom.asPinnedAtAtom(a, TimePoint(timepoint))
     }
 
     def makeSignalFact(level: Int, timepoint: Int): NormalRule = {
@@ -162,7 +162,7 @@ class StreamingTests extends FunSuite {
       val head = GroundAtomWithArguments(headPredicate,Seq[Value](levelVal))
       val signalPredicate = Predicate("signal")
       val signalGroundAtom = GroundAtomWithArguments(signalPredicate,Seq[Value](levelVal))
-      val pa = PinnedAtom(signalGroundAtom, TimePoint(timepoint))
+      val pa = PinnedAtom.asPinnedAtAtom(signalGroundAtom, TimePoint(timepoint))
       AspRule(head,pa)
     }
 

@@ -1,6 +1,6 @@
 package core.asp
 
-import core.{Atom, Fact, Rule}
+import core.{Atom, Fact, Predicate, Rule}
 
 sealed trait AspRule[TAtom <: Atom] extends Rule[TAtom, TAtom] {
 
@@ -41,6 +41,11 @@ object AspRule {
 
   def neg[TAtom <: Atom](atoms: TAtom*) = new RuleBuilder(Set(), atoms.toSet)
 
+  def pos(predicate: Predicate) = new RuleBuilder(Set(Atom(predicate)))
+
+  def neg(predicate: Predicate) = new RuleBuilder(Set(), Set(Atom(predicate)))
+
+
   def fact[TAtom <: Atom](head: TAtom) = AspFact(head)
 
   def apply[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: Set[TAtom]) = UserDefinedAspRule(head, pos, neg)
@@ -65,10 +70,10 @@ case class UserDefinedAspRule[TAtom <: Atom](head: TAtom, pos: Set[TAtom], neg: 
 
   //    override lazy val hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(UserDefinedAspRule.this)
 
-//  override def equals(other: Any): Boolean = other match {
-//    case a: UserDefinedAspRule[TAtom] => this.precomputedHash == a.precomputedHash
-//    case _ => super.equals(other)
-//  }
+  //  override def equals(other: Any): Boolean = other match {
+  //    case a: UserDefinedAspRule[TAtom] => this.precomputedHash == a.precomputedHash
+  //    case _ => super.equals(other)
+  //  }
 }
 
 case class AspRuleFromBacktracking(head: Atom, pos: Set[Atom], neg: Set[Atom]) extends NormalRule {
@@ -89,6 +94,8 @@ case class AspRuleFromBacktracking(head: Atom, pos: Set[Atom], neg: Set[Atom]) e
 
 object AspFact {
   def apply[TAtom <: Atom](fact: TAtom): AspFact[TAtom] = UserDefinedAspFact(fact)
+
+  def apply(predicate: Predicate): AspFact[Atom] = UserDefinedAspFact(Atom(predicate))
 }
 
 case class UserDefinedAspFact[TAtom <: Atom](head: TAtom) extends AspFact[TAtom] {

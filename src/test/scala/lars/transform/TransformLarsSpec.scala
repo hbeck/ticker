@@ -14,6 +14,7 @@ import scala.concurrent.duration._
 class TransformLarsSpec extends FlatSpec with TimeTestFixtures {
 
   val now = engine.asp.now
+  val cnt = engine.asp.cnt
 
   val st1 = SlidingTimeWindow(1)
 

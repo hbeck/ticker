@@ -1,7 +1,7 @@
 package lars.transform.tuplebased
 
-import core.Atom
-import core.lars.{Diamond, SlidingTimeWindow, SlidingTupleWindow, WindowAtom}
+import core.{Atom, IntValue, PinnedAtom, StringVariable}
+import core.lars._
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -10,15 +10,17 @@ import org.scalatest.Matchers._
   * Created by FM on 09.05.16.
   */
 class RuleForDiamondSpec extends TransformLarsSpec {
-  def a_TUPLE(pos: Int) = Atom("a").asTupleReference(pos)
+  override val T = TimeVariableWithOffset(StringVariable("TT"))
+
+  def a_TUPLE(pos: Int) = PinnedAtom.asPinnedAtCntAtom(Atom("a"), T, C - pos)
 
   val w_tu_2_d_a = WindowAtom(SlidingTupleWindow(2), Diamond, a)
 
   "The rule for w^2 d a" should "return two rules" in {
-    allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a)) should have size (2)
+    allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a)) should have size (3)
   }
   it should "contain now(T) in all rules" in {
-    forAll(allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a))) { rule => rule.body should contain(now(T)) }
+    forAll(allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a))) { rule => rule.body should contain(cnt(C)) }
   }
   it should "have head w_tu_1_b_a" in {
     forAll(allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(SlidingTupleWindow(2), w_tu_2_d_a))) { rule => rule.head.toString should include("w_tu_2_d_a") }

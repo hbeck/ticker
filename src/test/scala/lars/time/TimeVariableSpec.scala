@@ -9,8 +9,8 @@ import org.scalatest.Matchers._
   */
 class TimeVariableSpec extends FlatSpec with TimeTestFixtures {
 
-  "A TimeVariable T" should "be converted to 'T'" in {
-    T.toString should be("T")
+  "A TimeVariable T" should "be converted to 'NN'" in {
+    T.variable.name should be("NN")
   }
 
   it should "be grounded to t1" in {
@@ -18,14 +18,14 @@ class TimeVariableSpec extends FlatSpec with TimeTestFixtures {
   }
 
   "Adding 1 to TimeVariable T" should "lead to 'T + 1'" in {
-    (T + 1).toString should be("T + 1")
+    (T + 1).toString should be("NN + 1")
   }
   it should "be grounded to t2" in {
     (T + 1).calculate(t1) should be(t2)
   }
 
   "Subtracting 1 from TimeVariable T" should "lead to 'T - 1'" in {
-    (T - 1).toString should be("T - 1")
+    (T - 1).toString should be("NN - 1")
   }
   it should "be grounded to t0" in {
     (T - 1).calculate(t1) should be(t0)

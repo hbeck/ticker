@@ -1,6 +1,7 @@
 package core.lars
 
-import core.{Atom, Value}
+import com.sun.prism.impl.BaseResourcePool.Predicate
+import core.{Atom, Predicate, Value}
 import org.scalatest.FlatSpec
 
 /**
@@ -17,8 +18,8 @@ class RuleSpec extends FlatSpec{
   }
 
   "Two rules with same atoms and arguments" should "have same hashcode"in{
-    val a = Atom("a")(Value("1"))
-    val b = Atom("b")(Value("2"))
+    val a = Predicate("a")(Value("1"))
+    val b = Predicate("b")(Value("2"))
     val r1 :LarsRule = a <= b
     val r2 :LarsRule = a <= b
 

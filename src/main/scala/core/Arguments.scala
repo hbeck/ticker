@@ -7,9 +7,6 @@ import core.lars.TimePoint
   * Created by FM on 15.06.16.
   */
 trait Argument {
-  def -(offset: Offset): Argument
-
-  def +(offset: Offset): Argument
 
   override def hashCode(): Int = cachedHash
 
@@ -26,7 +23,6 @@ trait Argument {
 
 }
 
-
 object Argument {
   type Offset = Int
 
@@ -42,11 +38,28 @@ object Argument {
   implicit def convertToValue(intValue: IntValue): Value = intValue
 }
 
-trait Variable extends Argument {
+trait NumericArgument extends Argument {
+  def -(offset: Offset): NumericArgument
+
+  def +(offset: Offset): NumericArgument
+}
+
+object NumericArgument{
+
+
+    implicit def convertToNumericArgument(nameOrValue: String): NumericArgument = {
+      if (nameOrValue.head.isUpper)
+        StringVariable(nameOrValue)
+      else
+        IntValue(Integer.parseInt(nameOrValue))
+    }
+}
+
+trait Variable extends NumericArgument {
   val name: String
 }
 
-trait ArgumentWithOffset extends Argument {
+trait ArgumentWithOffset extends NumericArgument {
   val variable: Variable
   val offset: Offset
 
@@ -64,9 +77,9 @@ trait ArgumentWithOffset extends Argument {
 case class StringVariable(name: String) extends Variable {
   override def toString: String = name
 
-  override def -(offset: Offset): Argument = toVariableWithOffset(-offset)
+  override def -(offset: Offset): NumericArgument = toVariableWithOffset(-offset)
 
-  override def +(offset: Offset): Argument = toVariableWithOffset(offset)
+  override def +(offset: Offset): NumericArgument = toVariableWithOffset(offset)
 
   private def toVariableWithOffset(initialOffset: Offset) = if (initialOffset == 0) {
     this
@@ -77,9 +90,9 @@ case class StringVariable(name: String) extends Variable {
 
 case class VariableWithOffset(variable: Variable, offset: Offset = 0) extends Variable with ArgumentWithOffset {
 
-  override def -(offset: Offset): Argument = VariableWithOffset(variable, this.offset - offset)
+  override def -(offset: Offset): NumericArgument = VariableWithOffset(variable, this.offset - offset)
 
-  override def +(offset: Offset): Argument = VariableWithOffset(variable, this.offset + offset)
+  override def +(offset: Offset): NumericArgument = VariableWithOffset(variable, this.offset + offset)
 
   def calculate(baseValue: Value): Value = baseValue match {
     case IntValue(v) => IntValue(v + offset)
@@ -103,25 +116,21 @@ trait Value extends Argument
 case class StringValue(value: String) extends Value {
   override def toString = value
 
-  override def -(offset: Offset): Argument = this
-
-  override def +(offset: Offset): Argument = this
-
   private lazy val precomputedHash = value.toString.hashCode
 
   override def hashCode(): Int = precomputedHash
 
 }
 
-case class IntValue(int: Int) extends Value {
+case class IntValue(int: Int) extends Value with NumericArgument {
 
-  override def toString = "" + int
+  override def toString = int.toString
 
-  override def -(offset: Offset): Argument = IntValue(int - offset)
+  override def -(offset: Offset): NumericArgument = IntValue(int - offset)
 
-  override def +(offset: Offset): Argument = IntValue(int + offset)
+  override def +(offset: Offset): NumericArgument = IntValue(int + offset)
 
-  private lazy val precomputedHash = (""+int).hashCode
+  private lazy val precomputedHash = ("" + int).hashCode
 
   override def hashCode(): Int = precomputedHash
 

@@ -27,68 +27,58 @@ trait TruthMaintenanceNetwork {
   //however, should give a benefit in remove, where many cases can be skipped
   var suppRule: Map[Atom, Option[NormalRule]] = new HashMap[Atom, Option[NormalRule]]
 
-  def justifications(a: Atom): Set[NormalRule] = rules filter (_.head == a)
+  def justifications(a: Atom): Set[NormalRule]
 
-  def facts: Set[NormalRule] = rules filter (_.isFact)
+  def facts: Set[NormalRule]
 
-  def factAtoms: Set[Atom] = facts map (_.head) //note the difference to facts, which are rules with empty bodies!
+  def factAtoms: Set[Atom] //note the difference to facts, which are rules with empty bodies!
 
-  def allAtoms: Set[Atom] = rules flatMap (_.atoms)
+  def allAtoms: Set[Atom]
 
-  def ruleHeads = rules map (_.head)
+  def ruleHeads: Set[Atom]
 
-  def atomsNeedingSupp = ruleHeads diff factAtoms //these are intensional atoms
+  def atomsNeedingSupp: Set[Atom] //these are intensional atoms
 
-  def underivableAtoms = allAtoms diff ruleHeads
+  def underivableAtoms: Set[Atom]
 
   //def activeRules() = (rules filter (r => r.pos forall (ruleHeads contains _))).toSet
 
   //def inactiveRules() = (rules filter (r => !(r.pos intersect underivableAtoms).isEmpty)).toSet
 
-  def contradictionAtom(a: Atom) = a.isInstanceOf[ContradictionAtom] || a == Falsum
+  def contradictionAtom(a: Atom): Boolean
 
-  def inAtoms = allAtoms filter (status(_) == in)
+  def inAtoms: Set[Atom]
 
-  def outAtoms = allAtoms filter (status(_) == out)
+  def outAtoms: Set[Atom]
 
-  def unknownAtoms = allAtoms filter (status(_) == unknown)
+  def unknownAtoms: Set[Atom]
 
-  def hasUnknown = allAtoms exists (status(_) == unknown)
+  def hasUnknown: Boolean
 
   def inconsistent: Boolean = unknownAtoms.nonEmpty
 
   //affected(a) = {x ∈ cons(a) | a ∈ supp(x)}
-  def affected(a: Atom): Set[Atom] = cons(a) filter (supp(_) contains a)
+  def affected(a: Atom): Set[Atom]
 
   def repercussions(a: Atom) = trans(affected, a)
 
-  def antecedents(a: Atom): Set[Atom] = {
-    if (status(a) == in) return supp(a)
-    Set()
-  }
+  def antecedents(a: Atom): Set[Atom]
 
   def foundations(a: Atom) = trans(antecedents, a)
 
   def ancestors(a: Atom) = trans(supp, a)
 
-  def valid(rule: NormalRule) =
-    (rule.pos forall (status(_) == in)) && (rule.neg forall (status(_) == out))
+  def valid(rule: NormalRule): Boolean
 
-  def invalid(rule: NormalRule) =
-    (rule.pos exists (status(_) == out)) || (rule.neg exists (status(_) == in))
+  def invalid(rule: NormalRule): Boolean
 
-  def posValid(rule: NormalRule) =
-    (rule.pos forall (status(_) == in)) && (!(rule.neg exists (status(_) == in)))
+  def posValid(rule: NormalRule): Boolean
 
-  def openJustifications(a: Atom) = justifications(a) filter (!invalid(_))
+  def openJustifications(a: Atom): Set[NormalRule]
 
-  def unknownCons(a: Atom) = cons(a) filter (status(_) == unknown)
+  def unknownCons(a: Atom): Set[Atom]
 
-  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit = {
-    if (!(justifications(rule.head) exists (_.body contains a))) {
-      cons = cons.updated(a, cons(a) - rule.head)
-    }
-  }
+  def removeDeprecatedCons(rule: NormalRule)(a: Atom): Unit
 
   def clearSupport(a: Atom): Unit
 

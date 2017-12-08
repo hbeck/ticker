@@ -57,7 +57,8 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
   }
 
   it should "not lead to x at t1" in {
-    engineWithStream.evaluate(t1).get.value shouldNot contain(x)
+    evaluationEngine.append(t1)(a)
+    evaluationEngine.evaluate(t1).get.value shouldNot contain(x)
   }
 
   it should "lead to x at t2" in {

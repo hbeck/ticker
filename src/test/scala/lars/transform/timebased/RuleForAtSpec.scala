@@ -1,6 +1,6 @@
 package lars.transform.timebased
 
-import core.{AtomWithArguments, AtomWithArguments$}
+import core.{AtomWithArguments, PinnedAtom}
 import core.lars._
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
@@ -25,21 +25,20 @@ class RuleForAtSpec extends TransformLarsSpec {
         } should contain(now)
     }
   }
-  it should "contain now(t2)" in {
-    forExactly(1, ruleForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(t2)) }
+  it should "contain now(T)" in {
+    forAll(ruleForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(T)) }
   }
-  it should "contain now(t1)" in {
-    forExactly(1, ruleForAt(w_te_1_a_1_a)) { rule => rule.body should contain(now(t1)) }
-  }
+
   it should "have head w_te_1_at_1_a" in {
     forAll(ruleForAt(w_te_1_a_1_a)) { rule => rule.head.toString should include("w_te_1_at_1_a") }
   }
+  // TODO: is the translation for the a rule with At_{t} correct? (when t is a fixed time point)
   it should "contain a(t1) for all elements" in {
-    forAll(ruleForAt(w_te_1_a_1_a)) { rule => rule.body should contain(a(t1)) }
+    forAll(ruleForAt(w_te_1_a_1_a)) { rule => rule.body should contain(PinnedAtom.asPinnedAtAtom(a, t1)) }
   }
 
-  "The rule for w^2 at_2 a" should "contain now(t3), now(t4), now(t2), a(t2)" in {
-    ruleForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(t3), now(t4), now(t2), a(t2))
+  "The rule for w^2 at_2 a" should "contain now(T), a(t2)" in {
+    ruleForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(T), PinnedAtom.asPinnedAtAtom(a, t2))
   }
 
   val w_te_1_at_U_a = W(1, At(U), a)

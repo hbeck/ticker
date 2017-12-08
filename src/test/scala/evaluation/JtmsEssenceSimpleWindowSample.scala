@@ -32,17 +32,18 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEvaluationSpec with Time
     evaluationEngine.evaluate(t2).get.value should contain allOf(a, c, d)
   }
 
-  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in pendingWithTms("cycle between a <-> c"){
-    (1 to 100 by 2) foreach (evaluationEngine.append(_)(a))
-
+  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in {
     assume(Set(b, d).subsetOf(evaluationEngine.evaluate(t0).get.value))
-    assume(Set(a, c, d).subsetOf(evaluationEngine.evaluate(t1).get.value))
 
     forAll(1 to 100) {
-      i => evaluationEngine.evaluate(i).get.value should contain allOf(a, c, d)
+      i => {
+        if (i % 2 == 1)
+          evaluationEngine.append(i)(a)
+        evaluationEngine.evaluate(i).get.value should contain allOf(a, c, d)
+      }
     }
   }
 
 }
 
-class JtmsEssenceTests extends  RunWithAllImplementations(new JtmsEssenceSimpleWindowSample)
+class JtmsEssenceTests extends RunWithAllImplementations(new JtmsEssenceSimpleWindowSample)

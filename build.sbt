@@ -2,19 +2,46 @@ name := "ticker"
 
 version := "1.0"
 
-scalaVersion := "2.11.8"
-//scalaVersion := "2.12.1"
+scalaVersion := "2.12.2"
 cancelable in Global := true
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test"
-//libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-//libraryDependencies += "com.github.wookietreiber" %% "scala-chart" % "latest.integration"
-libraryDependencies += "com.quantifind" %% "wisp" % "0.0.4"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
 libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5"
-libraryDependencies += "org.sameersingh.scalaplot" % "scalaplot" % "0.0.4"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
+
 
 scalacOptions += "-feature"
+scalacOptions += "-deprecation"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
 
+import sbtassembly.AssemblyPlugin._
+
+import sbt.Package.ManifestAttributes
+
+lazy val commonSettings = Seq(
+
+  test in assembly := {}
+
+)
+
+lazy val ticker = (project in file(".")).
+  settings(commonSettings: _*).
+  configs(IntegrationTest).
+  settings(Defaults.itSettings: _*).
+  settings(
+    mainClass in assembly := Some("Program"),
+    test in assembly := {}
+  )
+
+//
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
+  case _ => MergeStrategy.first
+}
+excludeFilter in assembly ~= {
+  exclude => exclude && FileFilter.globFilter("src/test/**/*.*")
+}

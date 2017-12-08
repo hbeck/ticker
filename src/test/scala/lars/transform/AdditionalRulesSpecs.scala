@@ -8,7 +8,6 @@ import core.lars._
   */
 class AdditionalRulesSpecs extends TransformLarsSpec {
 
-  def Fluent(atom: Atom) = WindowAtom(FluentWindow, Diamond, atom)
 
   "A diamond-window atom" should "be transformed into some rule" in {
     assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
@@ -16,7 +15,5 @@ class AdditionalRulesSpecs extends TransformLarsSpec {
   "A box-window atom" should "be transformed into some rule" in {
     assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
   }
-  "A fluent-window atom" should "be transformed into some rule" in {
-    assert(allWindowRules(Fluent(a)).nonEmpty)
-  }
+
 }
