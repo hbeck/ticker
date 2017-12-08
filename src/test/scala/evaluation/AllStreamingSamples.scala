@@ -27,7 +27,7 @@ class AspPushClingo extends AllStreamingSamples with ClingoPushEngine
 
 class AspPushTms extends AllStreamingSamples with TmsDirectPolicyEngine
 
-class LazyRemoveTms extends AllStreamingSamples with JtmsGreedyLazyRemovePolicyEngine
+//class LazyRemoveTms extends AllStreamingSamples with JtmsGreedyLazyRemovePolicyEngine
 
 class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec) extends Spec {
 
@@ -37,9 +37,9 @@ class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec
 
   class SingleDirectTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with TmsDirectPolicyEngine
 
-  class SingleLazyRemoveTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsGreedyLazyRemovePolicyEngine
+//  class SingleLazyRemoveTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsGreedyLazyRemovePolicyEngine
 
-  override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleDirectTmsTest, new SingleLazyRemoveTmsTest)
+  override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleDirectTmsTest)
 
 }
 
