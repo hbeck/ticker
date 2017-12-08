@@ -79,15 +79,14 @@ trait Rule[THead <: HeadAtom, TBody <: ExtendedAtom] {
       sb.append(".")
       return result
     }
+
     if (pos.nonEmpty) {
-      sb.append(", not ")
+      sb.append(", ")
     }
 
     //neg
-    if (neg.size == 1) {
-      sb.append("not ").append(neg.head)
-    } else if (neg.size > 1) {
-      sb.append(neg.head)
+    sb.append("not ").append(neg.head)
+    if (neg.size > 1) {
       neg.tail foreach (sb.append(", not ").append(_))
     }
 

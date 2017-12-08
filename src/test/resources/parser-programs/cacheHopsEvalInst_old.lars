@@ -1,5 +1,5 @@
-sat(I,N) :- item(I), node(N),req(I,N) in [t 300], cache(I,N) in [t 300].
-sat(I,N) :- item(I), node(N),req(I,N) in [t 300], getFrom(I,N,M).
+sat(I,N) :- item(I), node(N), req(I,N) in [t 300], cache(I,N) in [t 300].
+sat(I,N) :- item(I), node(N), req(I,N) in [t 300], getFrom(I,N,M).
 sat(I,N) :- item(I), node(N), req(I,N) in [t 300], not sat(I,N).
 needAt(I,N) :- item(I), node(N),req(I,N) in [t 300], cache(I,N) not in [t 300].
 conn(N,M) :- edge(N,M), error(N,M) not [t 300].
