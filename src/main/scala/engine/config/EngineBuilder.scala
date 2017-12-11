@@ -20,7 +20,7 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program) //TODO hb why experimental.evaluation?
+  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
 }
 
 case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
