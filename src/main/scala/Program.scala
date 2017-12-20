@@ -3,8 +3,8 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import common.Util
 import core.Atom
-import core.lars.{Format, LarsBasedProgram, LarsProgram, TimeWindowSize}
-import engine.{EvaluationEngine, NoResult}
+import core.lars.{Format, LarsProgram}
+import engine.EvaluationEngine
 import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
@@ -22,13 +22,13 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-    val sampleArgs = Seq(
-      "--program", "src/test/resources/test.rules",
-      "--reasoner", "Clingo",
-      "--inputType", "Http,StdIn",
-      "--timeunit", "1s",
-      "--outputEvery", "2signals"
-    ).toArray
+//    val sampleArgs = Seq(
+//      "--program", "src/test/resources/test.rules",
+//      "--reasoner", "Clingo",
+//      "--inputType", "Http,StdIn",
+//      "--timeunit", "1s",
+//      "--outputEvery", "2signals"
+//    ).toArray
 
     parseParameters(args) match {
       case Some(config) => {
@@ -41,13 +41,14 @@ object Program {
         val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
           exists {
             t => Duration(t.windowSize.length, t.windowSize.unit) lt config.timeUnit
+              //TODO have to check that every window is a multiple of clock time
           }
         if (timeWindowSmallerThanEngineUnit)
           throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the engine timeUnit.")
 
-        val engine = config.buildEngine(program)
+        val engine = config.buildEngine(program) //TODO we already had the program...
 
-        val runner = EngineRunner(engine, config.timeUnit, config.outputEvery)
+        val runner = EngineRunner(engine, config.timeUnit, config.outputEvery) //TODO why are some args extra?
         config.inputs foreach {
           case SocketInput(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
           case StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
@@ -59,7 +60,7 @@ object Program {
 
         runner.start()
       }
-      case None => throw new RuntimeException("Could not parse all arguments correcly")
+      case None => throw new RuntimeException("Could not parse all arguments")
     }
   }
 
@@ -73,15 +74,15 @@ object Program {
     val parser = new scopt.OptionParser[Config]("scopt") {
       head("scopt", "3.x")
 
-      opt[File]('p', "program").required().valueName("<file>").
+      opt[File]('p', "program").required().valueName("<file>"). //TODO PPS allow multiple files
         action((x, c) => c.copy(programFile = x)).
         text("program is a required file property")
 
-      opt[Reasoner]('r', "reasoner").optional().valueName("<reasoner type>").
+      opt[Reasoner]('r', "reasoning").optional().valueName("<reasoning type>").
         action((x, c) => c.copy(reasoner = x)).
-        text("An reasoner required, possible values: " + Reasoner.values)
+        text("Reasoning stragety required, possible values: " + Reasoner.values)
 
-      opt[Duration]("timeunit").optional().valueName("<value><unit>").
+      opt[Duration]('t', "timeunit").optional().valueName("<value><time-unit>").
         validate(d =>
           if (d lt Duration.Zero)
             Left("inputSpeed must be > 0")
@@ -89,9 +90,9 @@ object Program {
             Right((): Unit)
         ).
         action((x, c) => c.copy(timeUnit = x)).
-        text("valid units: ms, s, min, h. eg: 10ms")
+        text("valid units: ms, s, min, h. eg: 10ms") //TODO
 
-      opt[OutputEvery]("outputEvery").
+      opt[OutputEvery]('e',"outputEvery").
         optional().
         valueName("diff | signal | time | <value>signals | <value><time-unit>").
         validate {
@@ -167,11 +168,11 @@ object Program {
 
   case class SocketOutput(port: Int) extends OutputTypes
 
-  case class Config(reasoner: Reasoner = Reasoner.Ticker,
+  case class Config(reasoner: Reasoner = Reasoner.Incremental,
                     programFile: File,
-                    timeUnit: Duration = 1 second,
-                    outputEvery: OutputEvery = Diff,
-                    inputs: Seq[InputTypes] = Seq(StdIn),
+                    timeUnit: Duration = 1 second, //TODO rename clockTime
+                    outputEvery: OutputEvery = Diff, //TODO rename
+                    inputs: Seq[InputTypes] = Seq(StdIn), //TODO rename
                     outputs: Seq[OutputTypes] = Seq(StdOut),
                     filter: Option[Set[String]] = None
                    ) {
@@ -181,10 +182,10 @@ object Program {
     def buildEngine(program: LarsProgram): EvaluationEngine = {
       val engineBuilder = BuildEngine.
         withProgram(program).
-        withTimePointDuration(timeUnit)
+        withTimePointDuration(timeUnit) //TODO rename clockTime
 
       val startableEngine = reasoner match {
-        case Reasoner.Ticker =>
+        case Reasoner.Incremental =>
           engineBuilder.configure().withJtms().withIncremental()
         case Reasoner.Clingo => outputEvery match {
           case Time(_) => engineBuilder.configure().withClingo().use().usePull()

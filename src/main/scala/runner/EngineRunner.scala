@@ -6,7 +6,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimePoint
-import engine.{EvaluationEngine, NoResult, Result}
+import engine.{EvaluationEngine, Result}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,7 +53,6 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
     outputTracking match {
       case t: TimeTracking if wasUpdated(t, engineTimePoint) => {
         val timePoint = engineTimePoint
-
         Future {
           evaluateModel(timePoint)
         }
@@ -84,11 +83,8 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
 
   def wasUpdated[T](outputTrackingEvery: OutputTrackingEvery[T], model: T) = {
-    val updated = outputTrackingEvery.shouldUpdateWithNewData(model)
-
-
+    val updated = outputTrackingEvery.shouldUpdateWithNewData(model) //TODO should != was
     outputTrackingEvery.registerUpdate(model)
-
     updated
   }
 

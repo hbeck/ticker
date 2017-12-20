@@ -20,16 +20,16 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: LarsProgram) = EngineEvaluationConfiguration(program)
+  def withProgram(program: LarsProgram) = EvaluationEngineConfiguration(program)
 }
 
-case class EngineEvaluationConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
+case class EvaluationEngineConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
 
   def withConfiguration(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(evaluationType, evaluationModifier)
 
   def configure() = ReasoningStrategyConfiguration(larsProgram, withTimePointDuration)
 
-  def withTimePointDuration(duration: EngineTimeUnit) = EngineEvaluationConfiguration(larsProgram, duration)
+  def withTimePointDuration(duration: EngineTimeUnit) = EvaluationEngineConfiguration(larsProgram, duration)
 }
 
 case class ReasoningStrategyConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
@@ -98,5 +98,5 @@ case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine, rest
 
   def start() = EvaluationEngineWithResultFilter(evaluationEngine, AtomResultFilter(restrictTo))
 
-  def startWithoutFilter() = evaluationEngine
+  //def startWithoutFilter() = evaluationEngine
 }

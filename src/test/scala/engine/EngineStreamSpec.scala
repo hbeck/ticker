@@ -3,7 +3,7 @@ package engine
 import core.Atom
 import core.asp.AspProgram
 import core.lars.LarsProgram
-import engine.config.{ReasoningStrategyConfiguration, BuildEngine, EngineEvaluationConfiguration}
+import engine.config.{ReasoningStrategyConfiguration, BuildEngine, EvaluationEngineConfiguration}
 import fixtures._
 import org.scalatest._
 import org.scalatest.Matchers._
