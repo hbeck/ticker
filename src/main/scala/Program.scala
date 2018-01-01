@@ -24,9 +24,9 @@ object Program {
 
 //    val sampleArgs = Seq(
 //      "--program", "src/test/resources/test.rules",
-//      "--reasoner", "Clingo",
-//      "--inputType", "Http,StdIn",
-//      "--timeunit", "1s",
+//      "--reasoner", "clingo",
+//      "--inputType", "stdin",
+//      "--clock", "1s",
 //      "--outputEvery", "2signals"
 //    ).toArray
 
@@ -48,7 +48,7 @@ object Program {
 
         val engine = config.buildEngine()
 
-        val runner = EngineRunner(engine, config.clockTime, config.outputTiming) //TODO why are some args extra?
+        val runner = EngineRunner(engine, config.clockTime, config.outputTiming)
         config.inputs foreach {
           case SocketInput(port) => runner.connect(ReadFromSocket(config.clockTime._2, port))
           case StdIn => runner.connect(ReadFromStdIn(config.clockTime._2))

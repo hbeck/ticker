@@ -36,28 +36,28 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
-  @volatile private var outputTracking: OutputTracking = outputTiming match {
-    case Change => DiffTracking
-    case Time(None) => TimeTracking(clockTime, clockTime)
-    case Time(Some(interval)) => TimeTracking(interval, clockTime)
-    case Signal(interval) => SignalTracking(interval)
+  @volatile private val outputTracking: OutputWriting = outputTiming match {
+    case Change => ChangeBasedWriting
+    case Time(None) => TimeBasedWriting(clockTime, clockTime)
+    case Time(Some(interval)) => TimeBasedWriting(interval, clockTime)
+    case Signal(interval) => SignalBasedWriting(interval)
   }
 
   def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / clockTime.toMillis, clockTime.unit).length
 
   def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit), clockTime.unit)
 
-  private def updateBeat(): Unit = {
+  private def updateClock(): Unit = {
     engineTimePoint = engineTimePoint + 1
 
     outputTracking match {
-      case t: TimeTracking if wasUpdated(t, engineTimePoint) => {
+      case timeBasedWriting: TimeBasedWriting if shouldWrite(timeBasedWriting, engineTimePoint) => {
         val timePoint = engineTimePoint
         Future {
           evaluateModel(timePoint)
         }
       }
-      case DiffTracking => Future {
+      case `ChangeBasedWriting` => Future { //TODO hb why not test (i) shouldWrite here, and (ii) other modes (cases)?
         evaluateModel(engineTimePoint)
       }
       case _ => /* noop*/
@@ -71,21 +71,21 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
     val model = engine.evaluate(currentTimePoint)
 
     outputTracking match {
-      case DiffTracking => {
-        if (wasUpdated(DiffTracking, model))
-          publishModelChange()
+      case ChangeBasedWriting => {
+        if (shouldWrite(ChangeBasedWriting, model))
+          publishModel()
       }
-      case _ => publishModelChange()
+      case _ => publishModel() //TODO other modes? shouldWrite?
     }
 
-    def publishModelChange() = resultCallbacks.foreach(callback => callback(model, currentTimePoint))
+    def publishModel() = resultCallbacks.foreach(callback => callback(model, currentTimePoint))
   }
 
 
-  def wasUpdated[T](outputTrackingEvery: OutputTrackingEvery[T], model: T) = {
-    val updated = outputTrackingEvery.shouldUpdateWithNewData(model) //TODO should != was
-    outputTrackingEvery.registerUpdate(model)
-    updated
+  def shouldWrite[TUpdate](outputWriting: OutputWritingEvery[TUpdate], update: TUpdate) = {
+    val shouldWrite = outputWriting.shouldWriteAfterUpdate(update)
+    outputWriting.registerUpdate(update)
+    shouldWrite
   }
 
   def append(enteredTimePoint: Option[TimePoint], atoms: Seq[Atom]): Unit = {
@@ -105,9 +105,9 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
         engine.append(timePoint)(atoms: _*)
 
         outputTracking match {
-          case DiffTracking => evaluateModel()
-          case s: SignalTracking => {
-            if (wasUpdated(s, atoms)) {
+          case ChangeBasedWriting => evaluateModel()
+          case s: SignalBasedWriting => {
+            if (shouldWrite(s, atoms)) {
               evaluateModel()
             }
           }
@@ -119,7 +119,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
   def start(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
-      override def run(): Unit = updateBeat()
+      override def run(): Unit = updateClock()
     }, clockTime.toMillis, clockTime.toMillis)
 
     connectors.foreach(startable => new Thread(() => startable()).start())
