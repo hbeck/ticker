@@ -129,7 +129,7 @@ object LarsEvaluation {
     var engine: Engine = null
 
     val initializationTime = stopTime {
-      val startableEngine: PreparedEngineConfiguration = config.implementation match {
+      val preparedEngine: PreparedEngineConfiguration = config.implementation match {
         case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
         case _ => {
           tms = config.makeTms(instance.random)
@@ -137,7 +137,7 @@ object LarsEvaluation {
         }
       }
 
-      engine = startableEngine.seal()
+      engine = preparedEngine.seal()
     }
 
     val runSingleTimepoint = runTimepoint(instance, engine, config) _

@@ -32,7 +32,7 @@ object Program {
 
     parseParameters(args) match {
       case Some(config) => {
-        val program = config.parseProgram
+        val program = config.larsProgram
 
         printProgram(program)
 
@@ -46,7 +46,7 @@ object Program {
         if (timeWindowSmallerThanEngineUnit)
           throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the engine timeUnit.")
 
-        val engine = config.buildEngine(program) //TODO we already had the program...
+        val engine = config.buildEngine()
 
         val runner = EngineRunner(engine, config.clockTime, config.outputTiming) //TODO why are some args extra?
         config.inputs foreach {
@@ -177,14 +177,15 @@ object Program {
                     filter: Option[Set[String]] = None
                    ) {
 
-    def parseProgram = LarsParser(programFile.toURI.toURL)
+    val larsProgram = LarsParser(programFile.toURI.toURL)
 
-    def buildEngine(program: LarsProgram): Engine = {
+    def buildEngine(): Engine = {
+
       val engineBuilder = BuildEngine.
-        withProgram(program).
+        withProgram(larsProgram).
         withClockTime(clockTime)
 
-      val startableEngine = reasoner match {
+      val preparedEngine = reasoner match {
         case Reasoner.Incremental =>
           engineBuilder.configure().withJtms().withIncremental()
         case Reasoner.Clingo => outputTiming match {
@@ -193,8 +194,8 @@ object Program {
         }
       }
       filter match {
-        case Some(atoms) if atoms.nonEmpty => startableEngine.withFilter(atoms.map(Atom(_))).seal()
-        case _ => startableEngine.seal()
+        case Some(atoms) if atoms.nonEmpty => preparedEngine.withFilter(atoms.map(Atom(_))).seal()
+        case _ => preparedEngine.seal()
       }
     }
   }
