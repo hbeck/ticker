@@ -25,7 +25,7 @@ object Program {
 //    val sampleArgs = Seq(
 //      "--program", "src/test/resources/test.rules",
 //      "--reasoner", "clingo",
-//      "--inputType", "stdin",
+//      "--inputSource", "stdin",
 //      "--clock", "1s",
 //      "--outputEvery", "2signals"
 //    ).toArray
@@ -103,11 +103,11 @@ object Program {
         action((x, c) => c.copy(outputTiming = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
+      opt[Seq[InputSource]]('i', "inputSource").optional().valueName("<input source>,<input source>,...").
         action((x, c) => c.copy(inputs = x)).
         text("Possible Input Types: read from input with 'StdIn', read from a socket with 'socket:<port>'")
 
-      opt[Seq[OutputTypes]]('o', "outputType").optional().valueName("<output type>,<output type>,...").
+      opt[Seq[OutputTarget]]('o', "outputTarget").optional().valueName("<output target>,<output target>,...").
         action((x, c) => c.copy(outputs = x)).
         text("Possible Output Types: write to output with 'StdOut', write to a socket with 'socket:<port>'")
 
@@ -145,35 +145,35 @@ object Program {
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
   private val SocketPattern = "socket:(\\d+)".r
-  implicit val inputTypesRead: scopt.Read[InputTypes] = scopt.Read.reads(s => s.toLowerCase match {
+  implicit val inputSourcesRead: scopt.Read[InputSource] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdin" => StdIn
     case SocketPattern(port) => SocketInput(port.toInt)
   })
 
-  implicit val outputTypesRead: scopt.Read[OutputTypes] = scopt.Read.reads(s => s.toLowerCase match {
+  implicit val outputTargetsRead: scopt.Read[OutputTarget] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdout" => StdOut
     case SocketPattern(port) => SocketOutput(port.toInt)
   })
 
 
-  sealed trait InputTypes
+  sealed trait InputSource
 
-  object StdIn extends InputTypes
+  object StdIn extends InputSource
 
-  case class SocketInput(port: Int) extends InputTypes
+  case class SocketInput(port: Int) extends InputSource
 
-  sealed trait OutputTypes
+  sealed trait OutputTarget
 
-  object StdOut extends OutputTypes
+  object StdOut extends OutputTarget
 
-  case class SocketOutput(port: Int) extends OutputTypes
+  case class SocketOutput(port: Int) extends OutputTarget
 
   case class Config(reasoner: Reasoner = Reasoner.Incremental,
-                    programFile: File,
+                    programFile: File, //TODO PPS multiple
                     clockTime: Duration = 1 second,
                     outputTiming: OutputTiming = Change,
-                    inputs: Seq[InputTypes] = Seq(StdIn),
-                    outputs: Seq[OutputTypes] = Seq(StdOut),
+                    inputs: Seq[InputSource] = Seq(StdIn),
+                    outputs: Seq[OutputTarget] = Seq(StdOut),
                     filter: Option[Set[String]] = None
                    ) {
 
@@ -189,7 +189,7 @@ object Program {
         case Reasoner.Incremental =>
           engineBuilder.configure().withJtms().withIncremental()
         case Reasoner.Clingo => outputTiming match {
-          case Time(_) => engineBuilder.configure().withClingo().use().usePull()
+          case Time(_) => engineBuilder.configure().withClingo().use().usePull() //TODO n signals, n > 1
           case _ => engineBuilder.configure().withClingo().use().usePush()
         }
       }
