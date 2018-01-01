@@ -22,7 +22,7 @@ object EvaluationModifier extends Enumeration {
   val LazyRemove, Incremental, Push, Pull = Value
 }
 
-case class ArgumentBasedConfiguration(config: EngineConfiguration) {
+case class ArgumentBasedEngineConfiguration(config: EngineConfiguration) {
 
   def build(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 
@@ -54,7 +54,7 @@ case class ArgumentBasedConfiguration(config: EngineConfiguration) {
     jtms.recordStatusSeq = false
     jtms.recordChoiceSeq = false
 
-    config.configure().withJtms().withPolicy(LazyRemovePolicy(jtms)).start()
+    config.configure().withJtms().withPolicy(LazyRemovePolicy(jtms)).seal()
   }
 
   def jtmsIncremental(config: EngineConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
@@ -63,17 +63,17 @@ case class ArgumentBasedConfiguration(config: EngineConfiguration) {
     jtms.recordChoiceSeq = false
 
     //TODO hb ".withIncremental" should not be needed
-    config.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(jtms)).withIncremental().start()
+    config.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(jtms)).withIncremental().seal()
   }
 
 
   //TODO hb "use.use.."?
   def clingoPush(config: EngineConfiguration) = {
-    config.configure().withClingo().use().usePush().start()
+    config.configure().withClingo().use().usePush().seal()
   }
 
   //TODO hb "use.use.."?
   def clingoPull(config: EngineConfiguration) = {
-    config.configure().withClingo().use().usePull().start()
+    config.configure().withClingo().use().usePull().seal()
   }
 }

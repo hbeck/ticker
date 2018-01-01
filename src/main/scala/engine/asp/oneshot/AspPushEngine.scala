@@ -8,7 +8,7 @@ import engine._
   * Created by FM on 21.04.16.
   */
 
-case class AspPushEvaluationEngine(val aspEvaluation: OneShotEvaluation) extends Engine {
+case class AspPushEngine(val aspEvaluation: OneShotEvaluation) extends Engine {
 
   val signalTracker = SignalTracker(aspEvaluation.program)
 

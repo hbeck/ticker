@@ -4,14 +4,14 @@ import core.Atom
 import core.asp.AspProgram
 import core.lars._
 import engine.asp.now
-import fixtures.{ConfigurableEvaluationSpec, TimeTestFixtures, TmsDirectPolicyEngine}
+import fixtures.{ConfigurableEngineSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
 /**
   * Created by FM on 22.04.16.
   */
-class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class XWindowBoxASample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val aspStringProgram =
     """x(T) :- w1b_a(T).
 
@@ -45,20 +45,20 @@ class XWindowBoxASample extends ConfigurableEvaluationSpec with TimeTestFixtures
   def engineWithStream = {
     info("Given '{t1 -> a}, {t2 -> a}' ")
 
-    evaluationEngine.append(t1)(a)
-    evaluationEngine.append(t2)(a)
+    engine.append(t1)(a)
+    engine.append(t2)(a)
 
-    evaluationEngine
+    engine
   }
 
 
   "An empty program" should "not lead to x at t0" in {
-    evaluationEngine.evaluate(t0).get shouldNot contain(x)
+    engine.evaluate(t0).get shouldNot contain(x)
   }
 
   it should "not lead to x at t1" in {
-    evaluationEngine.append(t1)(a)
-    evaluationEngine.evaluate(t1).get.value shouldNot contain(x)
+    engine.append(t1)(a)
+    engine.evaluate(t1).get.value shouldNot contain(x)
   }
 
   it should "lead to x at t2" in {

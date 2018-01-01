@@ -1,20 +1,20 @@
 package util
 
-import engine.{EvaluationEngine, StreamEntry}
+import engine.{Engine, StreamEntry}
 
 import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by hb on 8/29/16.
   */
-case class Evaluator(instance: String, engineProvider: () => EvaluationEngine) {
+case class Evaluator(instance: String, engineProvider: () => Engine) {
 
   def streamAsFastAsPossible(warmUps: Int = 2, repetitions: Int = 5)(inputs: Seq[StreamEntry]): TimingsConfigurationResult = {
     val appendExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
     val evaluateExecutionTimes = ArrayBuffer[scala.concurrent.duration.Duration]()
 
     def test = {
-      val engine = TimedEvaluationEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
+      val engine = TimedEngine(engineProvider(), appendExecutionTimes, evaluateExecutionTimes)
 
       inputs.foreach { i => {
         engine.append(i.time)(i.atoms.toSeq: _*)

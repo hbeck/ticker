@@ -19,12 +19,11 @@ object Clingo extends EvaluationType
 
 object AspBasedTms extends EvaluationType
 
-trait EvaluationEngineBuilder {
+trait EngineBuilder {
 
   case class EngineConfig(evaluationType: EvaluationType, builder: EngineBuilder)
 
   type EngineBuilder = ((LarsProgram) => Engine)
-
 
   val defaultEngine: EngineBuilder
 
@@ -38,15 +37,15 @@ trait EvaluationEngineBuilder {
 
 }
 
-trait ClingoPullEngine extends EvaluationEngineBuilder {
+trait ClingoPullEngine extends EngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePull().seal()
 }
 
-trait ClingoPushEngine extends EvaluationEngineBuilder {
+trait ClingoPushEngine extends EngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().seal()
 }
 
-trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
+trait TmsDirectPolicyEngine extends EngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
@@ -56,7 +55,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
   }
 }
 
-trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
+trait JtmsGreedyLazyRemovePolicyEngine extends EngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
@@ -66,7 +65,7 @@ trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
   }
 }
 
-trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
+trait JtmsLearnLazyRemovePolicyEngine extends EngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = new JtmsLearn(new OptimizedNetworkForLearn(), new Random(1))
@@ -77,7 +76,7 @@ trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
   }
 }
 
-trait JtmsIncrementalEngine extends EvaluationEngineBuilder {
+trait JtmsIncrementalEngine extends EngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = Jtms(new OptimizedNetwork(), new Random(1))

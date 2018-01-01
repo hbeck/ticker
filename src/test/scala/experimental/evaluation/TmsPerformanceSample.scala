@@ -3,7 +3,7 @@ package experimental.evaluation
 import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy
 import engine.config.BuildEngine
-import fixtures.{ConfigurableEvaluationSpec, EvaluationEngineBuilder, TimeTestFixtures}
+import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
 import jtms.algorithms.JtmsGreedy
 import jtms.networks.OptimizedNetwork
 import org.scalatest.Inspectors._
@@ -15,7 +15,7 @@ import scala.util.Random
 /**
   * Created by FM on 09.06.16.
   */
-class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtures with EvaluationEngineBuilder {
+class TmsPerformanceSample extends ConfigurableEngineSpec with TimeTestFixtures with EngineBuilder {
   val program = LarsProgram.from(
     a <= b,
     b <= c,
@@ -33,16 +33,16 @@ class TmsPerformanceSample extends ConfigurableEvaluationSpec with TimeTestFixtu
     configure().
     withJtms().
     withPolicy(LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random(1)), 10)).
-    start()
+    seal()
 
   "An empty Program" should "lead to an empty model at t0" in {
-    evaluationEngine.evaluate(t0).get.value shouldBe empty
+    engine.evaluate(t0).get.value shouldBe empty
   }
 
   "{1 -> k}" should "lead to model a for 1...100" in {
-    evaluationEngine.append(t1)(k)
+    engine.append(t1)(k)
 
-    forAll(1 to 100) { t => evaluationEngine.evaluate(t).get.value should contain(a) }
+    forAll(1 to 100) { t => engine.evaluate(t).get.value should contain(a) }
   }
 }
 

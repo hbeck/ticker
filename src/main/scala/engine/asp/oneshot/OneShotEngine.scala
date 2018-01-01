@@ -16,7 +16,7 @@ trait OneShotEvaluation {
   def apply(timePoint: TimePoint, count: Long, dataStream: SignalStream): Result
 }
 
-case class OneShotEvaluationEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
+case class OneShotEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
 
   val windowAtoms = program.larsRules flatMap (_.body collect { case w:WindowAtom => w})
 

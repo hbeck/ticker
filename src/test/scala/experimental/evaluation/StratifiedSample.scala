@@ -10,7 +10,7 @@ import org.scalatest.Inspectors._
 /**
   * Created by FM on 02.06.16.
   */
-class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class StratifiedSample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
   val program = LarsProgram.from(
     a <= b and c not d,
 
@@ -24,30 +24,30 @@ class StratifiedSample extends ConfigurableEvaluationSpec with TimeTestFixtures 
   )
 
   "An empty program" should "lead to model c" in {
-    val result = evaluationEngine.evaluate(t0).get.value
+    val result = engine.evaluate(t0).get.value
     result should contain only (c)
   }
 
   "Given {0...10 -> r}" should "lead to Model a,  b, c at t10" in {
-    (0 to 10) foreach (evaluationEngine.append(_)(r))
+    (0 to 10) foreach (engine.append(_)(r))
 
-    evaluationEngine.evaluate(10).get.value should contain allOf(a, b, c)
+    engine.evaluate(10).get.value should contain allOf(a, b, c)
   }
 
   "Given {0...10 -> r, 5 -> y}" should "lead to Model a, b, c ,f at t10" in {
     (0 to 10) foreach (t => {
-      evaluationEngine.append(t)(r)
-      if (t == 5) evaluationEngine.append(5)(y)
+      engine.append(t)(r)
+      if (t == 5) engine.append(5)(y)
     })
 
-    evaluationEngine.evaluate(10).get.value should contain allOf(a, b, c, f)
+    engine.evaluate(10).get.value should contain allOf(a, b, c, f)
   }
 
   "Given {0...100 -> {r, s}}" should "not lead to a at any time" in {
     (0 to 100) foreach (i => {
-      evaluationEngine.append(i)(r, s)
+      engine.append(i)(r, s)
 
-      evaluationEngine.evaluate(TimePoint(i)).get.value shouldNot contain(a)
+      engine.evaluate(TimePoint(i)).get.value shouldNot contain(a)
     })
 
 

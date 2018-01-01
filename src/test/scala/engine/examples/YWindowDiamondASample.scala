@@ -3,7 +3,7 @@ package engine.examples
 import core.Atom
 import core.asp.AspProgram
 import core.lars._
-import engine.EvaluationEngine
+import engine.Engine
 import engine.asp.now
 import engine.config.BuildEngine
 import experimental.evaluation.{ RunWithAllImplementations}
@@ -15,7 +15,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class YWindowDiamondASample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
   val aspStringProgram =
     """y(T) :- w1d_a(T).
 
@@ -43,13 +43,13 @@ class YWindowDiamondASample extends ConfigurableEvaluationSpec with TimeTestFixt
   def engineWithStream = {
     info("Given 't1 -> a' ")
 
-    evaluationEngine.append(t1)(a)
+    engine.append(t1)(a)
 
-    evaluationEngine
+    engine
   }
 
   "An empty program" should "not lead to y at t0" in {
-    evaluationEngine.evaluate(t0).get shouldNot contain(y)
+    engine.evaluate(t0).get shouldNot contain(y)
   }
 
   it should "lead to y at t1" in {

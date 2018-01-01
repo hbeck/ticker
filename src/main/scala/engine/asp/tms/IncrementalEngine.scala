@@ -14,7 +14,7 @@ import scala.collection.immutable.HashMap
   *
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
-case class IncrementalEvaluation(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: JtmsPolicy) extends Engine {
+case class IncrementalEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: JtmsPolicy) extends Engine {
 
   tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 

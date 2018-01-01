@@ -6,23 +6,23 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimePoint
-import engine.{Evaluation, Result}
+import engine.{Engine, Result}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ConnectToEngine {
 
-  def startWith(engineRunner: Engine): Startable
+  def startWith(engineRunner: EngineRunner): Startable
 
 }
 
 /**
   * Created by FM on 10.11.16.
   */
-case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputEvery) {
+case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: OutputTiming) {
 
-  val logger = Logger[Engine]
+  val logger = Logger[EngineRunner]
 
   type ResultCallback = (Result, TimePoint) => Unit
 
@@ -36,16 +36,16 @@ case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputE
 
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
-  @volatile private var outputTracking: OutputTracking = output match {
+  @volatile private var outputTracking: OutputTracking = outputTiming match {
     case Change => DiffTracking
-    case Time(None) => TimeTracking(engineSpeed, engineSpeed)
-    case Time(Some(interval)) => TimeTracking(interval, engineSpeed)
+    case Time(None) => TimeTracking(clockTime, clockTime)
+    case Time(Some(interval)) => TimeTracking(interval, clockTime)
     case Signal(interval) => SignalTracking(interval)
   }
 
-  def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / engineSpeed.toMillis, engineSpeed.unit).length
+  def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / clockTime.toMillis, clockTime.unit).length
 
-  def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * engineSpeed.toMillis, TimeUnit.MILLISECONDS).toUnit(engineSpeed.unit), engineSpeed.unit)
+  def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit), clockTime.unit)
 
   private def updateBeat(): Unit = {
     engineTimePoint = engineTimePoint + 1
@@ -68,7 +68,7 @@ case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputE
   def evaluateModel(): Unit = evaluateModel(engineTimePoint)
 
   def evaluateModel(currentTimePoint: TimePoint): Unit = {
-    val model = evaluation.evaluate(currentTimePoint)
+    val model = engine.evaluate(currentTimePoint)
 
     outputTracking match {
       case DiffTracking => {
@@ -102,7 +102,7 @@ case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputE
 
         logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 
-        evaluation.append(timePoint)(atoms: _*)
+        engine.append(timePoint)(atoms: _*)
 
         outputTracking match {
           case DiffTracking => evaluateModel()
@@ -120,7 +120,7 @@ case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputE
   def start(): Unit = {
     timer.scheduleAtFixedRate(new TimerTask {
       override def run(): Unit = updateBeat()
-    }, engineSpeed.toMillis, engineSpeed.toMillis)
+    }, clockTime.toMillis, clockTime.toMillis)
 
     connectors.foreach(startable => new Thread(() => startable()).start())
     // forces the caller thread to wait

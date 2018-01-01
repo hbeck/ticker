@@ -6,10 +6,10 @@ import core.lars.{EngineTimeUnit, LarsProgram}
 import engine.asp._
 import engine.asp.oneshot._
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, JtmsPolicy}
-import engine.asp.tms.{IncrementalEvaluationEngine, IncrementalRuleMaker}
+import engine.asp.tms.{IncrementalEngine, IncrementalRuleMaker}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
-import engine.{AtomResultFilter, EvaluationEngine, EvaluationEngineWithResultFilter}
+import engine.{ResultFilter, Engine, EngineWithFilter}
 import jtms.algorithms.Jtms
 import jtms.networks.OptimizedNetwork
 
@@ -20,16 +20,16 @@ import scala.util.Random
   * Created by FM on 14.05.16.
   */
 object BuildEngine {
-  def withProgram(program: LarsProgram) = EvaluationEngineConfiguration(program)
+  def withProgram(program: LarsProgram) = EngineConfiguration(program)
 }
 
-case class EvaluationEngineConfiguration(larsProgram: LarsProgram, withTimePointDuration: EngineTimeUnit = 1 second) {
+case class EngineConfiguration(larsProgram: LarsProgram, withClockTime: EngineTimeUnit = 1 second) {
 
-  def withConfiguration(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(evaluationType, evaluationModifier)
+  def withReasoning(reasoner: Reasoner, evaluationModifier: EvaluationModifier) = ArgumentBasedEngineConfiguration(this).build(reasoner, evaluationModifier)
 
-  def configure() = ReasoningStrategyConfiguration(larsProgram, withTimePointDuration)
+  def configure() = ReasoningStrategyConfiguration(larsProgram, withClockTime)
 
-  def withTimePointDuration(duration: EngineTimeUnit) = EvaluationEngineConfiguration(larsProgram, duration)
+  def withClockTime(duration: EngineTimeUnit) = EngineConfiguration(larsProgram, duration)
 }
 
 case class ReasoningStrategyConfiguration(program: LarsProgram, withTickSize: EngineTimeUnit) {
@@ -50,17 +50,17 @@ case class JtmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: J
 
   def withPolicy(jtmsPolicy: JtmsPolicy) = JtmsConfiguration(larsProgramEncoding, jtmsPolicy)
 
-  def withIncremental() = StartableEngineConfiguration(
-    IncrementalEvaluationEngine(IncrementalRuleMaker(larsProgramEncoding), policy),
+  def withIncremental() = PreparedEngineConfiguration(
+    IncrementalEngine(IncrementalRuleMaker(larsProgramEncoding), policy),
     larsProgramEncoding.intensionalAtoms ++ larsProgramEncoding.signals
   )
 
 }
 
 object JtmsConfiguration {
-  implicit def toEvaluationModeConfig(config: JtmsConfiguration): StartableEngineConfiguration =
-    StartableEngineConfiguration(
-      IncrementalEvaluationEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
+  implicit def toEvaluationModeConfig(config: JtmsConfiguration): PreparedEngineConfiguration =
+    PreparedEngineConfiguration(
+      IncrementalEngine(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
       config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals
     )
 }
@@ -68,7 +68,7 @@ object JtmsConfiguration {
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
   def use(evaluationMode: EvaluationMode = Direct) = {
-    val aspEvaluation = buildEvaluationMode(OneShotEvaluationEngine(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
+    val aspEvaluation = buildEvaluationMode(OneShotEngine(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }
 
@@ -80,23 +80,22 @@ case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
 case class EvaluationStrategyConfiguration(aspEvaluation: OneShotEvaluation) {
 
-  def usePull() = StartableEngineConfiguration(
-    AspPullEvaluationEngine(aspEvaluation),
+  def usePull() = PreparedEngineConfiguration(
+    AspPullEngine(aspEvaluation),
     aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
   )
 
-  def usePush() = StartableEngineConfiguration(
-    AspPushEvaluationEngine(aspEvaluation),
+  def usePush() = PreparedEngineConfiguration(
+    AspPushEngine(aspEvaluation),
     aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
   )
 
 }
 
-case class StartableEngineConfiguration(evaluationEngine: EvaluationEngine, restrictTo: Set[Atom]) {
+case class PreparedEngineConfiguration(engine: Engine, restrictTo: Set[Atom]) {
 
-  def filterTo(restrictTo: Set[Atom]) = StartableEngineConfiguration(evaluationEngine, restrictTo)
+  def withFilter(restrictTo: Set[Atom]) = PreparedEngineConfiguration(engine, restrictTo)
 
-  def start() = EvaluationEngineWithResultFilter(evaluationEngine, AtomResultFilter(restrictTo))
+  def seal() = EngineWithFilter(engine, ResultFilter(restrictTo))
 
-  //def startWithoutFilter() = evaluationEngine
 }

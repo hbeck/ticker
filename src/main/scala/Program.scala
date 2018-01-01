@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.Logger
 import common.Util
 import core.Atom
 import core.lars.{Format, LarsProgram}
-import engine.EvaluationEngine
+import engine.Engine
 import engine.config.Reasoner._
 import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
 import engine.parser.LarsParser
@@ -40,7 +40,7 @@ object Program {
 
         val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
           exists {
-            t => Duration(t.windowSize.length, t.windowSize.unit) lt config.timeUnit
+            t => Duration(t.windowSize.length, t.windowSize.unit) lt config.clockTime
               //TODO have to check that every window is a multiple of clock time
           }
         if (timeWindowSmallerThanEngineUnit)
@@ -48,10 +48,10 @@ object Program {
 
         val engine = config.buildEngine(program) //TODO we already had the program...
 
-        val runner = EngineRunner(engine, config.timeUnit, config.outputEvery) //TODO why are some args extra?
+        val runner = EngineRunner(engine, config.clockTime, config.outputTiming) //TODO why are some args extra?
         config.inputs foreach {
-          case SocketInput(port) => runner.connect(ReadFromSocket(config.timeUnit._2, port))
-          case StdIn => runner.connect(ReadFromStdIn(config.timeUnit._2))
+          case SocketInput(port) => runner.connect(ReadFromSocket(config.clockTime._2, port))
+          case StdIn => runner.connect(ReadFromStdIn(config.clockTime._2))
         }
         config.outputs foreach {
           case StdOut => runner.connect(OutputToStdOut)
@@ -78,29 +78,29 @@ object Program {
         action((x, c) => c.copy(programFile = x)).
         text("program is a required file property")
 
-      opt[Reasoner]('r', "reasoning").optional().valueName("<reasoning type>").
+      opt[Reasoner]('r', "reasoner").optional().valueName("<reasoning strategy>").
         action((x, c) => c.copy(reasoner = x)).
         text("Reasoning stragety required, possible values: " + Reasoner.values)
 
-      opt[Duration]('t', "timeunit").optional().valueName("<value><time-unit>").
+      opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
           if (d lt Duration.Zero)
-            Left("inputSpeed must be > 0")
+            Left("clock time must be > 0")
           else
             Right((): Unit)
         ).
-        action((x, c) => c.copy(timeUnit = x)).
+        action((x, c) => c.copy(clockTime = x)).
         text("valid units: ms, s, min, h. eg: 10ms") //TODO
 
-      opt[OutputEvery]('e',"outputEvery").
+      opt[OutputTiming]('e',"outputEvery").
         optional().
-        valueName("diff | signal | time | <value>signals | <value><time-unit>").
+        valueName("change | signal | time | <value>signals | <value><time-unit>").
         validate {
           case Signal(count) if count < 0 => Left("signal count must be > 0")
           case Time(Some(duration)) if duration lt Duration.Zero => Left("duration must be > 0")
           case _ => Right((): Unit)
         }.
-        action((x, c) => c.copy(outputEvery = x)).
+        action((x, c) => c.copy(outputTiming = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
       opt[Seq[InputTypes]]('i', "inputType").optional().valueName("<input type>,<input type>,...").
@@ -115,8 +115,8 @@ object Program {
         text("Specify init parameters for running the engine")
 
       checkConfig(c => {
-        c.outputEvery match {
-          case Time(Some(duration)) if duration lt c.timeUnit =>
+        c.outputTiming match {
+          case Time(Some(duration)) if duration lt c.clockTime =>
             reportWarning("outputEvery time interval is less than the engine timeUnit. The output time interval will be set to the engine unit")
           case _ =>
         }
@@ -130,11 +130,11 @@ object Program {
 
   private val SignalPattern = "(\\d+)signals".r
 
-  implicit val outputEveryRead: scopt.Read[OutputEvery] =
+  implicit val outputEveryRead: scopt.Read[OutputTiming] =
     scopt.Read.reads(s => s.toLowerCase match {
-      case "diff" => Diff
+      case "change" => Change
       case "signal" => Signal()
-      case "timeunit" => Time()
+      case "time" => Time()
       case SignalPattern(count) => Signal(count.toInt)
       case shouldBeTime => Time(Some(Duration.create(shouldBeTime)))
     })
@@ -170,31 +170,31 @@ object Program {
 
   case class Config(reasoner: Reasoner = Reasoner.Incremental,
                     programFile: File,
-                    timeUnit: Duration = 1 second, //TODO rename clockTime
-                    outputEvery: OutputEvery = Diff, //TODO rename
-                    inputs: Seq[InputTypes] = Seq(StdIn), //TODO rename
+                    clockTime: Duration = 1 second,
+                    outputTiming: OutputTiming = Change,
+                    inputs: Seq[InputTypes] = Seq(StdIn),
                     outputs: Seq[OutputTypes] = Seq(StdOut),
                     filter: Option[Set[String]] = None
                    ) {
 
     def parseProgram = LarsParser(programFile.toURI.toURL)
 
-    def buildEngine(program: LarsProgram): EvaluationEngine = {
+    def buildEngine(program: LarsProgram): Engine = {
       val engineBuilder = BuildEngine.
         withProgram(program).
-        withTimePointDuration(timeUnit) //TODO rename clockTime
+        withClockTime(clockTime)
 
       val startableEngine = reasoner match {
         case Reasoner.Incremental =>
           engineBuilder.configure().withJtms().withIncremental()
-        case Reasoner.Clingo => outputEvery match {
+        case Reasoner.Clingo => outputTiming match {
           case Time(_) => engineBuilder.configure().withClingo().use().usePull()
           case _ => engineBuilder.configure().withClingo().use().usePush()
         }
       }
       filter match {
-        case Some(atoms) if atoms.nonEmpty => startableEngine.filterTo(atoms.map(Atom(_))).start()
-        case _ => startableEngine.start()
+        case Some(atoms) if atoms.nonEmpty => startableEngine.withFilter(atoms.map(Atom(_))).seal()
+        case _ => startableEngine.seal()
       }
     }
   }

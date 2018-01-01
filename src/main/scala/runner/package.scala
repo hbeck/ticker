@@ -6,11 +6,11 @@ import scala.concurrent.duration.Duration
 package object runner {
   type Startable = () => Unit
 
-  sealed trait OutputEvery
+  sealed trait OutputTiming //parameter --outputEvery
 
-  object Diff extends OutputEvery
+  object Change extends OutputTiming
 
-  case class Time(interval: Option[Duration] = None) extends OutputEvery
+  case class Time(interval: Option[Duration] = None) extends OutputTiming
 
-  case class Signal(interval: Int = 1) extends OutputEvery
+  case class Signal(interval: Int = 1) extends OutputTiming
 }

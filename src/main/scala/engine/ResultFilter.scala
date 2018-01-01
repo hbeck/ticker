@@ -7,18 +7,14 @@ import core.lars.TimePoint
   * Created by fm on 05/06/2017.
   */
 
-case class EngineWithFilter(evaluationEngine: Engine, filter: AtomResultFilter) extends Engine {
+case class EngineWithFilter(engine: Engine, filter: ResultFilter) extends Engine {
 
-  override def append(time: TimePoint)(atoms: Atom*): Unit = evaluationEngine.append(time)(atoms: _*)
+  override def append(time: TimePoint)(atoms: Atom*): Unit = engine.append(time)(atoms: _*)
 
-  override def evaluate(time: TimePoint): Result = filter.filter(time, evaluationEngine.evaluate(time))
+  override def evaluate(time: TimePoint): Result = filter.filter(time, engine.evaluate(time))
 }
 
-//case class EvaluationEngineWithConversion (evaluationEngine: EvaluationEngine)extends EvaluationEngine{
-//
-//}
-
-case class AtomResultFilter(restrictTo: Set[Atom]) {
+case class ResultFilter(restrictTo: Set[Atom]) {
 
   val restrictToPredicates = restrictTo.map(_.predicate)
 

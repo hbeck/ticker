@@ -28,7 +28,7 @@ class AspPushTms extends AllStreamingSamples with TmsDirectPolicyEngine
 
 class LazyRemoveTms extends AllStreamingSamples with JtmsGreedyLazyRemovePolicyEngine
 
-class RunWithAllImplementations[TSpec <: ConfigurableEvaluationSpec](spec: TSpec) extends Spec {
+class RunWithAllImplementations[TSpec <: ConfigurableEngineSpec](spec: TSpec) extends Spec {
 
   class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullEngine
 

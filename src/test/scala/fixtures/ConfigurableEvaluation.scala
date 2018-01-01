@@ -2,7 +2,7 @@ package fixtures
 
 import common.Resource
 import core.lars.LarsProgram
-import engine.EvaluationEngine
+import engine.Engine
 import fixtures.tags.NoTmsDirectPolicy
 import org.scalatest._
 
@@ -11,14 +11,14 @@ import org.scalatest._
   * Created by FM on 01.06.16.
   */
 
-trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
+trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
 
   val program: LarsProgram
 
   private var engineEvaluationType: EvaluationType = this.defaultEvaluationType
-  private var engineCache: Option[EvaluationEngine] = None
+  private var engineCache: Option[Engine] = None
 
-  def evaluationEngine: EvaluationEngine = engineCache.get
+  def engine: Engine = engineCache.get
 
   override def withFixture(test: NoArgTest): Outcome = {
 
@@ -37,7 +37,7 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 
     info("Using engine " + evaluationType)
     try {
-      ConfigurableEvaluationSpec.super.withFixture(test)
+      ConfigurableEngineSpec.super.withFixture(test)
     } finally {
       engineCache match {
         case Some(x: Resource) => x.close()
@@ -63,7 +63,7 @@ trait ConfigurableEvaluationSpec extends FlatSpec with EvaluationEngineBuilder {
 }
 
 
-trait ConfigurableEvaluationSuite extends Suite with EvaluationEngineBuilder {
+trait ConfigurableEvaluationSuite extends Suite with EngineBuilder {
 
   protected override def runNestedSuites(args: Args): Status = {
     val config = EngineConfig(this.defaultEvaluationType, (p: LarsProgram) => this.defaultEngine(p))

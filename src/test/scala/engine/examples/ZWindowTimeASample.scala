@@ -9,7 +9,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class ZWindowTimeASample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
 
   /**
     *
@@ -30,14 +30,14 @@ class ZWindowTimeASample extends ConfigurableEvaluationSpec with TimeTestFixture
 
   def preparedEngine = {
     info("Given 't1 -> a' ")
-    evaluationEngine.append(t1)(a)
+    engine.append(t1)(a)
 
-    evaluationEngine
+    engine
   }
 
   //  pendingWithTms("Missing grounding of Variable U")
   it should "not lead to z at t0" in {
-    evaluationEngine.evaluate(t0).get shouldNot contain(z)
+    engine.evaluate(t0).get shouldNot contain(z)
   }
 
   it should "not lead to z at t1" in {
