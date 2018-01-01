@@ -7,11 +7,11 @@ import core.{Atom, Model}
 /**
   * Created by FM on 05.04.16.
   */
-trait EvaluationEngine {
+trait Evaluation {
 
-  def append(time: TimePoint)(atoms: Atom*): Unit
+  def append(timePoint: TimePoint)(atoms: Atom*): Unit
 
-  def evaluate(time: TimePoint): Result
+  def evaluate(timePoint: TimePoint): Result
 }
 
 trait Result {

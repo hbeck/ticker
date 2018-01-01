@@ -7,7 +7,7 @@ import core.lars.TimePoint
   * Created by fm on 05/06/2017.
   */
 
-case class EvaluationEngineWithResultFilter(evaluationEngine: EvaluationEngine, filter: AtomResultFilter) extends EvaluationEngine {
+case class EngineWithFilter(evaluationEngine: Engine, filter: AtomResultFilter) extends Engine {
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = evaluationEngine.append(time)(atoms: _*)
 

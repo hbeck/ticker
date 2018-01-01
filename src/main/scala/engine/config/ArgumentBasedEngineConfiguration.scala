@@ -1,6 +1,6 @@
 package engine.config
 
-import engine.EvaluationEngine
+import engine.Engine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.EvaluationModifier.EvaluationModifier
 import engine.config.Reasoner.Reasoner
@@ -22,14 +22,14 @@ object EvaluationModifier extends Enumeration {
   val LazyRemove, Incremental, Push, Pull = Value
 }
 
-case class ArgumentBasedConfiguration(config: EvaluationEngineConfiguration) {
+case class ArgumentBasedConfiguration(config: EngineConfiguration) {
 
   def build(evaluationType: Reasoner, evaluationModifier: EvaluationModifier) = buildEngine(evaluationType, evaluationModifier)
 
   def buildEngine(evaluationType: Reasoner,
                   evaluationModifier: EvaluationModifier,
                   network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(),
-                  random: Random = new Random(1)): Option[EvaluationEngine] = {
+                  random: Random = new Random(1)): Option[Engine] = {
 
     if (evaluationType == Reasoner.Incremental) {
       evaluationModifier match {
@@ -49,7 +49,7 @@ case class ArgumentBasedConfiguration(config: EvaluationEngineConfiguration) {
   }
 
   //TODO hb does it make sense?
-  def jtmsLazyRemove(config: EvaluationEngineConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
+  def jtmsLazyRemove(config: EngineConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
     val jtms = Jtms(network, random)
     jtms.recordStatusSeq = false
     jtms.recordChoiceSeq = false
@@ -57,7 +57,7 @@ case class ArgumentBasedConfiguration(config: EvaluationEngineConfiguration) {
     config.configure().withJtms().withPolicy(LazyRemovePolicy(jtms)).start()
   }
 
-  def jtmsIncremental(config: EvaluationEngineConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
+  def jtmsIncremental(config: EngineConfiguration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
     val jtms = Jtms(network, random)
     jtms.recordStatusSeq = false
     jtms.recordChoiceSeq = false
@@ -68,12 +68,12 @@ case class ArgumentBasedConfiguration(config: EvaluationEngineConfiguration) {
 
 
   //TODO hb "use.use.."?
-  def clingoPush(config: EvaluationEngineConfiguration) = {
+  def clingoPush(config: EngineConfiguration) = {
     config.configure().withClingo().use().usePush().start()
   }
 
   //TODO hb "use.use.."?
-  def clingoPull(config: EvaluationEngineConfiguration) = {
+  def clingoPull(config: EngineConfiguration) = {
     config.configure().withClingo().use().usePull().start()
   }
 }

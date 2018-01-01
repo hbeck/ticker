@@ -6,23 +6,23 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimePoint
-import engine.{EvaluationEngine, Result}
+import engine.{Evaluation, Result}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ConnectToEngine {
 
-  def startWith(engineRunner: EngineRunner): Startable
+  def startWith(engineRunner: Engine): Startable
 
 }
 
 /**
   * Created by FM on 10.11.16.
   */
-case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output: OutputEvery) {
+case class Engine(evaluation: Evaluation, engineSpeed: Duration, output: OutputEvery) {
 
-  val logger = Logger[EngineRunner]
+  val logger = Logger[Engine]
 
   type ResultCallback = (Result, TimePoint) => Unit
 
@@ -37,7 +37,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
   @volatile private var outputTracking: OutputTracking = output match {
-    case Diff => DiffTracking
+    case Change => DiffTracking
     case Time(None) => TimeTracking(engineSpeed, engineSpeed)
     case Time(Some(interval)) => TimeTracking(interval, engineSpeed)
     case Signal(interval) => SignalTracking(interval)
@@ -68,7 +68,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
   def evaluateModel(): Unit = evaluateModel(engineTimePoint)
 
   def evaluateModel(currentTimePoint: TimePoint): Unit = {
-    val model = engine.evaluate(currentTimePoint)
+    val model = evaluation.evaluate(currentTimePoint)
 
     outputTracking match {
       case DiffTracking => {
@@ -102,7 +102,7 @@ case class EngineRunner(engine: EvaluationEngine, engineSpeed: Duration, output:
 
         logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 
-        engine.append(timePoint)(atoms: _*)
+        evaluation.append(timePoint)(atoms: _*)
 
         outputTracking match {
           case DiffTracking => evaluateModel()

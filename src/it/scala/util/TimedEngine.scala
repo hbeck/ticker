@@ -2,16 +2,16 @@ package util
 
 import core.Atom
 import core.lars.TimePoint
-import engine.{EvaluationEngine, Result}
+import engine.{Engine, Result}
 
 import scala.concurrent.duration.{Deadline, Duration}
 
 /**
   * Created by FM on 06.08.16.
   */
-case class TimedEvaluationEngine(evaluationEngine: EvaluationEngine,
+case class TimedEvaluationEngine(evaluationEngine: Engine,
                                  appendExecutionTimes: collection.mutable.ArrayBuffer[Duration] = collection.mutable.ArrayBuffer(),
-                                 evaluateExecutionTimes: collection.mutable.ArrayBuffer[Duration] = collection.mutable.ArrayBuffer()) extends EvaluationEngine {
+                                 evaluateExecutionTimes: collection.mutable.ArrayBuffer[Duration] = collection.mutable.ArrayBuffer()) extends Engine {
 
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = {

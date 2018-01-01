@@ -1,7 +1,7 @@
 package fixtures
 
 import core.lars.LarsProgram
-import engine.EvaluationEngine
+import engine.Engine
 import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import engine.config.BuildEngine
 import jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
@@ -23,7 +23,7 @@ trait EvaluationEngineBuilder {
 
   case class EngineConfig(evaluationType: EvaluationType, builder: EngineBuilder)
 
-  type EngineBuilder = ((LarsProgram) => EvaluationEngine)
+  type EngineBuilder = ((LarsProgram) => Engine)
 
 
   val defaultEngine: EngineBuilder
@@ -39,11 +39,11 @@ trait EvaluationEngineBuilder {
 }
 
 trait ClingoPullEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePull().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePull().seal()
 }
 
 trait ClingoPushEngine extends EvaluationEngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().start()
+  val defaultEngine = (p: LarsProgram) => BuildEngine.withProgram(p).configure().withClingo().use().usePush().seal()
 }
 
 trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
@@ -52,7 +52,7 @@ trait TmsDirectPolicyEngine extends EvaluationEngineBuilder {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).seal()
   }
 }
 
@@ -62,7 +62,7 @@ trait JtmsGreedyLazyRemovePolicyEngine extends EvaluationEngineBuilder {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).seal()
   }
 }
 
@@ -73,7 +73,7 @@ trait JtmsLearnLazyRemovePolicyEngine extends EvaluationEngineBuilder {
     tms.shuffle = false
     tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).start()
+    BuildEngine.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).seal()
   }
 }
 
@@ -83,6 +83,6 @@ trait JtmsIncrementalEngine extends EvaluationEngineBuilder {
     val tms = Jtms(new OptimizedNetwork(), new Random(1))
     //tms.doConsistencyCheck = false
 
-    BuildEngine.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().start()
+    BuildEngine.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().seal()
   }
 }
