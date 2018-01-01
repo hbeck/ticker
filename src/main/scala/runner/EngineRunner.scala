@@ -36,7 +36,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
-  @volatile private val outputTracking: OutputWriting = outputTiming match {
+  @volatile private val outputWriting: OutputWriting = outputTiming match {
     case Change => ChangeBasedWriting
     case Time(None) => TimeBasedWriting(clockTime, clockTime)
     case Time(Some(interval)) => TimeBasedWriting(interval, clockTime)
@@ -50,7 +50,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
   private def updateClock(): Unit = {
     engineTimePoint = engineTimePoint + 1
 
-    outputTracking match {
+    outputWriting match {
       case timeBasedWriting: TimeBasedWriting if shouldWrite(timeBasedWriting, engineTimePoint) => {
         val timePoint = engineTimePoint
         Future {
@@ -70,7 +70,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
   def evaluateModel(currentTimePoint: TimePoint): Unit = {
     val model = engine.evaluate(currentTimePoint)
 
-    outputTracking match {
+    outputWriting match {
       case ChangeBasedWriting => {
         if (shouldWrite(ChangeBasedWriting, model))
           publishModel()
@@ -104,7 +104,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
         engine.append(timePoint)(atoms: _*)
 
-        outputTracking match {
+        outputWriting match {
           case ChangeBasedWriting => evaluateModel()
           case s: SignalBasedWriting => {
             if (shouldWrite(s, atoms)) {
