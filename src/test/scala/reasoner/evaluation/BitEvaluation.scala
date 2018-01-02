@@ -1,11 +1,11 @@
 package reasoner.evaluation
 
 import iclp.evaluation.Util
-import runner.Load._
+import engine.Load._
 import reasoner.StreamEntry
 import experimental.evaluation._
 import experimental.evaluation.bit.BitProgram
-import runner.Load
+import engine.Load
 import util._
 
 import scala.util.Random

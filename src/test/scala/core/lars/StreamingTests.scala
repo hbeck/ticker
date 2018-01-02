@@ -4,10 +4,10 @@ import common.Util.printTime
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
 import iclp.evaluation.Util
-import runner.Load._
+import engine.Load._
 import reasoner.incremental.jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
-import runner.Load
+import engine.Load
 import Util._
 import core.grounding.LarsGrounding
 

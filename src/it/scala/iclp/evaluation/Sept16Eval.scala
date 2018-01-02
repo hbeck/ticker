@@ -9,7 +9,7 @@ import core.asp._
 import reasoner.incremental.jtms._
 import reasoner.incremental.jtms.algorithms.{Jtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
 import reasoner.incremental.jtms.networks.OptimizedNetwork
-import runner.Load
+import engine.Load
 
 import scala.io.Source
 import scala.util.Random

@@ -6,8 +6,8 @@ import core.grounding.{Grounding, LarsGrounding}
 import iclp.evaluation.Util._
 import reasoner.incremental.jtms.algorithms.Jtms
 import org.scalatest.FunSuite
-import runner.Load
-import runner.Load._
+import engine.Load
+import engine.Load._
 
 /**
   * Created by hb on 8/23/16.

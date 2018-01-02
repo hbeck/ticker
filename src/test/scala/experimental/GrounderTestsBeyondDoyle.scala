@@ -7,8 +7,8 @@ import core.grounding.LarsGrounding
 import core.lars.{LarsProgram, LarsRule}
 import iclp.evaluation.Util._
 import org.scalatest.FunSuite
-import runner.Load
-import runner.Load._
+import engine.Load
+import engine.Load._
 import reasoner.incremental.jtms.algorithms.JtmsLearn
 import reasoner.incremental.jtms.networks.OptimizedNetworkForLearn
 

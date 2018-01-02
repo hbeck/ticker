@@ -1,11 +1,11 @@
-package runner.connectors
+package engine.connectors
 
 import java.net.{InetAddress, InetSocketAddress, Socket}
 
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimeUnit
-import runner.{ConnectToEngine, Engine, Int, Startable}
+import engine.{ConnectToEngine, Engine, Int, Startable}
 
 import scala.io.BufferedSource
 import scala.util.Try

@@ -1,8 +1,8 @@
-package runner.connectors
+package engine.connectors
 
 import core.lars.TimePoint
 import reasoner.Result
-import runner.{ConnectToEngine, Engine, Startable}
+import engine.{ConnectToEngine, Engine, Startable}
 
 /**
   * Created by FM on 14.11.16.

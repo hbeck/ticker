@@ -1,4 +1,4 @@
-package runner.connectors
+package engine.connectors
 
 import java.io.PrintStream
 import java.net.{ServerSocket, Socket}
@@ -8,7 +8,7 @@ import common.Resource
 import core.lars.TimePoint
 import reasoner.Result
 import reasoner.incremental.jtms.in
-import runner.{ConnectToEngine, Engine, Startable}
+import engine.{ConnectToEngine, Engine, Startable}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}

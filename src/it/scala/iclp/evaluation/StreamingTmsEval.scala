@@ -8,7 +8,7 @@ import core.Atom
 import core.asp._
 import reasoner.incremental.jtms._
 import reasoner.incremental.jtms.algorithms._
-import runner.Load
+import engine.Load
 
 import scala.io.Source
 

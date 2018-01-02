@@ -1,10 +1,10 @@
-package runner.connectors
+package engine.connectors
 
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.Logger
 import core.Atom
-import runner._
+import engine._
 
 import scala.concurrent.duration.Duration
 

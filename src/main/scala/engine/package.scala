@@ -3,7 +3,7 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 14.11.16.
   */
-package object runner {
+package object engine {
   type Startable = () => Unit
 
   sealed trait OutputTiming //parameter --outputEvery
