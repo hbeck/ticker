@@ -1,8 +1,8 @@
 package lars.plain
 
 import core.lars._
-import reasoner.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
+import reasoner.common.PlainLarsToAspMapper
 
 /**
   * Created by fm on 21/01/2017.

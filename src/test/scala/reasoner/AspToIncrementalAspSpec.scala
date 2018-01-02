@@ -8,7 +8,7 @@ import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
-import reasoner.asp.PlainLarsToAspMapper
+import reasoner.common.PlainLarsToAspMapper
 import reasoner.incremental.IncrementalAspPreparation
 
 import scala.concurrent.duration._
@@ -17,7 +17,7 @@ import scala.concurrent.duration._
   * Created by FM on 08.06.16.
   */
 class AspToIncrementalAspSpec extends FlatSpec with TimeTestFixtures {
-  def LarsToAspProgram: PlainLarsToAspMapper = reasoner.asp.PlainLarsToAspMapper(1 second)
+  def LarsToAspProgram: PlainLarsToAspMapper = common.PlainLarsToAspMapper(1 second)
 
   "A rule containing a normal Atom" should "not be modified" in {
     val rule: AspRule[AtomWithArguments] = AspRule(PinnedAtom.asPinnedAtAtom(b, t0), PinnedAtom.asPinnedAtAtom(a, t0))

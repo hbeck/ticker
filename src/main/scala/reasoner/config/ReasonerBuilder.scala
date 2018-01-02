@@ -11,6 +11,7 @@ import reasoner.config.ReasonerChoice.ReasonerChoice
 import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
 import jtms.algorithms.Jtms
 import jtms.networks.OptimizedNetwork
+import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
 import reasoner.incremental.{IncrementalReasoner, IncrementalRuleMaker}
 
 import scala.concurrent.duration._

@@ -4,6 +4,7 @@ import core._
 import core.asp.{AspProgram, _}
 import core.lars._
 import reasoner.asp._
+import reasoner.common.LarsProgramEncoding
 
 /**
   * Created by FM on 08.06.16.

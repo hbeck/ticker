@@ -2,10 +2,10 @@ package lars.transform.timebased
 
 import core.PinnedAtom
 import core.lars.{Diamond, SlidingTimeWindow, WindowAtom}
-import reasoner.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
+import reasoner.common.PlainLarsToAspMapper
 
 import scala.concurrent.duration._
 

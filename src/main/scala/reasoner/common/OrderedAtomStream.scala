@@ -3,7 +3,6 @@ package reasoner.common
 import clingo.ClingoProgramWithLars
 import core._
 import core.lars.TimePoint
-import reasoner.asp.Tick
 
 import scala.collection.SortedMap
 

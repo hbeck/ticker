@@ -3,6 +3,7 @@ package lars.transform
 import java.util.concurrent.TimeUnit
 
 import core.lars._
+import reasoner.common.PlainLarsToAspMapper
 
 import scala.concurrent.duration._
 
@@ -55,7 +56,7 @@ class NameForSpec extends TransformLarsSpec {
 
   "The name for window-atom w_^1s d b at an engine tick of 100ms" should "be w_te_10_d_b" in {
     val window = WindowAtom(SlidingTimeWindow(1), Diamond, b)
-    val larsToPinnedProgram = reasoner.asp.PlainLarsToAspMapper(100 milliseconds)
+    val larsToPinnedProgram = PlainLarsToAspMapper(100 milliseconds)
     assert(larsToPinnedProgram.predicateFor(window).caption == "w_te_10_d_b")
   }
 }

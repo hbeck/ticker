@@ -1,4 +1,6 @@
-package reasoner.asp
+package reasoner.common
+
+import reasoner.asp.Void
 
 /**
   * Created by hb on 05.03.17.

@@ -1,8 +1,9 @@
-package reasoner.asp
+package reasoner.common
 
 import core.asp.{AspFact, AspRule, NormalRule}
-import core.{Atom, PinnedAtom, Predicate, RelationAtom}
 import core.lars._
+import core.{Atom, PinnedAtom, Predicate, RelationAtom}
+
 
 /**
   * Created by fm on 20/02/2017.

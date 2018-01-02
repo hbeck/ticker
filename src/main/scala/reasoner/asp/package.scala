@@ -3,6 +3,7 @@ package reasoner
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import core.lars._
 import core._
+import reasoner.common.Tick
 
 /**
   * Created by FM on 13.05.16.

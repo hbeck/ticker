@@ -5,6 +5,7 @@ import core.asp.NormalRule
 import core.lars.TimePoint
 import reasoner.asp._
 import reasoner.asp.tms.policies.JtmsPolicy
+import reasoner.common.Tick
 import reasoner.{Reasoner, Result, UnknownResult}
 
 import scala.collection.immutable.HashMap

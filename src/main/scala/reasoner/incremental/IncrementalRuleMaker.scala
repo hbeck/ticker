@@ -5,7 +5,7 @@ import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
 import core.grounding.{Grounding, Pregrounder}
 import core.lars._
 import reasoner.asp._
-import reasoner.common.DefaultTrackedSignal
+import reasoner.common.{DefaultTrackedSignal, LarsProgramEncoding, LarsToAspMapper, Tick}
 
 
 /**

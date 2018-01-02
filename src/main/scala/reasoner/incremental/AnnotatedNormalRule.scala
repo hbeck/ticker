@@ -2,6 +2,7 @@ package reasoner.incremental
 
 import core.asp.NormalRule
 import reasoner.asp._
+import reasoner.common.Tick
 
 /**
   * Created by hb on 22.04.17.

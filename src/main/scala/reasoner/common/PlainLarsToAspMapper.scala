@@ -1,8 +1,9 @@
-package reasoner.asp
+package reasoner.common
 
 import core._
 import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
 import core.lars._
+import reasoner.asp.{CountPinVariable, TickDuration, TimePinVariable, Void, cnt, now, tickAtom}
 import reasoner.incremental._
 
 import scala.concurrent.duration._
@@ -10,7 +11,7 @@ import scala.concurrent.duration._
 /**
   * Created by fm on 20/01/2017.
   */
-case class PlainLarsToAspMapper(engineTimeUnit: ClockTime = 1 second) extends LarsToAspMapper {
+case class PlainLarsToAspMapper(clockTime: ClockTime = 1 second) extends LarsToAspMapper {
 
   override def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(
@@ -59,7 +60,7 @@ case class PlainLarsToAspMapper(engineTimeUnit: ClockTime = 1 second) extends La
     }
   }
 
-  def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / engineTimeUnit.toMillis, engineTimeUnit.unit).length
+  def timePoints(unit: TimeUnit, size: Long) = Duration(unit.toMillis(size) / clockTime.toMillis, clockTime.unit).length
 }
 
 
