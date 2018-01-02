@@ -1,10 +1,10 @@
 package reasoner.incremental.jtms.asp.examples
 
-import clingo.ClingoCall
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import iclp.evaluation.JtmsGreedyEvaluation
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoCall
 
 import scala.language.postfixOps
 

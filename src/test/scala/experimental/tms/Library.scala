@@ -1,6 +1,5 @@
 package experimental.tms
 
-import clingo.ClingoCall
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import reasoner.incremental.jtms._
@@ -8,6 +7,7 @@ import reasoner.incremental.jtms.algorithms.Jtms
 import reasoner.incremental.jtms.asp.examples.EvaluateJtmsImplementations
 import reasoner.incremental.jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoCall
 
 /**
   * Created by FM on 11.02.16.

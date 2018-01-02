@@ -1,8 +1,8 @@
-package clingo
+package reasoner.asp.clingo
 
-import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint, TimeVariableWithOffset}
+import core.{GroundAtom, _}
 import reasoner.common.LarsProgramEncoding
 
 /**

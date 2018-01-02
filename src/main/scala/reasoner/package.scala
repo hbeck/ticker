@@ -40,8 +40,6 @@ package object reasoner {
   type PinnedFact = AspFact[AtomWithArguments]
   type PinnedProgram = AspProgram[AtomWithArguments, PinnedRule]
 
-  type PinnedModel = Set[Atom]
-  type PinnedStream = Set[PinnedFact]
 
   //keep original lars rule from which a pinned rule stems
   type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])

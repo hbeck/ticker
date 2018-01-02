@@ -1,10 +1,10 @@
 package reasoner.evaluation
 
-import reasoner.{PinnedModel, now}
+import reasoner.now
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import reasoner.asp.AspModelToLarsModel
+import reasoner.asp.{AspModelToLarsModel, PinnedModel}
 
 /**
   * Created by FM on 16.05.16.

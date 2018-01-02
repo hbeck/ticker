@@ -2,7 +2,7 @@ package reasoner.asp
 
 import core._
 import core.lars.TimePoint
-import reasoner.{PinnedModel,now}
+import reasoner.now
 
 /**
   * Created by FM on 20.06.16.

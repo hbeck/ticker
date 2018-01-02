@@ -1,9 +1,9 @@
 package reasoner.asp
 
-import clingo.ClingoProgramWithLars
 import core._
 import core.asp.AspFact
 import core.lars.{Box, SlidingTupleWindow, TimePoint, WindowAtom}
+import reasoner.asp.clingo.ClingoProgramWithLars
 import reasoner.{Result, _}
 
 /**

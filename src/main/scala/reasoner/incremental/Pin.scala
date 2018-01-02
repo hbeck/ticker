@@ -3,6 +3,7 @@ package reasoner.incremental
 import core._
 import core.asp._
 import core.lars.{Assignment, TimePoint}
+import reasoner.asp.PinnedStream
 import reasoner.{CountPinVariable, _}
 
 /**

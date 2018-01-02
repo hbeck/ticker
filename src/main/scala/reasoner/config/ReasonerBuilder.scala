@@ -1,9 +1,9 @@
 package reasoner.config
 
-import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.Atom
 import core.lars.{ClockTime, LarsProgram}
 import reasoner.asp._
+import reasoner.asp.clingo.{ClingoConversion, ClingoProgramWithLars, StreamingClingoInterpreter}
 import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice

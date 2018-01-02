@@ -1,10 +1,10 @@
 package reasoner.incremental.jtms.asp.examples
 
-import clingo.ClingoCall
 import core._
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoCall
 
 /**
   * Created by FM on 12.02.16.

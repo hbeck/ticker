@@ -1,9 +1,8 @@
-package clingo
+package reasoner.asp.clingo
 
-
-import core.{Value, _}
 import core.asp.NormalProgram
 import core.lars.TimePoint
+import core.{Value, _}
 
 /**
   * Created by FM on 25.02.16.

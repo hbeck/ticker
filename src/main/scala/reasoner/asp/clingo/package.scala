@@ -1,3 +1,5 @@
+package reasoner.asp
+
 /**
   * Created by FM on 27.04.16.
   */

@@ -1,9 +1,9 @@
 package reasoner.incremental.jtms.asp.examples
 
-import clingo.ClingoCall
 import core.Evaluation
 import iclp.evaluation.JtmsGreedyEvaluation
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoCall
 
 /**
   * Created by FM on 25.02.16.

@@ -1,12 +1,11 @@
 package reasoner.evaluation
 
-import clingo.ClingoProgramWithLars
 import core.{NonGroundAtom, PinnedAtom}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import reasoner._
-import reasoner.asp.StreamingClingoInterpreter
+import reasoner.asp.clingo.{ClingoProgramWithLars, StreamingClingoInterpreter}
 
 /**
   * Created by FM on 22.04.16.

@@ -1,9 +1,10 @@
-package clingo
+package processing
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoConversion
 
 /**
   * Created by FM on 22.02.16.

@@ -1,4 +1,4 @@
-package clingo
+package reasoner.asp.clingo
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets

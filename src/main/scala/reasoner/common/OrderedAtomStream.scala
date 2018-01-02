@@ -1,8 +1,8 @@
 package reasoner.common
 
-import clingo.ClingoProgramWithLars
 import core._
 import core.lars.TimePoint
+import reasoner.asp.clingo.ClingoProgramWithLars
 
 import scala.collection.SortedMap
 

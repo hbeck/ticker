@@ -1,6 +1,7 @@
-package clingo
+package processing
 
 import org.scalatest.FlatSpec
+import reasoner.asp.clingo.ClingoWrapper
 
 /**
   * Created by FM on 21.02.16.
