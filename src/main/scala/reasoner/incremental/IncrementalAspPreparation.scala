@@ -3,7 +3,7 @@ package reasoner.incremental
 import core._
 import core.asp.{AspProgram, _}
 import core.lars._
-import reasoner.asp._
+import reasoner._
 import reasoner.common.LarsProgramEncoding
 
 /**
@@ -55,7 +55,7 @@ object IncrementalAspPreparation {
     rule.
       from(
         rule.head,
-        rule.pos filterNot (a => reasoner.asp.specialPinPredicates.contains(a.predicate)),
+        rule.pos filterNot (a => reasoner.specialPinPredicates.contains(a.predicate)),
         rule.neg
       ).
       asInstanceOf[NormalRule]

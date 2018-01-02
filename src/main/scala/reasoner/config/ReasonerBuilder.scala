@@ -4,7 +4,6 @@ import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.Atom
 import core.lars.{ClockTime, LarsProgram}
 import reasoner.asp._
-import reasoner.asp.oneshot._
 import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, JtmsPolicy}
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice

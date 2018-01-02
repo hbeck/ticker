@@ -14,6 +14,6 @@ trait TimeTestFixtures extends AtomTestFixture {
   val t4 = TimePoint(4)
 
   val U = Variable("U")
-  val T = reasoner.asp.TimePinVariable
-  val C = reasoner.asp.CountPinVariable
+  val T = reasoner.TimePinVariable
+  val C = reasoner.CountPinVariable
 }

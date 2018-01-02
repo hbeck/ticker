@@ -3,7 +3,8 @@ package reasoner.common
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
-import reasoner.asp.{TickDuration, Void}
+import reasoner.TickDuration
+import reasoner.Void
 import reasoner.incremental.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 

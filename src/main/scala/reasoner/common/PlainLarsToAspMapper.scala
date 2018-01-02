@@ -3,7 +3,7 @@ package reasoner.common
 import core._
 import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
 import core.lars._
-import reasoner.asp.{CountPinVariable, TickDuration, TimePinVariable, Void, cnt, now, tickAtom}
+import reasoner.{CountPinVariable, TickDuration, TimePinVariable, Void, cnt, now, tickAtom}
 import reasoner.incremental._
 
 import scala.concurrent.duration._

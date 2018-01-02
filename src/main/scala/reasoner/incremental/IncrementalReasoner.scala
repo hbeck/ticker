@@ -3,7 +3,7 @@ package reasoner.incremental
 import core._
 import core.asp.NormalRule
 import core.lars.TimePoint
-import reasoner.asp._
+import reasoner._
 import reasoner.asp.tms.policies.JtmsPolicy
 import reasoner.common.Tick
 import reasoner.{Reasoner, Result, UnknownResult}

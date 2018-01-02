@@ -3,7 +3,7 @@ package reasoner.incremental
 import core._
 import core.asp._
 import core.lars.{Assignment, TimePoint}
-import reasoner.asp.{CountPinVariable, _}
+import reasoner.{CountPinVariable, _}
 
 /**
   * Created by FM on 16.05.16.

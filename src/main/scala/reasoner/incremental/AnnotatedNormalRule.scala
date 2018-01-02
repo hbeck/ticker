@@ -1,7 +1,7 @@
 package reasoner.incremental
 
 import core.asp.NormalRule
-import reasoner.asp._
+import reasoner.TickDuration
 import reasoner.common.Tick
 
 /**

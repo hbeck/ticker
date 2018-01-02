@@ -3,6 +3,7 @@ package reasoner.asp
 import clingo.{ClingoConversion, ClingoProgram, _}
 import core._
 import core.lars.TimePoint
+import reasoner.{PinnedModel, PinnedStream}
 
 
 /**
@@ -51,7 +52,7 @@ object StreamingClingoInterpreter {
       case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
     }
 
-    if (reasoner.asp.specialPinPredicates.contains(atom.predicate)) {
+    if (reasoner.specialPinPredicates.contains(atom.predicate)) {
       atomWithoutTime.appendArguments(Seq(IntValue(value.toInt)))
     }
     else {

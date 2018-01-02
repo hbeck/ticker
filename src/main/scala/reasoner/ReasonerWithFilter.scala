@@ -20,7 +20,7 @@ case class ResultFilter(restrictTo: Set[Atom]) {
 
   val restrictToPredicates = restrictTo.map(_.predicate)
 
-  val fixedAuxiliaryAtomPredicates = asp.specialPinPredicates.toSet
+  val fixedAuxiliaryAtomPredicates = specialPinPredicates.toSet
 
   def filter(timePoint: TimePoint, result: Result): Result = {
     result.get match {

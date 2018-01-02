@@ -1,6 +1,6 @@
 package reasoner.common
 
-import reasoner.asp.Void
+import reasoner.Void
 
 /**
   * Created by hb on 05.03.17.

@@ -3,7 +3,7 @@ package reasoner.examples
 import core.Atom
 import core.asp.AspProgram
 import core.lars._
-import reasoner.asp.now
+import reasoner.now
 import fixtures.{ConfigurableEngineSpec, TimeTestFixtures, TmsDirectPolicyEngine}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

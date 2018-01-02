@@ -1,6 +1,7 @@
 package reasoner.asp
 
 import core.lars.TimePoint
+import reasoner.{PinnedModel, PinnedStream}
 
 
 trait StreamingAspInterpreter {

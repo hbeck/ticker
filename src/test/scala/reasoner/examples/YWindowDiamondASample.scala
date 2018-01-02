@@ -3,14 +3,10 @@ package reasoner.examples
 import core.Atom
 import core.asp.AspProgram
 import core.lars._
-import reasoner.Reasoner
-import reasoner.asp.now
-import reasoner.config.BuildReasoner
-import experimental.evaluation.{ RunWithAllImplementations}
 import fixtures._
-import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
+import reasoner.now
 
 /**
   * Created by FM on 23.04.16.
