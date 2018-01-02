@@ -12,6 +12,7 @@ trait Reasoner {
   def append(timePoint: TimePoint)(atoms: Atom*): Unit
 
   def evaluate(timePoint: TimePoint): Result
+
 }
 
 trait Result {

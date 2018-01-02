@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.Logger
 import common.Resource
 import core.lars.TimePoint
 import reasoner.Result
-import jtms.in
+import reasoner.incremental.jtms.in
 import runner.{ConnectToEngine, Engine, Startable}
 
 import scala.concurrent.ExecutionContext.Implicits.global

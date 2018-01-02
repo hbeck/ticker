@@ -5,7 +5,7 @@ import core.lars._
 import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
 import reasoner.{Reasoner, Result}
-import jtms.algorithms.Jtms
+import reasoner.incremental.jtms.algorithms.Jtms
 import util.StatisticResult
 
 import scala.concurrent.duration.Duration

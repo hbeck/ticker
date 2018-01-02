@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit
 import common.Util.stopTime
 import core.Atom
 import core.asp._
-import jtms._
-import jtms.algorithms._
+import reasoner.incremental.jtms._
+import reasoner.incremental.jtms.algorithms._
 import runner.Load
 
 import scala.io.Source

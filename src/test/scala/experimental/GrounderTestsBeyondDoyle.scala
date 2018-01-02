@@ -9,8 +9,8 @@ import iclp.evaluation.Util._
 import org.scalatest.FunSuite
 import runner.Load
 import runner.Load._
-import jtms.algorithms.JtmsLearn
-import jtms.networks.OptimizedNetworkForLearn
+import reasoner.incremental.jtms.algorithms.JtmsLearn
+import reasoner.incremental.jtms.networks.OptimizedNetworkForLearn
 
 import scala.collection.immutable.HashMap
 

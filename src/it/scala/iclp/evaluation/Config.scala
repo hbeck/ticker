@@ -1,8 +1,8 @@
 package iclp.evaluation
 
-import jtms.algorithms._
+import reasoner.incremental.jtms.algorithms._
 import iclp.evaluation.instances._
-import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
+import reasoner.incremental.jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, SimpleNetwork}
 
 import scala.util.Random
 

@@ -4,8 +4,8 @@ import core.lars.{Diamond, LarsProgram, W}
 import reasoner.asp.tms.policies.LazyRemovePolicy
 import reasoner.config.BuildReasoner
 import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
-import jtms.algorithms.JtmsGreedy
-import jtms.networks.OptimizedNetwork
+import reasoner.incremental.jtms.algorithms.JtmsGreedy
+import reasoner.incremental.jtms.networks.OptimizedNetwork
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._

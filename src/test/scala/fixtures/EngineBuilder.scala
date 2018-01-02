@@ -4,8 +4,8 @@ import core.lars.LarsProgram
 import reasoner.Reasoner
 import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import reasoner.config.BuildReasoner
-import jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
-import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
+import reasoner.incremental.jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
+import reasoner.incremental.jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 
 import scala.util.Random
 

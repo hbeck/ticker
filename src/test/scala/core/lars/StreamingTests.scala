@@ -5,7 +5,7 @@ import core._
 import core.asp.{AspFact, AspRule, NormalRule}
 import iclp.evaluation.Util
 import runner.Load._
-import jtms.algorithms.JtmsLearn
+import reasoner.incremental.jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 import runner.Load
 import Util._
@@ -291,7 +291,7 @@ class StreamingTests extends FunSuite {
       val currentRulesTabu = tabu.currentRulesTabu
       println("size of avoidance current map: "+currentRulesTabu.avoidanceMap.size)
       jtms.printAvoidanceMap()
-      //println(jtms.status)
+      //println(reasoner.incremental.jtms.status)
     }
 
   }

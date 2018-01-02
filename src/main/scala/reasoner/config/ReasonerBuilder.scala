@@ -4,13 +4,14 @@ import clingo.{ClingoConversion, ClingoProgramWithLars}
 import core.Atom
 import core.lars.{ClockTime, LarsProgram}
 import reasoner.asp._
-import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, JtmsPolicy}
+import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice
 import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
-import jtms.algorithms.Jtms
-import jtms.networks.OptimizedNetwork
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.jtms.networks.OptimizedNetwork
 import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
+import reasoner.incremental.policies.JtmsPolicy
 import reasoner.incremental.{IncrementalReasoner, IncrementalRuleMaker}
 
 import scala.concurrent.duration._

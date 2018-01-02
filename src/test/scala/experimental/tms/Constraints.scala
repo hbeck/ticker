@@ -3,8 +3,8 @@ package experimental.tms
 import core.asp.{AspFact, AspRule}
 import core.{Atom, ContradictionAtom, Predicate}
 import fixtures.AtomTestFixture
-import jtms.algorithms.Jtms
-import jtms.networks.OptimizedNetwork
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.jtms.networks.OptimizedNetwork
 import org.scalatest.FunSuite
 
 import scala.util.Random

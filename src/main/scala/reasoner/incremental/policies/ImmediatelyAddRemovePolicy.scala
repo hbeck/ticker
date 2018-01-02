@@ -3,7 +3,8 @@ package reasoner.asp.tms.policies
 import core.asp._
 import core.lars.TimePoint
 import reasoner.Result
-import jtms.algorithms.Jtms
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.policies.JtmsPolicy
 
 /**
   * Created by FM on 12.06.16.

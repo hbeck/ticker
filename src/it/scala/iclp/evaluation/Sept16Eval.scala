@@ -6,9 +6,9 @@ import java.util.concurrent.TimeUnit
 import common.Util.stopTime
 import core._
 import core.asp._
-import jtms._
-import jtms.algorithms.{Jtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
-import jtms.networks.OptimizedNetwork
+import reasoner.incremental.jtms._
+import reasoner.incremental.jtms.algorithms.{Jtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
+import reasoner.incremental.jtms.networks.OptimizedNetwork
 import runner.Load
 
 import scala.io.Source

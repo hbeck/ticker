@@ -62,14 +62,14 @@ class LarsParserTest extends FunSuite {
     assert(result == check)
   }
 
-  test("Program jtms.experimental.evaluation.instances.CacheHopsEvalInst") {
+  test("Program reasoner.incremental.jtms.experimental.evaluation.instances.CacheHopsEvalInst") {
     val program: LarsProgram = LarsParser("/parser-programs/cacheHopsEvalInst.lars")
     val cacheHops = CacheHopsEvalInst1(10000,10,0,Random)
     val cacheHopsProgram = cacheHops.larsProgram(300)
     assert(cacheHopsProgram.toString == program.toString)
   }
 
-  test("Program jtms.experimental.evaluation.instances.MMedia") {
+  test("Program reasoner.incremental.jtms.experimental.evaluation.instances.MMedia") {
     val program: LarsProgram = LarsParser("/parser-programs/MMedia.lars")
     val mmedia = MMediaDeterministicEvalInst(300,10000,Random)
     val mmediaProgram = mmedia.larsProgram(300)

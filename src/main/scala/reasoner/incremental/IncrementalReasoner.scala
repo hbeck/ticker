@@ -4,8 +4,8 @@ import core._
 import core.asp.NormalRule
 import core.lars.TimePoint
 import reasoner._
-import reasoner.asp.tms.policies.JtmsPolicy
 import reasoner.common.Tick
+import reasoner.incremental.policies.JtmsPolicy
 import reasoner.{Reasoner, Result, UnknownResult}
 
 import scala.collection.immutable.HashMap

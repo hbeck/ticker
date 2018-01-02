@@ -2,7 +2,7 @@ package iclp.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.algorithms.JtmsDoyle
+import reasoner.incremental.jtms.algorithms.JtmsDoyle
 
 /**
   * Created by FM on 25.02.16.

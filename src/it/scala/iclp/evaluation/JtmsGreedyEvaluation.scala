@@ -2,7 +2,7 @@ package iclp.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.algorithms.JtmsGreedy
+import reasoner.incremental.jtms.algorithms.JtmsGreedy
 
 /**
   * Created by hb on 25.03.16.

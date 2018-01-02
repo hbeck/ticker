@@ -4,8 +4,8 @@ import reasoner.Reasoner
 import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice
-import jtms.algorithms.Jtms
-import jtms.networks.TruthMaintenanceNetwork
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.jtms.networks.TruthMaintenanceNetwork
 
 import scala.util.Random
 

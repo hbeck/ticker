@@ -3,7 +3,7 @@ package clingo
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import fixtures.AtomTestFixture
-import jtms.asp.examples.SingleHusbandSample
+import reasoner.incremental.jtms.asp.examples.SingleHusbandSample
 import org.scalatest.FlatSpec
 
 /**

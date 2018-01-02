@@ -2,7 +2,7 @@ package experimental.tms
 
 import core.asp.{AspFact, AspRule}
 import core.{ContradictionAtom, Predicate}
-import jtms.tmn.examples.JtmsSpec
+import reasoner.incremental.jtms.tmn.examples.JtmsSpec
 
 /**
   * Created by FM on 11.02.16.

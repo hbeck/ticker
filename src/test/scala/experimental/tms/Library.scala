@@ -3,10 +3,10 @@ package experimental.tms
 import clingo.ClingoCall
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
-import jtms._
-import jtms.algorithms.Jtms
-import jtms.asp.examples.EvaluateJtmsImplementations
-import jtms.tmn.AtomValidation
+import reasoner.incremental.jtms._
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.jtms.asp.examples.EvaluateJtmsImplementations
+import reasoner.incremental.jtms.tmn.AtomValidation
 import org.scalatest.FlatSpec
 
 /**

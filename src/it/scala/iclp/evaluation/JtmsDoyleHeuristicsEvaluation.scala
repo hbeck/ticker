@@ -2,7 +2,7 @@ package iclp.evaluation
 
 import core.Evaluation
 import core.asp.NormalProgram
-import jtms.algorithms.JtmsDoyleHeuristics
+import reasoner.incremental.jtms.algorithms.JtmsDoyleHeuristics
 
 /**
   * Created by HB on 7.12.2017 (adapted from JtmsDoyleEvaluation)

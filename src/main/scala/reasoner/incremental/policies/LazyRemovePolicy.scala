@@ -3,7 +3,8 @@ package reasoner.asp.tms.policies
 import core.asp._
 import core.lars.{Duration, TimePoint}
 import reasoner.Result
-import jtms.algorithms.Jtms
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.policies.JtmsPolicy
 
 import scala.collection.mutable
 

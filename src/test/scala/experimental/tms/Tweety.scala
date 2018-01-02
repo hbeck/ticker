@@ -2,7 +2,7 @@ package experimental.tms
 
 import core._
 import core.asp._
-import jtms.asp.examples.EvaluateJtmsImplementations
+import reasoner.incremental.jtms.asp.examples.EvaluateJtmsImplementations
 import org.scalatest.FlatSpec
 
 /**

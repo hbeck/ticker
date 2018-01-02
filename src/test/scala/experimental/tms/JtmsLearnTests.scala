@@ -3,8 +3,8 @@ package experimental.tms
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalFact}
 import fixtures.AtomTestFixture
-import jtms._
-import jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
+import reasoner.incremental.jtms._
+import reasoner.incremental.jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
 import org.scalatest.FunSuite
 
 import scala.collection.immutable.HashMap
@@ -72,10 +72,10 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   def failsToCompute(tms: Jtms, model: Set[Atom]): Boolean = {
     if (tms.getModel == None) {
 //      if (tms.isInstanceOf[JtmsLearn]) {
-//        val jtms = tms.asInstanceOf[JtmsLearn]
+//        val reasoner.incremental.jtms = tms.asInstanceOf[JtmsLearn]
 //        println()
-//        println(jtms.state)
-//        println("sel. atom: "+jtms.selectedAtom+"\n")
+//        println(reasoner.incremental.jtms.state)
+//        println("sel. atom: "+reasoner.incremental.jtms.selectedAtom+"\n")
 //      }
       return true
     } else {
@@ -87,9 +87,9 @@ class JtmsLearnTests extends FunSuite with AtomTestFixture {
   def failsToCompute(tms: Jtms, condition: => Boolean): Boolean = {
     if (tms.getModel == None) {
 //      if (tms.isInstanceOf[JtmsLearn]) {
-//        val jtms = tms.asInstanceOf[JtmsLearn]
-//        println(jtms.state)
-//        println("sel. atom: "+jtms.selectedAtom+"\n")
+//        val reasoner.incremental.jtms = tms.asInstanceOf[JtmsLearn]
+//        println(reasoner.incremental.jtms.state)
+//        println("sel. atom: "+reasoner.incremental.jtms.selectedAtom+"\n")
 //      }
       return true
     } else {

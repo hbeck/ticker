@@ -1,4 +1,4 @@
-package reasoner.asp.tms.policies
+package reasoner.incremental.policies
 
 import core.asp.NormalRule
 import core.lars.TimePoint
