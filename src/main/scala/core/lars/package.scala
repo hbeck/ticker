@@ -9,7 +9,7 @@ package object lars {
   type TupleCount = Long
   type Duration = Long
 
-  type EngineTimeUnit = scala.concurrent.duration.Duration //temporal duration of a logical time point
+  type ClockTime = scala.concurrent.duration.Duration //temporal duration of a logical time point
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
   def W(windowSize: TimeWindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)

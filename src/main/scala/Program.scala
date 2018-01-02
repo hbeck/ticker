@@ -3,10 +3,10 @@ import java.io.File
 import com.typesafe.scalalogging.Logger
 import common.Util
 import core.Atom
-import core.lars.{Format, LarsProgram}
-import engine.Engine
-import engine.config.Reasoner._
-import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
+import core.lars.{ClockTime, Format, LarsProgram}
+import engine.Reasoner
+import engine.config.ReasonerChoice._
+import engine.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
 import engine.parser.LarsParser
 import runner._
 import runner.connectors.{OutputToSocket, OutputToStdOut, ReadFromSocket, ReadFromStdIn}
@@ -46,9 +46,9 @@ object Program {
         if (timeWindowSmallerThanEngineUnit)
           throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the engine timeUnit.")
 
-        val engine = config.buildEngine()
+        val engine = config.buildReasoner()
 
-        val runner = EngineRunner(engine, config.clockTime, config.outputTiming)
+        val runner = Engine(engine, config.clockTime, config.outputTiming)
         config.inputs foreach {
           case SocketInput(port) => runner.connect(ReadFromSocket(config.clockTime._2, port))
           case StdIn => runner.connect(ReadFromStdIn(config.clockTime._2))
@@ -66,7 +66,6 @@ object Program {
 
   def printProgram(program: LarsProgram): Unit = {
     logger.info(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
-
     Format.parsed(program).foreach(logger.info(_))
   }
 
@@ -78,9 +77,9 @@ object Program {
         action((x, c) => c.copy(programFile = x)).
         text("program is a required file property")
 
-      opt[Reasoner]('r', "reasoner").optional().valueName("<reasoning strategy>").
+      opt[ReasonerChoice]('r', "reasoner").optional().valueName("<reasoning strategy>").
         action((x, c) => c.copy(reasoner = x)).
-        text("Reasoning stragety required, possible values: " + Reasoner.values)
+        text("Reasoning stragety required, possible values: " + ReasonerChoice.values)
 
       opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
@@ -139,8 +138,8 @@ object Program {
       case shouldBeTime => Time(Some(Duration.create(shouldBeTime)))
     })
 
-  implicit val evaluationTypesRead: scopt.Read[Reasoner.Value] =
-    scopt.Read.reads(Reasoner withName)
+  implicit val evaluationTypesRead: scopt.Read[ReasonerChoice.Value] =
+    scopt.Read.reads(ReasonerChoice withName)
 
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
@@ -168,9 +167,9 @@ object Program {
 
   case class SocketOutput(port: Int) extends OutputTarget
 
-  case class Config(reasoner: Reasoner = Reasoner.Incremental,
+  case class Config(reasoner: ReasonerChoice = ReasonerChoice.Incremental,
                     programFile: File, //TODO PPS multiple
-                    clockTime: Duration = 1 second,
+                    clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[InputSource] = Seq(StdIn),
                     outputs: Seq[OutputTarget] = Seq(StdOut),
@@ -179,23 +178,23 @@ object Program {
 
     val larsProgram = LarsParser(programFile.toURI.toURL)
 
-    def buildEngine(): Engine = {
+    def buildReasoner(): Reasoner = {
 
-      val engineBuilder = BuildEngine.
+      val reasonerBuilder = BuildReasoner.
         withProgram(larsProgram).
         withClockTime(clockTime)
 
-      val preparedEngine = reasoner match {
-        case Reasoner.Incremental =>
-          engineBuilder.configure().withJtms().withIncremental()
-        case Reasoner.Clingo => outputTiming match {
-          case Time(_) => engineBuilder.configure().withClingo().use().usePull() //TODO n signals, n > 1
-          case _ => engineBuilder.configure().withClingo().use().usePush()
+      val preparedReasoner = reasoner match {
+        case ReasonerChoice.Incremental =>
+          reasonerBuilder.configure().withJtms().withIncremental()
+        case ReasonerChoice.Clingo => outputTiming match {
+          case Time(_) => reasonerBuilder.configure().withClingo().use().usePull() //TODO n signals, n > 1
+          case _ => reasonerBuilder.configure().withClingo().use().usePush()
         }
       }
       filter match {
-        case Some(atoms) if atoms.nonEmpty => preparedEngine.withFilter(atoms.map(Atom(_))).seal()
-        case _ => preparedEngine.seal()
+        case Some(atoms) if atoms.nonEmpty => preparedReasoner.withFilter(atoms.map(Atom(_))).seal()
+        case _ => preparedReasoner.seal()
       }
     }
   }

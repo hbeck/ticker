@@ -2,7 +2,7 @@ package fixtures
 
 import common.Resource
 import core.lars.LarsProgram
-import engine.Engine
+import engine.Reasoner
 import fixtures.tags.NoTmsDirectPolicy
 import org.scalatest._
 
@@ -16,9 +16,9 @@ trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
   val program: LarsProgram
 
   private var engineEvaluationType: EvaluationType = this.defaultEvaluationType
-  private var engineCache: Option[Engine] = None
+  private var engineCache: Option[Reasoner] = None
 
-  def engine: Engine = engineCache.get
+  def engine: Reasoner = engineCache.get
 
   override def withFixture(test: NoArgTest): Outcome = {
 

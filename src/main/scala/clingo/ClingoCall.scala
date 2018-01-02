@@ -9,14 +9,14 @@ import core.lars.TimePoint
   * Created by FM on 25.02.16.
   */
 
-object ClingoEvaluation {
+object ClingoCall {
   def apply(program: NormalProgram): Set[Model] = {
-    val asp = new ClingoEvaluation(ClingoWrapper())
+    val asp = new ClingoCall(ClingoWrapper())
 
     asp(program)
   }
 
-  def apply() = new ClingoEvaluation(ClingoWrapper())
+  def apply() = new ClingoCall(ClingoWrapper())
 
   private val TimeAtomPattern = "(.+)_at".r
   //private val CntAtomPattern = "(.+)_cnt".r
@@ -48,7 +48,7 @@ object ClingoEvaluation {
   }
 }
 
-class ClingoEvaluation(val clingo: ClingoWrapper) extends Evaluation {
+class ClingoCall(val clingo: ClingoWrapper) extends Evaluation {
 
   def apply(program: NormalProgram): Set[Model] = {
     apply(ClingoConversion(program))
@@ -59,7 +59,7 @@ class ClingoEvaluation(val clingo: ClingoWrapper) extends Evaluation {
     val models = clingo.parseResult(result)
 
     if (models.isDefined) {
-      val convertedModels = models.get.map(m => m.map(ClingoEvaluation.convert))
+      val convertedModels = models.get.map(m => m.map(ClingoCall.convert))
       return convertedModels
     }
 

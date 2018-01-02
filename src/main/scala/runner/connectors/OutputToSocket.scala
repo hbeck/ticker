@@ -8,7 +8,7 @@ import common.Resource
 import core.lars.TimePoint
 import engine.Result
 import jtms.in
-import runner.{ConnectToEngine, EngineRunner, Startable}
+import runner.{ConnectToEngine, Engine, Startable}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,7 +22,7 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
 
   var clients: Seq[ConnectedClients] = Seq()
 
-  def startWith(engineRunner: EngineRunner): Startable = {
+  def startWith(engineRunner: Engine): Startable = {
     engineRunner.registerOutput(evaluateModel(engineRunner))
     val server = new ServerSocket(port)
     server.setReuseAddress(true)
@@ -36,7 +36,7 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
     }
   }
 
-  def evaluateModel(engineRunner: EngineRunner)(result: Result, ticks: TimePoint): Unit = {
+  def evaluateModel(engineRunner: Engine)(result: Result, ticks: TimePoint): Unit = {
 
     val timeInOutput = engineRunner.convertToInputSpeed(ticks).toSeconds
     result.get match {

@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import clingo.ClingoEvaluation
+import clingo.ClingoCall
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
 import iclp.evaluation.JtmsGreedyEvaluation
@@ -47,7 +47,7 @@ trait SingleHusbandBehavior {
 class SingleHusbandSample extends FlatSpec with SingleHusbandBehavior {
   def net = new JtmsGreedyEvaluation
 
-  def asp = ClingoEvaluation()
+  def asp = ClingoCall()
 
   "The AnswerUpdateNetwork implementation " should behave like singleHusband(net)
   "The ASP implementation " should behave like singleHusband(asp)

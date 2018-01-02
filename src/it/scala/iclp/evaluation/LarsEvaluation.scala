@@ -3,8 +3,8 @@ package iclp.evaluation
 import common.Util.stopTime
 import core.lars._
 import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
-import engine.config.{BuildEngine, PreparedEngineConfiguration}
-import engine.{Engine, Result}
+import engine.config.{BuildReasoner, PreparedReasonerConfiguration}
+import engine.{Reasoner, Result}
 import jtms.algorithms.Jtms
 import util.StatisticResult
 
@@ -125,11 +125,11 @@ object LarsEvaluation {
     }
 
     val instance = config.makeInstance(iterationNr)
-    val builder = BuildEngine.withProgram(instance.larsProgram(instance.windowSize))
-    var engine: Engine = null
+    val builder = BuildReasoner.withProgram(instance.larsProgram(instance.windowSize))
+    var engine: Reasoner = null
 
     val initializationTime = stopTime {
-      val preparedEngine: PreparedEngineConfiguration = config.implementation match {
+      val preparedEngine: PreparedReasonerConfiguration = config.implementation match {
         case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
         case _ => {
           tms = config.makeTms(instance.random)
@@ -151,7 +151,7 @@ object LarsEvaluation {
   }
 
 
-  def runTimepoint(instance: LarsEvaluationInstance, engine: Engine, config: Config)(t: Int): ExecutionTimePerTimePoint = {
+  def runTimepoint(instance: LarsEvaluationInstance, engine: Reasoner, config: Config)(t: Int): ExecutionTimePerTimePoint = {
 
     val signals = instance.generateSignalsToAddAt(t)
 

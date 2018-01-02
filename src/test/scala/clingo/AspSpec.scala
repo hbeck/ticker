@@ -14,14 +14,14 @@ class AspSpec extends FlatSpec with AtomTestFixture{
   "An empty program" should "be executed and converted back to empty models" in {
     val program = AspProgram()
 
-    val asp = ClingoEvaluation(program)
+    val asp = ClingoCall(program)
     assert(asp.isEmpty)
   }
 
   "A program containing only a premise A" should "be executed an converted to one single model containing A" in {
     val program = AspProgram(AspFact(a))
 
-    val asp = ClingoEvaluation(program)
+    val asp = ClingoCall(program)
 
     assert(asp.nonEmpty)
     assert(asp contains Set(a))
@@ -30,7 +30,7 @@ class AspSpec extends FlatSpec with AtomTestFixture{
   "A program containing a premise and a rule" should "return only the premise" in {
     val program = AspProgram(AspFact(a), AspRule.pos(b).head(c))
 
-    val asp = ClingoEvaluation(program)
+    val asp = ClingoCall(program)
 
     assert(asp.nonEmpty)
     assert(asp.size == 1)
@@ -39,7 +39,7 @@ class AspSpec extends FlatSpec with AtomTestFixture{
   it should "return two nodes" in {
     val program = AspProgram(AspFact(a), AspRule.pos(a).head(b))
 
-    val asp = ClingoEvaluation(program)
+    val asp = ClingoCall(program)
 
     assert(asp.nonEmpty)
     assert(asp.size == 1)
@@ -48,7 +48,7 @@ class AspSpec extends FlatSpec with AtomTestFixture{
 
   "A program with two models" can "be executed and converted back into both models" in {
     val example = new SingleHusbandSample()
-    val asp = ClingoEvaluation(example.pHusbandFirst)
+    val asp = ClingoCall(example.pHusbandFirst)
 
     assert(asp.size == 2)
     assert(asp contains Set(example.man, example.husband))
@@ -65,7 +65,7 @@ class AspSpec extends FlatSpec with AtomTestFixture{
       cc
     )
 
-    val asp = ClingoEvaluation(program)
+    val asp = ClingoCall(program)
 
     assert(asp.head.size == 3)
     assert(asp.head == Set(cc, bb, a))
@@ -74,6 +74,6 @@ class AspSpec extends FlatSpec with AtomTestFixture{
   "Models with arity" should "be parsed into AtomsWithArguments" in {
     val cc: Atom = c("a", "b")
 
-    assert(NonGroundAtom(c.predicate, List("a", "b")) == ClingoEvaluation.convert("c(a,b)"))
+    assert(NonGroundAtom(c.predicate, List("a", "b")) == ClingoCall.convert("c(a,b)"))
   }
 }

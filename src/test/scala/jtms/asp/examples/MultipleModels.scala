@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import clingo.ClingoEvaluation
+import clingo.ClingoCall
 import core._
 import core.asp.{AspProgram, AspRule}
 import fixtures.AtomTestFixture
@@ -21,7 +21,7 @@ trait MultipleModelsBehavior extends AtomTestFixture {
       info("When adding j1 before j2 the valid model")
       val model = evaluation(AspProgram(j1, j2))
 
-      if (evaluation.isInstanceOf[ClingoEvaluation])
+      if (evaluation.isInstanceOf[ClingoCall])
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(b))
@@ -32,7 +32,7 @@ trait MultipleModelsBehavior extends AtomTestFixture {
     it should "be A" in {
       info("When adding j2 before j1 the valid model")
       val model = evaluation(AspProgram(j2, j1))
-      if (evaluation.isInstanceOf[ClingoEvaluation])
+      if (evaluation.isInstanceOf[ClingoCall])
         assert(model == Set(Set(b), Set(a)))
       else {
         assert(model contains Set(a))

@@ -5,7 +5,7 @@ import java.net.{InetAddress, InetSocketAddress, Socket}
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.TimeUnit
-import runner.{ConnectToEngine, EngineRunner, Int, Startable}
+import runner.{ConnectToEngine, Engine, Int, Startable}
 
 import scala.io.BufferedSource
 import scala.util.Try
@@ -19,7 +19,7 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
 
   private val parser = parseInput(inputUnit) _
 
-  def startWith(engineRunner: EngineRunner): Startable = {
+  def startWith(engineRunner: Engine): Startable = {
     () => {
       val init = Try(connectToSocket(engineRunner))
       if (init.isFailure) {
@@ -28,7 +28,7 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
     }
   }
 
-  private def connectToSocket(engineRunner: EngineRunner) = {
+  private def connectToSocket(engineRunner: Engine) = {
 
     val socket = new Socket(InetAddress.getByName("localhost"), port)
 

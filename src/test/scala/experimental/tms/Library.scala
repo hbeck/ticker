@@ -1,6 +1,6 @@
 package experimental.tms
 
-import clingo.ClingoEvaluation
+import clingo.ClingoCall
 import core._
 import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import jtms._
@@ -64,7 +64,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
+      if (evaluation.isInstanceOf[ClingoCall]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains Set(A_not, H, P, V))
@@ -75,7 +75,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
+      if (evaluation.isInstanceOf[ClingoCall]) pending
 
       info("H is currently chosen 'by random'")
       assert(model contains Set(A_not, H, P, V))
@@ -87,7 +87,7 @@ trait LibraryBehavior {
 
       val model = evaluation(p)
 
-      if (evaluation.isInstanceOf[ClingoEvaluation]) pending
+      if (evaluation.isInstanceOf[ClingoCall]) pending
 
       info("F is currently chosen 'by random'")
       assert(model contains Set(P_not, F, V))

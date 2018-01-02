@@ -3,7 +3,7 @@ package runner
 import java.util.concurrent.TimeUnit
 
 import core.Atom
-import core.lars.TimePoint
+import core.lars.{ClockTime, TimePoint}
 import engine._
 
 import scala.concurrent.duration._
@@ -29,7 +29,7 @@ case class SignalBasedWriting(interval: Int = 1) extends OutputWritingEvery[Seq[
   }
 }
 
-case class TimeBasedWriting(interval: Duration = 1 second, clockTime: Duration) extends OutputWritingEvery[TimePoint] {
+case class TimeBasedWriting(interval: Duration = 1 second, clockTime: ClockTime) extends OutputWritingEvery[TimePoint] {
 
   private var lastUpdateAt: Duration = 0 seconds
 

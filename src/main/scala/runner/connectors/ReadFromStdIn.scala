@@ -13,7 +13,7 @@ import scala.concurrent.duration.Duration
   */
 case class ReadFromStdIn(inputUnit: TimeUnit) extends ConnectToEngine {
 
-  def startWith(runner: EngineRunner): Startable = {
+  def startWith(runner: Engine): Startable = {
 
     println("Receiving input from keyboard: ")
     println("List of atoms: <atom>,<atom>")

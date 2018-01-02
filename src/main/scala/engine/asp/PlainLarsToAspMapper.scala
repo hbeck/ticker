@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 /**
   * Created by fm on 20/01/2017.
   */
-case class PlainLarsToAspMapper(engineTimeUnit: EngineTimeUnit = 1 second) extends LarsToAspMapper {
+case class PlainLarsToAspMapper(engineTimeUnit: ClockTime = 1 second) extends LarsToAspMapper {
 
   override def identityRulesForAtom(a: Atom): Seq[NormalRule] = {
     Seq(

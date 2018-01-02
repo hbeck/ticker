@@ -4,23 +4,23 @@ import java.time.{LocalDate, LocalDateTime}
 
 import core.Atom
 import core.lars.{LarsProgram, TimePoint}
-import engine.config.{BuildEngine, EvaluationModifier, Reasoner}
-import engine.{Engine, StreamEntry}
+import engine.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
+import engine.{Reasoner, StreamEntry}
 
 import scala.util.Random
 
 object PrepareEvaluator {
 
-  def buildEngineFromArguments(args: Seq[String], program: LarsProgram): Engine = {
+  def buildEngineFromArguments(args: Seq[String], program: LarsProgram): Reasoner = {
 
     if (args.length != 2) {
       printUsageAndExit(args, "Supply the correct arguments")
     }
 
-    val evaluationType = Reasoner withName args(0) //tms or clingo
+    val evaluationType = ReasonerChoice withName args(0) //tms or clingo
     val evaluationStrategy = EvaluationModifier withName args(1) //greedy, learn or doyle; resp. pull or push
 
-    val engine = BuildEngine.
+    val engine = BuildReasoner.
       withProgram(program).
       withReasoning(evaluationType, evaluationStrategy)
 
@@ -46,7 +46,7 @@ object PrepareEvaluator {
   def fromArguments(args: Seq[String], instance: String, program: LarsProgram) = {
     Console.out.println(f"Evaluating ${instance}")
 
-    def engineBuilder(): Engine = PrepareEvaluator.buildEngineFromArguments(args, program)
+    def engineBuilder(): Reasoner = PrepareEvaluator.buildEngineFromArguments(args, program)
 
     Evaluator(instance, engineBuilder)
   }

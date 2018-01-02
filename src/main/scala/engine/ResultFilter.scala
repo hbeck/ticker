@@ -7,11 +7,11 @@ import core.lars.TimePoint
   * Created by fm on 05/06/2017.
   */
 
-case class EngineWithFilter(engine: Engine, filter: ResultFilter) extends Engine {
+case class ReasonerWithFilter(reasoner: Reasoner, filter: ResultFilter) extends Reasoner {
 
-  override def append(time: TimePoint)(atoms: Atom*): Unit = engine.append(time)(atoms: _*)
+  override def append(time: TimePoint)(atoms: Atom*): Unit = reasoner.append(time)(atoms: _*)
 
-  override def evaluate(time: TimePoint): Result = filter.filter(time, engine.evaluate(time))
+  override def evaluate(time: TimePoint): Result = filter.filter(time, reasoner.evaluate(time))
 }
 
 case class ResultFilter(restrictTo: Set[Atom]) {

@@ -10,13 +10,13 @@ import engine.{Result, _}
 /**
   * Created by FM on 13.05.16.
   */
-trait OneShotEvaluation {
+trait ClingoEvaluation {
   val program: ClingoProgramWithLars
 
   def apply(timePoint: TimePoint, count: Long, dataStream: SignalStream): Result
 }
 
-case class OneShotEngine(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends OneShotEvaluation {
+case class OneShotClingoEvaluation(program: ClingoProgramWithLars, interpreter: StreamingAspInterpreter) extends ClingoEvaluation {
 
   val windowAtoms = program.larsRules flatMap (_.body collect { case w:WindowAtom => w})
 

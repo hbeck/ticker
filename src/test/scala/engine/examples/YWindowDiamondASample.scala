@@ -3,9 +3,9 @@ package engine.examples
 import core.Atom
 import core.asp.AspProgram
 import core.lars._
-import engine.Engine
+import engine.Reasoner
 import engine.asp.now
-import engine.config.BuildEngine
+import engine.config.BuildReasoner
 import experimental.evaluation.{ RunWithAllImplementations}
 import fixtures._
 import org.scalatest.FlatSpec

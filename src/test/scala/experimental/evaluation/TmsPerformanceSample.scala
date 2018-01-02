@@ -2,7 +2,7 @@ package experimental.evaluation
 
 import core.lars.{Diamond, LarsProgram, W}
 import engine.asp.tms.policies.LazyRemovePolicy
-import engine.config.BuildEngine
+import engine.config.BuildReasoner
 import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
 import jtms.algorithms.JtmsGreedy
 import jtms.networks.OptimizedNetwork
@@ -28,7 +28,7 @@ class TmsPerformanceSample extends ConfigurableEngineSpec with TimeTestFixtures 
     i <= j,
     j <= W(100, Diamond, k)
   )
-  val defaultEngine = (p: LarsProgram) => BuildEngine.
+  val defaultEngine = (p: LarsProgram) => BuildReasoner.
     withProgram(p).
     configure().
     withJtms().

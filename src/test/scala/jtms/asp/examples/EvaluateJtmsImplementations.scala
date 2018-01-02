@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import clingo.ClingoEvaluation
+import clingo.ClingoCall
 import core.Evaluation
 import iclp.evaluation.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsDoyleHeuristicsEvaluation, JtmsGreedyEvaluation}
 import org.scalatest.FlatSpec
@@ -11,7 +11,7 @@ import org.scalatest.FlatSpec
 trait EvaluateJtmsImplementations {
   this: FlatSpec =>
 
-  val asp = ClingoEvaluation()
+  val asp = ClingoCall()
   val jtmsBeierleFixed = new JtmsBeierleFixedEvaluation
   val jtmsDoyleHeuristics = new JtmsDoyleHeuristicsEvaluation
   val jtmsDoyle = new JtmsDoyleEvaluation

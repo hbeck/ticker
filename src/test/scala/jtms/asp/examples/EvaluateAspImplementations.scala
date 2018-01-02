@@ -1,6 +1,6 @@
 package jtms.asp.examples
 
-import clingo.ClingoEvaluation
+import clingo.ClingoCall
 import core.Evaluation
 import iclp.evaluation.JtmsGreedyEvaluation
 import org.scalatest.FlatSpec
@@ -11,7 +11,7 @@ import org.scalatest.FlatSpec
 trait EvaluateAspImplementations {
   this: FlatSpec =>
 
-  val asp = ClingoEvaluation()
+  val asp = ClingoCall()
   val answerUpdate = new JtmsGreedyEvaluation
 
   def theSame(tests: => Evaluation => Unit) = {

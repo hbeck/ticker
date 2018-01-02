@@ -5,24 +5,24 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.scalalogging.Logger
 import core.Atom
-import core.lars.TimePoint
-import engine.{Engine, Result}
+import core.lars.{ClockTime, TimePoint}
+import engine.{Reasoner, Result}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ConnectToEngine {
 
-  def startWith(engineRunner: EngineRunner): Startable
+  def startWith(engineRunner: Engine): Startable
 
 }
 
 /**
   * Created by FM on 10.11.16.
   */
-case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: OutputTiming) {
+case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: OutputTiming) {
 
-  val logger = Logger[EngineRunner]
+  val logger = Logger[Engine]
 
   type ResultCallback = (Result, TimePoint) => Unit
 
@@ -36,7 +36,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
   @volatile private var engineTimePoint: TimePoint = TimePoint(0)
 
-  @volatile private val outputWriting: OutputWriting = outputTiming match {
+  @volatile private var outputWriting: OutputWriting = outputTiming match {
     case Change => ChangeBasedWriting
     case Time(None) => TimeBasedWriting(clockTime, clockTime)
     case Time(Some(interval)) => TimeBasedWriting(interval, clockTime)
@@ -68,7 +68,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
   def evaluateModel(): Unit = evaluateModel(engineTimePoint)
 
   def evaluateModel(currentTimePoint: TimePoint): Unit = {
-    val model = engine.evaluate(currentTimePoint)
+    val model = reasoner.evaluate(currentTimePoint)
 
     outputWriting match {
       case ChangeBasedWriting => {
@@ -102,7 +102,7 @@ case class EngineRunner(engine: Engine, clockTime: Duration, outputTiming: Outpu
 
         logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 
-        engine.append(timePoint)(atoms: _*)
+        reasoner.append(timePoint)(atoms: _*)
 
         outputWriting match {
           case ChangeBasedWriting => evaluateModel()

@@ -10,13 +10,13 @@ import engine.asp.{PinnedModel, PinnedStream}
   *
   * Created by FM on 22.04.16.
   */
-case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: ClingoEvaluation = ClingoEvaluation()) extends StreamingAspInterpreter {
+case class StreamingClingoInterpreter(program: ClingoProgram, clingoCall: ClingoCall = ClingoCall()) extends StreamingAspInterpreter {
 
   def apply(timePoint: TimePoint, pinnedAtoms: PinnedStream): Option[PinnedModel] = {
 
     val transformed = pinnedAtoms map (ClingoConversion(_))
 
-    val aspResult: Option[Model] = clingoEvaluation(PlainClingoProgram(program.rules ++ transformed)).headOption
+    val aspResult: Option[Model] = clingoCall(PlainClingoProgram(program.rules ++ transformed)).headOption
 
     aspResult match {
       case Some(model) => Some(model)
@@ -26,6 +26,7 @@ case class StreamingClingoInterpreter(program: ClingoProgram, clingoEvaluation: 
 }
 
 object StreamingClingoInterpreter {
+
   def asPinnedAtom(model: Model, timePoint: TimePoint): PinnedModel = model map {
     case p: PinnedAtom => p
     case aa: AtomWithArguments => convertToPinnedAtom(aa, timePoint)
@@ -51,10 +52,12 @@ object StreamingClingoInterpreter {
       case remainingArguments => NonGroundAtom(atom.predicate, remainingArguments)
     }
 
-    if (engine.asp.specialPinPredicates contains atom.predicate)
+    if (engine.asp.specialPinPredicates.contains(atom.predicate)) {
       atomWithoutTime.appendArguments(Seq(IntValue(value.toInt)))
-    else
+    }
+    else {
       PinnedAtom.asPinnedAtAtom(atomWithoutTime, value)
+    }
   }
 
 }

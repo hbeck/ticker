@@ -5,7 +5,7 @@ import core.asp.NormalRule
 import core.lars.TimePoint
 import engine.asp._
 import engine.asp.tms.policies.JtmsPolicy
-import engine.{Engine, Result, UnknownResult}
+import engine.{Reasoner, Result, UnknownResult}
 
 import scala.collection.immutable.HashMap
 
@@ -14,7 +14,7 @@ import scala.collection.immutable.HashMap
   *
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
-case class IncrementalEngine(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: JtmsPolicy) extends Engine {
+case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: JtmsPolicy) extends Reasoner {
 
   tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
 

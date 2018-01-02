@@ -1,8 +1,8 @@
 package fixtures
 
 import core.lars.LarsProgram
-import engine.Engine
-import engine.config.BuildEngine
+import engine.Reasoner
+import engine.config.BuildReasoner
 import org.scalatest.FlatSpec
 
 /**
@@ -13,8 +13,8 @@ trait EvaluateProgramWithAllImplementations  {
 
   this: FlatSpec =>
 
-  def runInAllImplementations(program: LarsProgram)(testSpecifications: (=> Engine) => Unit): Unit = {
-    val config = BuildEngine.withProgram(program).configure()
+  def runInAllImplementations(program: LarsProgram)(testSpecifications: (=> Reasoner) => Unit): Unit = {
+    val config = BuildReasoner.withProgram(program).configure()
 
     "Using Clingo-Pull" should behave like testSpecifications(config.withClingo().use().usePull().seal())
     "Using Clingo-Push" should behave like testSpecifications(config.withClingo().use().usePush().seal())

@@ -7,7 +7,7 @@ import core.{Atom, Model}
 /**
   * Created by FM on 05.04.16.
   */
-trait Engine {
+trait Reasoner {
 
   def append(timePoint: TimePoint)(atoms: Atom*): Unit
 

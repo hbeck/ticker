@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 /**
   * Created by fm on 05/06/2017.
   */
-class AtomResultFilterSpec extends FlatSpec with AtomTestFixture {
+class ResultFilterSpec extends FlatSpec with AtomTestFixture {
   "An empty Result" should "be filtered to an empty model" in {
     val filter = ResultFilter(Set())
     assert(filter.filter(0, EmptyResult).model.isEmpty)
