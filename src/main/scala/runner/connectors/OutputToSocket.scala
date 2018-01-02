@@ -6,7 +6,7 @@ import java.net.{ServerSocket, Socket}
 import com.typesafe.scalalogging.Logger
 import common.Resource
 import core.lars.TimePoint
-import engine.Result
+import reasoner.Result
 import jtms.in
 import runner.{ConnectToEngine, Engine, Startable}
 

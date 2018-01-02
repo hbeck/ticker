@@ -6,7 +6,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.typesafe.scalalogging.Logger
 import core.Atom
 import core.lars.{ClockTime, TimePoint}
-import engine.{Reasoner, Result}
+import reasoner.{Reasoner, Result}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}

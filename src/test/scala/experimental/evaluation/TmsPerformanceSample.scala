@@ -1,8 +1,8 @@
 package experimental.evaluation
 
 import core.lars.{Diamond, LarsProgram, W}
-import engine.asp.tms.policies.LazyRemovePolicy
-import engine.config.BuildReasoner
+import reasoner.asp.tms.policies.LazyRemovePolicy
+import reasoner.config.BuildReasoner
 import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
 import jtms.algorithms.JtmsGreedy
 import jtms.networks.OptimizedNetwork

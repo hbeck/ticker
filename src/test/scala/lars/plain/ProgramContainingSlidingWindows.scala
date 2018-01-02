@@ -3,7 +3,7 @@ package lars.plain
 import core.asp.AspProgram
 import core.grounding.{GrounderInstance, StaticProgramInspection}
 import core.lars._
-import engine.asp.PlainLarsToAspMapper
+import reasoner.asp.PlainLarsToAspMapper
 import lars.transform.TransformLarsSpec
 
 /**

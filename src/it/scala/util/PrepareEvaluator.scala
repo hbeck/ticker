@@ -4,8 +4,8 @@ import java.time.{LocalDate, LocalDateTime}
 
 import core.Atom
 import core.lars.{LarsProgram, TimePoint}
-import engine.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
-import engine.{Reasoner, StreamEntry}
+import reasoner.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
+import reasoner.{Reasoner, StreamEntry}
 
 import scala.util.Random
 

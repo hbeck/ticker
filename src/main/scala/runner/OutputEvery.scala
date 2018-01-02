@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import core.Atom
 import core.lars.{ClockTime, TimePoint}
-import engine._
+import reasoner._
 
 import scala.concurrent.duration._
 

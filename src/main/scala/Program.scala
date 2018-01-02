@@ -4,10 +4,10 @@ import com.typesafe.scalalogging.Logger
 import common.Util
 import core.Atom
 import core.lars.{ClockTime, Format, LarsProgram}
-import engine.Reasoner
-import engine.config.ReasonerChoice._
-import engine.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
-import engine.parser.LarsParser
+import reasoner.Reasoner
+import reasoner.config.ReasonerChoice._
+import reasoner.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
+import reasoner.parser.LarsParser
 import runner._
 import runner.connectors.{OutputToSocket, OutputToStdOut, ReadFromSocket, ReadFromStdIn}
 

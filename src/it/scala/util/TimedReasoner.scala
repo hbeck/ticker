@@ -2,7 +2,7 @@ package util
 
 import core.Atom
 import core.lars.TimePoint
-import engine.{Reasoner, Result}
+import reasoner.{Reasoner, Result}
 
 import scala.concurrent.duration.{Deadline, Duration}
 

@@ -2,9 +2,9 @@ package iclp.evaluation
 
 import common.Util.stopTime
 import core.lars._
-import engine.asp.tms.policies.ImmediatelyAddRemovePolicy
-import engine.config.{BuildReasoner, PreparedReasonerConfiguration}
-import engine.{Reasoner, Result}
+import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
+import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
+import reasoner.{Reasoner, Result}
 import jtms.algorithms.Jtms
 import util.StatisticResult
 

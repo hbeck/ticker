@@ -3,7 +3,7 @@ package clingo
 import core.{GroundAtom, _}
 import core.asp.{AspProgram, AspRule}
 import core.lars.{LarsBasedProgram, LarsRule, TimePoint, TimeVariableWithOffset}
-import engine.asp.LarsProgramEncoding
+import reasoner.asp.LarsProgramEncoding
 
 /**
   * Created by FM on 22.02.16.

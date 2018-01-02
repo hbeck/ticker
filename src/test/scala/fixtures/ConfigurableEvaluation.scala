@@ -2,7 +2,7 @@ package fixtures
 
 import common.Resource
 import core.lars.LarsProgram
-import engine.Reasoner
+import reasoner.Reasoner
 import fixtures.tags.NoTmsDirectPolicy
 import org.scalatest._
 

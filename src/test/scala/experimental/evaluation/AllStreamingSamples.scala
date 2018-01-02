@@ -1,7 +1,7 @@
 package experimental.evaluation
 
-import engine.EngineStreamSpec
-import engine.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
+import reasoner.EngineStreamSpec
+import reasoner.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
 import fixtures._
 import org.scalatest.{Spec, Suite, Suites}
 

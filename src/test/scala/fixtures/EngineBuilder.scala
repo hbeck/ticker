@@ -1,9 +1,9 @@
 package fixtures
 
 import core.lars.LarsProgram
-import engine.Reasoner
-import engine.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
-import engine.config.BuildReasoner
+import reasoner.Reasoner
+import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
+import reasoner.config.BuildReasoner
 import jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
 import jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
 

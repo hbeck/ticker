@@ -1,8 +1,8 @@
 package fixtures
 
 import core.lars.LarsProgram
-import engine.Reasoner
-import engine.config.BuildReasoner
+import reasoner.Reasoner
+import reasoner.config.BuildReasoner
 import org.scalatest.FlatSpec
 
 /**

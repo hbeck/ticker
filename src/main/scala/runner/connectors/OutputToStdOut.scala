@@ -1,7 +1,7 @@
 package runner.connectors
 
 import core.lars.TimePoint
-import engine.Result
+import reasoner.Result
 import runner.{ConnectToEngine, Engine, Startable}
 
 /**

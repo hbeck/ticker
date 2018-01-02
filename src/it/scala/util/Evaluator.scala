@@ -1,6 +1,6 @@
 package util
 
-import engine.{Reasoner, StreamEntry}
+import reasoner.{Reasoner, StreamEntry}
 
 import scala.collection.mutable.ArrayBuffer
 
