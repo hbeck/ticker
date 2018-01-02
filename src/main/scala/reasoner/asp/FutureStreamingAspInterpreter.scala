@@ -1,9 +1,9 @@
-package reasoner.asp.oneshot
+package reasoner.asp
 
 import clingo.ClingoProgramWithLars
 import core.Atom
 import core.lars.TimePoint
-import reasoner.{Result, SignalStream, Stream}
+import reasoner.{Result, SignalStream}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

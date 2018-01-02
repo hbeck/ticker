@@ -1,6 +1,4 @@
-package reasoner.asp.oneshot
-
-import core.asp.NormalProgram
+package reasoner.asp
 
 import scala.concurrent.duration._
 

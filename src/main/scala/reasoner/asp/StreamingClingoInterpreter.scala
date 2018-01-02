@@ -1,9 +1,8 @@
-package reasoner.asp.oneshot
+package reasoner.asp
 
 import clingo.{ClingoConversion, ClingoProgram, _}
 import core._
 import core.lars.TimePoint
-import reasoner.asp.{PinnedModel, PinnedStream}
 
 
 /**

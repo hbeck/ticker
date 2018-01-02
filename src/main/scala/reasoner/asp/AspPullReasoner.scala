@@ -1,4 +1,4 @@
-package reasoner.asp.oneshot
+package reasoner.asp
 
 import core.Atom
 import core.lars.TimePoint
