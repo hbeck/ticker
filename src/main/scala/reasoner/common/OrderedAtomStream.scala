@@ -1,4 +1,4 @@
-package reasoner
+package reasoner.common
 
 import clingo.ClingoProgramWithLars
 import core._

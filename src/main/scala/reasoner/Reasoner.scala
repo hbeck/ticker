@@ -1,7 +1,7 @@
 package reasoner
 
-import core.lars.TimePoint
 import core.{Atom, Model}
+import core.lars.TimePoint
 
 
 /**

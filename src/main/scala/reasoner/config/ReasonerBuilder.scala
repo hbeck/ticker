@@ -6,12 +6,12 @@ import core.lars.{ClockTime, LarsProgram}
 import reasoner.asp._
 import reasoner.asp.oneshot._
 import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, JtmsPolicy}
-import reasoner.asp.tms.{IncrementalReasoner, IncrementalRuleMaker}
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice
-import reasoner.{ResultFilter, Reasoner, ReasonerWithFilter}
+import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
 import jtms.algorithms.Jtms
 import jtms.networks.OptimizedNetwork
+import reasoner.incremental.{IncrementalReasoner, IncrementalRuleMaker}
 
 import scala.concurrent.duration._
 import scala.util.Random

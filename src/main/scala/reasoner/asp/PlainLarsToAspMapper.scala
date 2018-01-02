@@ -3,7 +3,7 @@ package reasoner.asp
 import core._
 import core.asp.{AspRule, NormalRule, UserDefinedAspRule}
 import core.lars._
-import reasoner.asp.tms._
+import reasoner.incremental._
 
 import scala.concurrent.duration._
 

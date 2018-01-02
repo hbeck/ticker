@@ -1,7 +1,9 @@
 package reasoner
 
-import core._
+import core.GroundPinnedAtAtom
 import core.lars.TimePoint
+import core._
+
 
 /**
   * Created by fm on 05/06/2017.

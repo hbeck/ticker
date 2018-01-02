@@ -1,4 +1,4 @@
-package reasoner.asp.tms
+package reasoner.incremental
 
 import core.asp.NormalRule
 import reasoner.asp._

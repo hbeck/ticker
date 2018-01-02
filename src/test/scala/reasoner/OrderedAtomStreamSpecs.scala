@@ -3,6 +3,7 @@ package reasoner
 import core.{Atom, GroundAtom}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
+import reasoner.common.{DefaultTrackedSignal, SignalTracker}
 
 /**
   * Created by FM on 08.04.16.

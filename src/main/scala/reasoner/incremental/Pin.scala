@@ -1,10 +1,9 @@
-package reasoner.asp.tms
+package reasoner.incremental
 
 import core._
 import core.asp._
 import core.lars.{Assignment, TimePoint}
-import reasoner.asp._
-import reasoner.asp.CountPinVariable
+import reasoner.asp.{CountPinVariable, _}
 
 /**
   * Created by FM on 16.05.16.

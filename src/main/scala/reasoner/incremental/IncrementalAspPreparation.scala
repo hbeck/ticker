@@ -1,8 +1,8 @@
-package reasoner.asp.tms
+package reasoner.incremental
 
+import core._
 import core.asp.{AspProgram, _}
 import core.lars._
-import core._
 import reasoner.asp._
 
 /**

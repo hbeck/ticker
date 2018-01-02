@@ -1,5 +1,6 @@
 import core.Atom
 import core.lars.TimePoint
+import reasoner.common.DefaultTrackedSignal
 
 /**
   * Created by FM on 05.04.16.

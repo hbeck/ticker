@@ -4,12 +4,12 @@ package reasoner
 import core.asp.AspRule
 import core.lars.{Diamond, LarsProgram, W, _}
 import core.{not => _, _}
-import reasoner.asp.PlainLarsToAspMapper
-import reasoner.asp.tms.IncrementalAspPreparation
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
+import reasoner.asp.PlainLarsToAspMapper
+import reasoner.incremental.IncrementalAspPreparation
 
 import scala.concurrent.duration._
 

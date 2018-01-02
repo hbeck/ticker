@@ -3,17 +3,18 @@ package reasoner.evaluation
 import core.asp._
 import core.lars.{Assignment, TimePoint}
 import core.{AtomWithArguments$, GroundAtom, PinnedAtom}
-import reasoner.asp.tms.Pin
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import reasoner.incremental
+import reasoner.incremental.Pin
 
 /**
   * Created by FM on 16.05.16.
   */
 class GroundPinnedAspSpec extends FlatSpec with TimeTestFixtures {
 
-  def Pin(time: TimePoint): Pin = reasoner.asp.tms.Pin(Assignment(Map(T -> time)))
+  def Pin(time: TimePoint): Pin = incremental.Pin(Assignment(Map(T -> time)))
 
   "A program containing a(T) :- b(T + 1) at t0" should "be grounded to a(t0) :- b(t1)" in {
     val r = AspRule(a(T), Set(b(T + 1)))

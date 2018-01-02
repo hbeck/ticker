@@ -1,11 +1,11 @@
-package reasoner.asp.tms
+package reasoner.incremental
 
 import core._
 import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
 import core.grounding.{Grounding, Pregrounder}
 import core.lars._
-import reasoner.DefaultTrackedSignal
 import reasoner.asp._
+import reasoner.common.DefaultTrackedSignal
 
 
 /**

@@ -3,7 +3,7 @@ package reasoner.asp
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
-import reasoner.asp.tms.{AnnotatedNormalRule, IncrementalAspPreparation}
+import reasoner.incremental.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 
 /**
