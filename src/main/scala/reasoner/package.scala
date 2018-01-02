@@ -1,6 +1,6 @@
-import core.asp.{AspFact, AspProgram, AspRule, NormalRule}
 import core._
-import core.lars.{LarsRule, TimePoint, TimeVariableWithOffset}
+import core.asp.{AspFact, AspRule, NormalRule}
+import core.lars.{TimePoint, TimeVariableWithOffset}
 import reasoner.common.{DefaultTrackedSignal, Tick}
 
 /**
@@ -38,17 +38,17 @@ package object reasoner {
 
   type PinnedRule = AspRule[AtomWithArguments]
   type PinnedFact = AspFact[AtomWithArguments]
-  type PinnedProgram = AspProgram[AtomWithArguments, PinnedRule]
+  //type PinnedProgram = AspProgram[AtomWithArguments, PinnedRule]
 
 
   //keep original lars rule from which a pinned rule stems
-  type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])
-  type LarsRuleAsAspRules = (LarsRule, Set[NormalRule])
+  //type LarsRuleAsPinnedRules = (LarsRule, Set[PinnedRule])
+  //type LarsRuleAsAspRules = (LarsRule, Set[NormalRule])
 
   type GroundAspRule = AspRule[GroundAtom]
   type GroundAspFact = AspFact[GroundAtom]
-  type GroundedAspStream = Set[GroundAspFact]
-  type GroundAspProgram = AspProgram[GroundAtom, GroundAspRule]
+  //type GroundedAspStream = Set[GroundAspFact]
+  //type GroundAspProgram = AspProgram[GroundAtom, GroundAspRule]
 
 }
 

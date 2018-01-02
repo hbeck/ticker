@@ -3,7 +3,6 @@ package reasoner.incremental
 import core._
 import core.asp._
 import core.lars.{Assignment, TimePoint}
-import reasoner.asp.PinnedStream
 import reasoner.{CountPinVariable, _}
 
 /**
@@ -24,7 +23,7 @@ case class Pin(assignment: Assignment) {
     case _ => atom
   }
 
-  def groundTickVariables(fact: NormalFact): NormalFact = AspFact(this.groundTickVariables(fact.head))
+  //def groundTickVariables(fact: NormalFact): NormalFact = AspFact(this.groundTickVariables(fact.head))
 
   def groundTickVariables(rule: NormalRule): NormalRule = {
     AspRule(
@@ -34,13 +33,13 @@ case class Pin(assignment: Assignment) {
     )
   }
 
-  def groundTickVariables(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
+  //def groundTickVariables(dataStream: PinnedStream): Set[NormalFact] = apply(dataStream)
 
-  def groundTickVariables(rules: Seq[NormalRule]): Seq[NormalRule] = rules map groundTickVariables
+  //def groundTickVariables(rules: Seq[NormalRule]): Seq[NormalRule] = rules map groundTickVariables
 
-  def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
+  //def apply(dataStream: PinnedStream): Set[NormalFact] = dataStream map apply
 
-  def apply(pinnedFact: PinnedFact): NormalFact = AspFact(groundTickVariables(this.apply(pinnedFact.head)))
+  //def apply(pinnedFact: PinnedFact): NormalFact = AspFact(groundTickVariables(this.apply(pinnedFact.head)))
 
   def apply(pinnedAspRule: PinnedRule): NormalRule = {
     AspRule(
