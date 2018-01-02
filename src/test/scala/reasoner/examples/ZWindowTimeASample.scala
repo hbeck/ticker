@@ -30,14 +30,14 @@ class ZWindowTimeASample extends ConfigurableEngineSpec with TimeTestFixtures wi
 
   def preparedEngine = {
     info("Given 't1 -> a' ")
-    engine.append(t1)(a)
+    reasoner.append(t1)(a)
 
-    engine
+    reasoner
   }
 
   //  pendingWithTms("Missing grounding of Variable U")
   it should "not lead to z at t0" in {
-    engine.evaluate(t0).get shouldNot contain(z)
+    reasoner.evaluate(t0).get shouldNot contain(z)
   }
 
   it should "not lead to z at t1" in {

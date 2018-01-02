@@ -1,7 +1,5 @@
 package util
 
-import java.time.{LocalDate, LocalDateTime}
-
 import core.Atom
 import core.lars.{LarsProgram, TimePoint}
 import reasoner.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
@@ -17,16 +15,16 @@ object PrepareEvaluator {
       printUsageAndExit(args, "Supply the correct arguments")
     }
 
-    val evaluationType = ReasonerChoice withName args(0) //tms or clingo
+    val reasonerType = ReasonerChoice withName args(0) //incremental or clingo
     val evaluationStrategy = EvaluationModifier withName args(1) //greedy, learn or doyle; resp. pull or push
 
-    val engine = BuildReasoner.
+    val reaosoner = BuildReasoner.
       withProgram(program).
-      withReasoning(evaluationType, evaluationStrategy)
+      withReasoning(reasonerType, evaluationStrategy)
 
-    if (engine.isDefined) {
-      Console.println(f"Engine: $evaluationType $evaluationStrategy")
-      return engine.get
+    if (reaosoner.isDefined) {
+      Console.println(f"Reasoner: $reasonerType $evaluationStrategy")
+      return reaosoner.get
     } else {
       printUsageAndExit(args, "wrong combination of experimental.evaluation-type/modifier specified")
       return null

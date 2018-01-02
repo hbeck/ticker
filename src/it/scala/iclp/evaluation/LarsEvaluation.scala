@@ -126,21 +126,21 @@ object LarsEvaluation {
 
     val instance = config.makeInstance(iterationNr)
     val builder = BuildReasoner.withProgram(instance.larsProgram(instance.windowSize))
-    var engine: Reasoner = null
+    var reasoner: Reasoner = null
 
     val initializationTime = stopTime {
-      val preparedEngine: PreparedReasonerConfiguration = config.implementation match {
-        case Config.CLINGO_PUSH => builder.configure().withClingo().use().usePush()
+      val preparedReasoner: PreparedReasonerConfiguration = config.implementation match {
+        case Config.CLINGO_PUSH => builder.configure().withClingo().withDefaultEvaluationMode().usePush()
         case _ => {
           tms = config.makeTms(instance.random)
-          builder.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental()
+          builder.configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).use()
         }
       }
 
-      engine = preparedEngine.seal()
+      reasoner = preparedReasoner.seal()
     }
 
-    val runSingleTimepoint = runTimepoint(instance, engine, config) _
+    val runSingleTimepoint = runTimepoint(instance, reasoner, config) _
 
     val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints - 1)) map runSingleTimepoint toList
 
@@ -151,20 +151,20 @@ object LarsEvaluation {
   }
 
 
-  def runTimepoint(instance: LarsEvaluationInstance, engine: Reasoner, config: Config)(t: Int): ExecutionTimePerTimePoint = {
+  def runTimepoint(instance: LarsEvaluationInstance, reasoner: Reasoner, config: Config)(t: Int): ExecutionTimePerTimePoint = {
 
     val signals = instance.generateSignalsToAddAt(t)
 
     val time = TimePoint(t)
 
     val appendTime = stopTime {
-      engine.append(time)(signals: _*)
+      reasoner.append(time)(signals: _*)
     }
 
     var result: Result = null
 
     val evaluateTime = stopTime {
-      result = engine.evaluate(time)
+      result = reasoner.evaluate(time)
     }
 
     if (t == config.printRulesAt && config.implementation.toLowerCase.startsWith("doyle")) {

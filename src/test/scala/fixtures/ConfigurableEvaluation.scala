@@ -16,9 +16,9 @@ trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
   val program: LarsProgram
 
   private var engineEvaluationType: EvaluationType = this.defaultEvaluationType
-  private var engineCache: Option[Reasoner] = None
+  private var reasonerCache: Option[Reasoner] = None
 
-  def engine: Reasoner = engineCache.get
+  def reasoner: Reasoner = reasonerCache.get
 
   override def withFixture(test: NoArgTest): Outcome = {
 
@@ -30,16 +30,16 @@ trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
 
         val c = config.asInstanceOf[EngineConfig]
         this.engineEvaluationType = c.evaluationType
-        this.engineCache = Some(c.builder(program))
+        this.reasonerCache = Some(c.builder(program))
       }
-      case _ => this.engineCache = Some(defaultEngine(program))
+      case _ => this.reasonerCache = Some(defaultEngine(program))
     }
 
     info("Using engine " + evaluationType)
     try {
       ConfigurableEngineSpec.super.withFixture(test)
     } finally {
-      engineCache match {
+      reasonerCache match {
         case Some(x: Resource) => x.close()
         case _ =>
       }

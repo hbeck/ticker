@@ -45,20 +45,20 @@ class XWindowBoxASample extends ConfigurableEngineSpec with TimeTestFixtures wit
   def engineWithStream = {
     info("Given '{t1 -> a}, {t2 -> a}' ")
 
-    engine.append(t1)(a)
-    engine.append(t2)(a)
+    reasoner.append(t1)(a)
+    reasoner.append(t2)(a)
 
-    engine
+    reasoner
   }
 
 
   "An empty program" should "not lead to x at t0" in {
-    engine.evaluate(t0).get shouldNot contain(x)
+    reasoner.evaluate(t0).get shouldNot contain(x)
   }
 
   it should "not lead to x at t1" in {
-    engine.append(t1)(a)
-    engine.evaluate(t1).get.value shouldNot contain(x)
+    reasoner.append(t1)(a)
+    reasoner.evaluate(t1).get.value shouldNot contain(x)
   }
 
   it should "lead to x at t2" in {

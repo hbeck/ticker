@@ -38,11 +38,11 @@ trait EngineBuilder {
 }
 
 trait ClingoPullEngine extends EngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().use().usePull().seal()
+  val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().withDefaultEvaluationMode().usePull().seal()
 }
 
 trait ClingoPushEngine extends EngineBuilder {
-  val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().use().usePush().seal()
+  val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().withDefaultEvaluationMode().usePush().seal()
 }
 
 trait TmsDirectPolicyEngine extends EngineBuilder {
@@ -51,7 +51,7 @@ trait TmsDirectPolicyEngine extends EngineBuilder {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildReasoner.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).seal()
+    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).seal()
   }
 }
 
@@ -61,7 +61,7 @@ trait JtmsGreedyLazyRemovePolicyEngine extends EngineBuilder {
     val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
     tms.doConsistencyCheck = false
 
-    BuildReasoner.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).seal()
+    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(LazyRemovePolicy(tms)).seal()
   }
 }
 
@@ -72,7 +72,7 @@ trait JtmsLearnLazyRemovePolicyEngine extends EngineBuilder {
     tms.shuffle = false
     tms.doConsistencyCheck = false
 
-    BuildReasoner.withProgram(p).configure().withJtms().withPolicy(LazyRemovePolicy(tms)).seal()
+    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(LazyRemovePolicy(tms)).seal()
   }
 }
 
@@ -82,6 +82,6 @@ trait JtmsIncrementalEngine extends EngineBuilder {
     val tms = Jtms(new OptimizedNetwork(), new Random(1))
     //tms.doConsistencyCheck = false
 
-    BuildReasoner.withProgram(p).configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(tms)).withIncremental().seal()
+    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).use().seal()
   }
 }

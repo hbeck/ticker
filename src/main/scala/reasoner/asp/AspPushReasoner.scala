@@ -17,14 +17,12 @@ case class AspPushReasoner(val aspEvaluation: ClingoEvaluation) extends Reasoner
 
   def prepare(time: TimePoint) = {
     val result = aspEvaluation(time, signalTracker.tupleCount, signalTracker.allTimePoints(time).toSet)
-
     cachedResults.put(time, result)
     result
   }
 
   def evaluate(time: TimePoint) = {
     signalTracker.discardOutdatedSignals(time)
-
     cachedResults.getOrElse(time, prepare(time))
   }
 

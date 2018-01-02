@@ -93,7 +93,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     }
   }
 
-  def instantiateRelationAtom(atom: Atom, args: Seq[Argument]): RelationAtom = {
+  private def instantiateRelationAtom(atom: Atom, args: Seq[Argument]): RelationAtom = {
     atom match {
       case ra:BinaryRelationAtom => ra.newInstance(args(0),args(1))
       case ra:TernaryRelationAtom => ra.newInstance(args(0),args(1),args(2))
@@ -150,7 +150,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
       Seq()
     }
 
-    val signals: Seq[AnnotatedNormalRule] = { //may add expiration
+    val signals: Seq[AnnotatedNormalRule] = { //TODO add expiration
       if (timeIncrease) { Seq() }
       else { pinnedAtoms(tick, DefaultTrackedSignal(signal.get, tick)) }
     }
@@ -191,7 +191,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val useSignalExpiration = false
 
-  def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
+  private def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
     val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
       Seq(AspFact[Atom](t.timePinned),AspFact[Atom](t.timeCountPinned))
     } else {
@@ -204,7 +204,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     }
   }
 
-  def simpleSignalExpiration(rules: Seq[NormalRule]): Seq[AnnotatedNormalRule] = {
+  private def simpleSignalExpiration(rules: Seq[NormalRule]): Seq[AnnotatedNormalRule] = {
     rules map (RuleExpiringByCountOnly(_,Tick(Void,10000),ExpirationOptional))
   }
 

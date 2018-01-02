@@ -24,30 +24,30 @@ class StratifiedSample extends ConfigurableEngineSpec with TimeTestFixtures with
   )
 
   "An empty program" should "lead to model c" in {
-    val result = engine.evaluate(t0).get.value
+    val result = reasoner.evaluate(t0).get.value
     result should contain only (c)
   }
 
   "Given {0...10 -> r}" should "lead to Model a,  b, c at t10" in {
-    (0 to 10) foreach (engine.append(_)(r))
+    (0 to 10) foreach (reasoner.append(_)(r))
 
-    engine.evaluate(10).get.value should contain allOf(a, b, c)
+    reasoner.evaluate(10).get.value should contain allOf(a, b, c)
   }
 
   "Given {0...10 -> r, 5 -> y}" should "lead to Model a, b, c ,f at t10" in {
     (0 to 10) foreach (t => {
-      engine.append(t)(r)
-      if (t == 5) engine.append(5)(y)
+      reasoner.append(t)(r)
+      if (t == 5) reasoner.append(5)(y)
     })
 
-    engine.evaluate(10).get.value should contain allOf(a, b, c, f)
+    reasoner.evaluate(10).get.value should contain allOf(a, b, c, f)
   }
 
   "Given {0...100 -> {r, s}}" should "not lead to a at any time" in {
     (0 to 100) foreach (i => {
-      engine.append(i)(r, s)
+      reasoner.append(i)(r, s)
 
-      engine.evaluate(TimePoint(i)).get.value shouldNot contain(a)
+      reasoner.evaluate(TimePoint(i)).get.value shouldNot contain(a)
     })
 
 

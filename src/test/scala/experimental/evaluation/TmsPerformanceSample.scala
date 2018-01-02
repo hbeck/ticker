@@ -31,18 +31,18 @@ class TmsPerformanceSample extends ConfigurableEngineSpec with TimeTestFixtures 
   val defaultEngine = (p: LarsProgram) => BuildReasoner.
     withProgram(p).
     configure().
-    withJtms().
+    withIncremental().
     withPolicy(LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random(1)), 10)).
     seal()
 
   "An empty Program" should "lead to an empty model at t0" in {
-    engine.evaluate(t0).get.value shouldBe empty
+    reasoner.evaluate(t0).get.value shouldBe empty
   }
 
   "{1 -> k}" should "lead to model a for 1...100" in {
-    engine.append(t1)(k)
+    reasoner.append(t1)(k)
 
-    forAll(1 to 100) { t => engine.evaluate(t).get.value should contain(a) }
+    forAll(1 to 100) { t => reasoner.evaluate(t).get.value should contain(a) }
   }
 }
 

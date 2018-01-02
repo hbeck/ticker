@@ -44,21 +44,21 @@ object Program {
               //TODO have to check that every window is a multiple of clock time
           }
         if (timeWindowSmallerThanEngineUnit)
-          throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the engine timeUnit.")
+          throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the clock time.")
 
-        val engine = config.buildReasoner()
+        val reasoner = config.buildReasoner()
 
-        val runner = Engine(engine, config.clockTime, config.outputTiming)
+        val engine = Engine(reasoner, config.clockTime, config.outputTiming)
         config.inputs foreach {
-          case SocketInput(port) => runner.connect(ReadFromSocket(config.clockTime._2, port))
-          case StdIn => runner.connect(ReadFromStdIn(config.clockTime._2))
+          case SocketInput(port) => engine.connect(ReadFromSocket(config.clockTime._2, port))
+          case StdIn => engine.connect(ReadFromStdIn(config.clockTime._2))
         }
         config.outputs foreach {
-          case StdOut => runner.connect(OutputToStdOut)
-          case SocketOutput(port) => runner.connect(OutputToSocket(port))
+          case StdOut => engine.connect(OutputToStdOut)
+          case SocketOutput(port) => engine.connect(OutputToSocket(port))
         }
 
-        runner.start()
+        engine.start()
       }
       case None => throw new RuntimeException("Could not parse all arguments")
     }
@@ -186,10 +186,10 @@ object Program {
 
       val preparedReasoner = reasoner match {
         case ReasonerChoice.Incremental =>
-          reasonerBuilder.configure().withJtms().withIncremental()
+          reasonerBuilder.configure().withIncremental().use()
         case ReasonerChoice.Clingo => outputTiming match {
-          case Time(_) => reasonerBuilder.configure().withClingo().use().usePull() //TODO n signals, n > 1
-          case _ => reasonerBuilder.configure().withClingo().use().usePush()
+          case Time(_) => reasonerBuilder.configure().withClingo().withDefaultEvaluationMode().usePull() //TODO n signals, n > 1
+          case _ => reasonerBuilder.configure().withClingo().withDefaultEvaluationMode().usePush()
         }
       }
       filter match {

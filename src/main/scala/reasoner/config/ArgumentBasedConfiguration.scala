@@ -54,7 +54,7 @@ case class ArgumentBasedConfiguration(config: Configuration) {
     jtms.recordStatusSeq = false
     jtms.recordChoiceSeq = false
 
-    config.configure().withJtms().withPolicy(LazyRemovePolicy(jtms)).seal()
+    config.configure().withIncremental().withPolicy(LazyRemovePolicy(jtms)).seal()
   }
 
   def jtmsIncremental(config: Configuration, network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(), random: Random = new Random(1)) = {
@@ -63,17 +63,17 @@ case class ArgumentBasedConfiguration(config: Configuration) {
     jtms.recordChoiceSeq = false
 
     //TODO hb ".withIncremental" should not be needed
-    config.configure().withJtms().withPolicy(ImmediatelyAddRemovePolicy(jtms)).withIncremental().seal()
+    config.configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(jtms)).use().seal()
   }
 
 
   //TODO hb "use.use.."?
   def clingoPush(config: Configuration) = {
-    config.configure().withClingo().use().usePush().seal()
+    config.configure().withClingo().withDefaultEvaluationMode().usePush().seal()
   }
 
   //TODO hb "use.use.."?
   def clingoPull(config: Configuration) = {
-    config.configure().withClingo().use().usePull().seal()
+    config.configure().withClingo().withDefaultEvaluationMode().usePull().seal()
   }
 }

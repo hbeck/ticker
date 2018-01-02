@@ -35,31 +35,31 @@ case class Configuration(larsProgram: LarsProgram, clockTime: ClockTime = 1 seco
 
 case class ReasonerConfiguration(program: LarsProgram, clockTime: ClockTime) {
 
-  private lazy val aspMapped = PlainLarsToAspMapper(clockTime)(program)
+  private lazy val larsProgramEncoding = PlainLarsToAspMapper(clockTime)(program)
 
-  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(aspMapped))
+  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(larsProgramEncoding))
 
-  def withJtms(): JtmsConfiguration = JtmsConfiguration(aspMapped)
+  def withIncremental(): IncrementalConfiguration = IncrementalConfiguration(larsProgramEncoding)
 
 }
 
-case class JtmsConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: JtmsPolicy = ImmediatelyAddRemovePolicy()) {
+case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: JtmsPolicy = ImmediatelyAddRemovePolicy()) {
 
-  def withRandom(random: Random) = JtmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(Jtms(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = IncrementalConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(Jtms(new OptimizedNetwork(), random)))
 
-  def useJtms(jtms: Jtms) = JtmsConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
+  def withJtms(jtms: Jtms) = IncrementalConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
 
-  def withPolicy(jtmsPolicy: JtmsPolicy) = JtmsConfiguration(larsProgramEncoding, jtmsPolicy)
+  def withPolicy(jtmsPolicy: JtmsPolicy) = IncrementalConfiguration(larsProgramEncoding, jtmsPolicy)
 
-  def withIncremental() = PreparedReasonerConfiguration(
+  def use() = PreparedReasonerConfiguration(
     IncrementalReasoner(IncrementalRuleMaker(larsProgramEncoding), policy),
     larsProgramEncoding.intensionalAtoms ++ larsProgramEncoding.signals
   )
 
 }
 
-object JtmsConfiguration {
-  implicit def toEvaluationModeConfig(config: JtmsConfiguration): PreparedReasonerConfiguration =
+object IncrementalConfiguration {
+  implicit def toEvaluationModeConfig(config: IncrementalConfiguration): PreparedReasonerConfiguration =
     PreparedReasonerConfiguration(
       IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
       config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals
@@ -68,7 +68,9 @@ object JtmsConfiguration {
 
 case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
-  def use(evaluationMode: EvaluationMode = Direct) = {
+  def withDefaultEvaluationMode() = withEvaluationMode(Direct)
+
+  def withEvaluationMode(evaluationMode: EvaluationMode) = {
     val aspEvaluation = buildEvaluationMode(OneShotClingoEvaluation(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
     EvaluationStrategyConfiguration(aspEvaluation)
   }

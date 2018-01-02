@@ -39,13 +39,13 @@ class YWindowDiamondASample extends ConfigurableEngineSpec with TimeTestFixtures
   def engineWithStream = {
     info("Given 't1 -> a' ")
 
-    engine.append(t1)(a)
+    reasoner.append(t1)(a)
 
-    engine
+    reasoner
   }
 
   "An empty program" should "not lead to y at t0" in {
-    engine.evaluate(t0).get shouldNot contain(y)
+    reasoner.evaluate(t0).get shouldNot contain(y)
   }
 
   it should "lead to y at t1" in {

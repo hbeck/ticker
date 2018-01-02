@@ -23,23 +23,23 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableEngineSpec with TimeTest
 
 
   "An empty data-stream" should "lead to model b,d" in {
-    engine.evaluate(t0).get.value should contain allOf(b, d)
+    reasoner.evaluate(t0).get.value should contain allOf(b, d)
   }
   "A data-stream with {1 -> a}" should "lead to (a, c, d)" in {
-    engine.append(t1)(a)
+    reasoner.append(t1)(a)
 
-    engine.evaluate(t1).get.value should contain allOf(a, c, d)
-    engine.evaluate(t2).get.value should contain allOf(a, c, d)
+    reasoner.evaluate(t1).get.value should contain allOf(a, c, d)
+    reasoner.evaluate(t2).get.value should contain allOf(a, c, d)
   }
 
   "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in pendingWithTms("cycle between a <-> c"){
-    (1 to 100 by 2) foreach (engine.append(_)(a))
+    (1 to 100 by 2) foreach (reasoner.append(_)(a))
 
-    assume(Set(b, d).subsetOf(engine.evaluate(t0).get.value))
-    assume(Set(a, c, d).subsetOf(engine.evaluate(t1).get.value))
+    assume(Set(b, d).subsetOf(reasoner.evaluate(t0).get.value))
+    assume(Set(a, c, d).subsetOf(reasoner.evaluate(t1).get.value))
 
     forAll(1 to 100) {
-      i => engine.evaluate(i).get.value should contain allOf(a, c, d)
+      i => reasoner.evaluate(i).get.value should contain allOf(a, c, d)
     }
   }
 

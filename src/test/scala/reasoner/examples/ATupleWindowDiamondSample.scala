@@ -22,42 +22,42 @@ class ATupleWindowDiamondSample extends ConfigurableEngineSpec with TimeTestFixt
   )
 
   "An empty program" should "not lead to a at 0" in {
-    engine.evaluate(t0).get.value shouldNot contain(a)
+    reasoner.evaluate(t0).get.value shouldNot contain(a)
   }
 
   "{7 -> d}" should "lead to a from 7 to 9" in {
-    engine.append(7)(d)
+    reasoner.append(7)(d)
 
     forAll(7 to 9) { i =>
-      engine.evaluate(i).get.value should contain(a)
+      reasoner.evaluate(i).get.value should contain(a)
     }
   }
 
   "{7 -> d, 10 -> f}" should "still lead to a at 10" in {
-    engine.append(7)(d)
-    engine.append(10)(f)
+    reasoner.append(7)(d)
+    reasoner.append(10)(f)
 
-    engine.evaluate(10).get.value should contain(a)
+    reasoner.evaluate(10).get.value should contain(a)
   }
 
   "{7 -> d, 10 -> f, 11 -> e}" should "not lead to a from 11 to 14" in {
-    engine.append(7)(d)
-    engine.append(10)(f)
-    engine.append(11)(e)
+    reasoner.append(7)(d)
+    reasoner.append(10)(f)
+    reasoner.append(11)(e)
 
     // TODO: difference between TMS/Clingo with window-size
     forAll(11 to 14) { i =>
-      engine.evaluate(i).get.value shouldNot contain(a)
+      reasoner.evaluate(i).get.value shouldNot contain(a)
     }
   }
 
   "{7 -> d, 10 -> f, 11 -> e, 14 -> d}" should "lead to a from 14" in {
-    engine.append(7)(d)
-    engine.append(10)(f)
-    engine.append(11)(e)
-    engine.append(14)(d)
+    reasoner.append(7)(d)
+    reasoner.append(10)(f)
+    reasoner.append(11)(e)
+    reasoner.append(14)(d)
 
-    engine.evaluate(14).get.value should contain(a)
+    reasoner.evaluate(14).get.value should contain(a)
   }
 
 }

@@ -16,7 +16,7 @@ trait LarsToAspMapper {
   }
 
   def encodeRule(rule: LarsRule): LarsRuleEncoding = {
-    val encodedRule = encode(rule)
+    val baseRule = encode(rule)
 
     val groundingGuards: Map[WindowAtom,Set[Atom]] = LarsToAspMapper.extractGroundingGuards(rule)
 
@@ -24,7 +24,7 @@ trait LarsToAspMapper {
       case wa: WindowAtom => windowAtomEncoder(wa,groundingGuards.getOrElse(wa,Set()))
     }
 
-    LarsRuleEncoding(rule, encodedRule, windowAtomEncoders)
+    LarsRuleEncoding(rule, baseRule, windowAtomEncoders)
   }
 
   def predicateFor(window: WindowAtom): Predicate = predicateFor(window.windowFunction, window.temporalModality, window.atom)
