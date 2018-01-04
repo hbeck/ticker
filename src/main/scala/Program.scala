@@ -106,11 +106,11 @@ object Program {
 
       opt[Seq[InputSource]]('i', "inputSource").optional().valueName("<input source>,<input source>,...").
         action((x, c) => c.copy(inputs = x)).
-        text("Possible Input Types: read from input with 'StdIn', read from a socket with 'socket:<port>'")
+        text("Possible Input Sources: read from input with 'StdIn', read from a socket with 'socket:<port>'")
 
-      opt[Seq[OutputTarget]]('o', "outputTarget").optional().valueName("<output target>,<output target>,...").
+      opt[Seq[OutputSink]]('o', "outputSink").optional().valueName("<output sink>,<output sink>,...").
         action((x, c) => c.copy(outputs = x)).
-        text("Possible Output Types: write to output with 'StdOut', write to a socket with 'socket:<port>'")
+        text("Possible Output Sinks: write to output with 'StdOut', write to a socket with 'socket:<port>'")
 
       help("help").
         text("Specify init parameters for running the engine")
@@ -151,7 +151,7 @@ object Program {
     case SocketPattern(port) => SocketInput(port.toInt)
   })
 
-  implicit val outputTargetsRead: scopt.Read[OutputTarget] = scopt.Read.reads(s => s.toLowerCase match {
+  implicit val outputSinksRead: scopt.Read[OutputSink] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdout" => StdOut
     case SocketPattern(port) => SocketOutput(port.toInt)
   })
@@ -163,18 +163,18 @@ object Program {
 
   case class SocketInput(port: Int) extends InputSource
 
-  sealed trait OutputTarget
+  sealed trait OutputSink
 
-  object StdOut extends OutputTarget
+  object StdOut extends OutputSink
 
-  case class SocketOutput(port: Int) extends OutputTarget
+  case class SocketOutput(port: Int) extends OutputSink
 
   case class Config(reasoner: ReasonerChoice = ReasonerChoice.Incremental,
                     programFile: File, //TODO PPS multiple
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[InputSource] = Seq(StdIn),
-                    outputs: Seq[OutputTarget] = Seq(StdOut),
+                    outputs: Seq[OutputSink] = Seq(StdOut),
                     filter: Option[Set[String]] = None
                    ) {
 
