@@ -71,26 +71,26 @@ case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
   def withDefaultEvaluationMode() = withEvaluationMode(Direct)
 
   def withEvaluationMode(evaluationMode: EvaluationMode) = {
-    val aspEvaluation = buildEvaluationMode(OneShotClingoEvaluation(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
-    EvaluationStrategyConfiguration(aspEvaluation)
+    val clingoEvaluation = buildEvaluationMode(OneShotClingoEvaluation(clingoProgram, StreamingClingoInterpreter(clingoProgram)), evaluationMode)
+    EvaluationStrategyConfiguration(clingoEvaluation)
   }
 
-  private def buildEvaluationMode(aspEvaluation: ClingoEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
-    case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(aspEvaluation, waitingAtMost)
-    case _ => aspEvaluation
+  private def buildEvaluationMode(clingoEvaluation: ClingoEvaluation, evaluationMode: EvaluationMode) = evaluationMode match {
+    case UseFuture(waitingAtMost: Duration) => FutureStreamingAspInterpreter(clingoEvaluation, waitingAtMost)
+    case _ => clingoEvaluation
   }
 }
 
-case class EvaluationStrategyConfiguration(aspEvaluation: ClingoEvaluation) {
+case class EvaluationStrategyConfiguration(clingoEvaluation: ClingoEvaluation) {
 
   def usePull() = PreparedReasonerConfiguration(
-    AspPullReasoner(aspEvaluation),
-    aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
+    AspPullReasoner(clingoEvaluation),
+    clingoEvaluation.program.intensionalAtoms ++ clingoEvaluation.program.signals
   )
 
   def usePush() = PreparedReasonerConfiguration(
-    AspPushReasoner(aspEvaluation),
-    aspEvaluation.program.intensionalAtoms ++ aspEvaluation.program.signals
+    AspPushReasoner(clingoEvaluation),
+    clingoEvaluation.program.intensionalAtoms ++ clingoEvaluation.program.signals
   )
 
 }

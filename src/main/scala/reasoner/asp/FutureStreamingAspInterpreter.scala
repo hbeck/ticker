@@ -9,17 +9,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-case class FutureStreamingAspInterpreter(private val aspEvaluation: ClingoEvaluation, waitingAtMost: Duration) extends ClingoEvaluation {
+case class FutureStreamingAspInterpreter(private val clingoEvaluation: ClingoEvaluation, waitingAtMost: Duration) extends ClingoEvaluation {
 
   def apply(time: TimePoint, count: Long, dataStream: SignalStream): Result = {
     val future = Future {
-      aspEvaluation(time, count, dataStream)
+      clingoEvaluation(time, count, dataStream)
     }
 
     FutureResult(future, waitingAtMost)
   }
 
-  override val program: ClingoProgramWithLars = aspEvaluation.program
+  override val program: ClingoProgramWithLars = clingoEvaluation.program
 }
 
 case class FutureResult(future: Future[Result], waitingAtMost: Duration = 1 second) extends Result {

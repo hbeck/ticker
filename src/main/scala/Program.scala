@@ -81,6 +81,8 @@ object Program {
         action((x, c) => c.copy(reasoner = x)).
         text("Reasoning stragety required, possible values: " + ReasonerChoice.values)
 
+      //TODO filter missing
+
       opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
           if (d lt Duration.Zero)
