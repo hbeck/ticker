@@ -9,7 +9,7 @@ import core.lars.TimePoint
   */
 trait Reasoner {
 
-  def append(timePoint: TimePoint)(atoms: Atom*): Unit
+  def append(timePoint: TimePoint)(signals: Atom*)
 
   def evaluate(timePoint: TimePoint): Result
 

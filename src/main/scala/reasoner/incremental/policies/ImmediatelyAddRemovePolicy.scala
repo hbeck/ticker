@@ -9,14 +9,14 @@ import reasoner.incremental.policies.JtmsPolicy
 /**
   * Created by FM on 12.06.16.
   */
-case class ImmediatelyAddRemovePolicy(tms: Jtms = Jtms()) extends JtmsPolicy {
+case class ImmediatelyAddRemovePolicy(jtms: Jtms = Jtms()) extends JtmsPolicy {
 
-  override def initialize(rules: Seq[NormalRule]) = rules foreach (tms.add(_))
+  override def initialize(rules: Seq[NormalRule]) = rules foreach (jtms.add(_))
 
-  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (tms.add(_))
+  override def add(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (jtms.add(_))
 
-  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (tms.remove(_))
+  override def remove(timePoint: TimePoint)(rules: Seq[NormalRule]): Unit = rules foreach (jtms.remove(_))
 
-  override def getModel(timePoint: TimePoint): Result = Result(tms.getModel())
+  override def getModel(timePoint: TimePoint): Result = Result(jtms.getModel())
 
 }

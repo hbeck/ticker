@@ -9,14 +9,14 @@ import reasoner.common.SignalTracker
   * Created by FM on 21.04.16.
   */
 
-case class AspPushReasoner(val aspEvaluation: ClingoEvaluation) extends Reasoner {
+case class AspPushReasoner(val clingoEvaluation: ClingoEvaluation) extends AspReasoner {
 
-  val signalTracker = SignalTracker(aspEvaluation.program)
+  val signalTracker = SignalTracker(clingoEvaluation.program)
 
   val cachedResults = scala.collection.mutable.HashMap[TimePoint, Result]()
 
   def prepare(time: TimePoint) = {
-    val result = aspEvaluation(time, signalTracker.tupleCount, signalTracker.allTimePoints(time).toSet)
+    val result = clingoEvaluation(time, signalTracker.tupleCount, signalTracker.allTimePoints(time).toSet)
     cachedResults.put(time, result)
     result
   }

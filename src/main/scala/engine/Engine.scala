@@ -45,7 +45,7 @@ case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: Output
 
   def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / clockTime.toMillis, clockTime.unit).length
 
-  def convertToInputSpeed(timePoint: TimePoint) = Duration(Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit), clockTime.unit)
+  def convertToClockTime(timePoint: TimePoint) = Duration(Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit), clockTime.unit)
 
   private def updateClock(): Unit = {
     engineTimePoint = engineTimePoint + 1
@@ -98,7 +98,7 @@ case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: Output
         // but this would lead to adding atoms always in the past)
         val timePoint = enteredTimePoint.getOrElse(engineTimePoint)
 
-        val inputTimePoint = convertToInputSpeed(timePoint)
+        val inputTimePoint = convertToClockTime(timePoint)
 
         logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
 

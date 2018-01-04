@@ -37,7 +37,7 @@ trait TupleWindowEncoder extends WindowAtomEncoder
    ==>    c(X) :- w_2_d_a(X), w_3_b_b(X)   //ruleEncoding
           atoms w_2_d_a(X)  and  w_3_b_b(X) are called windowAtomEncodings and get their WindowAtomEncoder objects
  */
-case class LarsRuleEncoding(larsRule: LarsRule, aspRule: NormalRule, windowAtomEncoders: Set[WindowAtomEncoder]) {
+case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, windowAtomEncoders: Set[WindowAtomEncoder]) {
   /*
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
@@ -53,7 +53,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   /*
    * one-shot stuff
    */
-  lazy val oneShotBaseRules = (larsRuleEncodings map (_.aspRule)) ++ nowAndAtNowIdentityRules ++ backgroundKnowledge
+  lazy val oneShotBaseRules = (larsRuleEncodings map (_.baseRule)) ++ nowAndAtNowIdentityRules ++ backgroundKnowledge
 
   lazy val (groundBaseRules, nonGroundBaseRules) = oneShotBaseRules.
     map(IncrementalAspPreparation.stripPositionAtoms).

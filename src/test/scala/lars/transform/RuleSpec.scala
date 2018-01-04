@@ -12,13 +12,13 @@ class RuleSpec extends TransformLarsSpec {
   "A fact" should "be transformed into one rule" in {
     val f = LarsFact(a)
 
-    Set(DefaultLarsToPinnedProgram.encodeRule(f).aspRule) should have size (1)
+    Set(DefaultLarsToPinnedProgram.encodeRule(f).baseRule) should have size (1)
   }
 
   it should "contain the fact a." in {
     val f = LarsFact(a)
 
-    Set(DefaultLarsToPinnedProgram.encodeRule(f).aspRule) should contain(AspFact(a))
+    Set(DefaultLarsToPinnedProgram.encodeRule(f).baseRule) should contain(AspFact(a))
   }
 
   "A rule containing a window atom wˆ1 b a" should "be transformed into 2 rules" in {

@@ -38,7 +38,7 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
 
   def evaluateModel(engineRunner: Engine)(result: Result, ticks: TimePoint): Unit = {
 
-    val timeInOutput = engineRunner.convertToInputSpeed(ticks).toSeconds
+    val timeInOutput = engineRunner.convertToClockTime(ticks).toSeconds
     result.get match {
       case Some(m) => outputToAllClients(f"Model at T $timeInOutput: $m")
       case None => outputToAllClients(f"No model at T $timeInOutput")

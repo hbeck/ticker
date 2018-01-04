@@ -19,7 +19,7 @@ object OutputToStdOut extends ConnectToEngine {
 
     def evaluateModel(engineRunner: Engine)(result: Result, ticks: TimePoint): Unit = {
 
-      val timeInOutput = engineRunner.convertToInputSpeed(ticks).toSeconds
+      val timeInOutput = engineRunner.convertToClockTime(ticks).toSeconds
       result.get match {
         case Some(m) => println(f"Model at T $timeInOutput: $m")
         case None => println(f"No model at T $timeInOutput")
