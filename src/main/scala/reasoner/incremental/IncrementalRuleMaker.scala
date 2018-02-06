@@ -14,6 +14,79 @@ import reasoner.common.{DefaultTrackedSignal, LarsProgramEncoding, LarsToAspMapp
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: Pregrounder = Pregrounder()) {
 
+  def incrementalRules(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
+
+    val timeIncrease = signal.isEmpty
+
+    val auxFacts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
+      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt)) //may add expiration based on max window length
+      Seq(StaticRule(tickFact))
+    } else {
+      Seq()
+    }
+
+    val signals: Seq[AnnotatedNormalRule] = { //TODO add expiration
+      if (timeIncrease) { Seq() }
+      else { pinnedAtoms(tick, DefaultTrackedSignal(signal.get, tick)) }
+    }
+
+    val pin = expiringRulesPinning(tick)
+
+    val expiringRules: Seq[AnnotatedNormalRule] = {
+      if (timeIncrease) { pin(rulesToPinForTimeIncrement) }
+      else { pin(rulesToPinForCountIncrement) }
+    }
+
+    signals ++ auxFacts ++ expiringRules
+  }
+
+  //pin rules and determine expiration duration, filter out those where relation atoms do not hold
+  def expiringRulesPinning(tick: Tick): (Seq[RuleWithDuration] => Seq[ExpiringRule]) = {
+    val pin = Pin(tick.time,tick.count)
+    def fn(rulesWithDuration: Seq[RuleWithDuration]): Seq[ExpiringRule] = {
+      val pairs = rulesWithDuration map { rwd =>
+        (rwd,Grounding.ensureRuleRelations(pin.groundTickVariables(rwd.rule)))
+      }
+      val expiringRules = pairs collect {
+        case (rwd,optRule) if optRule.isDefined => {
+          val pinnedRule = optRule.get
+          val exp = tick + rwd.duration
+          val mode = rwd.expirationMode
+          rwd match {
+            case xr: RuleWithTimeDurationOnly => RuleExpiringByTimeOnly(pinnedRule, exp, mode)
+            case xr: RuleWithCountDurationOnly => RuleExpiringByCountOnly(pinnedRule, exp, mode)
+            case xr: RuleWithDualDuration => RuleExpiringByTimeOrCount(pinnedRule, exp, mode)
+          }
+        }
+      }
+      expiringRules
+    }
+    fn
+  }
+
+  val useSignalExpiration = false
+
+  private def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
+    val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
+      Seq(AspFact[Atom](t.timePinned),AspFact[Atom](t.timeCountPinned))
+    } else {
+      Seq(AspFact[Atom](t.timePinned))
+    }
+    if (useSignalExpiration) {
+      simpleSignalExpiration(rules)
+    } else {
+      rules map StaticRule
+    }
+  }
+
+  private def simpleSignalExpiration(rules: Seq[NormalRule]): Seq[AnnotatedNormalRule] = {
+    rules map (RuleExpiringByCountOnly(_,Tick(Void,10000),ExpirationOptional))
+  }
+
+  //
+  //
+  //
+
   private val __Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
     val rule = IncrementalAspPreparation.stripPositionAtoms(r)
     val atom = ((rule.pos + rule.head) filter (!_.isInstanceOf[PinnedAtom])).head
@@ -111,13 +184,13 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val staticGroundRules = ((__base_rules_static ++ __window_rules_static) flatMap (xr => grounder.groundFully(xr.rule))) ++ larsProgramEncoding.backgroundKnowledge
 
-  private val rulesToPinForTimeIncrease = {
+  private val rulesToPinForTimeIncrement = {
     ((base_rules_with_duration_prepared ++ window_rules_with_duration_prepared) filter { rwd =>
       rwd.generationMode == OnTimeIncreaseOnly || rwd.generationMode == OnTimeAndCountIncrease
     }) ++ Q_prepared
   }
 
-  private val rulesToPinForCountIncrease = {
+  private val rulesToPinForCountIncrement = {
     (base_rules_with_duration_prepared ++ window_rules_with_duration_prepared) filter { rwd =>
       rwd.generationMode == OnCountIncreaseOnly || rwd.generationMode == OnTimeAndCountIncrease
     }
@@ -133,79 +206,6 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   val need_tick_atoms = windowAtoms exists {
     case WindowAtom(SlidingTupleWindow(_), Box, _) => true
     case _ => false
-  }
-
-  //
-  //
-  //
-
-  def rulesToAddFor(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
-
-    val timeIncrease = signal.isEmpty
-
-    val auxFacts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
-      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt)) //may add expiration based on max window length
-      Seq(StaticRule(tickFact))
-    } else {
-      Seq()
-    }
-
-    val signals: Seq[AnnotatedNormalRule] = { //TODO add expiration
-      if (timeIncrease) { Seq() }
-      else { pinnedAtoms(tick, DefaultTrackedSignal(signal.get, tick)) }
-    }
-
-    val pin = expiringRulesPinning(tick)
-
-    val expiringRules: Seq[AnnotatedNormalRule] = {
-      if (timeIncrease) { pin(rulesToPinForTimeIncrease) }
-      else { pin(rulesToPinForCountIncrease) }
-    }
-
-    signals ++ auxFacts ++ expiringRules
-  }
-
-  //pin rules and determine expiration duration, filter out those where relation atoms do not hold
-  def expiringRulesPinning(tick: Tick): (Seq[RuleWithDuration] => Seq[ExpiringRule]) = {
-    val pin = Pin(tick.time,tick.count)
-    def fn(rulesWithDuration: Seq[RuleWithDuration]): Seq[ExpiringRule] = {
-      val pairs = rulesWithDuration map { rwd =>
-        (rwd,Grounding.ensureRuleRelations(pin.groundTickVariables(rwd.rule)))
-      }
-      val expiringRules = pairs collect {
-        case (rwd,optRule) if optRule.isDefined => {
-          val pinnedRule = optRule.get
-          val exp = tick + rwd.duration
-          val mode = rwd.expirationMode
-          rwd match {
-            case xr: RuleWithTimeDurationOnly => RuleExpiringByTimeOnly(pinnedRule, exp, mode)
-            case xr: RuleWithCountDurationOnly => RuleExpiringByCountOnly(pinnedRule, exp, mode)
-            case xr: RuleWithDualDuration => RuleExpiringByTimeOrCount(pinnedRule, exp, mode)
-          }
-        }
-      }
-      expiringRules
-    }
-    fn
-  }
-
-  val useSignalExpiration = false
-
-  private def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
-    val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
-      Seq(AspFact[Atom](t.timePinned),AspFact[Atom](t.timeCountPinned))
-    } else {
-      Seq(AspFact[Atom](t.timePinned))
-    }
-    if (useSignalExpiration) {
-      simpleSignalExpiration(rules)
-    } else {
-      rules map StaticRule
-    }
-  }
-
-  private def simpleSignalExpiration(rules: Seq[NormalRule]): Seq[AnnotatedNormalRule] = {
-    rules map (RuleExpiringByCountOnly(_,Tick(Void,10000),ExpirationOptional))
   }
 
 }

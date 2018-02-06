@@ -23,8 +23,9 @@ case class AspPullReasoner(val clingoEvaluation: ClingoEvaluation) extends AspRe
   }
 
   def evaluate(time: TimePoint) = {
-    if (!cachedResults.contains(time))
+    if (!cachedResults.contains(time)) {
       prepare(time)
+    }
 
     signalTracker.discardOutdatedSignals(time)
 

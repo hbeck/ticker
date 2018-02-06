@@ -27,7 +27,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
     if (timepoint.value < currentTick.time) {
       throw new RuntimeException("cannot append signal at past time t=" + timepoint + ". system time already at t'=" + currentTick.time)
     }
-    updateTimeTo(timepoint)
+    updateToTimePoint(timepoint)
     atoms foreach addSignalAtCurrentTime
   }
 
@@ -35,7 +35,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
     if (timepoint.value < currentTick.time) {
       return new UnknownResult("cannot evaluate past time t=" + timepoint + ". system time already at t'=" + currentTick.time)
     }
-    updateTimeTo(timepoint)
+    updateToTimePoint(timepoint)
     tmsPolicy.getModel(timepoint)
   }
 
@@ -43,7 +43,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
   //
   //
 
-  def updateTimeTo(time: TimePoint) {
+  def updateToTimePoint(time: TimePoint) {
     if (time.value > currentTick.time) {
       for (t <- (currentTick.time + 1) to (time.value)) {
         singleTimeIncrementTo(t)
@@ -63,7 +63,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
 
   def incrementTick(signal: Option[Atom] = None) {
 
-    val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.rulesToAddFor(currentTick, signal)
+    val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
     annotatedRules foreach {
       case xr: ExpiringRule => expiration.registerExpirationSingleDimension(xr.rule, xr.expiration)
       case _ =>
@@ -90,10 +90,10 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
       val t = expiration.time
       val c = expiration.count
       if (t != Void) {
-        rulesExpiringAtTime = rulesExpiringAtTime updated(t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
+        rulesExpiringAtTime = rulesExpiringAtTime.updated(t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
       }
       if (c != Void) {
-        rulesExpiringAtCount = rulesExpiringAtCount updated(c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
+        rulesExpiringAtCount = rulesExpiringAtCount.updated(c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
       }
     }
 
