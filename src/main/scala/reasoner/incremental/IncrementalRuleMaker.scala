@@ -91,7 +91,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   private val __Q: Seq[NormalRule] = larsProgramEncoding.nowAndAtNowIdentityRules map { r =>
     val rule = IncrementalAspPreparation.stripPositionAtoms(r)
     val atom = ((rule.pos + rule.head) filter (!_.isInstanceOf[PinnedAtom])).head
-    if (larsProgramEncoding.needGuard contains (atom.predicate)) {
+    if (larsProgramEncoding.needGuard.contains(atom.predicate)) {
       val guards = LarsToAspMapper.findGroundingGuards(larsProgramEncoding,atom)
       UserDefinedAspRule(rule.head,rule.pos ++ guards,Set()) //assume that the conjunction of all guards is always needed (as opposed to e.g., one guard per rule etc)
     } else {
@@ -103,15 +103,15 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   private val __baseRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings map { encoding =>
     val rule = IncrementalAspPreparation.stripPositionAtoms(encoding.baseRule)
-    val ticks = encoding.ticksUntilBaseRuleIsOutdated()
-    if (ticks == VoidTick) {
+    val durationTick = encoding.ticksUntilBaseRuleIsIrrelevant
+    if (durationTick == VoidTick) {
       StaticRule(rule)
-    } else if (ticks.count == Void) {
-      RuleWithTimeDurationOnly(rule,ticks,ExpirationOptional)
-    } else if (ticks.time == Void) {
-      RuleWithCountDurationOnly(rule,ticks,ExpirationOptional)
+    } else if (durationTick.count == Void) {
+      RuleWithTimeDurationOnly(rule,durationTick,ExpirationOptional)
+    } else if (durationTick.time == Void) {
+      RuleWithCountDurationOnly(rule,durationTick,ExpirationOptional)
     } else {
-      RuleWithDisjunctiveDuration(rule,ticks,ExpirationOptional)
+      RuleWithDisjunctiveDuration(rule,durationTick,ExpirationOptional)
     } //note that the conjunctive case does not exist for base rules
   }
 

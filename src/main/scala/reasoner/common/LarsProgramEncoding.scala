@@ -3,7 +3,7 @@ package reasoner.common
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
-import reasoner.{Void,TickDuration}
+import reasoner.{TickDuration,Void}
 import reasoner.incremental.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 
@@ -16,9 +16,7 @@ trait WindowAtomEncoder {
 
   val allWindowRules: Seq[NormalRule]
 
-  val length: Long
-
-  def ticksUntilWindowAtomIsOutdated(): TickDuration
+  val size: Long
 
   //non-instantiated incremental rules for (partial) pre-grounding
   def windowRuleTemplates(): Seq[AnnotatedNormalRule]
@@ -38,12 +36,24 @@ trait TupleWindowEncoder extends WindowAtomEncoder
  */
 case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, posWindowAtomEncoders: Set[WindowAtomEncoder], negWindowAtomEncoders: Set[WindowAtomEncoder]) {
 
-  val windowAtomEncoders: Set[WindowAtomEncoder] = posWindowAtomEncoders ++ negWindowAtomEncoders
+  lazy val windowAtomEncoders: Set[WindowAtomEncoder] = posWindowAtomEncoders ++ negWindowAtomEncoders
   /*
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilBaseRuleIsOutdated(): TickDuration = (posWindowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
+  val ticksUntilBaseRuleIsIrrelevant: TickDuration = {
+    val maxTimeWindowSize = posWindowAtomEncoders.collect{ case e:TimeWindowEncoder => e.size}.foldLeft(-2L)((t1,t2) => Math.max(t1,t2))
+    val maxTupleWindowSize = posWindowAtomEncoders.collect{ case e:TupleWindowEncoder => e.size}.foldLeft(-2L)((t1,t2) => Math.max(t1,t2))
+    if (maxTimeWindowSize == -1 && maxTupleWindowSize == -1) { //0 might be a window length (at least for time windows)
+      Tick(Void,Void)
+    } else if (maxTupleWindowSize == -1) {
+      Tick(maxTimeWindowSize + 1, Void)
+    } else if (maxTimeWindowSize == -1) {
+      Tick(Void,maxTupleWindowSize)
+    } else {
+      Tick(maxTimeWindowSize+1,maxTupleWindowSize)
+    }
+  }
 
 }
 
@@ -75,7 +85,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
   lazy val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
     flatMap(_.windowAtomEncoders).
     collect {
-      case t: TimeWindowEncoder => t.length
+      case t: TimeWindowEncoder => t.size
     } match {
     case Nil => 0
     case x => x.max
