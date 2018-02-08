@@ -51,6 +51,7 @@ object IncrementalAspPreparation {
     AspProgram(rulesWithoutNowCntPin.toList)
   }
 
+  //delete now/cnt atoms used in static encoding
   def stripPositionAtoms(rule: NormalRule): NormalRule = {
     rule.
       from(

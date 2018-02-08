@@ -103,7 +103,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   private val __baseRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings map { encoding =>
     val rule = IncrementalAspPreparation.stripPositionAtoms(encoding.baseRule)
-    val ticks = encoding.ticksUntilOutdated()
+    val ticks = encoding.ticksUntilBaseRuleIsOutdated()
     if (ticks == VoidTick) {
       StaticRule(rule)
     } else if (ticks.count == Void) {

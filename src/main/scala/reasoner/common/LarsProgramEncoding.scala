@@ -3,7 +3,7 @@ package reasoner.common
 import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
-import reasoner.TickDuration
+import reasoner.{Void,TickDuration}
 import reasoner.incremental.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 
@@ -36,12 +36,14 @@ trait TupleWindowEncoder extends WindowAtomEncoder
    ==>    c(X) :- w_2_d_a(X), w_3_b_b(X)   //ruleEncoding
           atoms w_2_d_a(X)  and  w_3_b_b(X) are called windowAtomEncodings and get their WindowAtomEncoder objects
  */
-case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, windowAtomEncoders: Set[WindowAtomEncoder]) {
+case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, posWindowAtomEncoders: Set[WindowAtomEncoder], negWindowAtomEncoders: Set[WindowAtomEncoder]) {
+
+  val windowAtomEncoders: Set[WindowAtomEncoder] = posWindowAtomEncoders ++ negWindowAtomEncoders
   /*
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TickDuration = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(0,0))((ticks1, ticks2) => Tick.max(ticks1,ticks2))
+  def ticksUntilBaseRuleIsOutdated(): TickDuration = (posWindowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
 
 }
 
