@@ -1,6 +1,7 @@
 package reasoner.common
 
 import core._
+import core.asp.AspFact
 import core.lars.TimePoint
 import reasoner.asp.clingo.ClingoProgramWithLars
 
@@ -43,7 +44,10 @@ trait TrackedSignal {
 
 case class DefaultTrackedSignal(signal: Atom, time: TimePoint, count: Long) extends TrackedSignal {
   lazy val timePinned: PinnedAtAtom = PinnedAtom.asPinnedAtAtom(signal, time)
-  lazy val timeCountPinned: PinnedAtCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
+  lazy val tickPinned: PinnedAtCntAtom = PinnedAtom.asPinnedAtCntAtom(signal, time, IntValue(count.toInt))
+  lazy val timePinnedFact: AspFact[Atom] = AspFact[Atom](timePinned)
+  lazy val tickPinnedFact: AspFact[Atom] = AspFact[Atom](tickPinned)
+  lazy val signalFact: AspFact[Atom] = AspFact[Atom](signal)
 }
 
 object DefaultTrackedSignal {

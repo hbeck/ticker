@@ -1,11 +1,11 @@
 package reasoner.incremental
 
 import core._
-import core.asp.{AspFact, NormalRule, UserDefinedAspRule}
+import core.asp.{NormalRule, UserDefinedAspRule}
 import core.grounding.{Grounding, Pregrounder}
 import core.lars._
 import reasoner._
-import reasoner.common.{DefaultTrackedSignal, LarsProgramEncoding, LarsToAspMapper, Tick}
+import reasoner.common._
 
 
 /**
@@ -16,28 +16,18 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   def incrementalRules(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
 
-    val timeIncrease = signal.isEmpty
+    val timeIncrement = signal.isEmpty
 
-    val auxFacts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
-      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
-      Seq(StaticRule(tickFact)) //TODO
-    } else {
-      Seq()
-    }
-
-    val signals: Seq[AnnotatedNormalRule] = { //TODO add expiration
-      if (timeIncrease) { Seq() }
-      else { pinnedAtoms(tick, DefaultTrackedSignal(signal.get, tick)) }
-    }
+    val tickStreamFacts: Seq[AnnotatedNormalRule] = tickStreamEncoding(tick, signal)
 
     val pin = expiringRulesPinning(tick)
 
     val expiringRules: Seq[AnnotatedNormalRule] = {
-      if (timeIncrease) { pin(rulesToPinForTimeIncrement) }
+      if (timeIncrement) { pin(rulesToPinForTimeIncrement) }
       else { pin(rulesToPinForCountIncrement) }
     }
 
-    signals ++ auxFacts ++ expiringRules
+    tickStreamFacts ++ expiringRules
   }
 
   //pin rules and determine expiration duration, filter out those where relation atoms do not hold
@@ -67,21 +57,42 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val useSignalExpiration = true
 
-  private def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
-    val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
-      Seq(AspFact[Atom](t.timePinned),AspFact[Atom](t.timeCountPinned))
-    } else {
-      Seq(AspFact[Atom](t.timePinned))
-    }
-    if (useSignalExpiration) {
-      simpleSignalExpiration(rules)
-    } else {
-      rules map StaticRule
-    }
-  }
+  private def tickStreamEncoding(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
 
-  private def simpleSignalExpiration(rules: Seq[NormalRule]): Seq[AnnotatedNormalRule] = {
-    rules map (RuleExpiringByCountOnly(_,Tick(Void,10000),ExpirationOptional))
+    var facts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
+      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
+      Seq(RuleWithCountDurationOnly(tickFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnTimeAndCountIncrease))
+    } else {
+      Seq()
+    }
+
+    val timeIncrement = signal.isEmpty
+    if (timeIncrement) {
+      return facts
+    }
+
+    val atom = DefaultTrackedSignal(signal.get, tick)
+
+    //a(x)
+    facts = facts :+ RuleWithTimeDurationOnly(atom.signalFact,Tick(1,Void),ExpirationObligatory,OnCountIncreaseOnly)
+    if (hasTupleWindow) {
+      //a(t,c,x)
+      facts = facts :+ RuleWithCountDurationOnly(atom.tickPinnedFact,Tick(Void,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
+      //a(t,x)
+      if (hasTupleBoxCombination) {
+        if (hasTimeWindow) {
+          facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(maxTimeWindowSize+1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
+        } else {
+          facts = facts :+ RuleWithCountDurationOnly(atom.timePinnedFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
+        }
+      } else if (hasTimeWindow) {
+        facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
+      }
+    } else if (hasTimeWindow) {
+      facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
+    }
+
+    facts
   }
 
   //
@@ -201,14 +212,23 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val windowAtoms = larsProgramEncoding.larsRules flatMap (_.body collect { case w:WindowAtom => w})
 
-  val needs_at_cnt_atoms = windowAtoms exists {
-    case WindowAtom(SlidingTupleWindow(_), _, _) => true
-    case _ => false
-  }
+  val maxTimeWindowSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TimeWindowEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
+  val maxTupleWindowSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TupleWindowEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
+  val maxTupleBoxSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TupleBoxEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
 
-  val need_tick_atoms = windowAtoms exists {
-    case WindowAtom(SlidingTupleWindow(_), Box, _) => true
-    case _ => false
-  }
+  val hasTupleWindow = maxTupleWindowSize > -1
+  val need_tick_atoms = maxTupleBoxSize > -1
+  val hasTupleBoxCombination = maxTupleBoxSize > -1
+  val hasTimeWindow = maxTimeWindowSize > -1
+
+//  val need_at_cnt_atoms = windowAtoms exists {
+//    case WindowAtom(SlidingTupleWindow(_), _, _) => true
+//    case _ => false
+//  }
+
+//  val need_tick_atoms = windowAtoms exists {
+//    case WindowAtom(SlidingTupleWindow(_), Box, _) => true
+//    case _ => false
+//  }
 
 }
