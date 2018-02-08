@@ -6,7 +6,7 @@ import core.{Atom, PinnedAtom, Predicate, RelationAtom}
 
 
 /**
-  * Created by fm on 20/02/2017.
+  * Created by fm, hb 02/2017.
   */
 trait LarsToAspMapper {
 

@@ -9,6 +9,7 @@ import reasoner.Void
   *
   */
 case class Tick(time: Long, count: Long) {
+
   def + (other: Tick): Tick = {
     //ignoring -1 as number
     def add(n1: Long, n2: Long) = {
@@ -20,6 +21,17 @@ case class Tick(time: Long, count: Long) {
 
   def incrementTime(): Tick = Tick(time+1,count)
   def incrementCount(): Tick = Tick(time,count+1)
+
+  def == (other: Tick): Boolean = {
+    this.time == other.time && this.count == other.count
+  }
+
+  override def equals(other: Any): Boolean = {
+    other match {
+      case tick: Tick => this == tick
+      case _ => false
+    }
+  }
 }
 
 object Tick {

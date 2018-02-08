@@ -4,7 +4,6 @@ import core.asp.{NormalProgram, NormalRule}
 import core.lars.{LarsBasedProgram, LarsRule}
 import core.{Atom, Predicate}
 import reasoner.TickDuration
-import reasoner.Void
 import reasoner.incremental.{AnnotatedNormalRule, IncrementalAspPreparation}
 
 
@@ -42,7 +41,7 @@ case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, windowAtom
    * ticks that needed to be added to the respective pins to obtain the time/count, when the rule itself expires.
    * in contrast to window rules, we may keep them longer
    */
-  def ticksUntilOutdated(): TickDuration = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(Void,Void))((ticks1, ticks2) => Tick.min(ticks1,ticks2))
+  def ticksUntilOutdated(): TickDuration = (windowAtomEncoders map (_.ticksUntilWindowAtomIsOutdated)).foldLeft(Tick(0,0))((ticks1, ticks2) => Tick.max(ticks1,ticks2))
 
 }
 
@@ -70,6 +69,7 @@ case class LarsProgramEncoding(larsRuleEncodings: Seq[LarsRuleEncoding], nowAndA
 
   override lazy val larsRules = larsRuleEncodings map (_.larsRule)
 
+  //TODO hb 1802
   lazy val maximumTimeWindowSizeInTicks: Long = larsRuleEncodings.
     flatMap(_.windowAtomEncoders).
     collect {

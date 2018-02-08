@@ -19,8 +19,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     val timeIncrease = signal.isEmpty
 
     val auxFacts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
-      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt)) //may add expiration based on max window length
-      Seq(StaticRule(tickFact))
+      val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
+      Seq(StaticRule(tickFact)) //TODO
     } else {
       Seq()
     }
@@ -55,7 +55,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
           rwd match {
             case xr: RuleWithTimeDurationOnly => RuleExpiringByTimeOnly(pinnedRule, exp, mode)
             case xr: RuleWithCountDurationOnly => RuleExpiringByCountOnly(pinnedRule, exp, mode)
-            case xr: RuleWithDualDuration => RuleExpiringByTimeOrCount(pinnedRule, exp, mode)
+            case xr: RuleWithDisjunctiveDuration => RuleExpiringByTimeOrCount(pinnedRule, exp, mode)
+            case xr: RuleWithConjunctiveDuration => RuleExpiringByTimeAndCount(pinnedRule, exp, mode)
           }
         }
       }
@@ -64,7 +65,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     fn
   }
 
-  val useSignalExpiration = false
+  val useSignalExpiration = true
 
   private def pinnedAtoms(tick: Tick, t: DefaultTrackedSignal): Seq[AnnotatedNormalRule] = {
     val rules: Seq[NormalRule] = if (needs_at_cnt_atoms) {
@@ -110,8 +111,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     } else if (ticks.time == Void) {
       RuleWithCountDurationOnly(rule,ticks,ExpirationOptional)
     } else {
-      RuleWithDualDuration(rule,ticks,ExpirationOptional)
-    }
+      RuleWithDisjunctiveDuration(rule,ticks,ExpirationOptional)
+    } //note that the conjunctive case does not exist for base rules
   }
 
   private val __windowRules: Seq[AnnotatedNormalRule] = larsProgramEncoding.larsRuleEncodings flatMap { encoding =>
@@ -133,7 +134,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
       rwd match {
         case r:RuleWithTimeDurationOnly => RuleWithTimeDurationOnly(groundRule,r.duration,r.expirationMode,r.generationMode)
         case r:RuleWithCountDurationOnly => RuleWithCountDurationOnly(groundRule,r.duration,r.expirationMode,r.generationMode)
-        case r:RuleWithDualDuration => RuleWithDualDuration(groundRule,r.duration,r.expirationMode,r.generationMode)
+        case r:RuleWithDisjunctiveDuration => RuleWithDisjunctiveDuration(groundRule,r.duration,r.expirationMode,r.generationMode)
+        case r:RuleWithConjunctiveDuration => RuleWithConjunctiveDuration(groundRule,r.duration,r.expirationMode,r.generationMode)
       }
     }
   }
@@ -144,7 +146,8 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     ruleWithDuration match {
       case xr:RuleWithTimeDurationOnly => RuleWithTimeDurationOnly(newRule, xr.duration, xr.expirationMode, xr.generationMode)
       case xr:RuleWithCountDurationOnly => RuleWithCountDurationOnly(newRule, xr.duration, xr.expirationMode, xr.generationMode)
-      case xr:RuleWithDualDuration => RuleWithDualDuration(newRule, xr.duration, xr.expirationMode, xr.generationMode)
+      case xr:RuleWithDisjunctiveDuration => RuleWithDisjunctiveDuration(newRule, xr.duration, xr.expirationMode, xr.generationMode)
+      case xr:RuleWithConjunctiveDuration => RuleWithConjunctiveDuration(newRule, xr.duration, xr.expirationMode, xr.generationMode)
     }
   }
 

@@ -24,7 +24,8 @@ trait RuleWithCountDuration extends RuleWithDuration
 
 case class RuleWithTimeDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeIncreaseOnly) extends RuleWithTimeDuration
 case class RuleWithCountDurationOnly(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnCountIncreaseOnly) extends RuleWithCountDuration
-case class RuleWithDualDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeAndCountIncrease) extends RuleWithTimeDuration with RuleWithCountDuration
+case class RuleWithDisjunctiveDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeAndCountIncrease) extends RuleWithTimeDuration with RuleWithCountDuration
+case class RuleWithConjunctiveDuration(rule: NormalRule, duration: TickDuration, expirationMode: ExpirationMode, generationMode: GenerationMode = OnTimeAndCountIncrease) extends RuleWithTimeDuration with RuleWithCountDuration
 
 trait ExpiringRule extends AnnotatedNormalRule {
   val expiration: Tick

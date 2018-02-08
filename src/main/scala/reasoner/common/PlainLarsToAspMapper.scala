@@ -9,7 +9,7 @@ import reasoner.incremental._
 import scala.concurrent.duration._
 
 /**
-  * Created by fm on 20/01/2017.
+  * Created by fm, hb 01/2017.
   */
 case class PlainLarsToAspMapper(clockTime: ClockTime = 1 second) extends LarsToAspMapper {
 
@@ -245,7 +245,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, g
         Set[Atom](coversCount))
 
       val expSpoilerCoverTime: TickDuration = Tick(Void, length)
-      val expSpoilerCoverCount: TickDuration = Tick(length, Void)
+      val expSpoilerCoverCount: TickDuration = Tick(Void, length)
 
       val expCovers: TickDuration = Tick(Void, length)
       val ruleDurCoverT = RuleWithCountDurationOnly(AspRule(coversTime, tickWithVars), expCovers, ExpirationObligatory, OnTimeAndCountIncrease)
@@ -253,7 +253,7 @@ case class TupleBoxEncoder(length: Long, atom: Atom, windowAtomEncoding: Atom, g
 
       Seq(StaticRule(staticRule),
         RuleWithCountDurationOnly(spoilerRuleCoverTime, expSpoilerCoverTime, ExpirationObligatory, OnTimeAndCountIncrease),
-        RuleWithTimeDurationOnly(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
+        RuleWithCountDurationOnly(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
         ruleDurCoverT, ruleDurCoverC)
     }
   }
