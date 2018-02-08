@@ -4,15 +4,13 @@ import core.Atom
 import core.lars.{ClockTime, LarsProgram}
 import reasoner.asp._
 import reasoner.asp.clingo.{ClingoConversion, ClingoProgramWithLars, StreamingClingoInterpreter}
-import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
+import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice
-import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
 import reasoner.incremental.jtms.algorithms.Jtms
-import reasoner.incremental.jtms.networks.OptimizedNetwork
-import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
 import reasoner.incremental.policies.JtmsPolicy
 import reasoner.incremental.{IncrementalReasoner, IncrementalRuleMaker}
+import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -43,16 +41,16 @@ case class ReasonerConfiguration(program: LarsProgram, clockTime: ClockTime) {
 
 }
 
-case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, policy: JtmsPolicy = ImmediatelyAddRemovePolicy()) {
+case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, jtms: Jtms = Jtms()) {
 
-  def withRandom(random: Random) = IncrementalConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(Jtms(new OptimizedNetwork(), random)))
+  def withRandom(random: Random) = IncrementalConfiguration(larsProgramEncoding, Jtms(jtms.network, random))
 
-  def withJtms(jtms: Jtms) = IncrementalConfiguration(larsProgramEncoding, ImmediatelyAddRemovePolicy(jtms))
+  def withJtms(jtms: Jtms) = IncrementalConfiguration(larsProgramEncoding, jtms)
 
-  def withPolicy(jtmsPolicy: JtmsPolicy) = IncrementalConfiguration(larsProgramEncoding, jtmsPolicy)
+  def withPolicy(jtmsPolicy: JtmsPolicy) = IncrementalConfiguration(larsProgramEncoding, jtms)
 
   def use() = PreparedReasonerConfiguration(
-    IncrementalReasoner(IncrementalRuleMaker(larsProgramEncoding), policy),
+    IncrementalReasoner(IncrementalRuleMaker(larsProgramEncoding), jtms),
     larsProgramEncoding.intensionalAtoms ++ larsProgramEncoding.signals
   )
 
@@ -61,7 +59,7 @@ case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, po
 object IncrementalConfiguration {
   implicit def toEvaluationModeConfig(config: IncrementalConfiguration): PreparedReasonerConfiguration =
     PreparedReasonerConfiguration(
-      IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.policy),
+      IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.jtms),
       config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals
     )
 }

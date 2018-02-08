@@ -3,7 +3,7 @@ package reasoner.incremental.jtms.algorithms
 import core.Atom
 import core.asp._
 import reasoner.incremental.jtms._
-import reasoner.incremental.jtms.networks.{OptimizedNetworkForLearn, TruthMaintenanceNetwork}
+import reasoner.incremental.jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn, TruthMaintenanceNetwork}
 
 import scala.util.Random
 
@@ -55,7 +55,7 @@ object Jtms {
   }
 }
 
-abstract class Jtms(val network: TruthMaintenanceNetwork, val random: Random) extends MaintenanceAlgorithm with ChoiceControl {
+abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(), val random: Random = new Random()) extends MaintenanceAlgorithm with ChoiceControl {
 
   override def rules: Set[NormalRule] = network.rules
 

@@ -3,10 +3,9 @@ package reasoner.incremental
 import core._
 import core.asp.NormalRule
 import core.lars.TimePoint
-import reasoner._
 import reasoner.common.Tick
-import reasoner.incremental.policies.JtmsPolicy
-import reasoner.{Reasoner, Result, UnknownResult}
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.{Reasoner, Result, UnknownResult, _}
 
 import scala.collection.immutable.HashMap
 
@@ -15,9 +14,9 @@ import scala.collection.immutable.HashMap
   *
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
-case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPolicy: JtmsPolicy) extends Reasoner {
+case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms: Jtms) extends Reasoner {
 
-  tmsPolicy.initialize(incrementalRuleMaker.staticGroundRules)
+  incrementalRuleMaker.staticGroundRules.foreach(jtms.add(_))
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0, 0) //using (-1,0), first "+" will fail!
@@ -36,7 +35,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
       return new UnknownResult("cannot evaluate past time t=" + timepoint + ". system time already at t'=" + currentTick.time)
     }
     updateToTimePoint(timepoint)
-    tmsPolicy.getModel(timepoint)
+    Result(jtms.getModel())
   }
 
   //
@@ -70,7 +69,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
     }
     val rulesToAdd = annotatedRules map (_.rule) toVector
 
-    tmsPolicy.add(currentTick.time)(rulesToAdd)
+    rulesToAdd.foreach(jtms.add(_))
 
     val expiredRules = signal match {
       //logic somewhat implicit...
@@ -78,7 +77,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, tmsPo
       case _ => expiration.deregisterExpiredByCount()
     }
 
-    tmsPolicy.remove(currentTick.time)(expiredRules)
+    expiredRules.foreach(jtms.remove(_))
   }
 
   object expiration {
