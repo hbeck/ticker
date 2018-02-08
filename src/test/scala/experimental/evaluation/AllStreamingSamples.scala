@@ -9,7 +9,6 @@ import org.scalatest.{Spec, Suite, Suites}
   * Created by FM on 01.06.16.
   */
 abstract class AllStreamingSamples extends Suites(
-  // TODO: add all specs here
   new EngineStreamSpec,
   new ZWindowTimeASample,
   new XWindowBoxASample,
@@ -24,21 +23,15 @@ class AspPullClingo extends AllStreamingSamples with ClingoPullEngine
 
 class AspPushClingo extends AllStreamingSamples with ClingoPushEngine
 
-class AspPushTms extends AllStreamingSamples with TmsDirectPolicyEngine
-
-class LazyRemoveTms extends AllStreamingSamples with JtmsGreedyLazyRemovePolicyEngine
-
 class RunWithAllImplementations[TSpec <: ConfigurableEngineSpec](spec: TSpec) extends Spec {
 
   class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullEngine
 
   class SingleClingoPushTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPushEngine
 
-  class SingleDirectTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with TmsDirectPolicyEngine
+  class SingleIncrementalTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsIncrementalEngine
 
-  class SingleLazyRemoveTmsTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsGreedyLazyRemovePolicyEngine
-
-  override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleDirectTmsTest, new SingleLazyRemoveTmsTest)
+  override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleIncrementalTest)
 
 }
 

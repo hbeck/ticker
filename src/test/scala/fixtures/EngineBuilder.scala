@@ -2,10 +2,9 @@ package fixtures
 
 import core.lars.LarsProgram
 import reasoner.Reasoner
-import reasoner.asp.tms.policies.{ImmediatelyAddRemovePolicy, LazyRemovePolicy}
 import reasoner.config.BuildReasoner
-import reasoner.incremental.jtms.algorithms.{Jtms, JtmsGreedy, JtmsLearn}
-import reasoner.incremental.jtms.networks.{OptimizedNetwork, OptimizedNetworkForLearn}
+import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.incremental.jtms.networks.OptimizedNetwork
 
 import scala.util.Random
 
@@ -29,9 +28,6 @@ trait EngineBuilder {
 
   // needed?
   lazy val defaultEvaluationType = this match {
-    case a: TmsDirectPolicyEngine => AspBasedTms
-    case a: JtmsGreedyLazyRemovePolicyEngine => AspBasedTms
-    case a: JtmsLearnLazyRemovePolicyEngine => AspBasedTms
     case _ => Clingo
   }
 
@@ -45,43 +41,12 @@ trait ClingoPushEngine extends EngineBuilder {
   val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().withDefaultEvaluationMode().usePush().seal()
 }
 
-trait TmsDirectPolicyEngine extends EngineBuilder {
-
-  val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
-    tms.doConsistencyCheck = false
-
-    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).seal()
-  }
-}
-
-trait JtmsGreedyLazyRemovePolicyEngine extends EngineBuilder {
-
-  val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsGreedy(new OptimizedNetwork(), new Random(1))
-    tms.doConsistencyCheck = false
-
-    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(LazyRemovePolicy(tms)).seal()
-  }
-}
-
-trait JtmsLearnLazyRemovePolicyEngine extends EngineBuilder {
-
-  val defaultEngine = (p: LarsProgram) => {
-    val tms = new JtmsLearn(new OptimizedNetworkForLearn(), new Random(1))
-    tms.shuffle = false
-    tms.doConsistencyCheck = false
-
-    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(LazyRemovePolicy(tms)).seal()
-  }
-}
-
 trait JtmsIncrementalEngine extends EngineBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = Jtms(new OptimizedNetwork(), new Random(1))
     //tms.doConsistencyCheck = false
 
-    BuildReasoner.withProgram(p).configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).use().seal()
+    BuildReasoner.withProgram(p).configure().withIncremental().withJtms(tms).use().seal()
   }
 }

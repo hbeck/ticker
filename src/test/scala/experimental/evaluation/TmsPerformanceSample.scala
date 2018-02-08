@@ -1,7 +1,6 @@
 package experimental.evaluation
 
 import core.lars.{Diamond, LarsProgram, W}
-import reasoner.asp.tms.policies.LazyRemovePolicy
 import reasoner.config.BuildReasoner
 import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
 import reasoner.incremental.jtms.algorithms.JtmsGreedy
@@ -32,7 +31,7 @@ class TmsPerformanceSample extends ConfigurableEngineSpec with TimeTestFixtures 
     withProgram(p).
     configure().
     withIncremental().
-    withPolicy(LazyRemovePolicy(new JtmsGreedy(new OptimizedNetwork(), new Random(1)), 10)).
+    withJtms(new JtmsGreedy(new OptimizedNetwork(), new Random(1))).
     seal()
 
   "An empty Program" should "lead to an empty model at t0" in {

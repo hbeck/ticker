@@ -5,12 +5,11 @@ import core.not
 import fixtures._
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
-import org.scalatest.Inspectors._
 
 /**
   * Created by FM on 02.06.16.
   */
-class StratifiedSample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class StratifiedSample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
   val program = LarsProgram.from(
     a <= b and c not d,
 

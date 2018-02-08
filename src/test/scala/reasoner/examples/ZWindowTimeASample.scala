@@ -1,6 +1,5 @@
 package reasoner.examples
 
-import core.Atom
 import core.lars._
 import fixtures._
 import org.scalatest.Matchers._
@@ -9,7 +8,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class ZWindowTimeASample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
 
   /**
     *

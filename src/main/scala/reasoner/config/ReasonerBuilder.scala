@@ -8,7 +8,6 @@ import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
 import reasoner.config.EvaluationModifier.EvaluationModifier
 import reasoner.config.ReasonerChoice.ReasonerChoice
 import reasoner.incremental.jtms.algorithms.Jtms
-import reasoner.incremental.policies.JtmsPolicy
 import reasoner.incremental.{IncrementalReasoner, IncrementalRuleMaker}
 import reasoner.{Reasoner, ReasonerWithFilter, ResultFilter}
 
@@ -46,8 +45,6 @@ case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, jt
   def withRandom(random: Random) = IncrementalConfiguration(larsProgramEncoding, Jtms(jtms.network, random))
 
   def withJtms(jtms: Jtms) = IncrementalConfiguration(larsProgramEncoding, jtms)
-
-  def withPolicy(jtmsPolicy: JtmsPolicy) = IncrementalConfiguration(larsProgramEncoding, jtms)
 
   def use() = PreparedReasonerConfiguration(
     IncrementalReasoner(IncrementalRuleMaker(larsProgramEncoding), jtms),

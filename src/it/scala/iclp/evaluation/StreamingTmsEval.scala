@@ -159,7 +159,7 @@ object StreamingTmsEval {
 
   def runIteration(inst: StreamingTmsEvalInst, cfg: Config): Map[String, Long] = {
 
-    val tms = cfg.makeTms(inst.random)
+    val tms = cfg.makeJtms(inst.random)
 
     var models = 0L
     var failures = 0L

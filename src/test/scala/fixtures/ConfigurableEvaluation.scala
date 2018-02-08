@@ -72,7 +72,7 @@ trait ConfigurableEvaluationSuite extends Suite with EngineBuilder {
     val c = args.configMap + configEntry
     var filter = args.filter
 
-    if (this.isInstanceOf[TmsDirectPolicyEngine]) {
+    if (this.isInstanceOf[JtmsIncrementalEngine]) {
       filter = Filter.apply(tagsToExclude = Set(NoTmsDirectPolicy.name))
     }
 

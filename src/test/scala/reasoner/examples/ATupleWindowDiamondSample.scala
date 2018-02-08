@@ -9,7 +9,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 12.08.16.
   */
-class ATupleWindowDiamondSample extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class ATupleWindowDiamondSample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
 
   /**
     *

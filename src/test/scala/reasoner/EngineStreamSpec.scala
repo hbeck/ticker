@@ -10,7 +10,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 21.04.16.
   */
-class EngineStreamSpec extends ConfigurableEngineSpec with TimeTestFixtures with TmsDirectPolicyEngine {
+class EngineStreamSpec extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
 
   val program = LarsProgram.from(
     a <= b,

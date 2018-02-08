@@ -101,7 +101,7 @@ case class Config(var args: Map[String, String]) {
     }
   }
 
-  def makeTms(random: Random): Jtms = {
+  def makeJtms(random: Random): Jtms = {
     val tms = args(IMPL) match {
       case DOYLE_SIMPLE => new JtmsDoyle(new SimpleNetwork(), random)
       case DOYLE => new JtmsDoyle(new OptimizedNetwork(), random)

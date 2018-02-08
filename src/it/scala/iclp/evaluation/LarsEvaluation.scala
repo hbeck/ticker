@@ -2,7 +2,6 @@ package iclp.evaluation
 
 import common.Util.stopTime
 import core.lars._
-import reasoner.asp.tms.policies.ImmediatelyAddRemovePolicy
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
 import reasoner.{Reasoner, Result}
 import reasoner.incremental.jtms.algorithms.Jtms
@@ -111,7 +110,7 @@ object LarsEvaluation {
     runIndexes.map(evaluateRun(_, config)).toList.drop(config.preRuns)
   }
 
-  var tms: Jtms = null //debugging
+  var jtms: Jtms = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionTimePerRun = {
     if (profiling && iterationNr == 0) {
@@ -132,8 +131,8 @@ object LarsEvaluation {
       val preparedReasoner: PreparedReasonerConfiguration = config.implementation match {
         case Config.CLINGO_PUSH => builder.configure().withClingo().withDefaultEvaluationMode().usePush()
         case _ => {
-          tms = config.makeTms(instance.random)
-          builder.configure().withIncremental().withPolicy(ImmediatelyAddRemovePolicy(tms)).use()
+          jtms = config.makeJtms(instance.random)
+          builder.configure().withIncremental().withJtms(jtms).use()
         }
       }
 
@@ -169,7 +168,7 @@ object LarsEvaluation {
 
     if (t == config.printRulesAt && config.implementation.toLowerCase.startsWith("doyle")) {
       println(f"\ntms rules at t=$t")
-      tms.rules foreach println
+      jtms.rules foreach println
       println()
     }
 
