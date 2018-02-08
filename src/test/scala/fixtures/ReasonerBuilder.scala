@@ -18,13 +18,13 @@ object Clingo extends EvaluationType
 
 object AspBasedTms extends EvaluationType
 
-trait EngineBuilder {
+trait ReasonerBuilder {
 
-  case class EngineConfig(evaluationType: EvaluationType, builder: EngineBuilder)
+  case class EngineConfig(evaluationType: EvaluationType, builder: ReasonerBuilder)
 
-  type EngineBuilder = ((LarsProgram) => Reasoner)
+  type ReasonerBuilder = ((LarsProgram) => Reasoner)
 
-  val defaultEngine: EngineBuilder
+  val defaultEngine: ReasonerBuilder
 
   // needed?
   lazy val defaultEvaluationType = this match {
@@ -33,15 +33,15 @@ trait EngineBuilder {
 
 }
 
-trait ClingoPullEngine extends EngineBuilder {
+trait ClingoPullReasoner extends ReasonerBuilder {
   val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().withDefaultEvaluationMode().usePull().seal()
 }
 
-trait ClingoPushEngine extends EngineBuilder {
+trait ClingoPushReasoner extends ReasonerBuilder {
   val defaultEngine = (p: LarsProgram) => BuildReasoner.withProgram(p).configure().withClingo().withDefaultEvaluationMode().usePush().seal()
 }
 
-trait JtmsIncrementalEngine extends EngineBuilder {
+trait JtmsIncrementalReasoner extends ReasonerBuilder {
 
   val defaultEngine = (p: LarsProgram) => {
     val tms = Jtms(new OptimizedNetwork(), new Random(1))

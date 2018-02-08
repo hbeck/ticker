@@ -10,7 +10,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 21.04.16.
   */
-class EngineStreamSpec extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class ReasonerStreamSpec extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
 
   val program = LarsProgram.from(
     a <= b,

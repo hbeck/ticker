@@ -2,13 +2,13 @@ package reasoner
 
 import core._
 import core.lars._
-import fixtures.JtmsIncrementalEngine
+import fixtures.JtmsIncrementalReasoner
 import org.scalatest.FunSuite
 
 /**
   * Created by hb on 02.03.17.
   */
-class IncrementalTmsTests extends FunSuite with JtmsIncrementalEngine {
+class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
 
   test("test 1") {
 

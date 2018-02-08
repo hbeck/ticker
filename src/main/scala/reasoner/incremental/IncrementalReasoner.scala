@@ -60,21 +60,24 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     incrementTick(Some(signal))
   }
 
+  var conjunctiveExpirationCandidates = Set[NormalRule]()
+
   def incrementTick(signal: Option[Atom] = None) {
 
     val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
     annotatedRules foreach {
-      case xr: ExpiringRule => expiration.registerExpirationSingleDimension(xr.rule, xr.expiration)
-      case _ =>
+      annotatedRule => {
+        jtms.add(annotatedRule.rule)
+        expiration.registerExpiration(annotatedRule)
+      }
     }
-    val rulesToAdd = annotatedRules map (_.rule) toVector
 
-    rulesToAdd.foreach(jtms.add(_))
+    val timeIncrease = signal.isEmpty
 
-    val expiredRules = signal match {
-      //logic somewhat implicit...
-      case None => expiration.deregisterExpiredByTime()
-      case _ => expiration.deregisterExpiredByCount()
+    val expiredRules = if (timeIncrease) {
+      expiration.expiringRulesAtTimeIncrement()
+    } else {
+      expiration.expiringRulesAtCountIncrement()
     }
 
     expiredRules.foreach(jtms.remove(_))
@@ -82,36 +85,96 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
   object expiration {
 
-    var rulesExpiringAtTime: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
-    var rulesExpiringAtCount: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+    def registerExpiration(annotatedRule: AnnotatedNormalRule): Unit = {
+      annotatedRule match {
+        case RuleExpiringByTimeOnly(rule, exp, mode) => registerByTimeDisj(rule, exp.time)
+        case RuleExpiringByCountOnly(rule, exp, mode) => registerByCountDisj(rule, exp.count)
+        case RuleExpiringByTimeOrCount(rule, exp, mode) => registerDisjunctive(rule, exp)
+        case RuleExpiringByTimeAndCount(rule, exp, mode) => registerConjunctive(rule, exp)
+        case _ =>
+      }
+    }
 
-    def registerExpirationSingleDimension(rule: NormalRule, expiration: Tick): Unit = {
+    def expiringRulesAtTimeIncrement(): Seq[NormalRule] = {
+      val disj: Seq[NormalRule] = if (!rulesExpiringAtTimeDisj.contains(currentTick.time)) {
+        Seq()
+      } else {
+        val tmp = rulesExpiringAtTimeDisj.get(currentTick.time).get
+        rulesExpiringAtTimeDisj = rulesExpiringAtTimeDisj - currentTick.time
+        tmp.toSeq
+      }
+      //TODO add static check for tuple-box
+      if (!rulesExpiringAtTimeConj.contains(currentTick.time)) {
+        return disj
+      }
+      val conjCandidates: Set[NormalRule] = rulesExpiringAtTimeConj.get(currentTick.time).get
+      val toExpireNow_vs_toExpireLater: (Set[NormalRule], Set[NormalRule]) = conjCandidates.partition(rule => conjunctiveExpirationCandidates.contains(rule))
+      rulesExpiringAtTimeConj = rulesExpiringAtTimeConj - currentTick.time
+      conjunctiveExpirationCandidates = conjunctiveExpirationCandidates -- toExpireNow_vs_toExpireLater._1
+      conjunctiveExpirationCandidates = conjunctiveExpirationCandidates ++ toExpireNow_vs_toExpireLater._2
+
+      return disj ++ toExpireNow_vs_toExpireLater._1
+    }
+
+    def expiringRulesAtCountIncrement(): Seq[NormalRule] = {
+      val disj: Seq[NormalRule] = if (!rulesExpiringAtCountDisj.contains(currentTick.count)) {
+        Seq()
+      } else {
+        val tmp = rulesExpiringAtCountDisj.get(currentTick.count).get
+        rulesExpiringAtCountDisj = rulesExpiringAtCountDisj - currentTick.count
+        tmp.toSeq
+      }
+      //TODO add static check for tuple-box
+      if (!rulesExpiringAtCountConj.contains(currentTick.count)) {
+        return disj
+      }
+      val conjCandidates: Set[NormalRule] = rulesExpiringAtCountConj.get(currentTick.count).get
+      val toExpireNow_vs_toExpireLater: (Set[NormalRule], Set[NormalRule]) = conjCandidates.partition(rule => conjunctiveExpirationCandidates.contains(rule))
+      rulesExpiringAtCountConj = rulesExpiringAtCountConj - currentTick.time
+      conjunctiveExpirationCandidates = conjunctiveExpirationCandidates -- toExpireNow_vs_toExpireLater._1
+      conjunctiveExpirationCandidates = conjunctiveExpirationCandidates ++ toExpireNow_vs_toExpireLater._2
+
+      return disj ++ toExpireNow_vs_toExpireLater._1
+    }
+
+    //
+
+    var rulesExpiringAtTimeDisj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+    var rulesExpiringAtCountDisj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+    //special handling for tuple-box:
+    var rulesExpiringAtTimeConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+    var rulesExpiringAtCountConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+
+    private def registerByTimeDisj(rule: NormalRule, time: Long): Unit = {
+      rulesExpiringAtTimeDisj = rulesExpiringAtTimeDisj.updated(time, rulesExpiringAtTimeDisj.getOrElse(time, Set()) + rule)
+    }
+
+    private def registerByCountDisj(rule: NormalRule, count: Long): Unit = {
+      rulesExpiringAtCountDisj = rulesExpiringAtCountDisj.updated(count, rulesExpiringAtCountDisj.getOrElse(count, Set()) + rule)
+    }
+
+    private def registerExpirationByTimeConj(rule: NormalRule, time: Long): Unit = {
+      rulesExpiringAtTimeConj = rulesExpiringAtTimeConj.updated(time, rulesExpiringAtTimeConj.getOrElse(time, Set()) + rule)
+    }
+
+    private def registerExpirationByCountConj(rule: NormalRule, count: Long): Unit = {
+      rulesExpiringAtCountConj = rulesExpiringAtCountConj.updated(count, rulesExpiringAtCountConj.getOrElse(count, Set()) + rule)
+    }
+
+    private def registerDisjunctive(rule: NormalRule, expiration: Tick): Unit = {
       val t = expiration.time
       val c = expiration.count
       if (t != Void) {
-        rulesExpiringAtTime = rulesExpiringAtTime.updated(t, rulesExpiringAtTime.getOrElse(t, Set()) + rule)
+        registerByTimeDisj(rule,t)
       }
       if (c != Void) {
-        rulesExpiringAtCount = rulesExpiringAtCount.updated(c, rulesExpiringAtCount.getOrElse(c, Set()) + rule)
+        registerByCountDisj(rule,c)
       }
     }
 
-    def deregisterExpiredByTime(): Seq[NormalRule] = {
-      if (!rulesExpiringAtTime.contains(currentTick.time)) {
-        return Seq()
-      }
-      val rules: Set[NormalRule] = rulesExpiringAtTime.get(currentTick.time).get
-      rulesExpiringAtTime = rulesExpiringAtTime - currentTick.time
-      rules.toSeq
-    }
-
-    def deregisterExpiredByCount(): Seq[NormalRule] = {
-      if (!rulesExpiringAtCount.contains(currentTick.count)) {
-        return Seq()
-      }
-      val rules: Set[NormalRule] = rulesExpiringAtCount.get(currentTick.count).get
-      rulesExpiringAtCount = rulesExpiringAtCount - currentTick.count
-      rules.toSeq
+    private def registerConjunctive(rule: NormalRule, expiration: Tick): Unit = {
+      registerExpirationByTimeConj(rule,expiration.time)
+      registerExpirationByCountConj(rule,expiration.count)
     }
 
   } //end object expiration

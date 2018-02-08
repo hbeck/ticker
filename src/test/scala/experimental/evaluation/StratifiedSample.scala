@@ -9,7 +9,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 02.06.16.
   */
-class StratifiedSample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class StratifiedSample extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
   val program = LarsProgram.from(
     a <= b and c not d,
 

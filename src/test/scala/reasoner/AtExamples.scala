@@ -2,14 +2,14 @@ package reasoner
 
 import core.Atom
 import core.lars._
-import fixtures.{ClingoPullEngine, TimeTestFixtures}
+import fixtures.{ClingoPullReasoner, TimeTestFixtures}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 /**
   * Created by FM on 11.12.16.
   */
-class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullEngine {
+class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullReasoner {
 
   def TimeW(windowSize: TimeWindowSize) = SlidingTimeWindow(windowSize)
 

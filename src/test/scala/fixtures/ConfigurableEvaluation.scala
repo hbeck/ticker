@@ -11,7 +11,7 @@ import org.scalatest._
   * Created by FM on 01.06.16.
   */
 
-trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
+trait ConfigurableReasonerSpec extends FlatSpec with ReasonerBuilder {
 
   val program: LarsProgram
 
@@ -37,7 +37,7 @@ trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
 
     info("Using engine " + evaluationType)
     try {
-      ConfigurableEngineSpec.super.withFixture(test)
+      ConfigurableReasonerSpec.super.withFixture(test)
     } finally {
       reasonerCache match {
         case Some(x: Resource) => x.close()
@@ -63,7 +63,7 @@ trait ConfigurableEngineSpec extends FlatSpec with EngineBuilder {
 }
 
 
-trait ConfigurableEvaluationSuite extends Suite with EngineBuilder {
+trait ConfigurableEvaluationSuite extends Suite with ReasonerBuilder {
 
   protected override def runNestedSuites(args: Args): Status = {
     val config = EngineConfig(this.defaultEvaluationType, (p: LarsProgram) => this.defaultEngine(p))
@@ -72,7 +72,7 @@ trait ConfigurableEvaluationSuite extends Suite with EngineBuilder {
     val c = args.configMap + configEntry
     var filter = args.filter
 
-    if (this.isInstanceOf[JtmsIncrementalEngine]) {
+    if (this.isInstanceOf[JtmsIncrementalReasoner]) {
       filter = Filter.apply(tagsToExclude = Set(NoTmsDirectPolicy.name))
     }
 

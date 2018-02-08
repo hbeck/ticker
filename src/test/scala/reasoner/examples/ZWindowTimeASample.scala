@@ -8,7 +8,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 26.04.16.
   */
-class ZWindowTimeASample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class ZWindowTimeASample extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
 
   /**
     *

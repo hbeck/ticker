@@ -11,7 +11,7 @@ import org.scalatest.OptionValues._
 /**
   * Created by FM on 02.06.16.
   */
-class JtmsEssenceSimpleWindowSample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class JtmsEssenceSimpleWindowSample extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
   val program = LarsProgram.from(
     a <= W(1, Diamond, c),
     c <= W(1, Diamond, a),

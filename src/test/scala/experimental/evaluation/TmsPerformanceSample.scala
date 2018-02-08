@@ -2,7 +2,7 @@ package experimental.evaluation
 
 import core.lars.{Diamond, LarsProgram, W}
 import reasoner.config.BuildReasoner
-import fixtures.{ConfigurableEngineSpec, EngineBuilder, TimeTestFixtures}
+import fixtures.{ConfigurableReasonerSpec, ReasonerBuilder, TimeTestFixtures}
 import reasoner.incremental.jtms.algorithms.JtmsGreedy
 import reasoner.incremental.jtms.networks.OptimizedNetwork
 import org.scalatest.Inspectors._
@@ -14,7 +14,7 @@ import scala.util.Random
 /**
   * Created by FM on 09.06.16.
   */
-class TmsPerformanceSample extends ConfigurableEngineSpec with TimeTestFixtures with EngineBuilder {
+class TmsPerformanceSample extends ConfigurableReasonerSpec with TimeTestFixtures with ReasonerBuilder {
   val program = LarsProgram.from(
     a <= b,
     b <= c,

@@ -11,7 +11,7 @@ import reasoner.now
 /**
   * Created by FM on 23.04.16.
   */
-class YWindowDiamondASample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class YWindowDiamondASample extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
   val aspStringProgram =
     """y(T) :- w1d_a(T).
 

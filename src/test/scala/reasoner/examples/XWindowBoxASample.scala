@@ -4,14 +4,14 @@ import core.Atom
 import core.asp.AspProgram
 import core.lars._
 import reasoner.now
-import fixtures.{ConfigurableEngineSpec, JtmsIncrementalEngine, TimeTestFixtures}
+import fixtures.{ConfigurableReasonerSpec, JtmsIncrementalReasoner, TimeTestFixtures}
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
 /**
   * Created by FM on 22.04.16.
   */
-class XWindowBoxASample extends ConfigurableEngineSpec with TimeTestFixtures with JtmsIncrementalEngine {
+class XWindowBoxASample extends ConfigurableReasonerSpec with TimeTestFixtures with JtmsIncrementalReasoner {
   val aspStringProgram =
     """x(T) :- w1b_a(T).
 

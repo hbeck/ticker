@@ -1,6 +1,6 @@
 package experimental.evaluation
 
-import reasoner.EngineStreamSpec
+import reasoner.ReasonerStreamSpec
 import reasoner.examples.{XWindowBoxASample, YWindowDiamondASample, ZWindowTimeASample}
 import fixtures._
 import org.scalatest.{Spec, Suite, Suites}
@@ -9,7 +9,7 @@ import org.scalatest.{Spec, Suite, Suites}
   * Created by FM on 01.06.16.
   */
 abstract class AllStreamingSamples extends Suites(
-  new EngineStreamSpec,
+  new ReasonerStreamSpec,
   new ZWindowTimeASample,
   new XWindowBoxASample,
   new YWindowDiamondASample,
@@ -19,17 +19,17 @@ abstract class AllStreamingSamples extends Suites(
 ) with ConfigurableEvaluationSuite
 
 
-class AspPullClingo extends AllStreamingSamples with ClingoPullEngine
+class AspPullClingo extends AllStreamingSamples with ClingoPullReasoner
 
-class AspPushClingo extends AllStreamingSamples with ClingoPushEngine
+class AspPushClingo extends AllStreamingSamples with ClingoPushReasoner
 
-class RunWithAllImplementations[TSpec <: ConfigurableEngineSpec](spec: TSpec) extends Spec {
+class RunWithAllImplementations[TSpec <: ConfigurableReasonerSpec](spec: TSpec) extends Spec {
 
-  class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullEngine
+  class SingleClingoPullTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPullReasoner
 
-  class SingleClingoPushTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPushEngine
+  class SingleClingoPushTest extends Suites(spec) with ConfigurableEvaluationSuite with ClingoPushReasoner
 
-  class SingleIncrementalTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsIncrementalEngine
+  class SingleIncrementalTest extends Suites(spec) with ConfigurableEvaluationSuite with JtmsIncrementalReasoner
 
   override val nestedSuites: collection.immutable.IndexedSeq[Suite] = Vector.empty ++ Seq(new SingleClingoPushTest, new SingleClingoPullTest, new SingleIncrementalTest)
 
