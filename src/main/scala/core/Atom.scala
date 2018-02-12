@@ -24,6 +24,10 @@ sealed trait Atom extends HeadAtom {
     case a: Atom => this.cachedHash == a.cachedHash
     case _ => false
   }
+
+  def ==(atom: Atom): Boolean = {
+    this.cachedHash == atom.cachedHash
+  }
 }
 
 case class Predicate(caption: String) {

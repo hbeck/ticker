@@ -94,7 +94,7 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
 
   override def getModel(): Option[Set[Atom]] = {
     val atoms = network.inAtoms
-    if (atoms exists network.contradictionAtom) return None //not dealt with; left for old test-cases
+    //if (atoms exists network.contradictionAtom) return None //not dealt with; left for old test-cases
     if (network.hasUnknown) return None
     Some(atoms)
   }

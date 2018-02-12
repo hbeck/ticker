@@ -64,14 +64,6 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
   def incrementTick(signal: Option[Atom] = None) {
 
-    val annotatedRules: Seq[AnnotatedNormalRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
-    annotatedRules foreach {
-      annotatedRule => {
-        jtms.add(annotatedRule.rule)
-        expiration.registerExpiration(annotatedRule)
-      }
-    }
-
     val timeIncrease = signal.isEmpty
 
     val expiredRules = if (timeIncrease) {
@@ -82,8 +74,16 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
     expiredRules.foreach(jtms.remove(_))
 
-    println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
-    println(jtms.getModel())
+    val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
+    annotatedRules foreach {
+      annotatedRule => {
+        jtms.add(annotatedRule.rule)
+        expiration.registerExpiration(annotatedRule)
+      }
+    }
+
+    //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
+    //println(jtms.getModel())
   }
 
   object expiration {

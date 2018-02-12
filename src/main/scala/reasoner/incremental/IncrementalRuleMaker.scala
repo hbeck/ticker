@@ -14,20 +14,20 @@ import reasoner.common._
   */
 case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, grounder: Pregrounder = Pregrounder()) {
 
-  def incrementalRules(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
+  def incrementalRules(tick: Tick, signal: Option[Atom]): Seq[ExpiringRule] = {
 
     val timeIncrement = signal.isEmpty
 
-    val tickStreamFacts: Seq[AnnotatedNormalRule] = tickStreamEncoding(tick, signal)
+    val tickStreamFacts: Seq[RuleWithDuration] = tickStreamEncoding(tick, signal)
 
     val pin = expiringRulesPinning(tick)
 
-    val expiringRules: Seq[AnnotatedNormalRule] = {
+    val expiringRules: Seq[ExpiringRule] = {
       if (timeIncrement) { pin(rulesToPinForTimeIncrement) }
       else { pin(rulesToPinForCountIncrement) }
     }
 
-    tickStreamFacts ++ expiringRules
+    pin(tickStreamFacts) ++ expiringRules
   }
 
   //pin rules and determine expiration duration, filter out those where relation atoms do not hold
@@ -57,11 +57,11 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
   val useSignalExpiration = true
 
-  private def tickStreamEncoding(tick: Tick, signal: Option[Atom]): Seq[AnnotatedNormalRule] = {
+  private def tickStreamEncoding(tick: Tick, signal: Option[Atom]): Seq[RuleWithDuration] = {
 
-    var facts: Seq[AnnotatedNormalRule] = if (need_tick_atoms) {
+    var facts: Seq[RuleWithDuration] = if (need_tick_atoms) {
       val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
-      Seq(RuleWithCountDurationOnly(tickFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnTimeAndCountIncrease))
+      Seq(RuleWithCountDurationOnly(tickFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly))
     } else {
       Seq()
     }
@@ -76,9 +76,9 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     //a(x)
     facts = facts :+ RuleWithTimeDurationOnly(atom.signalFact,Tick(1,Void),ExpirationObligatory,OnCountIncreaseOnly)
     if (hasTupleWindow) {
-      //a(t,c,x)
+      //a(x,t,c)
       facts = facts :+ RuleWithCountDurationOnly(atom.tickPinnedFact,Tick(Void,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
-      //a(t,x)
+      //a(x,t)
       if (hasTupleBoxCombination) {
         if (hasTimeWindow) {
           facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(maxTimeWindowSize+1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)

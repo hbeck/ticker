@@ -9,11 +9,11 @@ import core._
   * Created by fm on 05/06/2017.
   */
 
-case class ReasonerWithFilter(reasoner: Reasoner, filter: ResultFilter) extends Reasoner {
+case class ReasonerWithFilter(reasoner: Reasoner, resultFilter: ResultFilter) extends Reasoner {
 
   override def append(time: TimePoint)(atoms: Atom*): Unit = reasoner.append(time)(atoms: _*)
 
-  override def evaluate(time: TimePoint): Result = filter.filter(time, reasoner.evaluate(time))
+  override def evaluate(time: TimePoint): Result = resultFilter.filter(time, reasoner.evaluate(time))
 }
 
 case class ResultFilter(restrictTo: Set[Atom]) {

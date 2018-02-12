@@ -42,16 +42,16 @@ case class LarsRuleEncoding(larsRule: LarsRule, baseRule: NormalRule, posWindowA
    * in contrast to window rules, we may keep them longer
    */
   val ticksUntilBaseRuleIsIrrelevant: TickDuration = {
-    val maxTimeWindowSize = posWindowAtomEncoders.collect{ case e:TimeWindowEncoder => e.size}.foldLeft(-2L)((t1,t2) => Math.max(t1,t2))
-    val maxTupleWindowSize = posWindowAtomEncoders.collect{ case e:TupleWindowEncoder => e.size}.foldLeft(-2L)((t1,t2) => Math.max(t1,t2))
-    if (maxTimeWindowSize == -1 && maxTupleWindowSize == -1) { //0 might be a window length (at least for time windows)
+    val maxTimeAtWindowSize = posWindowAtomEncoders.collect{ case e:TimeAtEncoder => e.size}.foldLeft(-1L)((t1,t2) => Math.max(t1,t2))
+    val maxTupleAtWindowSize = posWindowAtomEncoders.collect{ case e:TupleAtEncoder => e.size}.foldLeft(-1L)((t1,t2) => Math.max(t1,t2))
+    if (maxTimeAtWindowSize == -1 && maxTupleAtWindowSize == -1) { //0 might be a window length (at least for time windows)
       Tick(Void,Void)
-    } else if (maxTupleWindowSize == -1) {
-      Tick(maxTimeWindowSize + 1, Void)
-    } else if (maxTimeWindowSize == -1) {
-      Tick(Void,maxTupleWindowSize)
+    } else if (maxTupleAtWindowSize == -1) {
+      Tick(maxTimeAtWindowSize + 1, Void)
+    } else if (maxTimeAtWindowSize == -1) {
+      Tick(Void,maxTupleAtWindowSize)
     } else {
-      Tick(maxTimeWindowSize+1,maxTupleWindowSize)
+      Tick(maxTimeAtWindowSize+1,maxTupleAtWindowSize)
     }
   }
 
