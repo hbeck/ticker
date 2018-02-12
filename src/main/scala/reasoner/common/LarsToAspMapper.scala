@@ -70,7 +70,8 @@ trait LarsToAspMapper {
     val scoped = (program.windowAtoms map (_.atom.predicate)) union (program.atAtoms map (_.atom.predicate))
     val headPredicates = (program.rules map (_.head.atom.predicate)).toSet
     val nonScopedIntensional = headPredicates diff scoped
-    val nonQ = nonScopedIntensional union (backgroundKnowledge map (_.head.atom.predicate) toSet)
+    val nonScopedExtensional = program.atoms map (_.predicate) diff headPredicates diff scoped
+    val nonQ = nonScopedIntensional union nonScopedExtensional union (backgroundKnowledge map (_.head.atom.predicate) toSet)
     val Q = (actualProgram.atoms map (_.predicate)) diff nonQ
     val needGuard = scoped diff headPredicates
 

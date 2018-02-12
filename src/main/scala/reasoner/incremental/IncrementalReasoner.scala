@@ -19,7 +19,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   incrementalRuleMaker.staticGroundRules.foreach(jtms.add(_))
 
   //time of the truth maintenance network due to previous append and result calls
-  var currentTick = Tick(0, 0) //using (-1,0), first "+" will fail!
+  var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!
   incrementTick() //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(timepoint: TimePoint)(atoms: Atom*) {
@@ -60,7 +60,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     incrementTick(Some(signal))
   }
 
-  var conjunctiveExpirationCandidates = Set[NormalRule]()
+
 
   def incrementTick(signal: Option[Atom] = None) {
 
@@ -82,8 +82,8 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       }
     }
 
-    //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
-    //println(jtms.getModel())
+    println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
+    println(jtms.getModel())
   }
 
   object expiration {
@@ -106,8 +106,8 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         rulesExpiringAtTimeDisj = rulesExpiringAtTimeDisj - currentTick.time
         tmp.toSeq
       }
-      //TODO add static check for tuple-box
-      if (!rulesExpiringAtTimeConj.contains(currentTick.time)) {
+
+      if (!incrementalRuleMaker.hasTupleBoxCombination || !rulesExpiringAtTimeConj.contains(currentTick.time)) {
         return disj
       }
       val conjCandidates: Set[NormalRule] = rulesExpiringAtTimeConj.get(currentTick.time).get
@@ -127,8 +127,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         rulesExpiringAtCountDisj = rulesExpiringAtCountDisj - currentTick.count
         tmp.toSeq
       }
-      //TODO add static check for tuple-box
-      if (!rulesExpiringAtCountConj.contains(currentTick.count)) {
+      if (!incrementalRuleMaker.hasTupleBoxCombination || !rulesExpiringAtCountConj.contains(currentTick.count)) {
         return disj
       }
       val conjCandidates: Set[NormalRule] = rulesExpiringAtCountConj.get(currentTick.count).get
@@ -147,6 +146,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     //special handling for tuple-box:
     var rulesExpiringAtTimeConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var rulesExpiringAtCountConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
+    var conjunctiveExpirationCandidates = Set[NormalRule]()
 
     private def registerByTimeDisj(rule: NormalRule, time: Long): Unit = {
       rulesExpiringAtTimeDisj = rulesExpiringAtTimeDisj.updated(time, rulesExpiringAtTimeDisj.getOrElse(time, Set()) + rule)
