@@ -25,7 +25,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullReasoner 
       temp <= AtAtom(t37, busG)
     )
 
-    val engine = defaultEngine(program)
+    val engine = reasonerBuilder(program)
 
     engine.append(t37)(busG)
 
@@ -43,7 +43,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullReasoner 
       temp <= WindowAtom(TimeW(3), At(t37), busG)
     )
 
-    val engine = defaultEngine(program)
+    val engine = reasonerBuilder(program)
 
     engine.append(t37)(busG)
 
@@ -64,7 +64,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullReasoner 
       AtAtom(U + 3, expBusM) <= WindowAtom(TimeW(3), At(U), busG)
     )
 
-    val engine = defaultEngine(program)
+    val engine = reasonerBuilder(program)
 
     engine.append(t37)(busG)
 
@@ -83,7 +83,7 @@ class AtExamples extends FlatSpec with TimeTestFixtures with ClingoPullReasoner 
       c <= WindowAtom(TimeW(2), Diamond, b)
     )
 
-    val engine = defaultEngine(program)
+    val engine = reasonerBuilder(program)
 
     engine.append(t37)(a)
 

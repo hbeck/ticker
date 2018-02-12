@@ -40,7 +40,7 @@ class XWindowBoxASample extends ConfigurableReasonerSpec with TimeTestFixtures w
     x <= WindowAtom(SlidingTimeWindow(1), Box, a)
   )
 
-  info("Engine " + this.evaluationType)
+  //info("Engine " + evaluationMode)
 
   def engineWithStream = {
     info("Given '{t1 -> a}, {t2 -> a}' ")

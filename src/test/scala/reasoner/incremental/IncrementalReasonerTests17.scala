@@ -1,4 +1,4 @@
-package reasoner
+package reasoner.incremental
 
 import core._
 import core.lars._
@@ -8,7 +8,7 @@ import org.scalatest.FunSuite
 /**
   * Created by hb on 02.03.17.
   */
-class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
+class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
 
   test("test 1") {
 
@@ -29,36 +29,36 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
 
     println(program)
 
-    val engine = defaultEngine(program)
+    val reasoner = reasonerBuilder(program)
 
-    var model = engine.evaluate(TimePoint(0)).model
+    var model = reasoner.evaluate(TimePoint(0)).model
     assert(model.size == 0) // due to filter on intensional atoms + signals
 
     //b(y)
     val signal = Atom(Predicate("b"),Seq(StringValue("y")))
 
-    engine.append(TimePoint(0))(signal)
+    reasoner.append(TimePoint(0))(signal)
 
-    model = engine.evaluate(TimePoint(0)).model
+    model = reasoner.evaluate(TimePoint(0)).model
     println(model)
     assert(model contains signal)
 
     val inference = Atom(Predicate("h"),Seq(StringValue("y")))
 
     println("evaluate 0")
-    model = engine.evaluate(TimePoint(0)).model
+    model = reasoner.evaluate(TimePoint(0)).model
     assert(model contains inference)
 
     println("evaluate 1")
-    model = engine.evaluate(TimePoint(1)).model
+    model = reasoner.evaluate(TimePoint(1)).model
     assert(model contains inference)
 
     println("evaluate 2")
-    model = engine.evaluate(TimePoint(2)).model
+    model = reasoner.evaluate(TimePoint(2)).model
     assert(model contains inference)
 
     println("evaluate 3 (time incr)")
-    model = engine.evaluate(TimePoint(3)).model
+    model = reasoner.evaluate(TimePoint(3)).model
     assert(!(model contains inference))
 
     //additional
@@ -71,8 +71,8 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
     assert(!(model contains Atom(Predicate("h_at"),Seq(StringValue("y"),StringValue("3")))))
 
     println("evaluate 3 (count incr with b(y))")
-    engine.append(TimePoint(3))(signal)
-    model = engine.evaluate(TimePoint(3)).model
+    reasoner.append(TimePoint(3))(signal)
+    model = reasoner.evaluate(TimePoint(3)).model
 
     assert(model contains inference)
     assert(model contains Atom(Predicate("b"),Seq(StringValue("y"))))
@@ -80,7 +80,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
     assert(!(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2")))))
 
     println("evaluate 5")
-    model = engine.evaluate(TimePoint(5)).model
+    model = reasoner.evaluate(TimePoint(5)).model
 
     assert(model contains inference)
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
@@ -88,7 +88,7 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
     assert(!(model contains Atom(Predicate("b_at_cnt"),Seq(StringValue("y"),StringValue("3"),StringValue("2")))))
 
     println("evaluate 6")
-    model = engine.evaluate(TimePoint(6)).model
+    model = reasoner.evaluate(TimePoint(6)).model
 
     assert(!(model contains inference))
     assert(!(model contains Atom(Predicate("b"),Seq(StringValue("y")))))
@@ -350,42 +350,9 @@ class IncrementalTmsTests extends FunSuite with JtmsIncrementalReasoner {
     checkEntailments(LarsProgram.from(rule),expectedEntailmentTimePoints,stream)
   }
 
-  def checkEntailments(program: LarsProgram, expectedEntailmentTimePoints: Map[Atom,Set[Int]], stream:Map[Int,Set[Atom]]): Unit = {
 
-    val engine = defaultEngine(program)
 
-    val maxInt:Int = expectedEntailmentTimePoints.values reduce { (l,r) => l ++ r} reduce Math.max
-    println("timeline: [0,"+maxInt+"]")
 
-    for (t <- 0 to maxInt) {
-
-      stream.get(t) match {
-        case Some(atoms) => atoms foreach (atom => engine.append(TimePoint(t))(atom))
-        case None =>
-      }
-
-      val model = engine.evaluate(TimePoint(t)).model
-
-      for (atom <- expectedEntailmentTimePoints.keys) {
-        if (expectedEntailmentTimePoints(atom) contains t) {
-          if (!(model contains atom)) {
-            println(f"t=$t: atom ${atom} not in model ${model}")
-          }
-          assert(model contains atom)
-        } else {
-          if (model contains atom) {
-            println(f"t=$t: atom ${atom} in model ${model}")
-          }
-          assert(!(model contains atom))
-        }
-      }
-
-    }
-  }
-
-  def intv(start: Int, end: Int): Set[Int] = (start to end).toSet
-
-  def complement(upTo: Int)(s: Set[Int]) = intv(0,upTo) -- s
 
 
 }

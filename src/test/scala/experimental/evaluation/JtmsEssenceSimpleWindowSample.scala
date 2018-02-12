@@ -31,7 +31,7 @@ class JtmsEssenceSimpleWindowSample extends ConfigurableReasonerSpec with TimeTe
     reasoner.evaluate(t2).get.value should contain allOf(a, c, d)
   }
 
-  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in pendingWithTms("cycle between a <-> c"){
+  "A stream with alternating 'a' inputs" should "lead to (a, c, d) at all time points" in pendingWithJtms("cycle between a <-> c"){
     (1 to 100 by 2) foreach (reasoner.append(_)(a))
 
     assume(Set(b, d).subsetOf(reasoner.evaluate(t0).get.value))

@@ -42,7 +42,7 @@ class ReasonerStreamSpec extends ConfigurableReasonerSpec with TimeTestFixtures 
     assert(reasoner.evaluate(t3).get.value.isEmpty)
   }
 
-  it should "not lead to a result when evaluating at t1" in pendingWithTms("Querying after an already evaluated time point works only with true one-shot reasoning") {
+  it should "not lead to a result when evaluating at t1" in pendingWithJtms("Querying after an already evaluated time point works only with true one-shot reasoning") {
     info("Adding one atom at t2")
     
     reasoner.append(t2)(Atom("c"))

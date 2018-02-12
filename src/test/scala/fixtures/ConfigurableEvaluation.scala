@@ -15,27 +15,28 @@ trait ConfigurableReasonerSpec extends FlatSpec with ReasonerBuilder {
 
   val program: LarsProgram
 
-  private var engineEvaluationType: EvaluationType = this.defaultEvaluationType
+  private var evaluationMode: EvaluationMode = IncrementalEvaluation
   private var reasonerCache: Option[Reasoner] = None
 
   def reasoner: Reasoner = reasonerCache.get
 
   override def withFixture(test: NoArgTest): Outcome = {
 
-    val engineConfig = test.configMap.get("engineConfig")
+    this.reasonerCache = Some(reasonerBuilder(program))
 
-    engineConfig match {
-      case Some(config) => {
-        // TODO: is there a way to make this type safe? - this will fail at runtime if not EngineBuilder
+    //val reasonerConfig = test.configMap.get("reasonerConfig")
 
-        val c = config.asInstanceOf[EngineConfig]
-        this.engineEvaluationType = c.evaluationType
-        this.reasonerCache = Some(c.builder(program))
-      }
-      case _ => this.reasonerCache = Some(defaultEngine(program))
-    }
+//    reasonerConfig match {
+//      case Some(config) => {
+//
+//        //val c = config.asInstanceOf[ReasonerBuilderConfig]
+//        //this.engineEvaluationType = c.evaluationType
+//        this.reasonerCache = Some(reasonerBuilder(program))
+//      }
+//      case _ =>this.reasonerCache = Some(reasonerBuilder(program))
+//    }
 
-    info("Using engine " + evaluationType)
+//    info("Using engine " + evaluationType)
     try {
       ConfigurableReasonerSpec.super.withFixture(test)
     } finally {
@@ -46,13 +47,13 @@ trait ConfigurableReasonerSpec extends FlatSpec with ReasonerBuilder {
     }
   }
 
-  protected def evaluationType = this.engineEvaluationType
+  //protected def evaluationType = this.engineEvaluationType
 
-  protected def pendingWithTms(f: => Unit): Unit = pendingWithTms("")(f)
+  protected def pendingWithJtms(f: => Unit): Unit = pendingWithJtms("")(f)
 
-  protected def pendingWithTms(message: String = "")(f: => Unit): Unit = {
-    evaluationType match {
-      case AspBasedTms => {
+  protected def pendingWithJtms(message: String = "")(f: => Unit): Unit = {
+    evaluationMode match {
+      case IncrementalEvaluation => {
         if (message != null && message.nonEmpty)
           info(message)
         pendingUntilFixed(f)
@@ -66,10 +67,10 @@ trait ConfigurableReasonerSpec extends FlatSpec with ReasonerBuilder {
 trait ConfigurableEvaluationSuite extends Suite with ReasonerBuilder {
 
   protected override def runNestedSuites(args: Args): Status = {
-    val config = EngineConfig(this.defaultEvaluationType, (p: LarsProgram) => this.defaultEngine(p))
-    val configEntry = ("engineConfig", config)
+    //val config = ReasonerBuilderConfig(this.defaultEvaluationType, (p: LarsProgram) => this.reasonerBuilder(p))
+    //val configEntry = ("engineConfig", config)
 
-    val c = args.configMap + configEntry
+    val c = args.configMap //+ configEntry
     var filter = args.filter
 
     if (this.isInstanceOf[JtmsIncrementalReasoner]) {

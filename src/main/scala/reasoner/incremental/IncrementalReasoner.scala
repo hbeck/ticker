@@ -81,6 +81,9 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     }
 
     expiredRules.foreach(jtms.remove(_))
+
+    println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
+    println(jtms.getModel())
   }
 
   object expiration {

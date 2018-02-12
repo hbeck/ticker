@@ -27,7 +27,7 @@ class TmsPerformanceSample extends ConfigurableReasonerSpec with TimeTestFixture
     i <= j,
     j <= W(100, Diamond, k)
   )
-  val defaultEngine = (p: LarsProgram) => BuildReasoner.
+  val reasonerBuilder = (p: LarsProgram) => BuildReasoner.
     withProgram(p).
     configure().
     withIncremental().
