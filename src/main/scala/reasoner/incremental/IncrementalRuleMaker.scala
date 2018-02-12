@@ -61,7 +61,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
     var facts: Seq[RuleWithDuration] = if (need_tick_atoms) {
       val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
-      Seq(RuleWithCountDurationOnly(tickFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly))
+      Seq(RuleWithConjunctiveDuration(tickFact,Tick(1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly))
     } else {
       Seq()
     }
@@ -77,13 +77,13 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     facts = facts :+ RuleWithTimeDurationOnly(atom.signalFact,Tick(1,Void),ExpirationObligatory,OnCountIncreaseOnly)
     if (hasTupleWindow) {
       //a(x,t,c)
-      facts = facts :+ RuleWithCountDurationOnly(atom.tickPinnedFact,Tick(Void,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
+      facts = facts :+ RuleWithConjunctiveDuration(atom.tickPinnedFact,Tick(1,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
       //a(x,t)
       if (hasTupleBoxCombination) {
         if (hasTimeWindow) {
           facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(maxTimeWindowSize+1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         } else {
-          facts = facts :+ RuleWithCountDurationOnly(atom.timePinnedFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
+          facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         }
       } else if (hasTimeWindow) {
         facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
@@ -215,10 +215,12 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   val maxTimeWindowSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TimeWindowEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
   val maxTupleWindowSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TupleWindowEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
   val maxTupleBoxSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TupleBoxEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
+  val maxTupleAtSize = larsProgramEncoding.windowAtomEncoders.collect{ case w:TupleAtEncoder => w.size }.foldLeft(-1L)((m1,m2)=>Math.max(m1,m2))
 
   val hasTupleWindow = maxTupleWindowSize > -1
   val need_tick_atoms = maxTupleBoxSize > -1
   val hasTupleBoxCombination = maxTupleBoxSize > -1
+  val hasTupleAtCombination = maxTupleAtSize > -1
   val hasTimeWindow = maxTimeWindowSize > -1
 
 //  val need_at_cnt_atoms = windowAtoms exists {

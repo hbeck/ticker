@@ -82,8 +82,8 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       }
     }
 
-    println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
-    println(jtms.getModel())
+    //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
+    //println(jtms.getModel())
   }
 
   object expiration {
@@ -125,8 +125,13 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       } else {
         val tmp = rulesExpiringAtCountDisj.get(currentTick.count).get
         rulesExpiringAtCountDisj = rulesExpiringAtCountDisj - currentTick.count
-        tmp.toSeq
+        if (incrementalRuleMaker.hasTupleAtCombination) {
+          filterTupleAt(tmp)
+        } else { //standard
+          tmp.toSeq
+        }
       }
+
       if (!incrementalRuleMaker.hasTupleBoxCombination || !rulesExpiringAtCountConj.contains(currentTick.count)) {
         return disj
       }
@@ -139,6 +144,23 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       return disj ++ toExpireNow_vs_toExpireLater._1
     }
 
+
+    //see IncrementalTestsLowLevel "tuple at"
+    def filterTupleAt(candidateRules: Set[NormalRule]): Seq[NormalRule] = {
+      candidateRules.filter { rule =>
+        doNotExpireBeforeCount.get(rule) match {
+          case Some(needUntilCount) => {
+            if (needUntilCount <= currentTick.count) {
+              doNotExpireBeforeCount = doNotExpireBeforeCount - rule
+              true
+            } else {
+              false
+            }
+          }
+          case None => true
+        }
+      }.toSeq
+    }
     //
 
     var rulesExpiringAtTimeDisj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
@@ -147,6 +169,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     var rulesExpiringAtTimeConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var rulesExpiringAtCountConj: Map[Long, Set[NormalRule]] = HashMap[Long, Set[NormalRule]]()
     var conjunctiveExpirationCandidates = Set[NormalRule]()
+    var doNotExpireBeforeCount: Map[NormalRule,Long] = HashMap[NormalRule,Long]()
 
     private def registerByTimeDisj(rule: NormalRule, time: Long): Unit = {
       rulesExpiringAtTimeDisj = rulesExpiringAtTimeDisj.updated(time, rulesExpiringAtTimeDisj.getOrElse(time, Set()) + rule)
@@ -154,6 +177,12 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
     private def registerByCountDisj(rule: NormalRule, count: Long): Unit = {
       rulesExpiringAtCountDisj = rulesExpiringAtCountDisj.updated(count, rulesExpiringAtCountDisj.getOrElse(count, Set()) + rule)
+
+      //see IncrementalTestsLowLevel "tuple at"
+      if (incrementalRuleMaker.hasTupleAtCombination) {
+        doNotExpireBeforeCount  = doNotExpireBeforeCount.updated(rule,count)
+      }
+
     }
 
     private def registerExpirationByTimeConj(rule: NormalRule, time: Long): Unit = {

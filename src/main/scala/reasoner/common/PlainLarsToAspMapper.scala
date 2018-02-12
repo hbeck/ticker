@@ -225,8 +225,8 @@ case class TupleBoxEncoder(size: Long, atom: Atom, windowAtomEncoding: Atom, gro
       Seq(StaticRule(staticRule))
     } else {
 
-      val coversTime = Atom(Predicate(f"covT_${size}"), Seq(TimePinVariable))
-      val coversCount = Atom(Predicate(f"covC_${size}"), Seq(CountPinVariable))
+      val coversTime = Atom(Predicate(f"covT_${size}_${atom.predicate.caption}"), Seq(TimePinVariable))
+      val coversCount = Atom(Predicate(f"covC_${size}_${atom.predicate.caption}"), Seq(CountPinVariable))
       val tickWithVars = tickAtom(TimePinVariable, CountPinVariable)
 
       val spoilerRuleCoverTime: NormalRule = AspRule(spoilerAtom,
@@ -237,16 +237,17 @@ case class TupleBoxEncoder(size: Long, atom: Atom, windowAtomEncoding: Atom, gro
         Set[Atom](atom, PinnedAtom.asPinnedAtCntAtom(atom, TimePinVariable, CountPinVariable), coversTime) ++ groundingGuards,
         Set[Atom](coversCount))
 
-      val expSpoilerCoverTime: TickDuration = Tick(Void, size)
-      val expSpoilerCoverCount: TickDuration = Tick(Void, size)
+      val expSpoilerCoverTime: TickDuration = Tick(1, size)
+      val expSpoilerCoverCount: TickDuration = Tick(1, size)
 
-      val expCovers: TickDuration = Tick(Void, size)
-      val ruleDurCoverT = RuleWithCountDurationOnly(AspRule(coversTime, tickWithVars), expCovers, ExpirationObligatory, OnTimeAndCountIncrease)
-      val ruleDurCoverC = RuleWithCountDurationOnly(AspRule(coversCount, tickWithVars), expCovers, ExpirationObligatory, OnTimeAndCountIncrease)
+      val expCoversT: TickDuration = Tick(1, size)
+      val ruleDurCoverT = RuleWithConjunctiveDuration(AspRule(coversTime, tickWithVars), expCoversT, ExpirationObligatory, OnTimeAndCountIncrease)
+      val expCoversC: TickDuration = Tick(Void, size)
+      val ruleDurCoverC = RuleWithCountDurationOnly(AspRule(coversCount, tickWithVars), expCoversC, ExpirationObligatory, OnTimeAndCountIncrease)
 
       Seq(StaticRule(staticRule),
-        RuleWithCountDurationOnly(spoilerRuleCoverTime, expSpoilerCoverTime, ExpirationObligatory, OnTimeAndCountIncrease),
-        RuleWithCountDurationOnly(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
+        RuleWithConjunctiveDuration(spoilerRuleCoverTime, expSpoilerCoverTime, ExpirationObligatory, OnTimeAndCountIncrease),
+        RuleWithConjunctiveDuration(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
         ruleDurCoverT, ruleDurCoverC)
     }
   }
