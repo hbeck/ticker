@@ -14,11 +14,11 @@ import reasoner.Reasoner
   */
 class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
 
-  def hasInReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
+  def containsWithReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
     assert(reasoner.evaluate(t).model.contains(atom))
   }
 
-  def hasNotInReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
+  def notContainsWithReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
     assert(!reasoner.evaluate(t).model.contains(atom))
   }
 
@@ -32,6 +32,7 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
   val c = Atom(Predicate("c"))
   val d = Atom(Predicate("d"))
   val e = Atom(Predicate("e"))
+  val f = Atom(Predicate("f"))
   val h = Atom(Predicate("h"))
   val U = Variable("U")
 
@@ -41,7 +42,7 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -68,8 +69,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
       h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
     )
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -106,8 +107,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
       h <= WindowAtom(SlidingTimeWindow(2), Box, b)
     )
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -135,8 +136,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -152,7 +153,7 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     hasN(10,b); has(10,h)
 
     append(12,b); has(12,b); has(12,h)
-    hasN(13,b); has(13,h); 
+    hasN(13,b); has(13,h);
     hasN(14,b); has(14,h)
     empty(15)
 
@@ -175,8 +176,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -186,7 +187,7 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     hasN(6,b); hasN(6,h)
     hasN(7,b); hasN(7,h)
     append(8,c); hasN(8,b); hasN(8,h) //#2
-    hasN(8,b); hasN(8,h); 
+    hasN(8,b); hasN(8,h);
     append(9,d); hasN(9,h) //#3
     append(9,e); hasN(9,h) //#4
     append(9,b); has(9,h) //#5
@@ -213,8 +214,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -251,16 +252,16 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
     append(3,b); has(3,b); has(3,h)
     hasN(4,b); has(4,h); hasN(5,b)
     has(5,h); hasN(6,b); has(6,h)
-    hasN(7,b); has(7,h); 
-    append(8,c); hasN(8,b); has(8,h) //has(8,c)) in jtms model, but not a signal      
+    hasN(7,b); has(7,h);
+    append(8,c); hasN(8,b); has(8,h) //has(8,c)) in jtms model, but not a signal
     hasN(9,b); has(9,h)
     append(9,d); hasN(9,h)
     append(9,e); hasN(9,h)
@@ -279,7 +280,6 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     //append(12,b)
     //hasN(12,h)
 
-
   }
 
   test("tuple at") {
@@ -289,13 +289,13 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
     append(3,b); has(3,b); has(3,h) //#1
-    hasN(4,b); has(4,h); 
+    hasN(4,b); has(4,h);
     hasN(5,b); has(5,h)
     hasN(6,b); has(6,h)
     hasN(7,b); has(7,h)
@@ -337,8 +337,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -373,8 +373,8 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
@@ -409,14 +409,14 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     )
 
     val reasoner = reasonerBuilder(program)
-    def has = hasInReasoner(reasoner) _
-    def hasN = hasNotInReasoner(reasoner) _
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
     append(1,b); has(1,b); hasN(1,h)
-    append(2,b); hasN(2,h) 
-    append(3,b); has(3,h) 
+    append(2,b); hasN(2,h)
+    append(3,b); has(3,h)
     append(3,c); has(3,h)
     append(3,d); has(3,h)
     append(3,e); hasN(3,h)
@@ -427,6 +427,76 @@ class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
     append(7,b); hasN(7,h)
     append(8,b); has(8,h)
     hasN(9,h)
+
+  }
+
+  test("tuple box - size 4") {
+
+    val program = LarsProgram.from(
+      h <= WindowAtom(SlidingTupleWindow(4), Box, b)
+    )
+
+    val reasoner = reasonerBuilder(program)
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+    def yes(t: Long) = containsWithReasoner(reasoner)(t,h)
+    def no(t: Long) = notContainsWithReasoner(reasoner)(t,h)
+
+    no(1)
+    append(1,c); no(1)
+    append(1,d); no(1)
+    append(1,e); no(1)
+    append(1,b); yes(1)
+
+    append(2,b); yes(2)
+    append(2,c); yes(2)
+    append(2,d); yes(2)
+    append(2,e); yes(2)
+    append(2,f); no(2)
+
+    no(3)
+    append(3,c); no(3)
+    append(3,d); no(3)
+    append(3,e); no(3)
+    append(3,b); yes(3)
+
+    append(4,c); no(4)
+    append(4,d); no(4)
+    append(4,b); yes(4)
+    append(4,e); yes(4)
+
+    append(5,b); yes(5)
+
+    append(6,b); yes(6)
+
+    append(7,b); no(7)
+
+    append(8,b); yes(8)
+    append(8,c); yes(8)
+    append(8,d); yes(8)
+    append(8,e); yes(8)
+
+    append(9,b); no(9)
+    append(9,c); no(9)
+    append(9,d); no(9)
+    append(9,e); yes(9)
+
+    append(10,c); no(10)
+    append(10,d); no(10)
+    append(10,e); no(10)
+    append(10,b); yes(10)
+
+    append(11,b); yes(11)
+
+    append(12,b); yes(12)
+
+    append(13,b); yes(13)
+
+    append(14,b); yes(14)
+
+    no(15)
 
   }
 
