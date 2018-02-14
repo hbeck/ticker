@@ -416,12 +416,11 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
   }
 
-
-  test("tuple box - size 2 TODO") {
+  test("tuple box - size 2 neg") {
 
     val program = LarsProgram.from(
-      hb <= WindowAtom(SlidingTupleWindow(2), Box, pb)
-    )
+      hX <= gX and WindowAtom(SlidingTupleWindow(2), Box, pX) not WindowAtom(SlidingTupleWindow(2), Box, sX)
+    ) ++ guards
 
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -453,11 +452,11 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
   }
 
-  test("tuple box - size 3 TODO") {
+  test("tuple box - size 3 neg") {
 
     val program = LarsProgram.from(
-      hb <= WindowAtom(SlidingTupleWindow(3), Box, pb)
-    )
+      hX <= gX and WindowAtom(SlidingTupleWindow(3), Box, pX) not WindowAtom(SlidingTupleWindow(3), Box, sX)
+    ) ++ guards
 
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -481,11 +480,11 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
   }
 
-  test("tuple box - size 4 TODO") {
+  test("tuple box - size 4 neg") {
 
     val program = LarsProgram.from(
-      hb <= WindowAtom(SlidingTupleWindow(4), Box, pb)
-    )
+      hX <= gX and WindowAtom(SlidingTupleWindow(4), Box, pX) not WindowAtom(SlidingTupleWindow(4), Box, sX)
+    ) ++ guards
 
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -548,6 +547,59 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
     append(14,pb); yes(14)
 
     no(15)
+
+  }
+
+  test("tuple box - size 4 pos") {
+
+    val program = LarsProgram.from(
+      hX <= gX and WindowAtom(SlidingTupleWindow(4), Box, pX) and WindowAtom(SlidingTupleWindow(4), Box, sX)
+    ) ++ guards
+
+    val reasoner = reasonerBuilder(program)
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+    def yes(t: Long) = containsWithReasoner(reasoner)(t,hb)
+    def no(t: Long) = notContainsWithReasoner(reasoner)(t,hb)
+
+    no(1)
+    append(1,pc); no(1)
+    append(1,pd); no(1)
+    append(1,pe); no(1)
+    append(1,pb); no(1)
+    append(1,sb); yes(1)
+
+    append(2,pb); no(2)
+    append(2,sb); yes(2)
+    append(2,pe); no(2)
+
+    no(3)
+    append(3,pb); no(3)
+    append(3,sb); no(3)
+
+    no(4)
+    append(4,pb); no(4)
+    append(4,sb); yes(4)
+    append(4,pe); no(4)
+    append(4,pf); yes(4)
+
+    no(5)
+    append(5,pf); no(5)
+    append(5,pe); no(5)
+    append(5,pb); no(5)
+    append(5,sb); yes(5)
+
+    append(6,pb); no(6)
+    append(6,sb); yes(6)
+
+    append(7,sb); no(7)
+    append(7,pb); yes(7)
+    append(7,pe); no(7)
+    append(7,pf); yes(7)
+
+    no(8)
 
   }
 
