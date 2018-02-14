@@ -101,6 +101,8 @@ case class LarsProgram(rules: Seq[LarsRule]) extends LarsBasedProgram {
   def ==(other: LarsProgram): Boolean = {
     this.rules.toSet == other.rules.toSet
   }
+
+  def ++(other: LarsProgram): LarsProgram = LarsProgram(this.rules ++ other.rules)
 }
 
 object LarsProgram {
