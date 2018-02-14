@@ -308,12 +308,11 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
     hasN(21,hb); hasN(21,hc); hasN(21,hd); hasN(21,he); hasN(21,hf)
 
   }
-
-  test("tuple at TODO") {
+  test("tuple at x2 different time") {
 
     val program = LarsProgram.from(
-      hb <= WindowAtom(SlidingTupleWindow(2), At(U), pb)
-    )
+      hX <= gX and WindowAtom(SlidingTupleWindow(4), At(U1), pX) and WindowAtom(SlidingTupleWindow(4), At(U2), sX)
+    ) ++ guards
 
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -321,39 +320,99 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
-    append(3,pb); has(3,pb); has(3,hb) //#1
-    hasN(4,pb); has(4,hb);
-    hasN(5,pb); has(5,hb)
-    hasN(6,pb); has(6,hb)
-    hasN(7,pb); has(7,hb)
-    append(8,pc); hasN(8,pb); has(8,hb) //#2
-    hasN(8,pb); has(8,hb)
-    append(9,pd); hasN(9,hb) //#3
-    append(9,pe); hasN(9,hb) //#4
-    append(9,pb); has(9,hb) //#5
-    has(10,hb)
-    has(11,hb)
+    empty(0)
 
-    /**
-      * requires special treatment.
-      * smart expiration of base rule leads here to a corner case.
-      * keeping it for 2 tuples does not suffice.
-      * h :- w(9) will be deleted first and re-inserted.
-      * here, however, we expire it due to atom e at time 9,
-      * but we would still need it due to the later atom b at time 9.
-      * in contrast to before, we now add at time 11, which leads to
-      * h :- w(11), and the incremental rule w(9) :- b#(9,5) has nothing
-      * left to trigger
-      */
-    append(11,pc) //#6
-    has(11,hb)
+    append(1,pb); append(1,pc); append(1,pd); append(1,pe)
+    hasN(1,hb); hasN(1,hc); hasN(1,hd); hasN(1,he)
+    append(1,se)
+    hasN(1,hb); hasN(1,hc); hasN(1,hd); has(1,he)
+    append(1,sd)
+    hasN(1,hb); hasN(1,hc); has(1,hd); has(1,he)
+    hasN(2,hb); hasN(2,hc); has(2,hd); has(2,he)
+    hasN(3,hb); hasN(3,hc); has(3,hd); has(3,he)
 
-    append(11,pd); hasN(11,hb)
-    append(11,pe); hasN(11,hb)
-    append(12,pb); has(12,hb)
-    append(12,pc); has(12,hb)
-    append(12,pd); hasN(12,hb)
-    append(12,pe); hasN(12,hb)
+    append(4,pe)
+    hasN(4,hb); hasN(4,hc); hasN(4,hd); has(4,he)
+    hasN(5,hb); hasN(5,hc); hasN(5,hd); has(5,he)
+
+    append(6,pd)
+    hasN(6,hb); hasN(6,hc); has(6,hd); has(6,he)
+
+    append(7,pb); append(7,pc)
+    hasN(7,hb); hasN(7,hc); hasN(7,hd); hasN(7,he)
+
+    append(8,sd)
+    hasN(8,hb); hasN(8,hc); has(8,hd); hasN(8,he)
+
+    append(9,sb)
+    has(9,hb); hasN(9,hc); hasN(9,hd); hasN(9,he)
+
+    append(10,sc)
+    hasN(10,hb); has(10,hc); hasN(10,hd); hasN(10,he)
+
+    append(11,pe); append(11,se)
+    hasN(11,hb); hasN(11,hc); hasN(11,hd); has(11,he)
+    hasN(15,hb); hasN(15,hc); hasN(15,hd); has(15,he)
+
+    append(20,pb); append(20,sb)
+    has(20,hb); hasN(20,hc); hasN(20,hd); has(20,he)
+
+    append(21,pc); append(21,pd); append(21,pe); append(21,pf)
+    hasN(21,hb); hasN(21,hc); hasN(21,hd); hasN(21,he); hasN(21,hf)
+
+  }
+
+  test("tuple at x2 same time") {
+
+    val program = LarsProgram.from(
+      hX <= gX and WindowAtom(SlidingTupleWindow(4), At(U), pX) and WindowAtom(SlidingTupleWindow(4), At(U), sX)
+    ) ++ guards
+
+    val reasoner = reasonerBuilder(program)
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+
+    empty(0)
+
+    append(1,pb); append(1,pc); append(1,pd); append(1,pe)
+    hasN(1,hb); hasN(1,hc); hasN(1,hd); hasN(1,he)
+    append(1,se)
+    hasN(1,hb); hasN(1,hc); hasN(1,hd); has(1,he)
+    append(1,sd)
+    hasN(1,hb); hasN(1,hc); has(1,hd); has(1,he)
+    hasN(2,hb); hasN(2,hc); has(2,hd); has(2,he)
+    hasN(3,hb); hasN(3,hc); has(3,hd); has(3,he)
+
+    append(4,pe)
+    hasN(4,hb); hasN(4,hc); hasN(4,hd); has(4,he)
+    hasN(5,hb); hasN(5,hc); hasN(5,hd); has(5,he)
+
+    append(6,pd)
+    hasN(6,hb); hasN(6,hc); hasN(6,hd); hasN(6,he)
+
+    append(7,pb); append(7,pc)
+    hasN(7,hb); hasN(7,hc); hasN(7,hd); hasN(7,he)
+
+    append(8,sd)
+    hasN(8,hb); hasN(8,hc); hasN(8,hd); hasN(8,he)
+
+    append(9,sb)
+    hasN(9,hb); hasN(9,hc); hasN(9,hd); hasN(9,he)
+
+    append(10,sc)
+    hasN(10,hb); hasN(10,hc); hasN(10,hd); hasN(10,he)
+
+    append(11,pe); append(11,se)
+    hasN(11,hb); hasN(11,hc); hasN(11,hd); has(11,he)
+    hasN(15,hb); hasN(15,hc); hasN(15,hd); has(15,he)
+
+    append(20,pb); append(20,sb)
+    has(20,hb); hasN(20,hc); hasN(20,hd); has(20,he)
+
+    append(21,pc); append(21,pd); append(21,pe); append(21,pf)
+    hasN(21,hb); hasN(21,hc); hasN(21,hd); hasN(21,he); hasN(21,hf)
 
   }
 
