@@ -12,7 +12,7 @@ import reasoner.Reasoner
 /**
   * Created by hb on 08.02.18.
   */
-class IncrementalTestsLowLevel extends FunSuite with JtmsIncrementalReasoner {
+class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
 
   def containsWithReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
     assert(reasoner.evaluate(t).model.contains(atom))

@@ -10,7 +10,7 @@ import reasoner.Reasoner
 /**
   * Created by hb on 13.02.18.
   */
-class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner {
+class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
 
   def containsWithReasoner(reasoner: Reasoner)(t: Long, atom: Atom): Unit = {
     assert(reasoner.evaluate(t).model.contains(atom))
@@ -50,16 +50,16 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
   val je = Atom(Predicate("j"),Seq(StringValue("e")))
   val jf = Atom(Predicate("j"),Seq(StringValue("f")))
 
-  val pX = Atom(Predicate("p"),Seq(StringVariable("X")))
-  val sX = Atom(Predicate("s"),Seq(StringVariable("X")))
-  val hX = Atom(Predicate("h"),Seq(StringVariable("X")))
-  val jX = Atom(Predicate("j"),Seq(StringVariable("X")))
-
   val gb = Atom(Predicate("g"),Seq(StringValue("b")))
   val gc = Atom(Predicate("g"),Seq(StringValue("c")))
   val gd = Atom(Predicate("g"),Seq(StringValue("d")))
   val ge = Atom(Predicate("g"),Seq(StringValue("e")))
   val gf = Atom(Predicate("g"),Seq(StringValue("f")))
+
+  val pX = Atom(Predicate("p"),Seq(StringVariable("X")))
+  val sX = Atom(Predicate("s"),Seq(StringVariable("X")))
+  val hX = Atom(Predicate("h"),Seq(StringVariable("X")))
+  val jX = Atom(Predicate("j"),Seq(StringVariable("X")))
   val gX = Atom(Predicate("g"),Seq(StringVariable("X")))
 
   val guards = LarsProgram.from(LarsFact(gb),LarsFact(gc),LarsFact(gd),LarsFact(ge),LarsFact(gf))
@@ -188,7 +188,7 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
   test("time at x2 same time") {
 
     val program = LarsProgram.from(
-      jX <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
+      hX <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
       LarsFact(gb)
     )
 
@@ -200,30 +200,30 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
     empty(0)
 
-    append(1,pb); hasN(1,jb)
-    append(1,sb); has(1,jb)
-    has(2,jb)
-    has(3,jb)
-    hasN(4,jb)
-    append(4,pb); hasN(5,jb)
-    hasN(5,jb)
-    hasN(6,jb)
+    append(1,pb); hasN(1,hb)
+    append(1,sb); has(1,hb)
+    has(2,hb)
+    has(3,hb)
+    hasN(4,hb)
+    append(4,pb); hasN(5,hb)
+    hasN(5,hb)
+    hasN(6,hb)
 
     append(10,pb); append(10,sb)
-    has(10,jb)
-    has(11,jb)
+    has(10,hb)
+    has(11,hb)
     append(12,pb)
-    has(12,jb) //@10!
-    hasN(13,jb)
-    hasN(14,jb)
-    hasN(15,jb)
+    has(12,hb) //@10!
+    hasN(13,hb)
+    hasN(14,hb)
+    hasN(15,hb)
 
   }
 
   test("time at x2 same time, var") {
 
     val program = LarsProgram.from(
-      AtAtom(U,jX) <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
+      AtAtom(U,hX) <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
       LarsFact(gb)
     )
 
@@ -235,23 +235,23 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
     empty(0)
 
-    append(1,pb); hasN(1,jb)
-    append(1,sb); has(1,jb)
-    hasN(2,jb) //@1 jb
-    hasN(3,jb) //@1 jb
-    hasN(4,jb)
-    append(4,pb); hasN(5,jb)
-    hasN(5,jb)
-    hasN(6,jb)
+    append(1,pb); hasN(1,hb)
+    append(1,sb); has(1,hb)
+    hasN(2,hb) //@1 hb
+    hasN(3,hb) //@1 hb
+    hasN(4,hb)
+    append(4,pb); hasN(5,hb)
+    hasN(5,hb)
+    hasN(6,hb)
 
     append(10,pb); append(10,sb)
-    has(10,jb) //@10
-    hasN(11,jb)
+    has(10,hb) //@10
+    hasN(11,hb)
     append(12,pb)
-    hasN(12,jb) //@10
-    hasN(13,jb)
-    hasN(14,jb)
-    hasN(15,jb)
+    hasN(12,hb) //@10
+    hasN(13,hb)
+    hasN(14,hb)
+    hasN(15,hb)
 
   }
 
@@ -332,6 +332,7 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
     hasN(21,hb); hasN(21,hc); hasN(21,hd); hasN(21,he); hasN(21,hf)
 
   }
+
   test("tuple at x2 different time") {
 
     val program = LarsProgram.from(
