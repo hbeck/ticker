@@ -255,6 +255,30 @@ class IncrementalTestsCombinations extends FunSuite with JtmsIncrementalReasoner
 
   }
 
+  test("time at, plus") {
+
+    val program = LarsProgram.from(
+      AtAtom(U2,hX) <= gX and WindowAtom(SlidingTimeWindow(4), At(U1), pX) and Incr(U1,U2),
+      AtAtom(U2,jX) <= gX and WindowAtom(SlidingTimeWindow(4), At(U1), pX) and Plus(U1,IntValue(1),U2),
+      LarsFact(gb)
+    )
+
+    val reasoner = reasonerBuilder(program)
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+
+    empty(0)
+
+    append(1,pb)
+    has(2,hb)
+    has(2,jb)
+
+  }
+
+  //
+
   test("tuple diamond x2") {
 
     val program = LarsProgram.from(
