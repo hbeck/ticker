@@ -90,8 +90,8 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
   test("cars 2") {
 
     val n=10 //time window size
-    val k=2 //threshold of nr of cars
-    val nrOfCars = 3
+    val k=5 //threshold of nr of cars
+    val nrOfCars = 20
     val speedValues = Seq(10,20,30,40,50)
 
     //needed for test:
@@ -173,6 +173,63 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
 
     t = t+1
     hasN(t,moreThanK)
+
+    //in addition to "cars 1" test, now repeat the same with speed below threshold
+    //(copy test series from above, always not expecting moreThanK)
+
+    t = 100
+    hasN(t,moreThanK)
+
+    (1 to nrOfCars) foreach { c => append(t,speedRec(c,20)) }
+    hasN(t,moreThanK)
+
+    t = t+n //previous t still reachable within time window
+    hasN(t,moreThanK)
+
+    t = t+1 //not reachable anymore
+    hasN(t,moreThanK)
+
+    (1 to k) foreach { c => append(t,speedRec(c,20)) }
+    hasN(t,moreThanK)
+
+    t = t+n
+    append(t,speedRec(k+1,20))
+    hasN(t,moreThanK)
+
+    t = t+1
+    hasN(t,moreThanK)
+
+    //now mix cars with relevant (30,40,50) and irrelevant (10,20) speed
+
+    t = 200
+    hasN(t,moreThanK)
+
+    (1 to nrOfCars) foreach { c => append(t,speedRec(c,20)) } //added rel. to first block
+    hasN(t,moreThanK)
+
+    (1 to nrOfCars) foreach { c => append(t,speedRec(c,30)) }
+    has(t,moreThanK)
+
+    t = t+n //previous t still reachable within time window
+    has(t,moreThanK)
+
+    t = t+1 //not reachable anymore
+    hasN(t,moreThanK)
+
+    (1 to k) foreach { c => append(t,speedRec(c,20)) } //added rel. to first block
+    hasN(t,moreThanK)
+
+    (1 to k) foreach { c => append(t,speedRec(c,30)) }
+    hasN(t,moreThanK)
+
+    t = t+n
+    append(t,speedRec(k+1,30))
+    has(t,moreThanK)
+
+    t = t+1
+    hasN(t,moreThanK)
+
+
 
   }
 

@@ -152,6 +152,8 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
 
   test("time at x2 different time") {
 
+    pending //current limitation
+
     val program = LarsProgram.from(
       hX <= gX and WindowAtom(TimeWindow(2), At(U1), pX) and WindowAtom(TimeWindow(4), At(U2), sX),
       LarsFact(gb)
@@ -257,6 +259,8 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
 
   test("time at, plus") {
 
+    pending //current limitation
+
     val program = LarsProgram.from(
       AtAtom(U2,hX) <= gX and WindowAtom(TimeWindow(4), At(U1), pX) and Incr(U1,U2),
       AtAtom(U2,jX) <= gX and WindowAtom(TimeWindow(4), At(U1), pX) and Plus(U1,IntValue(1),U2),
@@ -334,6 +338,8 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   }
 
   test("tuple at x2 different time") {
+
+    pending //current limitation
 
     val program = LarsProgram.from(
       hX <= gX and WindowAtom(TupleWindow(4), At(U1), pX) and WindowAtom(TupleWindow(4), At(U2), sX)

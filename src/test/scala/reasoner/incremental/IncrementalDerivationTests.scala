@@ -283,6 +283,8 @@ class IncrementalDerivationTests extends FunSuite with JtmsIncrementalReasoner {
 
   test("time at, plus") {
 
+    pending //current limitation
+
     val program = LarsProgram.from(
       AtAtom(U,iX) <= gX and WindowAtom(TimeWindow(4), At(U), pX),
       AtAtom(U2,hX) <= gX and WindowAtom(TimeWindow(4), At(U1), iX) and Incr(U1,U2),
