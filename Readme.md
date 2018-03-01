@@ -12,8 +12,8 @@ Current version of the program parser supports the following notation:
 ### Sample Program
 
 The following programs tests whether in the last 10 seconds more than
-two cars have been recorded. The first line infers `moreThanTwo` if an
-a derivation `third` is associated with (at least) one of the last 10
+two cars have been recorded. The first line infers `moreThanTwo` if a
+derived atom `third` is associated with (at least) one of the last 10
 seconds. The second rule considers the tuple-based (count-based)
 windows of the last three, respectively two atoms. If there is a
 `rec(C)` atom for a `car` identifier `C` among the last three that is
@@ -54,7 +54,7 @@ Mandatory parameter:
 Optional parameters:
 
 * `-r --reasoner [ incremental | clingo ]` for the reasoning mode
-* `-c --cock <unit>` for the duration of 1 time point, format `<int><timeunit>` with integer `<int>` and `<timeunit> ::= ms | s | sec | min | h`
+* `-c --clock <int><timeunit>` for the duration of 1 time point, where `<timeunit> ::= ms | s | sec | min | h`
 * `-e --outputEvery [ change | signal | time | <int>signals | <int><timeunit> ]` for specifying when output is written:
     * `change`: filtered model changed
     * `signal`: new signal streamed in (push-based)
