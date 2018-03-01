@@ -104,13 +104,13 @@ object Program {
         action((x, c) => c.copy(outputTiming = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[Seq[InputSource]]('i', "inputSource").optional().valueName("<input source>,<input source>,...").
+      opt[Seq[InputSource]]('i', "input").optional().valueName("<source>,<source>,...").
         action((x, c) => c.copy(inputs = x)).
-        text("Possible Input Sources: read from input with 'StdIn', read from a socket with 'socket:<port>'")
+        text("Possible input sources: read from input with 'stdin', read from a socket with 'socket:<port>'")
 
-      opt[Seq[OutputSink]]('o', "outputSink").optional().valueName("<output sink>,<output sink>,...").
+      opt[Seq[OutputSink]]('o', "output").optional().valueName("<sink>,<sink>,...").
         action((x, c) => c.copy(outputs = x)).
-        text("Possible Output Sinks: write to output with 'StdOut', write to a socket with 'socket:<port>'")
+        text("Possible output sinks: write to output with 'stdout', write to a socket with 'socket:<port>'")
 
       help("help").
         text("Specify init parameters for running the engine")
@@ -118,7 +118,7 @@ object Program {
       checkConfig(c => {
         c.outputTiming match {
           case Time(Some(duration)) if duration lt c.clockTime =>
-            reportWarning("outputEvery time interval is less than the engine timeUnit. The output time interval will be set to the engine unit")
+            reportWarning("outputEvery time interval is less than the engine clock time. The output time interval will be set to the engine unit")
           case _ =>
         }
 
