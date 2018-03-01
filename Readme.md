@@ -1,6 +1,6 @@
 # Ticker - A stream reasoning engine
 
-Provides an engine for executing stream reasoning tasks in a LARS-influenced Syntax.
+* paper: https://arxiv.org/abs/1707.05304
 
 ## Requirements
 * Requires Scala 2.12.2 or higher
@@ -9,14 +9,13 @@ Provides an engine for executing stream reasoning tasks in a LARS-influenced Syn
 ## Writing a program
 Current version of the program parser supports the following notation:
 
-TODO: Eddie syntax description
-
 ### Sample Program
 
 ```
-a :- x in [10 sec].
-b :- y(1) always in [5 #].
-c :-  a, not b.
+a :- x [10 sec].
+b(X) :- g(X), always p(X) [2 #].
+c :- b(X), b(Y), X != Y.
+d :- c, not a.
 ```
 
 ## Executing a program with the engine
@@ -35,23 +34,21 @@ All parameters and options can be printed by calling the executable with `--help
 
 Most useful options include:
 
-* `--program <file>` for the program which should be used in the engine
-* `--reasoner <type>` for the Reasoning Engine 
-    * Ticker as incremental reasoner
-    * Clingo for one shot solving
-* `--timeunit <unit>` for the engine timeunit (time based interpretation of '1 tick'), e.g. `1sec` or `200millis`
-* `--outputEvery <config>` defines the output behavior of the engine: 
-    * `diff` for every model change
-    * `signal` for changes at every input signal (push based)
-    * `time` for changes at every time/tick change
-    * `<number>signals` for updates every <number> input signals
-    * `<value><time unit>` for updates every specified time units
-* `--inputType <type 1>,<type ...>` specifies multiple input sources for signals
-    * `StdIn` for reading from standard input
-    * `socket:<port>` for reading from a socket with a specified port
-* `--outputType <type 1>,<type ...>` specifies multiple output sinks for models
-    * `StdOut` for printing models to standard output
-    * `socket:<port>` for writing model changes to a port
+* `-p --program <file>` for the program which should be used in the engine
+* `-r --reasoner [ incremental | clingo ]` for the reasoning mode
+* `-c --cock <unit>` for the duration of 1 time point, format `<int><timeunit>` with integer `<int>` and `<timeunit> ::= ms | s | sec | min | h`
+* `-e --outputEvery [ change | signal | time | <int>signals | <int><timeunit> ]` for specifying when output is written:
+    * `change`: filtered model changed
+    * `signal`: new signal streamed in (push-based)
+    * `time`: a time point passed by (pull-based)
+    * `<int>`signals: given number signals streamed in (generalized push-based)
+    * `<int><timeunit>`: specified time passed by (pull-based)
+* `-i --input <source>,<source>,...`
+    * `<source>: stdin | socket:<int>`
+* `-o --output <sink>,<sink>,...`
+    * `<sink>: stdout | socket:<int>`
+
+default: `-r incremental -f none -c 1s -e change -i stdin -o stdout`
     
 ## Running Ticker
 
@@ -63,7 +60,7 @@ To execute ticker as a separate program and stream input signals from an externa
 Ticker can be started to read input data from Std-Input and write it into Std-Ouput.
 
 ```sh
-tail -F input.txt | java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/test.rules >> out.txt
+tail -F input.txt | java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/program.lars >> out.txt
 ```
 
 Reads data from a `input.txt` file and writes all model updates into 'out.txt'
@@ -84,12 +81,12 @@ important are the correct socket socket ports `9999` and `9998`.
  
 ```sh
 java -jar target/scala-2.12/ticker-assembly-1.0.jar \
-                             --program src/test/resources/test.rules \
-                             --reasoner Clingo \
-                             --inputType socket:9999 \
-                             --timeunit 1s \
-                             --outputEvery diff \
-                             --outputType socket:9998
+                             --program src/test/resources/program.lars \
+                             --reasoner incremental \
+                             --input socket:9999 \
+                             --clock 1s \
+                             --outputEvery change \
+                             --output socket:9998
 ```                             
 #### Connect to a (local) socket
 
