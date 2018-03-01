@@ -127,7 +127,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
   val propositionalProgram = LarsProgram.from(
     t_dp <= WindowAtom(TimeWindow(10), Diamond, p),
     t_bp <= WindowAtom(TimeWindow(10), Box, p),
-    t_a3p <= WindowAtom(TimeWindow(10), At(3), p),
+    //t_a3p <= WindowAtom(TimeWindow(10), At(3), p), //at-atom with constants disregarded
     t_aTp <= WindowAtom(TimeWindow(10), At(T), p),
     c_dp <= WindowAtom(TupleWindow(10), Diamond, p),
     c_bp <= WindowAtom(TupleWindow(10), Box, p),
@@ -197,7 +197,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       p -> Set(3),
       t_dp -> intv(3,13),
       t_bp -> Set(),
-      t_a3p -> intv(3,13),
+      //t_a3p -> intv(3,13), //at-atom with constants disregarded
       t_aTp -> intv(3,13),
       c_dp -> intv(3,20),
       c_bp -> Set(),
@@ -208,7 +208,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       //h_aTp -> intv(3,20), //at-atom outside window not implemented
       n_t_bp -> intv(0,20),
       n_t_dp -> c(intv(3,13)),
-      n_t_a3p -> c(intv(3,13)),
+      //n_t_a3p -> c(intv(3,13)), //at-atom with constants disregarded
       n_c_bp -> intv(0,20),
       n_c_dp -> intv(0,2),
       n_c_a3p -> intv(0,2),
@@ -230,7 +230,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       p -> intv(0,5),
       t_dp -> intv(0,15),
       t_bp -> intv(0,5),
-      t_a3p -> intv(3,13),
+      //t_a3p -> intv(3,13), //at-atom with constants disregarded
       t_aTp -> intv(0,15),
       c_dp -> intv(0,20),
       c_bp -> intv(0,5),
@@ -241,7 +241,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       //h_aTp -> intv(0,20), //at-atom outside window not implemented
       n_t_bp -> intv(6,20),
       n_t_dp -> intv(16,20),
-      n_t_a3p -> c(intv(3,13)),
+      //n_t_a3p -> c(intv(3,13)), //at-atom with constants disregarded
       n_c_bp -> intv(6,20),
       n_c_dp -> Set(),
       n_c_a3p -> intv(0,2),
@@ -279,7 +279,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       p -> Set(5),
       t_dp -> intv(5,15),
       t_bp -> Set(),
-      t_a3p -> Set(),
+      //t_a3p -> Set(), //at-atom with constants disregarded
       t_aTp -> intv(5,15),
       c_dp -> intv(5,20),
       c_bp -> Set(),
@@ -290,7 +290,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       //h_aTp -> intv(5,20), //at-atom outside window not implemented
       n_t_dp -> c(intv(5,15)),
       n_t_bp -> intv(0,20),
-      n_t_a3p -> intv(0,20),
+      //n_t_a3p -> intv(0,20), //at-atom with constants disregarded
       n_c_dp -> intv(0,4),
       n_c_bp -> intv(0,20),
       n_c_a3p -> intv(0,20),
@@ -314,7 +314,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       p -> Set(5),
       t_dp -> intv(5,15),
       t_bp -> Set(),
-      t_a3p -> Set(),
+      //t_a3p -> Set(), //at-atom with constants disregarded
       t_aTp -> intv(5,15),
       c_dp -> intv(5,14), //diff to S3
       c_bp -> Set(),
@@ -325,7 +325,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       //h_aTp -> intv(5,20), //at-atom outside window not implemented
       n_t_dp -> c(intv(5,15)),
       n_t_bp -> intv(0,20),
-      n_t_a3p -> intv(0,20),
+      //n_t_a3p -> intv(0,20), //at-atom with constants disregarded
       n_c_dp -> c(intv(5,14)), //diff to S3
       n_c_bp -> intv(0,20),
       n_c_a3p -> intv(0,20),
