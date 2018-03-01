@@ -1,3 +1,0 @@
-a :- x in [10 sec].
-b :- y(1) always in [5 #].
-c :-  a, not b.

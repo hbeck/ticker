@@ -11,37 +11,55 @@ Current version of the program parser supports the following notation:
 
 ### Sample Program
 
+The following programs tests whether in the last 10 seconds more than
+two cars have been recorded. The first line infers `moreThanTwo` if an
+a derivation `third` is associated with (at least) one of the last 10
+seconds. The second rule considers the tuple-based (count-based)
+windows of the last three, respectively two atoms. If there is a
+`rec(C)` atom for a `car` identifier `C` among the last three that is
+not within the last two, it is the third (in the past). In this case
+we associate the time point `T` of its appearence in the stream with
+auxiliary atom `third`.
+
 ```
-a :- x [10 sec].
-b(X) :- g(X), always p(X) [2 #].
-c :- b(X), b(Y), X != Y.
-d :- c, not a.
+moreThanTwo :- third [10 sec].
+@T third :- car(C), @T rec(C) [3 #], not rec(C) [2 #].
+car(1). car(2). car(3). car(4).
 ```
+
+Variables appearing in the scope of a window (as in the second line)
+must be guarded for pre-grounding. (Hence the car facts in the last
+line.)
 
 ## Executing a program with the engine
 
 There are multiple ways to execute a program:
 
-* Using SBT from a shell: `sbt "run --program src/test/resources/test.rules --reasoner Clingo"`
-    * explicitly: `sbt "run-main Program --program src/test/resources/test.rules --reasoner Clingo"`
+* Using SBT from a shell: `sbt "run --program src/test/resources/program.lars"`
+    * explicitly: `sbt "run-main Program --program src/test/resources/program.lars"`
 * Executing as jar:
     * Building the jar with SBT: `sbt assembly` 
-    * Running it via JAVA: `java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/test.rules`
+    * Running it via JAVA: `java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/program.lars`
 
 The running engine can be terminated by pressing CTRL-C.
 
 All parameters and options can be printed by calling the executable with `--help`.
 
-Most useful options include:
+Mandatory parameter:
 
 * `-p --program <file>` for the program which should be used in the engine
+
+(Either selector `-p` or `--program` can be used.)
+
+Optional parameters:
+
 * `-r --reasoner [ incremental | clingo ]` for the reasoning mode
 * `-c --cock <unit>` for the duration of 1 time point, format `<int><timeunit>` with integer `<int>` and `<timeunit> ::= ms | s | sec | min | h`
 * `-e --outputEvery [ change | signal | time | <int>signals | <int><timeunit> ]` for specifying when output is written:
     * `change`: filtered model changed
     * `signal`: new signal streamed in (push-based)
     * `time`: a time point passed by (pull-based)
-    * `<int>`signals: given number signals streamed in (generalized push-based)
+    * `<int>signals`: given number signals streamed in (generalized push-based)
     * `<int><timeunit>`: specified time passed by (pull-based)
 * `-i --input <source>,<source>,...`
     * `<source>: stdin | socket:<int>`
