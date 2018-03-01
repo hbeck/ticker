@@ -1,7 +1,7 @@
 package lars.transform.tuplebased
 
 import core.{Atom, IntValue, NumericArgument, PinnedAtom}
-import core.lars.{Box, SlidingTimeWindow, SlidingTupleWindow, WindowAtom}
+import core.lars.{Box, TimeWindow, TupleWindow, WindowAtom}
 import lars.transform.TransformLarsSpec
 import org.scalatest.Matchers._
 import org.scalatest.Inspectors._
@@ -11,11 +11,11 @@ import org.scalatest.Inspectors._
   * Created by FM on 05.05.16.
   */
 class RuleForBoxSpec extends TransformLarsSpec {
-  def rulesForBox(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(windowAtom.windowFunction.asInstanceOf[SlidingTupleWindow], windowAtom))
+  def rulesForBox(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTuple(windowAtom.windowFunction.asInstanceOf[TupleWindow], windowAtom))
 
   def a_TUPLE(arg: NumericArgument) = PinnedAtom.asPinnedAtCntAtom(Atom("a"), T, arg)
 
-  val w_tu_2_b_a = WindowAtom(SlidingTupleWindow(2), Box, a)
+  val w_tu_2_b_a = WindowAtom(TupleWindow(2), Box, a)
 
   "The rule for w^2 b a" should "contain cnt(C)" in {
     (rulesForBox(w_tu_2_b_a) flatMap (_.body)) should contain(cnt(C))
@@ -37,7 +37,7 @@ class RuleForBoxSpec extends TransformLarsSpec {
   }
 
   "The rule for w^3 b a" should "contain a_TUPLE(0) a_TUPLE(1), a_TUPLE(2)" in {
-    (rulesForBox(WindowAtom(SlidingTupleWindow(3), Box, a)).
+    (rulesForBox(WindowAtom(TupleWindow(3), Box, a)).
       flatMap(_.body)) should contain.
       allOf(a_TUPLE(C), a_TUPLE(C - 1), a_TUPLE(C - 2))
   }

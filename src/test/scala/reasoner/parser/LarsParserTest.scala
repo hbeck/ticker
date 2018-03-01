@@ -78,12 +78,12 @@ class LarsParserTest extends FunSuite {
 
   //
 
-  def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), At(time), atom)
-  def wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Diamond, atom)
-  def wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), Box, atom)
-  def tup_wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(SlidingTupleWindow(windowSize), At(time), atom)
-  def tup_wD(windowSize: Int, atom: Atom) = WindowAtom(SlidingTupleWindow(windowSize), Diamond, atom)
-  def tup_wB(windowSize: Int, atom: Atom) = WindowAtom(SlidingTupleWindow(windowSize), Box, atom)
+  def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
+  def wD(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)
+  def wB(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Box, atom)
+  def tup_wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TupleWindow(windowSize), At(time), atom)
+  def tup_wD(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Diamond, atom)
+  def tup_wB(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Box, atom)
 
   val I = StringVariable("I")
   val N = StringVariable("N")

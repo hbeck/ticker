@@ -2,7 +2,7 @@ package reasoner.asp
 
 import core._
 import core.asp.AspFact
-import core.lars.{Box, SlidingTupleWindow, TimePoint, WindowAtom}
+import core.lars.{Box, TupleWindow, TimePoint, WindowAtom}
 import reasoner.asp.clingo.ClingoProgramWithLars
 import reasoner.{Result, _}
 
@@ -20,12 +20,12 @@ case class OneShotClingoEvaluation(program: ClingoProgramWithLars, interpreter: 
   val windowAtoms = program.larsRules flatMap (_.body collect { case w:WindowAtom => w})
 
   val needs_at_cnt_atoms = windowAtoms exists {
-    case WindowAtom(SlidingTupleWindow(_), _, _) => true
+    case WindowAtom(TupleWindow(_), _, _) => true
     case _ => false
   }
 
   val need_tick_atoms = windowAtoms exists {
-    case WindowAtom(SlidingTupleWindow(_), Box, _) => true
+    case WindowAtom(TupleWindow(_), Box, _) => true
     case _ => false
   }
 

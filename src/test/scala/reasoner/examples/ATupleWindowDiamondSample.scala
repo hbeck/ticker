@@ -18,7 +18,7 @@ class ATupleWindowDiamondSample extends ConfigurableReasonerSpec with TimeTestFi
     * ******** d      f  e        d
     */
   val program = LarsProgram.from(
-    a <= WindowAtom(SlidingTupleWindow(2), Diamond, d)
+    a <= WindowAtom(TupleWindow(2), Diamond, d)
   )
 
   "An empty program" should "not lead to a at 0" in {

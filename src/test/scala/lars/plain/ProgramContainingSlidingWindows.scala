@@ -14,7 +14,7 @@ class ProgramContainingSlidingWindows extends TransformLarsSpec {
   val converter = PlainLarsToAspMapper()
 
   val program = LarsProgram.from(
-    a <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
+    a <= WindowAtom(TimeWindow(2), Diamond, b)
   )
 
   "a :- wˆ2 d b" should "be transformed into 7 rules" in {

@@ -66,7 +66,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("time diamond") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(2), Diamond, b)
+      h <= WindowAtom(TimeWindow(2), Diamond, b)
     )
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -104,7 +104,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("time box") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(2), Box, b)
+      h <= WindowAtom(TimeWindow(2), Box, b)
     )
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -132,7 +132,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(2), At(U), b)
+      h <= WindowAtom(TimeWindow(2), At(U), b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -172,7 +172,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at 2") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTimeWindow(2), At(U), b)
+      h <= WindowAtom(TimeWindow(2), At(U), b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -210,7 +210,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at - head") {
 
     val program = LarsProgram.from(
-      AtAtom(U,h) <= WindowAtom(SlidingTimeWindow(2), At(U), b)
+      AtAtom(U,h) <= WindowAtom(TimeWindow(2), At(U), b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -248,7 +248,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple diamond") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTupleWindow(2), Diamond, b)
+      h <= WindowAtom(TupleWindow(2), Diamond, b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -285,7 +285,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple at") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTupleWindow(2), At(U), b)
+      h <= WindowAtom(TupleWindow(2), At(U), b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -333,7 +333,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple at - head") {
 
     val program = LarsProgram.from(
-      AtAtom(U,h) <= WindowAtom(SlidingTupleWindow(2), At(U), b)
+      AtAtom(U,h) <= WindowAtom(TupleWindow(2), At(U), b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -369,7 +369,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 2") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTupleWindow(2), Box, b)
+      h <= WindowAtom(TupleWindow(2), Box, b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -405,7 +405,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 3") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTupleWindow(3), Box, b)
+      h <= WindowAtom(TupleWindow(3), Box, b)
     )
 
     val reasoner = reasonerBuilder(program)
@@ -433,7 +433,7 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 4") {
 
     val program = LarsProgram.from(
-      h <= WindowAtom(SlidingTupleWindow(4), Box, b)
+      h <= WindowAtom(TupleWindow(4), Box, b)
     )
 
     val reasoner = reasonerBuilder(program)

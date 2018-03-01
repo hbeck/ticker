@@ -19,7 +19,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
 
     //h(X) :- win2 D b(X)
     val program = LarsProgram.from(
-      h <= g and WindowAtom(SlidingTimeWindow(2), Diamond, b),
+      h <= g and WindowAtom(TimeWindow(2), Diamond, b),
       gy
     )
 
@@ -125,24 +125,24 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
   val T = TimeVariableWithOffset("T")
 
   val propositionalProgram = LarsProgram.from(
-    t_dp <= WindowAtom(SlidingTimeWindow(10), Diamond, p),
-    t_bp <= WindowAtom(SlidingTimeWindow(10), Box, p),
-    t_a3p <= WindowAtom(SlidingTimeWindow(10), At(3), p),
-    t_aTp <= WindowAtom(SlidingTimeWindow(10), At(T), p),
-    c_dp <= WindowAtom(SlidingTupleWindow(10), Diamond, p),
-    c_bp <= WindowAtom(SlidingTupleWindow(10), Box, p),
-    c_a3p <= WindowAtom(SlidingTupleWindow(10), At(3), p),
-    c_aTp <= WindowAtom(SlidingTupleWindow(10), At(T), p),
+    t_dp <= WindowAtom(TimeWindow(10), Diamond, p),
+    t_bp <= WindowAtom(TimeWindow(10), Box, p),
+    t_a3p <= WindowAtom(TimeWindow(10), At(3), p),
+    t_aTp <= WindowAtom(TimeWindow(10), At(T), p),
+    c_dp <= WindowAtom(TupleWindow(10), Diamond, p),
+    c_bp <= WindowAtom(TupleWindow(10), Box, p),
+    c_a3p <= WindowAtom(TupleWindow(10), At(3), p),
+    c_aTp <= WindowAtom(TupleWindow(10), At(T), p),
     h_p <= p,
     h_a3p <= AtAtom(3,p),
     h_aTp <= AtAtom(T,p),
-    n_t_bp <= not(WindowAtom(SlidingTimeWindow(10), Box, p)),
-    n_t_dp <= not(WindowAtom(SlidingTimeWindow(10), Diamond, p)),
-    n_t_a3p <= not(WindowAtom(SlidingTimeWindow(10), At(3), p)),
+    n_t_bp <= not(WindowAtom(TimeWindow(10), Box, p)),
+    n_t_dp <= not(WindowAtom(TimeWindow(10), Diamond, p)),
+    n_t_a3p <= not(WindowAtom(TimeWindow(10), At(3), p)),
     //qn4 <= not(WindowAtom(SlidingTimeWindow(10), At(T), p)), //grounding limitation
-    n_c_bp <= not(WindowAtom(SlidingTupleWindow(10), Box, p)),
-    n_c_dp <= not(WindowAtom(SlidingTupleWindow(10), Diamond, p)),
-    n_c_a3p <= not(WindowAtom(SlidingTupleWindow(10), At(3), p)),
+    n_c_bp <= not(WindowAtom(TupleWindow(10), Box, p)),
+    n_c_dp <= not(WindowAtom(TupleWindow(10), Diamond, p)),
+    n_c_a3p <= not(WindowAtom(TupleWindow(10), At(3), p)),
     //qn8b <= not(WindowAtom(SlidingTupleWindow(10), At(T), p)), //grounding limitation
     UserDefinedLarsRule(n_h_p,Set(),Set(p)),
     UserDefinedLarsRule(n_h_a3p,Set(),Set(AtAtom(3,p)))
@@ -152,7 +152,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
   test("basic propositional S1 - pre 0 - n_c_dp") {
 
     val program = LarsProgram.from(
-      n_c_dp <= not(WindowAtom(SlidingTupleWindow(10), Diamond, p))
+      n_c_dp <= not(WindowAtom(TupleWindow(10), Diamond, p))
     )
 
     val stream = Map[Int,Set[Atom]](3 -> Set(p))
@@ -171,7 +171,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
   test("basic propositional S1 - pre 1 - n_c_a3p") {
 
     val program = LarsProgram.from(
-      n_c_a3p <= not(WindowAtom(SlidingTupleWindow(10), At(3), p))
+      n_c_a3p <= not(WindowAtom(TupleWindow(10), At(3), p))
     )
 
     val stream = Map[Int,Set[Atom]](3 -> Set(p))
@@ -345,7 +345,7 @@ class IncrementalReasonerTests17 extends FunSuite with JtmsIncrementalReasoner {
       n_c_a3p -> (0 to 2).toSet
     )
 
-    val rule = n_c_a3p <= not(WindowAtom(SlidingTupleWindow(10), At(3), p))
+    val rule = n_c_a3p <= not(WindowAtom(TupleWindow(10), At(3), p))
 
     checkEntailments(LarsProgram.from(rule),expectedEntailmentTimePoints,stream)
   }

@@ -11,7 +11,7 @@ import org.scalatest.Matchers._
   */
 class RuleForAtTimeVariable extends TransformLarsSpec {
 
-  def rulesForAtTimeVariable(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom))
+  def rulesForAtTimeVariable(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[TimeWindow], windowAtom))
 
   val w_te_1_at_U_a = W(1, At(U), a)
 
@@ -53,7 +53,7 @@ class RuleForAtTimeVariable extends TransformLarsSpec {
   "The rule for w^2 at_U a" should "have rules with heads w_te_2_at_U_a(T-2), w_te_2_at_U_a(T-1), w_te_2_at_U_a(T), w_te_2_at_U_a(U)" in {
     def windowAtom(t: Time) = PinnedAtom.asPinnedAtAtom(Atom("w_te_2_at_U_a"), t)
 
-    val body = rulesForAtTimeVariable(WindowAtom(SlidingTimeWindow(2), At(U), a)) map (_.head)
+    val body = rulesForAtTimeVariable(WindowAtom(TimeWindow(2), At(U), a)) map (_.head)
     body should contain allOf(
       windowAtom(T - 2),
       windowAtom(T - 1),

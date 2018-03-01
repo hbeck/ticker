@@ -11,12 +11,12 @@ class LarsSpec extends FlatSpec with AtomTestFixture {
 
   def W = WindowAtom
 
-  def STW = SlidingTimeWindow
+  def STW = TimeWindow
 
-  val r1 = UserDefinedLarsRule(c, Set(WindowAtom(SlidingTimeWindow(3), Diamond, a), d), Set(b))
+  val r1 = UserDefinedLarsRule(c, Set(WindowAtom(TimeWindow(3), Diamond, a), d), Set(b))
   val r2 = UserDefinedLarsRule(AtAtom(TimePoint(1), c), Set(W(STW(5), Box, b)), Set(W(STW(3), Diamond, a), W(STW(1), At(TimePoint(3)), a)))
 
-  val rb1 = c <= WindowAtom(SlidingTimeWindow(3), Diamond, a) and d not (b)
+  val rb1 = c <= WindowAtom(TimeWindow(3), Diamond, a) and d not (b)
   val rb2 = AtAtom(TimePoint(1), c) <= W(STW(5), Box, b) not W(STW(3), Diamond, a) not W(STW(1), At(TimePoint(3)), a)
 
   "A simple LARS program" should "be formatted as string" in {

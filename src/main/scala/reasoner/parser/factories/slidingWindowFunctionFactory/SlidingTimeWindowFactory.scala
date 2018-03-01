@@ -2,7 +2,7 @@ package reasoner.parser.factories.slidingWindowFunctionFactory
 
 import java.util.concurrent.TimeUnit
 
-import core.lars.{SlidingTimeWindow, TimeWindowSize, WindowFunction}
+import core.lars.{TimeWindow, TimeWindowSize, WindowFunction}
 import reasoner.parser.InvalidSyntaxException
 import reasoner.parser.factories.WindowFunctionFactory
 import reasoner.parser.wrapper.ParamWrapper
@@ -20,14 +20,14 @@ case class SlidingTimeWindowFactory(params: List[ParamWrapper] = List())
     val value = params.head.value.toLong
     if(params.head.unit.isDefined) {
       params.head.unit.get match {
-        case "msec" => SlidingTimeWindow(TimeWindowSize(value,TimeUnit.MILLISECONDS))
-        case "sec" => SlidingTimeWindow(TimeWindowSize(value,TimeUnit.SECONDS))
-        case "min" => SlidingTimeWindow(TimeWindowSize(value,TimeUnit.MINUTES))
-        case "h" => SlidingTimeWindow(TimeWindowSize(value,TimeUnit.HOURS))
+        case "msec" => TimeWindow(TimeWindowSize(value,TimeUnit.MILLISECONDS))
+        case "sec" => TimeWindow(TimeWindowSize(value,TimeUnit.SECONDS))
+        case "min" => TimeWindow(TimeWindowSize(value,TimeUnit.MINUTES))
+        case "h" => TimeWindow(TimeWindowSize(value,TimeUnit.HOURS))
         case other => throw new InvalidSyntaxException("An unknown unit was given: " + other)
       }
     } else {
-      SlidingTimeWindow(value)
+      TimeWindow(value)
     }
   }
 

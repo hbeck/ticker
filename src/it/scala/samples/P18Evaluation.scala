@@ -135,13 +135,13 @@ object P18Evaluation extends P18Program {
 }
 
 trait P18Program {
-  def tiDi50(atom: Atom) = WindowAtom(SlidingTimeWindow(50), Diamond, atom)
+  def tiDi50(atom: Atom) = WindowAtom(TimeWindow(50), Diamond, atom)
 
-  def tiBo3(atom: Atom) = WindowAtom(SlidingTimeWindow(3), Box, atom)
+  def tiBo3(atom: Atom) = WindowAtom(TimeWindow(3), Box, atom)
 
-  def tuDi50(atom: Atom) = WindowAtom(SlidingTupleWindow(50), Diamond, atom)
+  def tuDi50(atom: Atom) = WindowAtom(TupleWindow(50), Diamond, atom)
 
-  def tuBo3(atom: Atom) = WindowAtom(SlidingTupleWindow(3), Box, atom)
+  def tuBo3(atom: Atom) = WindowAtom(TupleWindow(3), Box, atom)
 
   val a = Predicate("a")
   val b = Predicate("b")

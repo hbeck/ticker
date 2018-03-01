@@ -10,9 +10,9 @@ import org.scalatest.Matchers._
   * Created by FM on 11.05.16.
   */
 class RuleForAtSpec extends TransformLarsSpec {
-  val w_te_1_a_1_a = WindowAtom(SlidingTimeWindow(1), At(t1), a)
+  val w_te_1_a_1_a = WindowAtom(TimeWindow(1), At(t1), a)
 
-  def ruleForAt(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom))
+  def ruleForAt(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[TimeWindow], windowAtom))
 
   "The rule for w^1 at_1 a" should "return two rules" in {
     ruleForAt(w_te_1_a_1_a) should have size (2)
@@ -38,7 +38,7 @@ class RuleForAtSpec extends TransformLarsSpec {
   }
 
   "The rule for w^2 at_2 a" should "contain now(T), a(t2)" in {
-    ruleForAt(WindowAtom(SlidingTimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(T), PinnedAtom.asPinnedAtAtom(a, t2))
+    ruleForAt(WindowAtom(TimeWindow(2), At(t2), a)) flatMap (_.body) should contain allOf(now(T), PinnedAtom.asPinnedAtAtom(a, t2))
   }
 
   val w_te_1_at_U_a = W(1, At(U), a)

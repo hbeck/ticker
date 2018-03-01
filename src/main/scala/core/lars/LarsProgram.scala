@@ -19,11 +19,11 @@ trait LarsBasedProgram /* extends Program[LarsRule,HeadAtom,ExtendedAtom] */ {
     }
   } toSet
 
-  lazy val slidingTimeWindowsAtoms: Set[SlidingTimeWindow] = windowAtoms collect {
-    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTimeWindow] => w.windowFunction.asInstanceOf[SlidingTimeWindow]
+  lazy val slidingTimeWindowsAtoms: Set[TimeWindow] = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[TimeWindow] => w.windowFunction.asInstanceOf[TimeWindow]
   }
-  lazy val slidingTupleWindowsAtoms: Set[SlidingTupleWindow] = windowAtoms collect {
-    case w: WindowAtom if w.windowFunction.isInstanceOf[SlidingTupleWindow] => w.windowFunction.asInstanceOf[SlidingTupleWindow]
+  lazy val slidingTupleWindowsAtoms: Set[TupleWindow] = windowAtoms collect {
+    case w: WindowAtom if w.windowFunction.isInstanceOf[TupleWindow] => w.windowFunction.asInstanceOf[TupleWindow]
   }
 
   lazy val maximumWindowSize: TimeWindowSize = slidingTimeWindowsAtoms.isEmpty match {

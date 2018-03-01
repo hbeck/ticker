@@ -10,10 +10,10 @@ class AdditionalRulesSpecs extends TransformLarsSpec {
 
 
   "A diamond-window atom" should "be transformed into some rule" in {
-    assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Diamond, a)).nonEmpty)
+    assert(allWindowRules(WindowAtom(TimeWindow(1), Diamond, a)).nonEmpty)
   }
   "A box-window atom" should "be transformed into some rule" in {
-    assert(allWindowRules(WindowAtom(SlidingTimeWindow(1), Box, a)).nonEmpty)
+    assert(allWindowRules(WindowAtom(TimeWindow(1), Box, a)).nonEmpty)
   }
 
 }

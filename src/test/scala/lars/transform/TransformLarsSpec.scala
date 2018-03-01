@@ -1,7 +1,7 @@
 package lars.transform
 
 import core.asp.NormalRule
-import core.lars.{SlidingTimeWindow, WindowAtom}
+import core.lars.{TimeWindow, WindowAtom}
 import fixtures.TimeTestFixtures
 import org.scalatest.FlatSpec
 import reasoner.common.{PlainLarsToAspMapper, WindowAtomEncoder}
@@ -16,7 +16,7 @@ class TransformLarsSpec extends FlatSpec with TimeTestFixtures {
   val now = reasoner.now
   val cnt = reasoner.cnt
 
-  val st1 = SlidingTimeWindow(1)
+  val st1 = TimeWindow(1)
 
   def DefaultLarsToPinnedProgram: PlainLarsToAspMapper = PlainLarsToAspMapper(1 second)
 

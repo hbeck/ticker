@@ -22,7 +22,7 @@ class RuleSpec extends TransformLarsSpec {
   }
 
   "A rule containing a window atom wˆ1 b a" should "be transformed into 2 rules" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(TimeWindow(1), Box, a)))
 
     encodeRule(r) should have size 2
   }
@@ -32,30 +32,30 @@ class RuleSpec extends TransformLarsSpec {
   }
 
   it should "contain a rule with head w_1_b_a" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(TimeWindow(1), Box, a)))
 
     encodeRule(r).map(_.head) should contain(Atom("w_te_1_b_a"))
   }
   it should "contain a rule with head w_1_b_a mapped from neg." in {
-    val r = UserDefinedLarsRule(b, Set(), Set(WindowAtom(SlidingTimeWindow(1), Box, a)))
+    val r = UserDefinedLarsRule(b, Set(), Set(WindowAtom(TimeWindow(1), Box, a)))
 
     encodeRule(r).map(_.head) should contain(Atom("w_te_1_b_a"))
   }
 
   "A rule containing a window atom aˆ1 d a" should "be transformed into 3 rules" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(1), Diamond, a)))
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(TimeWindow(1), Diamond, a)))
 
     encodeRule(r) should have size 2
   }
 
   "A rule containing a window atom aˆ1 at_1 a" should "be transformed into 3 rules" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(1), At(t1), a)))
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(TimeWindow(1), At(t1), a)))
 
     encodeRule(r) should have size 2
   }
 
   "A rule containing a window atom aˆ0 d a" should "be transformed into 2 rules" in {
-    val r = UserDefinedLarsRule(b, Set(WindowAtom(SlidingTimeWindow(0), Diamond, a)))
+    val r = UserDefinedLarsRule(b, Set(WindowAtom(TimeWindow(0), Diamond, a)))
 
     encodeRule(r) should have size 1
   }

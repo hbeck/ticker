@@ -11,7 +11,7 @@ class DerivationForTime extends TransformLarsSpec {
 
   val convert = PlainLarsToAspMapper()
 
-  val atWindow = WindowAtom(SlidingTimeWindow(2), At(U), a)
+  val atWindow = WindowAtom(TimeWindow(2), At(U), a)
 
   def convertedRule(windowAtom: WindowAtom) = {
     convert.windowAtomEncoder(windowAtom)

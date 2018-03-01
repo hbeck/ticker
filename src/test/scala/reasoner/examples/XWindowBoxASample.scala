@@ -37,7 +37,7 @@ class XWindowBoxASample extends ConfigurableReasonerSpec with TimeTestFixtures w
   )
 
   val program = LarsProgram.from(
-    x <= WindowAtom(SlidingTimeWindow(1), Box, a)
+    x <= WindowAtom(TimeWindow(1), Box, a)
   )
 
   //info("Engine " + evaluationMode)

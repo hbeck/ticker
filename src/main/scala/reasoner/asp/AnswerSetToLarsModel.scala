@@ -11,7 +11,7 @@ object AspModelToLarsModel {
   def apply(timePoint: TimePoint, model: PinnedModel): Model = {
 
     val filtered = model filter {
-      case p: PinnedAtAtom if p.atom == now => false
+      case p: PinnedAtAtom if p.atom.predicate == now => false
       //      case ConcretePinnedAtom(atom, time) if !program.atAtoms.exists(_.atom == atom) => time == timePoint
       case GroundPinnedAtAtom(atom, time) => time == timePoint
       case _ => true

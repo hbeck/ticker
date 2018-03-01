@@ -11,8 +11,8 @@ import core.{Atom, PinnedAtom, Predicate, RelationAtom}
 trait LarsToAspMapper {
 
   def windowAtomEncoder(windowAtom: WindowAtom, groundingGuards: Set[Atom]=Set()): WindowAtomEncoder = windowAtom match {
-    case w@WindowAtom(window: SlidingTimeWindow, _, _) => slidingTime(window, w, groundingGuards)
-    case w@WindowAtom(window: SlidingTupleWindow, _, _) => slidingTuple(window, w, groundingGuards)
+    case w@WindowAtom(window: TimeWindow, _, _) => slidingTime(window, w, groundingGuards)
+    case w@WindowAtom(window: TupleWindow, _, _) => slidingTuple(window, w, groundingGuards)
   }
 
   def encodeRule(rule: LarsRule): LarsRuleEncoding = {
@@ -36,8 +36,8 @@ trait LarsToAspMapper {
 
   private def predicateFor(windowFunction: WindowFunction, temporalModality: TemporalModality, atom: Atom) = {
     val window = windowFunction match {
-      case SlidingTimeWindow(size) => f"w_te_${timePoints(size.unit, size.length)}"
-      case SlidingTupleWindow(size) => f"w_tu_$size"
+      case TimeWindow(size) => f"w_te_${timePoints(size.unit, size.length)}"
+      case TupleWindow(size) => f"w_tu_$size"
     }
     val operator = temporalModality match {
       case Diamond => "d"
@@ -88,9 +88,9 @@ trait LarsToAspMapper {
 
   def encodingAtom(extendedAtom: ExtendedAtom): Atom
 
-  def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
+  def slidingTime(window: TimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
 
-  def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
+  def slidingTuple(window: TupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom]): WindowAtomEncoder
 
   def timePoints(unit: TimeUnit, size: Long): Long
 }

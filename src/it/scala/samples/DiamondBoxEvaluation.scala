@@ -156,9 +156,9 @@ trait DiamondBoxSpec {
 
   def buildProgram(k: Long, n: Long, i: Long, j: Long): LarsProgram = {
 
-    def slidingTime(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temp, atom)
+    def slidingTime(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(TimeWindow(windowSize), temp, atom)
 
-    def slidingTuple(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(SlidingTupleWindow(windowSize), temp, atom)
+    def slidingTuple(windowSize: Long, temp: TemporalModality, atom: Atom) = WindowAtom(TupleWindow(windowSize), temp, atom)
 
     LarsProgram.from(
       some <= slidingTime(k, Diamond, x) and slidingTuple(n, Diamond, y),

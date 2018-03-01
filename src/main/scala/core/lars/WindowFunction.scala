@@ -15,9 +15,9 @@ sealed trait SlidingWindow[T] extends WindowFunction {
     sealed trait SlidingWindow[Tick](windowSize: Int) extends WindowFunction
  */
 
-case class SlidingTimeWindow(windowSize: TimeWindowSize) extends SlidingWindow[TimeWindowSize]
+case class TimeWindow(windowSize: TimeWindowSize) extends SlidingWindow[TimeWindowSize]
 
-case class SlidingTupleWindow(windowSize: TupleCount) extends SlidingWindow[TupleCount]
+case class TupleWindow(windowSize: TupleCount) extends SlidingWindow[TupleCount]
 
 //case class SlidingSpecificTupleWindow(windowSize: TupleCount) extends SlidingWindow
 

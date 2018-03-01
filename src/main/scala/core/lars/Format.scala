@@ -59,8 +59,8 @@ abstract class Format {
 
 object SymbolicLars extends Format {
   def apply(windowFunction: WindowFunction): String = windowFunction match {
-    case SlidingTupleWindow(windowSize) => f"⊞_#^$windowSize"
-    case SlidingTimeWindow(windowSize) => f"⊞_t^${apply(windowSize)}"
+    case TupleWindow(windowSize) => f"⊞_#^$windowSize"
+    case TimeWindow(windowSize) => f"⊞_t^${apply(windowSize)}"
   }
 
   def apply(windowSize: TimeWindowSize): String = f"[${windowSize.length} ${windowSize.unit.toString}]"
@@ -92,8 +92,8 @@ object ParsedLars extends Format {
   }
 
   override def apply(windowFunction: WindowFunction): String = windowFunction match {
-    case SlidingTimeWindow(windowSize) => f"[${apply(windowSize)}]"
-    case SlidingTupleWindow(windowSize) => f"[$windowSize #]"
+    case TimeWindow(windowSize) => f"[${apply(windowSize)}]"
+    case TupleWindow(windowSize) => f"[$windowSize #]"
   }
 
   override def apply(windowSize: TimeWindowSize): String = f"${windowSize.length} ${windowSize.unit.toString}"

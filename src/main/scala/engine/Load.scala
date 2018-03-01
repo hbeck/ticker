@@ -2,7 +2,7 @@ package engine
 
 import java.util.concurrent.TimeUnit
 
-import core.lars.{Box, Diamond, ExtendedAtom, HeadAtom, LarsFact, LarsProgram, LarsRule, SlidingTimeWindow, TimeWindowSize, WindowAtom, _}
+import core.lars.{Box, Diamond, ExtendedAtom, HeadAtom, LarsFact, LarsProgram, LarsRule, TimeWindow, TimeWindowSize, WindowAtom, _}
 import core.{Argument, Atom, GroundAtom, IntValue, PinnedAtom, Predicate, PredicateAtom, StringValue, Value, Variable, _}
 import engine.Load._
 
@@ -106,11 +106,11 @@ case class Load(timeUnit: TimeUnit) {
 
     val windowParameter = parts(1).partition(_.isDigit)
     val window = windowParameter match {
-      case (Int(timeInDefaultUnit), "") => SlidingTimeWindow(TimeWindowSize(timeInDefaultUnit, TimeUnit.SECONDS))
-      case (Int(tupleCount), "t") => SlidingTupleWindow(tupleCount)
+      case (Int(timeInDefaultUnit), "") => TimeWindow(TimeWindowSize(timeInDefaultUnit, TimeUnit.SECONDS))
+      case (Int(tupleCount), "t") => TupleWindow(tupleCount)
       case (Int(time), unit) => {
         val duration = Duration(time, unit)
-        SlidingTimeWindow(TimeWindowSize(duration.length, duration.unit))
+        TimeWindow(TimeWindowSize(duration.length, duration.unit))
       }
       case _ => throw new RuntimeException("Could not parse " + windowParameter + " into a valid window")
     }

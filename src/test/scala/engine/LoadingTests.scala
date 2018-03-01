@@ -19,21 +19,21 @@ class LoadingTests extends FlatSpec {
     val result = loader.windowAtom("w_7_d_a", Seq("foo", "X"))
 
     result.atom.predicate should be(Predicate("a"))
-    result.windowFunction should be(SlidingTimeWindow(TimeWindowSize(7, TimeUnit.SECONDS)))
+    result.windowFunction should be(TimeWindow(TimeWindowSize(7, TimeUnit.SECONDS)))
   }
 
   "w_7min_d_a(foo)" should "say Time Window with size 7 minutes Diamond a(foo)" in {
     val result = loader.windowAtom("w_7min_d_a", Seq("foo"))
 
     result.atom.predicate should be(Predicate("a"))
-    result.windowFunction should be(SlidingTimeWindow(TimeWindowSize(7, TimeUnit.MINUTES)))
+    result.windowFunction should be(TimeWindow(TimeWindowSize(7, TimeUnit.MINUTES)))
   }
 
   "w_7t_d_a" should "say Tuple-Based Window with size 7 Diamond a" in {
     val result = loader.windowAtom("w_7t_d_a", Seq())
 
     result.atom.predicate should be(Predicate("a"))
-    result.windowFunction should be(SlidingTupleWindow(7))
+    result.windowFunction should be(TupleWindow(7))
   }
 
   "w_5t_b_y(1)" should "be parsed into predicate y  with argument 1" in {
@@ -50,7 +50,7 @@ class LoadingTests extends FlatSpec {
 
     result.atom.predicate should be(Predicate("a"))
     val window = result.asInstanceOf[WindowAtom]
-    window.windowFunction should be(SlidingTupleWindow(7))
+    window.windowFunction should be(TupleWindow(7))
     window.temporalModality should be(lars.Diamond)
   }
 

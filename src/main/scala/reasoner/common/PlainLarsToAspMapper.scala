@@ -28,7 +28,7 @@ case class PlainLarsToAspMapper(clockTime: ClockTime = 1 second) extends LarsToA
 
   // windowAtom: \window^1 @_T a(X)
   // head: w_{bla}(X,T)
-  override def slidingTime(window: SlidingTimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom] = Set()): WindowAtomEncoder = {
+  override def slidingTime(window: TimeWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom] = Set()): WindowAtomEncoder = {
     val length = timePoints(window.windowSize.unit, window.windowSize.length)
     val head = encodedWindowAtom(windowAtom) //may be improved
     windowAtom.temporalModality match {
@@ -38,7 +38,7 @@ case class PlainLarsToAspMapper(clockTime: ClockTime = 1 second) extends LarsToA
     }
   }
 
-  override def slidingTuple(window: SlidingTupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom] = Set()): WindowAtomEncoder = {
+  override def slidingTuple(window: TupleWindow, windowAtom: WindowAtom, groundingGuards: Set[Atom] = Set()): WindowAtomEncoder = {
     val head = encodedWindowAtom(windowAtom) //may be improved
     windowAtom.temporalModality match {
       case a: At => TupleAtEncoder(window.windowSize, windowAtom.atom, head.asInstanceOf[PinnedAtAtom], a.time, groundingGuards)

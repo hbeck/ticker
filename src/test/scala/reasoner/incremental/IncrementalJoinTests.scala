@@ -71,7 +71,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time diamond x2") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTimeWindow(2), Diamond, pX) and WindowAtom(SlidingTimeWindow(4), Diamond, sX)
+      hX <= gX and WindowAtom(TimeWindow(2), Diamond, pX) and WindowAtom(TimeWindow(4), Diamond, sX)
     ) ++ guards
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -101,7 +101,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time diamond x2 neg") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTimeWindow(2), Diamond, pX) not WindowAtom(SlidingTimeWindow(4), Diamond, sX)
+      hX <= gX and WindowAtom(TimeWindow(2), Diamond, pX) not WindowAtom(TimeWindow(4), Diamond, sX)
     ) ++ guards
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -131,7 +131,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time box x2") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTimeWindow(2), Box, pX) and WindowAtom(SlidingTimeWindow(4), Box, sX)
+      hX <= gX and WindowAtom(TimeWindow(2), Box, pX) and WindowAtom(TimeWindow(4), Box, sX)
     ) ++ guards
     val reasoner = reasonerBuilder(program)
     def has = containsWithReasoner(reasoner) _
@@ -153,7 +153,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at x2 different time") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTimeWindow(2), At(U1), pX) and WindowAtom(SlidingTimeWindow(4), At(U2), sX),
+      hX <= gX and WindowAtom(TimeWindow(2), At(U1), pX) and WindowAtom(TimeWindow(4), At(U2), sX),
       LarsFact(gb)
     )
 
@@ -188,7 +188,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at x2 same time") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
+      hX <= gX and WindowAtom(TimeWindow(2), At(U), pX) and WindowAtom(TimeWindow(4), At(U), sX), //same time point
       LarsFact(gb)
     )
 
@@ -223,7 +223,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at x2 same time, var") {
 
     val program = LarsProgram.from(
-      AtAtom(U,hX) <= gX and WindowAtom(SlidingTimeWindow(2), At(U), pX) and WindowAtom(SlidingTimeWindow(4), At(U), sX), //same time point
+      AtAtom(U,hX) <= gX and WindowAtom(TimeWindow(2), At(U), pX) and WindowAtom(TimeWindow(4), At(U), sX), //same time point
       LarsFact(gb)
     )
 
@@ -258,8 +258,8 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("time at, plus") {
 
     val program = LarsProgram.from(
-      AtAtom(U2,hX) <= gX and WindowAtom(SlidingTimeWindow(4), At(U1), pX) and Incr(U1,U2),
-      AtAtom(U2,jX) <= gX and WindowAtom(SlidingTimeWindow(4), At(U1), pX) and Plus(U1,IntValue(1),U2),
+      AtAtom(U2,hX) <= gX and WindowAtom(TimeWindow(4), At(U1), pX) and Incr(U1,U2),
+      AtAtom(U2,jX) <= gX and WindowAtom(TimeWindow(4), At(U1), pX) and Plus(U1,IntValue(1),U2),
       LarsFact(gb)
     )
 
@@ -282,7 +282,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple diamond x2") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(4), Diamond, pX) and WindowAtom(SlidingTupleWindow(4), Diamond, sX)
+      hX <= gX and WindowAtom(TupleWindow(4), Diamond, pX) and WindowAtom(TupleWindow(4), Diamond, sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -336,7 +336,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple at x2 different time") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(4), At(U1), pX) and WindowAtom(SlidingTupleWindow(4), At(U2), sX)
+      hX <= gX and WindowAtom(TupleWindow(4), At(U1), pX) and WindowAtom(TupleWindow(4), At(U2), sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -390,7 +390,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple at x2 same time") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(4), At(U), pX) and WindowAtom(SlidingTupleWindow(4), At(U), sX)
+      hX <= gX and WindowAtom(TupleWindow(4), At(U), pX) and WindowAtom(TupleWindow(4), At(U), sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -444,7 +444,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 2 neg") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(2), Box, pX) not WindowAtom(SlidingTupleWindow(2), Box, sX)
+      hX <= gX and WindowAtom(TupleWindow(2), Box, pX) not WindowAtom(TupleWindow(2), Box, sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -480,7 +480,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 3 neg") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(3), Box, pX) not WindowAtom(SlidingTupleWindow(3), Box, sX)
+      hX <= gX and WindowAtom(TupleWindow(3), Box, pX) not WindowAtom(TupleWindow(3), Box, sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -508,7 +508,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 4 neg") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(4), Box, pX) not WindowAtom(SlidingTupleWindow(4), Box, sX)
+      hX <= gX and WindowAtom(TupleWindow(4), Box, pX) not WindowAtom(TupleWindow(4), Box, sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)
@@ -578,7 +578,7 @@ class IncrementalJoinTests extends FunSuite with JtmsIncrementalReasoner {
   test("tuple box - size 4 pos") {
 
     val program = LarsProgram.from(
-      hX <= gX and WindowAtom(SlidingTupleWindow(4), Box, pX) and WindowAtom(SlidingTupleWindow(4), Box, sX)
+      hX <= gX and WindowAtom(TupleWindow(4), Box, pX) and WindowAtom(TupleWindow(4), Box, sX)
     ) ++ guards
 
     val reasoner = reasonerBuilder(program)

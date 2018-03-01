@@ -12,7 +12,7 @@ package object lars {
   type ClockTime = scala.concurrent.duration.Duration //temporal duration of a logical time point
   type TimeUnit = scala.concurrent.duration.TimeUnit
 
-  def W(windowSize: TimeWindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(SlidingTimeWindow(windowSize), temporalModality, atom)
+  def W(windowSize: TimeWindowSize, temporalModality: TemporalModality, atom: Atom) = WindowAtom(TimeWindow(windowSize), temporalModality, atom)
 
   type LarsRule = Rule[HeadAtom, ExtendedAtom]
 

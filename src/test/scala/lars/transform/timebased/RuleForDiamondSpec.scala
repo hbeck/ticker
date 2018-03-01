@@ -1,7 +1,7 @@
 package lars.transform.timebased
 
 import core.PinnedAtom
-import core.lars.{Diamond, SlidingTimeWindow, WindowAtom}
+import core.lars.{Diamond, TimeWindow, WindowAtom}
 import lars.transform.TransformLarsSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -13,9 +13,9 @@ import scala.concurrent.duration._
   * Created by FM on 09.05.16.
   */
 class RuleForDiamondSpec extends TransformLarsSpec {
-  def rulesForDiamond(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[SlidingTimeWindow], windowAtom))
+  def rulesForDiamond(windowAtom: WindowAtom) = allWindowRules(DefaultLarsToPinnedProgram.slidingTime(windowAtom.windowFunction.asInstanceOf[TimeWindow], windowAtom))
 
-  val w_te_1_d_a = WindowAtom(SlidingTimeWindow(1), Diamond, a)
+  val w_te_1_d_a = WindowAtom(TimeWindow(1), Diamond, a)
 
   "The rule for w^1 d a" should "return two rules" in {
     rulesForDiamond(w_te_1_d_a) should have size (2)
@@ -34,7 +34,7 @@ class RuleForDiamondSpec extends TransformLarsSpec {
   }
 
   "The rule for w^3 d a" should "contain a(T -1), a(T -2), a(T -3), a(T)" in {
-    rulesForDiamond(WindowAtom(SlidingTimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(
+    rulesForDiamond(WindowAtom(TimeWindow(3), Diamond, a)) flatMap (_.body) should contain allOf(
 
       PinnedAtom.asPinnedAtAtom(a, T),
       PinnedAtom.asPinnedAtAtom(a, T - 1),
@@ -44,6 +44,6 @@ class RuleForDiamondSpec extends TransformLarsSpec {
   }
 
   "The rule for w^1s d a at tick size of 1ms" should "return 1001 rules" in {
-    allWindowRules(PlainLarsToAspMapper(1 millisecond).slidingTime(SlidingTimeWindow(1), w_te_1_d_a)) should have size (1001)
+    allWindowRules(PlainLarsToAspMapper(1 millisecond).slidingTime(TimeWindow(1), w_te_1_d_a)) should have size (1001)
   }
 }
