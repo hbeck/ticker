@@ -32,7 +32,7 @@ object Program {
 
     parseParameters(args) match {
       case Some(config) => {
-        val program = config.larsProgram
+        val program = config.parseProgramFromFile()
 
         printProgram(program)
 
@@ -41,12 +41,12 @@ object Program {
         val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
           exists {
             t => Duration(t.windowSize.length, t.windowSize.unit) lt config.clockTime
-              //TODO have to check that every window is a multiple of clock time
+            //TODO have to check that every window is a multiple of clock time
           }
         if (timeWindowSmallerThanEngineUnit)
           throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the clock time.")
 
-        val reasoner = config.buildReasoner()
+        val reasoner = config.buildReasoner(program)
 
         val engine = Engine(reasoner, config.clockTime, config.outputTiming)
         config.inputs foreach {
@@ -93,7 +93,7 @@ object Program {
         action((x, c) => c.copy(clockTime = x)).
         text("valid units: ms, s, min, h. eg: 10ms") //TODO
 
-      opt[OutputTiming]('e',"outputEvery").
+      opt[OutputTiming]('e', "outputEvery").
         optional().
         valueName("change | signal | time | <value>signals | <value><time-unit>").
         validate {
@@ -126,7 +126,7 @@ object Program {
       })
     }
 
-    parser.parse(args, Config(programFile = new File("")))
+    parser.parse(args, Config())
   }
 
   private val SignalPattern = "(\\d+)signals".r
@@ -170,7 +170,7 @@ object Program {
   case class SocketOutput(port: Int) extends OutputSink
 
   case class Config(reasoner: ReasonerChoice = ReasonerChoice.Incremental,
-                    programFile: File, //TODO PPS multiple
+                    programFile: File = null, //TODO PPS multiple
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[InputSource] = Seq(StdIn),
@@ -178,12 +178,12 @@ object Program {
                     filter: Option[Set[String]] = None
                    ) {
 
-    val larsProgram = LarsParser(programFile.toURI.toURL)
+    def parseProgramFromFile() = LarsParser(programFile.toURI.toURL)
 
-    def buildReasoner(): Reasoner = {
+    def buildReasoner(program: LarsProgram): Reasoner = {
 
       val reasonerBuilder = BuildReasoner.
-        withProgram(larsProgram).
+        withProgram(program).
         withClockTime(clockTime)
 
       val preparedReasoner = reasoner match {
