@@ -6,6 +6,9 @@ import core.lars.TimeUnit
 import scala.concurrent.duration.Duration
 
 package object connectors {
+  val atomsSeparator = ';'
+
+
   def parseInput(inputUnit: TimeUnit)(line: String): (Option[Duration], Seq[Atom]) = {
     if (line.startsWith("@")) {
       val parts = line.split(':')
@@ -21,7 +24,7 @@ package object connectors {
   }
 
   def parseAtoms(atoms: String) = atoms.
-    split(',').
+    split(atomsSeparator).
     map(_.trim).
     map(Load.signal)
 
