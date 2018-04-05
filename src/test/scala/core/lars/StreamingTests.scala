@@ -8,7 +8,7 @@ import reasoner.incremental.jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 import engine.Load
 import core.grounding.LarsGrounding
-import iclp2.evaluation2.Util
+import evaluation.iclp.Util._
 
 
 /**

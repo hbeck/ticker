@@ -30,15 +30,15 @@ object Jtms {
     jtms
   }
 
-  def apply(): Jtms = {
+  def apply(random: Random = new Random()): Jtms = {
     variant match {
-      case DoyleHeuristics => new JtmsDoyleHeuristics()
-      case Doyle => new JtmsDoyle()
+      case DoyleHeuristics => new JtmsDoyleHeuristics(TruthMaintenanceNetwork(), random)
+      case Doyle => new JtmsDoyle(TruthMaintenanceNetwork(), random)
       //
-      case Beierle => new JtmsBeierle()
-      case BeierleFixed => new JtmsBeierleFixed()
-      case Greedy => new JtmsGreedy()
-      case Learn => new JtmsLearn()
+      case Beierle => new JtmsBeierle(TruthMaintenanceNetwork(), random)
+      case BeierleFixed => new JtmsBeierleFixed(TruthMaintenanceNetwork(), random)
+      case Greedy => new JtmsGreedy(TruthMaintenanceNetwork(), random)
+      case Learn => new JtmsLearn(new OptimizedNetworkForLearn(), random)
     }
   }
 

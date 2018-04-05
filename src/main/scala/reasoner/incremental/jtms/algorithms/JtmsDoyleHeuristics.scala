@@ -14,7 +14,7 @@ object JtmsDoyleHeuristics {
     jtms
   }
 
-  def apply(): JtmsDoyleHeuristics = new JtmsDoyleHeuristics()
+  def apply(random: Random = new Random()): JtmsDoyleHeuristics = new JtmsDoyleHeuristics(TruthMaintenanceNetwork(),random)
 
 }
 

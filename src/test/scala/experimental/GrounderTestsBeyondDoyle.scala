@@ -5,7 +5,7 @@ import core._
 import core.asp._
 import core.grounding.LarsGrounding
 import core.lars.{LarsProgram, LarsRule}
-import iclp2.evaluation2.Util._
+import evaluation.iclp.Util._
 import org.scalatest.FunSuite
 import engine.Load
 import engine.Load._

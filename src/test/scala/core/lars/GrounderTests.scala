@@ -3,7 +3,7 @@ package core.lars
 import core._
 import core.asp._
 import core.grounding.{Grounding, LarsGrounding}
-import iclp2.evaluation2.Util._
+import evaluation.iclp.Util._
 import reasoner.incremental.jtms.algorithms.Jtms
 import org.scalatest.FunSuite
 import engine.Load

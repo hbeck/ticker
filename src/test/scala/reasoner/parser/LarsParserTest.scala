@@ -2,8 +2,7 @@ package reasoner.parser
 
 import core.lars._
 import core._
-import iclp.evaluation.instances.MMediaDeterministicEvalInst
-import iclp2.evaluation2.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst}
+import evaluation.iclp.instances.{CacheHopsEvalInst1, MMediaDeterministicEvalInst}
 import org.scalatest.FunSuite
 
 import scala.util.Random

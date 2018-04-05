@@ -2,7 +2,7 @@ package reasoner.incremental.jtms.asp.examples
 
 import core._
 import core.asp.{AspFact, AspProgram, AspRule}
-import iclp2.evaluation2.JtmsGreedyEvaluation
+import evaluation.iclp.JtmsGreedyEvaluation
 import org.scalatest.FlatSpec
 import reasoner.asp.clingo.ClingoCall
 
