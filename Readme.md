@@ -23,7 +23,7 @@ auxiliary atom `third`.
 
 ```
 moreThanTwo :- third [10 sec].
-@T third :- car(C), @T rec(C) [3 #], not rec(C) [2 #].
+third at T :- car(C), rec(C) at T in [3 #], not rec(C) [2 #].
 car(1). car(2). car(3). car(4).
 ```
 

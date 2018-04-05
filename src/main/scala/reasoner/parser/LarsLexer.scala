@@ -31,16 +31,19 @@ class LarsLexer extends JavaTokenParsers {
 
   def wAtom: Parser[WAtomFactory] = boxWAtom | diamWAtom | atWAtom
 
+  // TODO: remove optNotIn?
   def boxWAtom: Parser[WAtomFactory] = atom ~ space ~ "always" ~ optNotIn ~ window ^^ {
-    case atom ~ _ ~ _ ~ not ~ window => WAtomFactory(not,atom,Box,window)
+    case atom ~ _ ~ _ ~ _ ~ window => WAtomFactory(atom.neg,atom,Box,window)
   }
 
+  // TODO: remove optNotIn?
   def diamWAtom: Parser[WAtomFactory] = atom ~ optNotIn ~ window ^^ {
-    case atom ~ not ~ window => WAtomFactory(not,atom,Diamond,window)
+    case atom ~ _ ~ window => WAtomFactory(atom.neg,atom,Diamond,window)
   }
 
+  // TODO: remove optNotIn?
   def atWAtom: Parser[WAtomFactory] = atAtom ~ optNotIn ~ window ^^ {
-    case atAtom ~ not ~ window => WAtomFactory(not,atAtom,At(atAtom.atom.time),window)
+    case atAtom ~ _ ~ window => WAtomFactory(atAtom.neg,atAtom,At(atAtom.atom.time),window)
   }
 
   def optNotIn: Parser[Boolean] = space ~ "not" ~ in ^^ (_ => true) |
@@ -56,12 +59,12 @@ class LarsLexer extends JavaTokenParsers {
       case _ => WindowFactory("t",List(ParamWrapper(num,unit.get)))}
   }
 
-  def atAtom: Parser[AtAtomFactory] = atom ~ space ~ neg ~ "at" ~ space ~ (float ^^ (f => f.toString)
+  def atAtom: Parser[AtAtomFactory] =  atom ~ space ~ "at" ~ space ~ (float ^^ (f => f.toString)
     |upperChar ~ opt(str) ^^ {
     case c ~ None => c.toString
     case c ~ str => c+""+str.get
   }) ^^ {
-    case atom ~ _ ~ not ~ _ ~ _ ~ time => AtAtomFactory(not,atom,time)
+    case atom  ~ _ ~ _ ~ _ ~ time => AtAtomFactory(atom.neg,atom,time)
   }
 
   def atom: Parser[AtomFactory] = neg ~ optSpace ~ predicate ~ opt("(" ~> repsep(variable|float,",") <~ ")") ^^ {
