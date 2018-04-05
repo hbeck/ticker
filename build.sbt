@@ -2,7 +2,7 @@ name := "ticker"
 
 version := "1.0"
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.4"
 cancelable in Global := true
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
@@ -17,10 +17,6 @@ scalacOptions += "-feature"
 scalacOptions += "-deprecation"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
-
-import sbtassembly.AssemblyPlugin._
-
-import sbt.Package.ManifestAttributes
 
 lazy val commonSettings = Seq(
 

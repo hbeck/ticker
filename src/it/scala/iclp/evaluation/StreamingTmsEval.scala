@@ -6,9 +6,8 @@ import java.util.concurrent.TimeUnit
 import common.Util.stopTime
 import core.Atom
 import core.asp._
-import reasoner.incremental.jtms._
-import reasoner.incremental.jtms.algorithms._
 import engine.Load
+import reasoner.incremental.jtms.algorithms._
 
 import scala.io.Source
 
@@ -295,17 +294,5 @@ object StreamingTmsEval {
     }
   }
 
-  /*
-  test("infinite odd loop doyle") {
-
-    val tms = new JtmsDoyle()
-    val r1 = asAspRule(rule("a :- not b"))
-    val r2 = asAspRule(rule("b :- a"))
-    tms add r1
-    tms add r2
-
-    println(tms.getModel)
-  }
-  */
 
 }

@@ -229,8 +229,6 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
     t = t+1
     hasN(t,moreThanK)
 
-
-
   }
 
 
