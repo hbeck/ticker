@@ -3,13 +3,12 @@ package core.lars
 import common.Util.printTime
 import core._
 import core.asp.{AspFact, AspRule, NormalRule}
-import iclp.evaluation.Util
 import engine.Load._
 import reasoner.incremental.jtms.algorithms.JtmsLearn
 import org.scalatest.FunSuite
 import engine.Load
-import Util._
 import core.grounding.LarsGrounding
+import iclp2.evaluation2.Util
 
 
 /**

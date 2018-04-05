@@ -1,9 +1,9 @@
-package iclp.evaluation.instances
+package iclp2.evaluation2.instances
 
 import core._
 import core.asp.NormalRule
-import core.lars.{At, AtAtom, LarsProgram, LarsRule}
-import iclp.evaluation.StreamingTmsEvalInst
+import core.lars.{AtAtom, LarsProgram, LarsRule}
+import iclp2.evaluation2.StreamingTmsEvalInst
 
 import scala.util.Random
 

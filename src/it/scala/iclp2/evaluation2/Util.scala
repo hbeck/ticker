@@ -1,4 +1,4 @@
-package iclp.evaluation
+package iclp2.evaluation2
 
 import core._
 import core.asp.{AspProgram, NormalProgram, NormalRule, UserDefinedAspRule}

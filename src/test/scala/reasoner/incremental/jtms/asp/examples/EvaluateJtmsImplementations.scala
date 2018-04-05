@@ -1,7 +1,8 @@
 package reasoner.incremental.jtms.asp.examples
 
 import core.Evaluation
-import iclp.evaluation.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsDoyleHeuristicsEvaluation, JtmsGreedyEvaluation}
+import iclp.evaluation.{JtmsDoyleEvaluation, JtmsDoyleHeuristicsEvaluation, JtmsGreedyEvaluation}
+import iclp2.evaluation2.{JtmsBeierleFixedEvaluation, JtmsDoyleEvaluation, JtmsDoyleHeuristicsEvaluation, JtmsGreedyEvaluation}
 import org.scalatest.FlatSpec
 import reasoner.asp.clingo.ClingoCall
 

@@ -1,4 +1,4 @@
-package iclp.evaluation
+package iclp2.evaluation2
 
 import java.io.{File, PrintWriter}
 import java.util.concurrent.TimeUnit
@@ -6,10 +6,9 @@ import java.util.concurrent.TimeUnit
 import common.Util.stopTime
 import core._
 import core.asp._
-import reasoner.incremental.jtms._
+import engine.Load
 import reasoner.incremental.jtms.algorithms.{Jtms, JtmsDoyle, JtmsGreedy, JtmsLearn}
 import reasoner.incremental.jtms.networks.OptimizedNetwork
-import engine.Load
 
 import scala.io.Source
 import scala.util.Random

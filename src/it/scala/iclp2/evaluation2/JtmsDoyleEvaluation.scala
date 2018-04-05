@@ -1,16 +1,16 @@
-package iclp.evaluation
+package iclp2.evaluation2
 
 import core.Evaluation
 import core.asp.NormalProgram
-import reasoner.incremental.jtms.algorithms.JtmsBeierle
+import reasoner.incremental.jtms.algorithms.JtmsDoyle
 
 /**
   * Created by FM on 25.02.16.
   */
-class JtmsBeierleEvaluation extends Evaluation {
+class JtmsDoyleEvaluation extends Evaluation {
 
   def apply(program: NormalProgram) = {
-    val tmn = JtmsBeierle(program)
+    val tmn = JtmsDoyle(program)
 
     val singleModel = tmn.getModel.get
 

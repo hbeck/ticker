@@ -1,10 +1,10 @@
-package iclp.evaluation
+package iclp2.evaluation2
 
 import common.Util.stopTime
 import core.lars._
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
-import reasoner.{Reasoner, Result}
 import reasoner.incremental.jtms.algorithms.Jtms
+import reasoner.{Reasoner, Result}
 import util.StatisticResult
 
 import scala.concurrent.duration.Duration
