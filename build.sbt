@@ -2,7 +2,8 @@ name := "ticker"
 
 version := "1.0"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.5"
+
 cancelable in Global := true
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
@@ -12,16 +13,13 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-
 scalacOptions += "-feature"
 scalacOptions += "-deprecation"
 scalacOptions += "-language:postfixOps"
 scalacOptions += "-language:implicitConversions"
 
 lazy val commonSettings = Seq(
-
   test in assembly := {}
-
 )
 
 lazy val ticker = (project in file(".")).

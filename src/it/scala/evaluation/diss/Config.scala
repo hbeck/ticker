@@ -103,7 +103,7 @@ object Config {
 
   // REASONERS
   val CLINGO = "clingo"
-  val INCREMENTAL = "incremental"
+  val INCREMENTAL = "incr"
 
   // INSTANCES
   val TEST = "test"

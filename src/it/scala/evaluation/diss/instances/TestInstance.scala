@@ -23,9 +23,12 @@ case class TestInstance() extends DissEvalInstance {
 
   def verifyOutput(result: Result, t: Int): Unit = {
     val model = result.model
-    if (t % 20 <= 5 && t % 20 <= 15) {
+    if (t % 20 >= 0 && t % 20 <= 15) {
       assert(model.contains(a))
     } else {
+      if (model.contains(a)) {
+        println("result at "+t+": "+model)
+      }
       assert(!model.contains(a))
     }
   }

@@ -18,7 +18,7 @@ seconds. The second rule considers the tuple-based (count-based)
 windows of the last three, respectively two atoms. If there is a
 `rec(C)` atom for a `car` identifier `C` among the last three that is
 not within the last two, it is the third (in the past). In this case
-we associate the time point `T` of its appearence in the stream with
+we associate the time point `T` of its appearance in the stream with
 auxiliary atom `third`.
 
 ```
