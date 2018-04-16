@@ -11,7 +11,7 @@ import reasoner.Result
   */
 case class TestInstance() extends DissEvalInstance {
 
-  def program: LarsProgram = DissEvalPrograms.testProgram
+  def program: LarsProgram = DissEvalPrograms.test
 
   def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (t % 20 >= 0 && t % 20 <= 5) {

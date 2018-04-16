@@ -13,7 +13,7 @@ import scala.util.Random
 /**
   * Created by hb on 05.04.18
   */
-object DissEvaluation {
+object DissEvalMain {
 
   val profiling = false
 
@@ -44,7 +44,8 @@ object DissEvaluation {
     Config.KEY_WINDOW_SIZE -> "",
     "total_time" -> "",
     "init_time" -> "",
-    "add_time" -> ""
+    "add_time" -> "",
+    "total_time_per_tp" -> ""
     //"eval_time" -> executionTimes.evaluateTimes.avg,
     //"add_time_per_tp" -> ""
     //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
@@ -67,7 +68,8 @@ object DissEvaluation {
       Config.KEY_WINDOW_SIZE -> config.windowSize,
       "total_time" -> executionTimes.avgTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
-      "add_time" -> executionTimes.appendTimes.avg
+      "add_time" -> executionTimes.appendTimes.avg,
+      "total_time_per_tp" -> (1.0*executionTimes.avgTimePerRun)/(1.0*config.timePoints)
       //"eval_time" -> executionTimes.evaluateTimes.avg,
       //"add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
       //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
@@ -208,4 +210,5 @@ case class BatchExecution(runs: List[ExecutionTimePerRun]) {
   val totalTime: Duration = initializationTimes.total + appendTimes.total + evaluateTimes.total
 
   val avgTimePerRun: Duration = totalTime / runs.size
+
 }

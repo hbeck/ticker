@@ -8,12 +8,12 @@ import core.lars._
   */
 object DissEvalHelpers {
 
-  def wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
-  def wD(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)
-  def wB(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Box, atom)
-  def tup_wAt(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TupleWindow(windowSize), At(time), atom)
-  def tup_wD(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Diamond, atom)
-  def tup_wB(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Box, atom)
+  def wt_At(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
+  def wt_D(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)
+  def wt_B(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Box, atom)
+  def wc_At(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TupleWindow(windowSize), At(time), atom)
+  def wc_D(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Diamond, atom)
+  def wc_B(windowSize: Int, atom: Atom) = WindowAtom(TupleWindow(windowSize), Box, atom)
 
   def rule(head: HeadAtom, posBody: Set[ExtendedAtom], negBody: Set[ExtendedAtom]=Set()): LarsRule = {
     UserDefinedLarsRule(head, posBody, negBody)
