@@ -36,8 +36,8 @@ case class Evaluator(instance: String, engineProvider: () => Reasoner) {
 
     TimingsConfigurationResult(
       instance,
-      StatisticResult.fromExecutionTimes(appendExecutionTimes),
-      StatisticResult.fromExecutionTimes(evaluateExecutionTimes)
+      DurationSeries.fromExecutionTimes(appendExecutionTimes),
+      DurationSeries.fromExecutionTimes(evaluateExecutionTimes)
     )
   }
 

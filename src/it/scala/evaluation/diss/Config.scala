@@ -1,6 +1,9 @@
 package evaluation.diss
 
 import evaluation.diss.instances.TestInstance
+import evaluation.diss.instances.basic.{BasicDualInstance, BasicInstance}
+
+import scala.util.matching.Regex
 
 /**
   * Created by hb on 05.04.18.
@@ -24,9 +27,14 @@ case class Config(var args: Map[String, String]) {
   val printRulesAt = Integer.parseInt(args(KEY_PRINT_RULES_AT))
   val simplify = (args(KEY_SIMPLIFY) == "true")
 
-  def makeInstance(iterationNr: Int): DissEvalInstance = {
+  def makeInstance(iterationNr: Int): Instance = {
+    val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r
+    val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r
+    def i(s: String) = Integer.parseInt(s)
     instance match {
       case TEST => TestInstance()
+      case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
+      case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
       case x => throw new RuntimeException("unknown evaluation instance: "+x)
     }
   }

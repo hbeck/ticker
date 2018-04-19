@@ -1,12 +1,12 @@
 package evaluation.diss
 
-import core.Atom
+import core.{Atom, Model}
 import core.lars._
 
 /**
   * Created by hb on 05.04.18.
   */
-object DissEvalHelpers {
+object Helpers {
 
   def wt_At(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
   def wt_D(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)
@@ -29,6 +29,20 @@ object DissEvalHelpers {
 
   def fact(head: HeadAtom): LarsRule = {
     UserDefinedLarsRule(head, Set(), Set())
+  }
+
+  def mustHave(model:Model, a: Atom, t: Int): Unit = {
+    if (!model.contains(a)) {
+      println("model at t="+t+" should contain atom "+a+": "+model)
+      assert(false)
+    }
+  }
+
+  def mustNotHave(model:Model, a: Atom, t: Int): Unit = {
+    if (model.contains(a)) {
+      println("model at t="+t+" should not contain atom "+a+": "+model)
+      assert(false)
+    }
   }
 
 }

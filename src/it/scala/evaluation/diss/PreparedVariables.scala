@@ -2,7 +2,7 @@ package evaluation.diss
 
 import core.Variable
 
-object DissEvalPreparedVariables {
+object PreparedVariables {
 
   val T = Variable("T")
   val U = Variable("U")

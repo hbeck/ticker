@@ -9,12 +9,12 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 21.07.16.
   */
-case class StatisticResult(executionTimes: Seq[Duration]) {
-  val max: Duration = executionTimes.max
-  val min: Duration = executionTimes.min
-  val avg: Duration = executionTimes.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / executionTimes.length.toDouble
-  val median: Duration = executionTimes.sorted.drop(executionTimes.length / 2).head
-  val total: Duration = Duration.create(executionTimes.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
+case class DurationSeries(durations: Seq[Duration]) {
+  val max: Duration = durations.max
+  val min: Duration = durations.min
+  val avg: Duration = durations.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / durations.length.toDouble
+  val median: Duration = durations.sorted.drop(durations.length / 2).head
+  val total: Duration = Duration.create(durations.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
 
   override def toString = {
     val unit = TimeUnit.MILLISECONDS
@@ -41,16 +41,16 @@ case class StatisticResult(executionTimes: Seq[Duration]) {
   }
 }
 
-object StatisticResult {
-  def fromExecutionTimes(executionTimes: Seq[Duration]): StatisticResult = {
+object DurationSeries {
+  def fromExecutionTimes(executionTimes: Seq[Duration]): DurationSeries = {
     if (executionTimes.isEmpty) {
-      StatisticResult(Seq(Duration.Zero))
+      DurationSeries(Seq(Duration.Zero))
     } else {
-      StatisticResult(executionTimes)
+      DurationSeries(executionTimes)
     }
   }
 
-  def fromMillis(executionTimes: Seq[Long]): StatisticResult = fromExecutionTimes(executionTimes.map(toDuration))
+  def fromMillis(executionTimes: Seq[Long]): DurationSeries = fromExecutionTimes(executionTimes.map(toDuration))
 
   private def toDuration(millis: Long) = Duration.create(millis, TimeUnit.MILLISECONDS)
 }
@@ -59,7 +59,7 @@ trait ConfigurationResult {
   val instanceCaption: String
 }
 
-case class TimingsConfigurationResult(instanceCaption: String, appendResult: StatisticResult, evaluateResult: StatisticResult) extends ConfigurationResult
+case class TimingsConfigurationResult(instanceCaption: String, appendResult: DurationSeries, evaluateResult: DurationSeries) extends ConfigurationResult
 
 case class SuccessConfigurationResult(instanceCaption: String, successFailures: Seq[(Int, Boolean)]) extends ConfigurationResult
 

@@ -7,7 +7,7 @@ import reasoner.Result
 /**
   * Created by hb on 05.04.18.
   */
-trait DissEvalInstance {
+trait Instance {
 
   def program: LarsProgram
   def generateSignalsToAddAt(t: Int): Seq[Atom]

@@ -5,7 +5,7 @@ import core.lars._
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
 import reasoner.incremental.jtms.algorithms.Jtms
 import reasoner.{Reasoner, Result}
-import util.StatisticResult
+import util.DurationSeries
 
 import scala.concurrent.duration.Duration
 
@@ -143,8 +143,8 @@ object LarsEvaluation {
 
     val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints - 1)) map runSingleTimepoint toList
 
-    val appendStats = StatisticResult.fromMillis(timings.map(_.appendTime))
-    val evaluateStats = StatisticResult.fromMillis(timings.map(_.evaluateTime))
+    val appendStats = DurationSeries.fromMillis(timings.map(_.appendTime))
+    val evaluateStats = DurationSeries.fromMillis(timings.map(_.evaluateTime))
 
     ExecutionTimePerRun(initializationTime, appendStats, evaluateStats)
   }
@@ -194,14 +194,14 @@ case class ExecutionTimePerTimePoint(timePoint: TimePoint, appendTime: Long, eva
   val totalTime: Long = appendTime + evaluateTime
 }
 
-case class ExecutionTimePerRun(initializationTime: Long, appendTime: StatisticResult, evaluateTime: StatisticResult) {
+case class ExecutionTimePerRun(initializationTime: Long, appendTime: DurationSeries, evaluateTime: DurationSeries) {
   val totalRunTime: Long = initializationTime + appendTime.total.toMillis + evaluateTime.total.toMillis
 }
 
 case class BatchExecution(runs: List[ExecutionTimePerRun]) {
-  val initializationTimes: StatisticResult = StatisticResult.fromMillis(runs.map(_.initializationTime))
-  val appendTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.executionTimes))
-  val evaluateTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.executionTimes))
+  val initializationTimes: DurationSeries = DurationSeries.fromMillis(runs.map(_.initializationTime))
+  val appendTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.durations))
+  val evaluateTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.durations))
 
   val totalTime: Duration = initializationTimes.total + appendTimes.total + evaluateTimes.total
 

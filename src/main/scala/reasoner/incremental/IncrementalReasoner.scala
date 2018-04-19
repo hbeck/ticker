@@ -1,7 +1,7 @@
 package reasoner.incremental
 
 import core._
-import core.asp.NormalRule
+import core.asp.{NormalRule, UserDefinedAspRule}
 import core.lars.TimePoint
 import reasoner.common.Tick
 import reasoner.incremental.jtms.algorithms.Jtms
@@ -42,9 +42,9 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   //
   //
 
-  def updateToTimePoint(time: TimePoint) {
-    if (time.value > currentTick.time) {
-      for (t <- (currentTick.time + 1) to (time.value)) {
+  def updateToTimePoint(timepoint: TimePoint) {
+    if (timepoint.value > currentTick.time) {
+      for (t <- (currentTick.time + 1) to (timepoint.value)) {
         singleTimeIncrementTo(t)
       }
     }
@@ -83,6 +83,10 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
     //println(jtms.getModel())
   }
+
+  val THEHEAD = Atom(Predicate("covT_10_b"),Seq(IntValue(18)))
+  val THEPOSBODY = Set(Atom(Predicate("tick"),Seq(IntValue(18),IntValue(17))))
+  val THERULE = UserDefinedAspRule[Atom](THEHEAD,THEPOSBODY,Set())
 
   object expiration {
 
@@ -135,7 +139,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       }
       val conjCandidates: Set[NormalRule] = rulesExpiringAtCountConj.get(currentTick.count).get
       val toExpireNow_vs_toExpireLater: (Set[NormalRule], Set[NormalRule]) = conjCandidates.partition(rule => conjunctiveExpirationCandidates.contains(rule))
-      rulesExpiringAtCountConj = rulesExpiringAtCountConj - currentTick.time
+      rulesExpiringAtCountConj = rulesExpiringAtCountConj - currentTick.count
       conjunctiveExpirationCandidates = conjunctiveExpirationCandidates -- toExpireNow_vs_toExpireLater._1
       conjunctiveExpirationCandidates = conjunctiveExpirationCandidates ++ toExpireNow_vs_toExpireLater._2
 

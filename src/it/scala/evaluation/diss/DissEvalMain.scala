@@ -5,7 +5,7 @@ import core.lars._
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
 import reasoner.incremental.jtms.algorithms.JtmsDoyleHeuristics
 import reasoner.{Reasoner, Result}
-import util.StatisticResult
+import util.DurationSeries
 
 import scala.concurrent.duration.Duration
 import scala.util.Random
@@ -45,7 +45,8 @@ object DissEvalMain {
     "total_time" -> "",
     "init_time" -> "",
     "add_time" -> "",
-    "total_time_per_tp" -> ""
+    "eval_time_per_tp" -> "",
+    "tp_per_sec" -> ""
     //"eval_time" -> executionTimes.evaluateTimes.avg,
     //"add_time_per_tp" -> ""
     //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
@@ -59,17 +60,18 @@ object DissEvalMain {
 
     if (config.withDebug) println(config)
 
-    val executionTimes = BatchExecution(run(config))
+    val executionTimes = ExecutionTimes(run(config))
 
     val outputValues = Seq(
       Config.KEY_REASONER -> config.reasoner,
       Config.KEY_INSTANCE -> config.instance,
       Config.KEY_TIMEPOINTS -> config.timePoints,
       Config.KEY_WINDOW_SIZE -> config.windowSize,
-      "total_time" -> executionTimes.avgTimePerRun,
+      "total_time" -> executionTimes.avgTotalTimePerRun,
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
-      "total_time_per_tp" -> (1.0*executionTimes.avgTimePerRun)/(1.0*config.timePoints)
+      "eval_time_per_tp" -> (1.0*executionTimes.avgEvaluationTimePerRun.toSeconds)/(1.0*config.timePoints),
+      "tp_per_sec" -> (1.0*config.timePoints)/(1.0*executionTimes.avgEvaluationTimePerRun.toSeconds)
       //"eval_time" -> executionTimes.evaluateTimes.avg,
       //"add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
       //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
@@ -99,6 +101,7 @@ object DissEvalMain {
       case (_, d: Duration) => timeOutput(d)
       case (_, i: Integer) => f"$i"
       case (_, s: String) => f"$s"
+      case (_, d: Double) => f"$d"
     }
 
     println(values.mkString(separator))
@@ -147,14 +150,14 @@ object DissEvalMain {
 
     val timings: List[ExecutionTimePerTimePoint] = (0 to (config.timePoints - 1)) map runSingleTimepoint toList
 
-    val appendStats = StatisticResult.fromMillis(timings.map(_.appendTime))
-    val evaluateStats = StatisticResult.fromMillis(timings.map(_.evaluateTime))
+    val appendStats = DurationSeries.fromMillis(timings.map(_.appendTime))
+    val evaluateStats = DurationSeries.fromMillis(timings.map(_.evaluateTime))
 
     ExecutionTimePerRun(initializationTime, appendStats, evaluateStats)
   }
 
 
-  def runTimepoint(instance: DissEvalInstance, reasoner: Reasoner, config: Config)(t: Int): ExecutionTimePerTimePoint = {
+  def runTimepoint(instance: Instance, reasoner: Reasoner, config: Config)(t: Int): ExecutionTimePerTimePoint = {
 
     val signals = instance.generateSignalsToAddAt(t)
 
@@ -198,17 +201,20 @@ case class ExecutionTimePerTimePoint(timePoint: TimePoint, appendTime: Long, eva
   val totalTime: Long = appendTime + evaluateTime
 }
 
-case class ExecutionTimePerRun(initializationTime: Long, appendTime: StatisticResult, evaluateTime: StatisticResult) {
+case class ExecutionTimePerRun(initializationTime: Long, appendTime: DurationSeries, evaluateTime: DurationSeries) {
   val totalRunTime: Long = initializationTime + appendTime.total.toMillis + evaluateTime.total.toMillis
 }
 
-case class BatchExecution(runs: List[ExecutionTimePerRun]) {
-  val initializationTimes: StatisticResult = StatisticResult.fromMillis(runs.map(_.initializationTime))
-  val appendTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.executionTimes))
-  val evaluateTimes: StatisticResult = StatisticResult.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.executionTimes))
+case class ExecutionTimes(runs: List[ExecutionTimePerRun]) {
+
+  val initializationTimes: DurationSeries = DurationSeries.fromMillis(runs.map(_.initializationTime))
+  val appendTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.durations))
+  val evaluateTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.durations))
 
   val totalTime: Duration = initializationTimes.total + appendTimes.total + evaluateTimes.total
 
-  val avgTimePerRun: Duration = totalTime / runs.size
+  val avgTotalTimePerRun: Duration = totalTime / (1.0*runs.size)
+
+  val avgEvaluationTimePerRun: Duration = (appendTimes.total + evaluateTimes.total) / (1.0*runs.size)
 
 }
