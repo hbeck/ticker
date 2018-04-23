@@ -40,7 +40,7 @@ object Program {
 
         val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
           exists {
-            t => Duration(t.windowSize.length, t.windowSize.unit) lt config.clockTime
+            t => Duration(t.windowSize.length, t.windowSize.unit).lt(config.clockTime)
             //TODO have to check that every window is a multiple of clock time
           }
         if (timeWindowSmallerThanEngineUnit)

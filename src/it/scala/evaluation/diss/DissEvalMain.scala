@@ -71,7 +71,7 @@ object DissEvalMain {
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
       "eval_time_per_tp" -> (1.0*executionTimes.avgEvaluationTimePerRun.toSeconds)/(1.0*config.timePoints),
-      "tp_per_sec" -> (1.0*config.timePoints)/(1.0*executionTimes.avgEvaluationTimePerRun.toSeconds)
+      "tp_per_sec" -> 10E6*(1.0*config.timePoints)/(1.0*executionTimes.avgEvaluationTimePerRun.toMicros)
       //"eval_time" -> executionTimes.evaluateTimes.avg,
       //"add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
       //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)

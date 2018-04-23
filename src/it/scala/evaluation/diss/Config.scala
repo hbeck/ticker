@@ -1,7 +1,6 @@
 package evaluation.diss
 
-import evaluation.diss.instances.TestInstance
-import evaluation.diss.instances.basic.{BasicDualInstance, BasicInstance}
+import evaluation.diss.instances.{BasicDualInstance, BasicInstance, JoinInstance, SampleInstance}
 
 import scala.util.matching.Regex
 
@@ -28,13 +27,17 @@ case class Config(var args: Map[String, String]) {
   val simplify = (args(KEY_SIMPLIFY) == "true")
 
   def makeInstance(iterationNr: Int): Instance = {
-    val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r
-    val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r
+    val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
+    val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
+    val join:Regex = """join_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg join_wtd_1_10
+    //val joinDual:Regex = """join_dual_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r
+    //val joinSample:Regex = """join_dual_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r
     def i(s: String) = Integer.parseInt(s)
     instance match {
-      case TEST => TestInstance()
+      case SAMPLE => SampleInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
+      case join(winType,mod,signalEvery,scale) => JoinInstance(winType+mod,windowSize,i(signalEvery),i(scale))
       case x => throw new RuntimeException("unknown evaluation instance: "+x)
     }
   }
@@ -114,6 +117,6 @@ object Config {
   val INCREMENTAL = "incr"
 
   // INSTANCES
-  val TEST = "test"
+  val SAMPLE = "sample"
 
 }

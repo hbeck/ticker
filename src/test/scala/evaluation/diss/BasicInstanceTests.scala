@@ -17,7 +17,7 @@ class BasicInstanceTests extends FunSuite {
   def runAllConfigs(prefix: String): Unit = {
     for (window <- Seq("t","c")) {
       for (mod <- Seq("a","d","b")) {
-        for (signalEvery <- Seq("1", "2", "10", "20")) {
+        for (signalEvery <- Seq("1", "2", "9", "10", "11", "20")) {
           val instName = prefix+window+mod+"_"+signalEvery
           val args = (stdArgs + "inst " + instName).split(" ")
           DissEvalMain.main(args)
