@@ -60,14 +60,6 @@ case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, jt
 
 }
 
-//object IncrementalConfiguration {
-//  implicit def toEvaluationModeConfig(config: IncrementalConfiguration): PreparedReasonerConfiguration =
-//    PreparedReasonerConfiguration(
-//      IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.jtms),
-//      config.larsProgramEncoding.intensionalPredicates ++ config.larsProgramEncoding.signalPredicates
-//    )
-//}
-
 case class EvaluationModeConfiguration(larsProgramEncoding: LarsProgramEncoding) extends WithLarsBasedProgram {
 
   val clingoProgram: ClingoProgramWithLars = ClingoConversion.fromLars(larsProgramEncoding)

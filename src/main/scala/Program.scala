@@ -41,13 +41,13 @@ object Program {
         program.timeWindows.find { w =>
           Duration(w.windowSize.length, w.windowSize.unit).lt(config.clockTime)
         } match {
-          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" has smaller duration that clock time "+config.clockTime)
+          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" has smaller duration than the clock time "+config.clockTime)
         }
         val ct = config.clockTime.length
         program.timeWindows.find { w =>
           Duration(w.windowSize.length,w.windowSize.unit).length % ct > 0
         } match {
-          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" is not a multiple of clock time"+config.clockTime)
+          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" is not compatible with clock time"+config.clockTime+"; must be a multiple.")
         }
         val reasoner = config.buildReasoner(program)
 
@@ -78,7 +78,7 @@ object Program {
 
       opt[Seq[File]]('p', "programs").required().valueName("<file>,<file>,...").
         action((x, c) => c.copy(programFiles = x)).
-        text("Program fiel required")
+        text("Program file required")
 
       opt[ReasonerChoice]('r', "reasoner").optional().valueName("<reasoner>").
         action((x, c) => c.copy(reasoner = x)).
@@ -90,7 +90,7 @@ object Program {
 
       opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
-          if (d.lt(Duration.Zero))
+          if (d.lteq(Duration.Zero))
             Left("clock time must be > 0")
           else
             Right((): Unit)
@@ -103,7 +103,7 @@ object Program {
         valueName("change | signal | time | <value>signals | <value><time-unit>").
         validate {
           case Signal(count) if count < 0 => Left("signal count must be > 0")
-          case Time(Some(duration)) if duration lt Duration.Zero => Left("duration must be > 0")
+          case Time(Some(duration)) if duration.lteq(Duration.Zero) => Left("duration must be > 0")
           case _ => Right((): Unit)
         }.
         action((x, c) => c.copy(outputTiming = x)).
@@ -122,8 +122,8 @@ object Program {
 
       checkConfig(c => {
         c.outputTiming match {
-          case Time(Some(duration)) if duration lt c.clockTime =>
-            reportWarning("outputEvery time interval is less than the engine clock time. The output time interval will be set to the engine unit")
+          case Time(Some(duration)) if duration.lt(c.clockTime) =>
+            reportWarning("outputEvery: time interval is less than the engine clock time. The output time interval will be set to the engine unit")
           case _ =>
         }
 
@@ -161,7 +161,6 @@ object Program {
     case SocketPattern(port) => SocketOutput(port.toInt)
   })
 
-
   sealed trait Source
   object StdIn extends Source
   case class SocketInput(port: Int) extends Source
@@ -198,11 +197,14 @@ object Program {
         withClockTime(clockTime)
 
       val preparedReasoner = reasoner match {
-        case ReasonerChoice.Incremental =>
-          reasonerBuilder.configure().withIncremental().use()
-        case ReasonerChoice.Clingo => outputTiming match {
-          case Time(_) => reasonerBuilder.configure().withClingo().withDefaultEvaluationMode().usePull() //TODO n signals, n > 1
-          case _ => reasonerBuilder.configure().withClingo().withDefaultEvaluationMode().usePush()
+        case ReasonerChoice.Incremental => reasonerBuilder.configure().withIncremental().use()
+        case ReasonerChoice.Clingo => {
+          val cfg = reasonerBuilder.configure().withClingo().withDefaultEvaluationMode()
+          outputTiming match {
+            case Time(_) => cfg.usePull()
+            case Signal(n) if n > 1 => cfg.usePull()
+            case _ => cfg.usePush()
+          }
         }
       }
 
