@@ -73,13 +73,13 @@ object Program {
     val parser = new scopt.OptionParser[Config]("scopt") {
       head("scopt", "3.x")
 
-      opt[File]('p', "program").required().valueName("<file>"). //TODO PPS allow multiple files
-        action((x, c) => c.copy(programFile = x)).
+      opt[Seq[File]]('p', "programs").required().valueName("<file>,<file>,...").
+        action((x, c) => c.copy(programFiles = x)).
         text("program is a required file property")
 
       opt[ReasonerChoice]('r', "reasoner").optional().valueName("<reasoning strategy>").
         action((x, c) => c.copy(reasoner = x)).
-        text("Reasoning stragety required, possible values: " + ReasonerChoice.values)
+        text("Reasoning strategy required, possible values: " + ReasonerChoice.values)
 
       //TODO filter missing
 
@@ -170,7 +170,7 @@ object Program {
   case class SocketOutput(port: Int) extends OutputSink
 
   case class Config(reasoner: ReasonerChoice = ReasonerChoice.Incremental,
-                    programFile: File = null, //TODO PPS multiple
+                    programFiles: Seq[File] = null,
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[InputSource] = Seq(StdIn),
@@ -178,7 +178,17 @@ object Program {
                     filter: Option[Set[String]] = None
                    ) {
 
-    def parseProgramFromFile() = LarsParser(programFile.toURI.toURL)
+    def parseProgramFromFile() = {
+      if (programFiles.isEmpty) {
+        throw new RuntimeException("program argument missing")
+      }
+      val programs = programFiles.map{file => LarsParser(file.toURI.toURL)}
+      if (programs.size == 1) {
+        programs(0)
+      } else {
+        programs.reduce { case (p1,p2) => p1 ++ p2 }
+      }
+    }
 
     def buildReasoner(program: LarsProgram): Reasoner = {
 
