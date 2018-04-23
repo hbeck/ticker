@@ -47,7 +47,7 @@ All parameters and options can be printed by calling the executable with `--help
 
 Mandatory parameter:
 
-* `-p --program <file>` for the program which should be used in the engine
+* `-p --program <file>,<file>,...` for the program which should be used in the engine
 
 (Either selector `-p` or `--program` can be used.)
 
@@ -65,8 +65,9 @@ Optional parameters:
     * `<source>: stdin | socket:<int>`
 * `-o --output <sink>,<sink>,...`
     * `<sink>: stdout | socket:<int>`
+* `-l --loglevel [ none | info | debug ]`
 
-default: `-r incremental -f none -c 1s -e change -i stdin -o stdout`
+default: `-r incremental -f none -c 1s -e change -i stdin -o stdout -l none`
     
 ## Running Ticker
 
@@ -75,13 +76,13 @@ To execute ticker as a separate program and stream input signals from an externa
 
 ### Receive input from Std-In and output to Std-Out
 
-Ticker can be started to read input data from Std-Input and write it into Std-Ouput.
+Ticker can be started to read input data from Std-Input and write it into Std-Output.
 
 ```sh
-tail -F input.txt | java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/program.lars >> out.txt
+tail -n 0 -F input.txt | java -jar target/scala-2.12/ticker-assembly-1.0.jar --program src/test/resources/program.lars >> out.txt
 ```
 
-Reads data from a `input.txt` file and writes all model updates into 'out.txt'
+Reads data from a `input.txt` file and writes all model updates into `out.txt`
 
 ### Connect input and output streams via sockets
 
