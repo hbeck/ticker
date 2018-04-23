@@ -4,6 +4,7 @@ import java.util.TimerTask
 import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.scalalogging.Logger
+import common.Util
 import core.Atom
 import core.lars.{ClockTime, TimePoint}
 import reasoner.{Reasoner, Result}
@@ -24,6 +25,8 @@ case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: Output
 
   val logger = Logger[Engine]
 
+  val clockTimeUnitWritten = Util.timeUnitWritten(clockTime._2)
+
   type ResultCallback = (Result, TimePoint) => Unit
 
   private implicit val executor = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
@@ -43,9 +46,13 @@ case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: Output
     case Signal(interval) => SignalBasedWriting(interval)
   }
 
-  def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / clockTime.toMillis, clockTime.unit).length
+  //def convertToTimePoint(duration: Duration): TimePoint = Duration(duration.toMillis / clockTime.toMillis, clockTime.unit).length
 
-  def convertToClockTime(timePoint: TimePoint) = Duration(Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit), clockTime.unit)
+  def convertToTime(timePoint: TimePoint) = {
+    val time = Duration(timePoint.value * clockTime.toMillis, TimeUnit.MILLISECONDS).toUnit(clockTime.unit).intValue()
+    //Duration(time,clockTime.unit).toUnit(clockTime._2).intValue()
+    time
+  }
 
   private def updateClock(): Unit = {
     engineTimePoint = engineTimePoint + 1
@@ -98,9 +105,11 @@ case class Engine(reasoner: Reasoner, clockTime: ClockTime, outputTiming: Output
         // but this would lead to adding atoms always in the past)
         val timePoint = enteredTimePoint.getOrElse(engineTimePoint)
 
-        val inputTimePoint = convertToClockTime(timePoint)
+        val timePassed = convertToTime(timePoint)
 
-        logger.debug(f"Received input ${atoms.mkString(", ")} at T $inputTimePoint")
+        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+          logger.debug(f"Received input ${atoms.mkString(", ")} at $timePassed${clockTimeUnitWritten} (t=$timePoint)")
+        }
 
         reasoner.append(timePoint)(atoms: _*)
 

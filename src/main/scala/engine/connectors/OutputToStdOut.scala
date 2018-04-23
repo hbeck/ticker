@@ -1,28 +1,27 @@
 package engine.connectors
 
 import core.lars.TimePoint
-import reasoner.Result
 import engine.{ConnectToEngine, Engine, Startable}
+import reasoner.Result
 
 /**
   * Created by FM on 14.11.16.
   */
 object OutputToStdOut extends ConnectToEngine {
 
-    def startWith(engine: Engine): Startable = {
-      engine.registerOutput(evaluateModel(engine))
+  def startWith(engine: Engine): Startable = {
+    engine.registerOutput(evaluateModel(engine))
 
-      () => {
-        /* NOOP */
-      }
+    () => {
+      /* NOOP */
     }
-
-    def evaluateModel(engineRunner: Engine)(result: Result, ticks: TimePoint): Unit = {
-
-      val timeInOutput = engineRunner.convertToClockTime(ticks).toSeconds
-      result.get match {
-        case Some(m) => println(f"Model at T $timeInOutput: $m")
-        case None => println(f"No model at T $timeInOutput")
-      }
   }
+
+  def evaluateModel(engine: Engine)(result: Result, timepoint: TimePoint): Unit = {
+    result.get match {
+      case Some(model) => println(Messages.model(engine,timepoint,model))
+      case None => println(Messages.noModel(engine,timepoint))
+    }
+  }
+
 }

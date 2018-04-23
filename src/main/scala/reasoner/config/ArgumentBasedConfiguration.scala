@@ -13,7 +13,7 @@ import scala.util.Random
   */
 object ReasonerChoice extends Enumeration {
   type ReasonerChoice = Value
-  val Incremental, Clingo = Value
+  val incremental, clingo = Value
 }
 
 object EvaluationModifier extends Enumeration {
@@ -30,13 +30,13 @@ case class ArgumentBasedConfiguration(config: Configuration) {
                   network: TruthMaintenanceNetwork = TruthMaintenanceNetwork(),
                   random: Random = new Random(1)): Option[Reasoner] = {
 
-    if (reasonerChoice == ReasonerChoice.Incremental) {
+    if (reasonerChoice == ReasonerChoice.incremental) {
       val jtms = Jtms(network, random)
       jtms.recordStatusSeq = false
       jtms.recordChoiceSeq = false
       val reasoner = config.configure().withIncremental().withJtms(jtms).use().seal()
       return Some(reasoner)
-    } else if (reasonerChoice == ReasonerChoice.Clingo) {
+    } else if (reasonerChoice == ReasonerChoice.clingo) {
       if (evaluationModifier == EvaluationModifier.Push) {
         return Some(clingoPush(config))
       } else if (evaluationModifier == EvaluationModifier.Pull) {

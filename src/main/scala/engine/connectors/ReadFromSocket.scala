@@ -1,11 +1,11 @@
 package engine.connectors
 
-import java.net.{InetAddress, InetSocketAddress, Socket}
+import java.net.{InetAddress, Socket}
 
 import com.typesafe.scalalogging.Logger
-import core.Atom
+import common.Util
 import core.lars.TimeUnit
-import engine.{ConnectToEngine, Engine, Int, Startable}
+import engine.{ConnectToEngine, Engine, Startable}
 
 import scala.io.BufferedSource
 import scala.util.Try
@@ -17,7 +17,7 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
 
   val logger = Logger[ReadFromSocket]
 
-  private val parser = parseInput(inputUnit) _
+  //private val parser = parseInputDepr(inputUnit) _
 
   def startWith(engineRunner: Engine): Startable = {
     () => {
@@ -35,14 +35,33 @@ case class ReadFromSocket(inputUnit: TimeUnit, port: Int) extends ConnectToEngin
     lazy val in = new BufferedSource(socket.getInputStream).getLines()
 
     in.foreach(input => {
-      val (time, atoms) = parser(input)
-
+      val atoms = parseInput(input)
       if (atoms.nonEmpty) {
-        engineRunner.append(time.map(engineRunner.convertToTimePoint), atoms)
-        logger.debug(f"OK,  appending @$time $atoms from socket")
+        engineRunner.append(None, atoms)
+        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+          logger.debug(f"appending atoms from socket: $atoms")
+        }
+      } else {
+        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+          logger.debug(f"could not parse input $input")
+        }
       }
-      else
-        logger.info(f"could not parse input $input")
     })
+
+//    in.foreach(input => {
+//      val (time, atoms) = parser(input)
+//
+//      if (atoms.nonEmpty) {
+//        engineRunner.append(time.map(engineRunner.convertToTimePoint), atoms)
+//        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+//          logger.debug(f"OK,  appending @$time $atoms from socket")
+//        }
+//      }
+//      else {
+//        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+//          logger.debug(f"could not parse input $input")
+//        }
+//      }
+//    })
   }
 }

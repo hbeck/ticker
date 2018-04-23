@@ -22,61 +22,30 @@ object Program {
 
   def main(args: Array[String]): Unit = {
 
-//    val sampleArgs = Seq(
-//      "--program", "src/test/resources/test.rules",
-//      "--reasoner", "clingo",
-//      "--inputSource", "stdin",
-//      "--clock", "1s",
-//      "--outputEvery", "2signals"
-//    ).toArray
-
     parseParameters(args) match {
       case Some(config) => {
-        val program = config.parseProgramFromFile()
 
-        printProgram(program)
+        overrideLogLevel(config)
 
-        logger.info(f"Engine Configuration: " + Util.prettyPrint(config))
+        val program = config.parseProgramFromFiles()
+        checkTimeWindowCompatibility(program,config)
 
-        program.timeWindows.find { w =>
-          Duration(w.windowSize.length, w.windowSize.unit).lt(config.clockTime)
-        } match {
-          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" has smaller duration than the clock time "+config.clockTime)
-        }
-        val ct = config.clockTime.length
-        program.timeWindows.find { w =>
-          Duration(w.windowSize.length,w.windowSize.unit).length % ct > 0
-        } match {
-          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" is not compatible with clock time"+config.clockTime+"; must be a multiple.")
-        }
         val reasoner = config.buildReasoner(program)
-
         val engine = Engine(reasoner, config.clockTime, config.outputTiming)
-        config.inputs foreach {
-          case SocketInput(port) => engine.connect(ReadFromSocket(config.clockTime._2, port))
-          case StdIn => engine.connect(ReadFromStdIn(config.clockTime._2))
-        }
-        config.outputs foreach {
-          case StdOut => engine.connect(OutputToStdOut)
-          case SocketOutput(port) => engine.connect(OutputToSocket(port))
-        }
+        connectIO(engine,config)
 
         engine.start()
+
       }
       case None => throw new RuntimeException("Could not parse all arguments")
     }
-  }
-
-  def printProgram(program: LarsProgram): Unit = {
-    logger.info(f"Lars Program of ${program.rules.size} rules with ${program.extendedAtoms.size} different atoms.")
-    Format.parsed(program).foreach(logger.info(_))
   }
 
   def parseParameters(args: Array[String]) = {
     val parser = new scopt.OptionParser[Config]("scopt") {
       head("scopt", "3.x")
 
-      opt[Seq[File]]('p', "programs").required().valueName("<file>,<file>,...").
+      opt[Seq[File]]('p', "program").required().valueName("<file>,<file>,...").
         action((x, c) => c.copy(programFiles = x)).
         text("Program file required")
 
@@ -116,6 +85,10 @@ object Program {
       opt[Seq[Sink]]('o', "output").optional().valueName("<sink>,<sink>,...").
         action((x, c) => c.copy(outputs = x)).
         text("Possible output sinks: write to output with 'stdout', write to a socket with 'socket:<port>'")
+
+      opt[String]('l', "loglevel").optional().valueName("none | info | debug").
+        action((x, c) => c.copy(logLevel = x)).
+        text("Possible log levels: none | info | debug")
 
       help("help").
         text("Specify init parameters for running the engine")
@@ -170,24 +143,34 @@ object Program {
   case class SocketOutput(port: Int) extends Sink
 
   case class Config(programFiles: Seq[File] = null,
-                    reasoner: ReasonerChoice = ReasonerChoice.Incremental,
+                    reasoner: ReasonerChoice = ReasonerChoice.incremental,
                     filter: Seq[String] = Seq(),
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[Source] = Seq(StdIn),
-                    outputs: Seq[Sink] = Seq(StdOut)
+                    outputs: Seq[Sink] = Seq(StdOut),
+                    logLevel: String = "none"
                    ) {
 
-    def parseProgramFromFile() = {
+    def parseProgramFromFiles() = {
       if (programFiles.isEmpty) {
-        throw new RuntimeException("program argument missing")
+        throw new RuntimeException("mergedProgram argument missing")
       }
       val programs: Seq[LarsProgram] = programFiles.map{file => LarsParser(file.toURI.toURL)}
-      if (programs.size == 1) {
-        programs(0)
-      } else {
-        programs.reduce { (p1,p2) => p1 ++ p2 }
+      val mergedProgram: LarsProgram = {
+        if (programs.size == 1) {
+          programs(0)
+        } else {
+          programs.reduce { (p1,p2) => p1 ++ p2 }
+        }
       }
+
+      if (Util.log_level >= Util.LOG_LEVEL_INFO) {
+        logger.info(f"Lars Program of ${mergedProgram.rules.size} rules with ${mergedProgram.extendedAtoms.size} different atoms.")
+        Format.parsed(mergedProgram).foreach(logger.info(_))
+      }
+
+      mergedProgram
     }
 
     def buildReasoner(program: LarsProgram): Reasoner = {
@@ -197,8 +180,8 @@ object Program {
         withClockTime(clockTime)
 
       val preparedReasoner = reasoner match {
-        case ReasonerChoice.Incremental => reasonerBuilder.configure().withIncremental().use()
-        case ReasonerChoice.Clingo => {
+        case ReasonerChoice.`incremental` => reasonerBuilder.configure().withIncremental().use()
+        case ReasonerChoice.`clingo` => {
           val cfg = reasonerBuilder.configure().withClingo().withDefaultEvaluationMode()
           outputTiming match {
             case Time(_) => cfg.usePull()
@@ -221,5 +204,48 @@ object Program {
       }
     }
   }
+
+  def overrideLogLevel(config: Config): Unit = {
+    config.logLevel match {
+      case "none" => Util.log_level = Util.LOG_LEVEL_NONE
+      case "info" => Util.log_level = Util.LOG_LEVEL_INFO
+      case "debug" => Util.log_level = Util.LOG_LEVEL_DEBUG
+      case _ => {
+        logger.warn(f"unknown log level: ${config.logLevel}. using 'none' (only warnings and errors).")
+        Util.log_level = Util.LOG_LEVEL_NONE
+      }
+    }
+    if (Util.log_level >= Util.LOG_LEVEL_INFO) {
+      logger.info(f"Engine Configuration: " + Util.prettyPrint(config))
+    }
+  }
+
+  def checkTimeWindowCompatibility(program: LarsProgram, config: Config): Unit = {
+    program.timeWindows.find { w =>
+      Duration(w.windowSize.length, w.windowSize.unit).lt(config.clockTime)
+    } match {
+      case Some(w) => throw new IllegalArgumentException(f"Time window size ${Duration(w.windowSize.length,w.windowSize.unit)} has smaller duration than the clock time: ${config.clockTime}.")
+      case _ =>
+    }
+    val clockMillis = config.clockTime.toMillis
+    program.timeWindows.find { w =>
+      Duration(w.windowSize.length,w.windowSize.unit).toMillis % clockMillis > 0
+    } match {
+      case Some(w) => throw new IllegalArgumentException(f"Time window size ${Duration(w.windowSize.length,w.windowSize.unit)} is not compatible with clock time ${config.clockTime}; must be a multiple.")
+      case _ =>
+    }
+  }
+
+  def connectIO(engine: Engine, config: Program.Config): Unit = {
+    config.inputs foreach {
+      case SocketInput(port) => engine.connect(ReadFromSocket(config.clockTime._2, port))
+      case StdIn => engine.connect(ReadFromStdIn(config.clockTime._2))
+    }
+    config.outputs foreach {
+      case StdOut => engine.connect(OutputToStdOut)
+      case SocketOutput(port) => engine.connect(OutputToSocket(port))
+    }
+  }
+
 
 }

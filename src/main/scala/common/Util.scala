@@ -1,9 +1,29 @@
 package common
 
+import java.util.concurrent.TimeUnit
+
+
 /**
   * Created by hb on 8/28/16.
   */
 object Util {
+
+  //introduced to avoid xml-configuration stuff
+  // WARN/ERROR not restricted
+  val LOG_LEVEL_DEBUG = 2
+  val LOG_LEVEL_INFO = 1
+  val LOG_LEVEL_NONE = 0
+  var log_level = LOG_LEVEL_NONE //edited by config in main program
+
+  def timeUnitWritten(timeUnit: TimeUnit) = {
+    timeUnit match {
+      case java.util.concurrent.TimeUnit.MILLISECONDS => "ms"
+      case java.util.concurrent.TimeUnit.SECONDS => "s"
+      case java.util.concurrent.TimeUnit.MINUTES => "min"
+      case java.util.concurrent.TimeUnit.HOURS => "h"
+      case _ => "?" //not used
+    }
+  }
 
   def printTime[T](nameOfProcedure: String)(any: => T): T = {
     val start = System.currentTimeMillis()

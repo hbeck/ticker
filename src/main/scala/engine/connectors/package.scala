@@ -8,8 +8,12 @@ import scala.concurrent.duration.Duration
 package object connectors {
   val atomsSeparator = ';'
 
+  def parseInput(line: String): Seq[Atom] = {
+    parseAtoms(line)
+  }
 
-  def parseInput(inputUnit: TimeUnit)(line: String): (Option[Duration], Seq[Atom]) = {
+  @deprecated
+  def parseInputDepr(inputUnit: TimeUnit)(line: String): (Option[Duration], Seq[Atom]) = {
     if (line.startsWith("@")) {
       val parts = line.split(':')
       (parseTime(inputUnit, parts(0)), parseAtoms(parts(1)))
@@ -18,6 +22,7 @@ package object connectors {
     }
   }
 
+  @deprecated
   def parseTime(inputUnit: TimeUnit, time: String) = time.trim.replace("@", "") match {
     case Int(x) => Some(Duration(x, inputUnit))
     case _ => None

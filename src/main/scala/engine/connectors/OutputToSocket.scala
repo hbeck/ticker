@@ -4,15 +4,10 @@ import java.io.PrintStream
 import java.net.{ServerSocket, Socket}
 
 import com.typesafe.scalalogging.Logger
-import common.Resource
+import common.{Resource, Util}
 import core.lars.TimePoint
-import reasoner.Result
-import reasoner.incremental.jtms.in
 import engine.{ConnectToEngine, Engine, Startable}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-import scala.io.BufferedSource
+import reasoner.Result
 
 case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
 
@@ -30,18 +25,18 @@ case class OutputToSocket(port: Int) extends ConnectToEngine with Resource {
     () => {
       while (true) {
         val socket = server.accept()
-        logger.debug("New socket connection received")
+        if (Util.log_level == Util.LOG_LEVEL_DEBUG) {
+          logger.debug("New socket connection received")
+        }
         new PrintServerSocket(socket).start()
       }
     }
   }
 
-  def evaluateModel(engineRunner: Engine)(result: Result, ticks: TimePoint): Unit = {
-
-    val timeInOutput = engineRunner.convertToClockTime(ticks).toSeconds
+  def evaluateModel(engine: Engine)(result: Result, timepoint: TimePoint): Unit = {
     result.get match {
-      case Some(m) => outputToAllClients(f"Model at T $timeInOutput: $m")
-      case None => outputToAllClients(f"No model at T $timeInOutput")
+      case Some(model) => outputToAllClients(Messages.model(engine,timepoint,model))
+      case None => outputToAllClients(Messages.noModel(engine,timepoint))
     }
   }
 
