@@ -20,7 +20,7 @@ object PrepareEvaluator {
 
     val reaosoner = BuildReasoner.
       withProgram(program).
-      withReasoning(reasonerType, evaluationStrategy)
+      withReasoner(reasonerType, evaluationStrategy)
 
     if (reaosoner.isDefined) {
       Console.println(f"Reasoner: $reasonerType $evaluationStrategy")

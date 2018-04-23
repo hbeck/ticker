@@ -1,7 +1,7 @@
 package reasoner.config
 
-import core.Atom
-import core.lars.{ClockTime, LarsProgram}
+import core.Predicate
+import core.lars.{ClockTime, LarsBasedProgram, LarsProgram}
 import reasoner.asp._
 import reasoner.asp.clingo.{ClingoConversion, ClingoProgramWithLars, StreamingClingoInterpreter}
 import reasoner.common.{LarsProgramEncoding, PlainLarsToAspMapper}
@@ -23,7 +23,7 @@ object BuildReasoner {
 
 case class Configuration(larsProgram: LarsProgram, clockTime: ClockTime = 1 second) {
 
-  def withReasoning(reasonerChoice: ReasonerChoice, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(reasonerChoice, evaluationModifier)
+  def withReasoner(reasonerChoice: ReasonerChoice, evaluationModifier: EvaluationModifier) = ArgumentBasedConfiguration(this).build(reasonerChoice, evaluationModifier)
 
   def configure() = ReasonerConfiguration(larsProgram, clockTime)
 
@@ -34,34 +34,44 @@ case class ReasonerConfiguration(program: LarsProgram, clockTime: ClockTime) {
 
   private lazy val larsProgramEncoding = PlainLarsToAspMapper(clockTime)(program)
 
-  def withClingo() = EvaluationModeConfiguration(ClingoConversion.fromLars(larsProgramEncoding))
+  def withClingo() = EvaluationModeConfiguration(larsProgramEncoding)
 
   def withIncremental(): IncrementalConfiguration = IncrementalConfiguration(larsProgramEncoding)
 
 }
 
-case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, jtms: Jtms = Jtms()) {
+trait WithLarsBasedProgram {
+  val larsBasedProgram: LarsBasedProgram
+}
+
+case class IncrementalConfiguration(larsProgramEncoding: LarsProgramEncoding, jtms: Jtms = Jtms()) extends WithLarsBasedProgram {
+
+  val larsBasedProgram = larsProgramEncoding
 
   def withRandom(random: Random) = IncrementalConfiguration(larsProgramEncoding, Jtms(jtms.network, random))
 
   def withJtms(jtms: Jtms) = IncrementalConfiguration(larsProgramEncoding, jtms)
 
   def use() = PreparedReasonerConfiguration(
+    larsBasedProgram,
     IncrementalReasoner(IncrementalRuleMaker(larsProgramEncoding), jtms),
-    larsProgramEncoding.intensionalAtoms ++ larsProgramEncoding.signals
+    larsBasedProgram.intensionalPredicates ++ larsBasedProgram.signalPredicates
   )
 
 }
 
-object IncrementalConfiguration {
-  implicit def toEvaluationModeConfig(config: IncrementalConfiguration): PreparedReasonerConfiguration =
-    PreparedReasonerConfiguration(
-      IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.jtms),
-      config.larsProgramEncoding.intensionalAtoms ++ config.larsProgramEncoding.signals
-    )
-}
+//object IncrementalConfiguration {
+//  implicit def toEvaluationModeConfig(config: IncrementalConfiguration): PreparedReasonerConfiguration =
+//    PreparedReasonerConfiguration(
+//      IncrementalReasoner(IncrementalRuleMaker(config.larsProgramEncoding), config.jtms),
+//      config.larsProgramEncoding.intensionalPredicates ++ config.larsProgramEncoding.signalPredicates
+//    )
+//}
 
-case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
+case class EvaluationModeConfiguration(larsProgramEncoding: LarsProgramEncoding) extends WithLarsBasedProgram {
+
+  val clingoProgram: ClingoProgramWithLars = ClingoConversion.fromLars(larsProgramEncoding)
+  val larsBasedProgram = larsProgramEncoding
 
   def withDefaultEvaluationMode() = withEvaluationMode(Direct)
 
@@ -78,21 +88,27 @@ case class EvaluationModeConfiguration(clingoProgram: ClingoProgramWithLars) {
 
 case class EvaluationStrategyConfiguration(clingoEvaluation: ClingoEvaluation) {
 
+  val larsBasedProgram: LarsBasedProgram = clingoEvaluation.program
+
   def usePull() = PreparedReasonerConfiguration(
+    larsBasedProgram,
     AspPullReasoner(clingoEvaluation),
-    clingoEvaluation.program.intensionalAtoms ++ clingoEvaluation.program.signals
+    larsBasedProgram.intensionalPredicates ++ larsBasedProgram.signalPredicates
   )
 
   def usePush() = PreparedReasonerConfiguration(
+    larsBasedProgram,
     AspPushReasoner(clingoEvaluation),
-    clingoEvaluation.program.intensionalAtoms ++ clingoEvaluation.program.signals
+    larsBasedProgram.intensionalPredicates ++ larsBasedProgram.signalPredicates
   )
 
 }
 
-case class PreparedReasonerConfiguration(reasoner: Reasoner, restrictTo: Set[Atom]) {
+case class PreparedReasonerConfiguration(larsBasedProgram: LarsBasedProgram, reasoner: Reasoner, restrictTo: Set[Predicate]) extends WithLarsBasedProgram {
 
-  def withFilter(restrictTo: Set[Atom]) = PreparedReasonerConfiguration(reasoner, restrictTo)
+  def withNoFilter() = PreparedReasonerConfiguration(larsBasedProgram, reasoner, larsBasedProgram.allPredicates)
+  def withPredicateFilter(restrictTo: Set[Predicate]) = PreparedReasonerConfiguration(larsBasedProgram, reasoner, restrictTo)
+  def withIntensionalFilter() = PreparedReasonerConfiguration(larsBasedProgram, reasoner, larsBasedProgram.intensionalPredicates)
 
   def seal() = ReasonerWithFilter(reasoner, ResultFilter(restrictTo))
 

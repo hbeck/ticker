@@ -19,20 +19,20 @@ class ResultFilterSpec extends FlatSpec with AtomTestFixture {
   }
 
   "A non empty Result with the same restricted Atoms" should "be filtered to the same model" in {
-    val filter = ResultFilter(Set(a))
+    val filter = ResultFilter(Set(a.predicate))
     val result = Result(Set(a))
     assert(filter.filter(0, result).model == result.model)
   }
 
   "Pinned Atoms at the same timepoint" should "be used with only the atom" in {
-    val filter = ResultFilter(Set(a))
+    val filter = ResultFilter(Set(a.predicate))
     val result = Result(Set[Atom](PinnedAtom.asPinnedAtAtom(a, 0)))
 
     assert(filter.filter(0, result).model == Set(a))
   }
 
   "Pinned Atoms at a different timepoint" should "be filtered to an empty model" in {
-    val filter = ResultFilter(Set(a))
+    val filter = ResultFilter(Set(a.predicate))
     val result = Result(Set[Atom](PinnedAtom.asPinnedAtAtom(a, 0)))
 
     assert(filter.filter(1, result).model == Set())

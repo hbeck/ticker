@@ -32,7 +32,7 @@ class TmsPerformanceSample extends ConfigurableReasonerSpec with TimeTestFixture
     configure().
     withIncremental().
     withJtms(new JtmsGreedy(new OptimizedNetwork(), new Random(1))).
-    seal()
+    use().seal()
 
   "An empty Program" should "lead to an empty model at t0" in {
     reasoner.evaluate(t0).get.value shouldBe empty

@@ -2,14 +2,14 @@ import java.io.File
 
 import com.typesafe.scalalogging.Logger
 import common.Util
-import core.Atom
+import core.Predicate
 import core.lars.{ClockTime, Format, LarsProgram}
+import engine._
+import engine.connectors.{OutputToSocket, OutputToStdOut, ReadFromSocket, ReadFromStdIn}
 import reasoner.Reasoner
 import reasoner.config.ReasonerChoice._
 import reasoner.config.{BuildReasoner, EvaluationModifier, ReasonerChoice}
 import reasoner.parser.LarsParser
-import engine._
-import engine.connectors.{OutputToSocket, OutputToStdOut, ReadFromSocket, ReadFromStdIn}
 
 import scala.concurrent.duration._
 
@@ -75,23 +75,25 @@ object Program {
 
       opt[Seq[File]]('p', "programs").required().valueName("<file>,<file>,...").
         action((x, c) => c.copy(programFiles = x)).
-        text("program is a required file property")
+        text("Program fiel required")
 
-      opt[ReasonerChoice]('r', "reasoner").optional().valueName("<reasoning strategy>").
+      opt[ReasonerChoice]('r', "reasoner").optional().valueName("<reasoner>").
         action((x, c) => c.copy(reasoner = x)).
         text("Reasoning strategy required, possible values: " + ReasonerChoice.values)
 
-      //TODO filter missing
+      opt[Seq[String]]('f', "filter").optional().valueName("none | inference | <predicate>,<predicate>,...").
+        action((x,c) => c.copy(filter = x)).
+        text("Possible filters: none | inference | <predicate>,<predicate>,...")
 
       opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
-          if (d lt Duration.Zero)
+          if (d.lt(Duration.Zero))
             Left("clock time must be > 0")
           else
             Right((): Unit)
         ).
         action((x, c) => c.copy(clockTime = x)).
-        text("valid units: ms, s, min, h. eg: 10ms") //TODO
+        text("valid units: ms, s, sec, min, h. eg: 10ms")
 
       opt[OutputTiming]('e', "outputEvery").
         optional().
@@ -104,11 +106,11 @@ object Program {
         action((x, c) => c.copy(outputTiming = x)).
         text("valid units: ms, s, min, h. eg: 10ms")
 
-      opt[Seq[InputSource]]('i', "input").optional().valueName("<source>,<source>,...").
+      opt[Seq[Source]]('i', "input").optional().valueName("<source>,<source>,...").
         action((x, c) => c.copy(inputs = x)).
         text("Possible input sources: read from input with 'stdin', read from a socket with 'socket:<port>'")
 
-      opt[Seq[OutputSink]]('o', "output").optional().valueName("<sink>,<sink>,...").
+      opt[Seq[Sink]]('o', "output").optional().valueName("<sink>,<sink>,...").
         action((x, c) => c.copy(outputs = x)).
         text("Possible output sinks: write to output with 'stdout', write to a socket with 'socket:<port>'")
 
@@ -146,47 +148,43 @@ object Program {
   implicit val evaluationModifierRead: scopt.Read[EvaluationModifier.Value] = scopt.Read.reads(EvaluationModifier withName)
 
   private val SocketPattern = "socket:(\\d+)".r
-  implicit val inputSourcesRead: scopt.Read[InputSource] = scopt.Read.reads(s => s.toLowerCase match {
+  implicit val inputSourcesRead: scopt.Read[Source] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdin" => StdIn
     case SocketPattern(port) => SocketInput(port.toInt)
   })
 
-  implicit val outputSinksRead: scopt.Read[OutputSink] = scopt.Read.reads(s => s.toLowerCase match {
+  implicit val outputSinksRead: scopt.Read[Sink] = scopt.Read.reads(s => s.toLowerCase match {
     case "stdout" => StdOut
     case SocketPattern(port) => SocketOutput(port.toInt)
   })
 
 
-  sealed trait InputSource
+  sealed trait Source
+  object StdIn extends Source
+  case class SocketInput(port: Int) extends Source
 
-  object StdIn extends InputSource
+  sealed trait Sink
+  object StdOut extends Sink
+  case class SocketOutput(port: Int) extends Sink
 
-  case class SocketInput(port: Int) extends InputSource
-
-  sealed trait OutputSink
-
-  object StdOut extends OutputSink
-
-  case class SocketOutput(port: Int) extends OutputSink
-
-  case class Config(reasoner: ReasonerChoice = ReasonerChoice.Incremental,
-                    programFiles: Seq[File] = null,
+  case class Config(programFiles: Seq[File] = null,
+                    reasoner: ReasonerChoice = ReasonerChoice.Incremental,
+                    filter: Seq[String] = Seq(),
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
-                    inputs: Seq[InputSource] = Seq(StdIn),
-                    outputs: Seq[OutputSink] = Seq(StdOut),
-                    filter: Option[Set[String]] = None
+                    inputs: Seq[Source] = Seq(StdIn),
+                    outputs: Seq[Sink] = Seq(StdOut)
                    ) {
 
     def parseProgramFromFile() = {
       if (programFiles.isEmpty) {
         throw new RuntimeException("program argument missing")
       }
-      val programs = programFiles.map{file => LarsParser(file.toURI.toURL)}
+      val programs: Seq[LarsProgram] = programFiles.map{file => LarsParser(file.toURI.toURL)}
       if (programs.size == 1) {
         programs(0)
       } else {
-        programs.reduce { case (p1,p2) => p1 ++ p2 }
+        programs.reduce { (p1,p2) => p1 ++ p2 }
       }
     }
 
@@ -204,9 +202,17 @@ object Program {
           case _ => reasonerBuilder.configure().withClingo().withDefaultEvaluationMode().usePush()
         }
       }
-      filter match {
-        case Some(atoms) if atoms.nonEmpty => preparedReasoner.withFilter(atoms.map(Atom(_))).seal()
-        case _ => preparedReasoner.seal()
+
+      if (filter.isEmpty) {
+        preparedReasoner.withNoFilter().seal()
+      } else if (filter.size == 1) {
+        filter(0) match {
+          case "none" => preparedReasoner.withNoFilter().seal()
+          case "inferences" => preparedReasoner.withIntensionalFilter().seal()
+          case pred:String => preparedReasoner.withPredicateFilter(Set(Predicate(pred))).seal()
+        }
+      } else {
+        preparedReasoner.withPredicateFilter(filter.map(Predicate(_)).toSet).seal()
       }
     }
   }

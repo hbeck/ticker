@@ -16,9 +16,7 @@ case class ReasonerWithFilter(reasoner: Reasoner, resultFilter: ResultFilter) ex
   override def evaluate(time: TimePoint): Result = resultFilter.filter(time, reasoner.evaluate(time))
 }
 
-case class ResultFilter(restrictTo: Set[Atom]) {
-
-  val restrictToPredicates = restrictTo.map(_.predicate)
+case class ResultFilter(restrictTo: Set[Predicate]) {
 
   val fixedAuxiliaryAtomPredicates = specialPinPredicates.toSet
 
@@ -33,16 +31,12 @@ case class ResultFilter(restrictTo: Set[Atom]) {
           case g: GroundAtom => g
         }
 
-        val restrictedOnly = filteredAfterTime filter { a => restrictToPredicates.contains(a.predicate) }
+        val restrictedOnly = filteredAfterTime filter { a => restrictTo.contains(a.predicate) }
 
         Result(restrictedOnly)
       }
       case None => EmptyResult
     }
-  }
-
-  def filterToPredicates(model: Model, predicates: Set[Predicate]) = {
-    model filterNot { a => predicates.contains(a.predicate) }
   }
 
   private val TimeAtomPattern = "(.+)_at".r
