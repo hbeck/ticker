@@ -38,14 +38,17 @@ object Program {
 
         logger.info(f"Engine Configuration: " + Util.prettyPrint(config))
 
-        val timeWindowSmallerThanEngineUnit = program.slidingTimeWindowsAtoms.
-          exists {
-            t => Duration(t.windowSize.length, t.windowSize.unit).lt(config.clockTime)
-            //TODO have to check that every window is a multiple of clock time
-          }
-        if (timeWindowSmallerThanEngineUnit)
-          throw new IllegalArgumentException("Cannot specify a sliding time window with a smaller window size than the clock time.")
-
+        program.timeWindows.find { w =>
+          Duration(w.windowSize.length, w.windowSize.unit).lt(config.clockTime)
+        } match {
+          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" has smaller duration that clock time "+config.clockTime)
+        }
+        val ct = config.clockTime.length
+        program.timeWindows.find { w =>
+          Duration(w.windowSize.length,w.windowSize.unit).length % ct > 0
+        } match {
+          case Some(w) => throw new IllegalArgumentException("Time window size "+Duration(w.windowSize.length,w.windowSize.unit)+" is not a multiple of clock time"+config.clockTime)
+        }
         val reasoner = config.buildReasoner(program)
 
         val engine = Engine(reasoner, config.clockTime, config.outputTiming)
