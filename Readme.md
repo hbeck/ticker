@@ -55,11 +55,12 @@ Optional parameters:
 
 * `-r --reasoner [ incremental | clingo ]` for the reasoning mode
 * `-c --clock <int><timeunit>` for the duration of 1 time point, where `<timeunit> ::= ms | s | sec | min | h`
+* `-f --filter [ none | inferences | <predicate>,<predicate>,... ]`: specify what model contains
 * `-e --outputEvery [ change | signal | time | <int>signals | <int><timeunit> ]` for specifying when output is written:
-    * `change`: filtered model changed
+    * `change`: model changed (after potential filtering)
     * `signal`: new signal streamed in (push-based)
     * `time`: a time point passed by (pull-based)
-    * `<int>signals`: given number signals streamed in (generalized push-based)
+    * `<int>signals`: given number of signals streamed in (generalized push-based)
     * `<int><timeunit>`: specified time passed by (pull-based)
 * `-i --input <source>,<source>,...`
     * `<source>: stdin | socket:<int>`
@@ -67,7 +68,7 @@ Optional parameters:
     * `<sink>: stdout | socket:<int>`
 * `-l --loglevel [ none | info | debug ]`
 
-default: `-r incremental -f none -c 1s -e change -i stdin -o stdout -l none`
+default: `-r incremental -f inferences -c 1s -e change -i stdin -o stdout -l none`
     
 ## Running Ticker
 

@@ -53,9 +53,9 @@ object Program {
         action((x, c) => c.copy(reasoner = x)).
         text("Reasoning strategy required, possible values: " + ReasonerChoice.values)
 
-      opt[Seq[String]]('f', "filter").optional().valueName("none | inference | <predicate>,<predicate>,...").
+      opt[Seq[String]]('f', "filter").optional().valueName("none | inferences | <predicate>,<predicate>,...").
         action((x,c) => c.copy(filter = x)).
-        text("Possible filters: none | inference | <predicate>,<predicate>,...")
+        text("Possible filters: none | inferences | <predicate>,<predicate>,...")
 
       opt[Duration]('c', "clock").optional().valueName("<value><time-unit>").
         validate(d =>
@@ -144,7 +144,7 @@ object Program {
 
   case class Config(programFiles: Seq[File] = null,
                     reasoner: ReasonerChoice = ReasonerChoice.incremental,
-                    filter: Seq[String] = Seq(),
+                    filter: Seq[String] = Seq("inferences"),
                     clockTime: ClockTime = 1 second,
                     outputTiming: OutputTiming = Change,
                     inputs: Seq[Source] = Seq(StdIn),
@@ -192,7 +192,7 @@ object Program {
       }
 
       if (filter.isEmpty) {
-        preparedReasoner.withNoFilter().seal()
+        preparedReasoner.withIntensionalFilter().seal() //default
       } else if (filter.size == 1) {
         filter(0) match {
           case "none" => preparedReasoner.withNoFilter().seal()
