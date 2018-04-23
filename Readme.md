@@ -55,9 +55,9 @@ Optional parameters:
 
 * `-r --reasoner [ incremental | clingo ]` for the reasoning mode
 * `-c --clock <int><timeunit>` for the duration of 1 time point, where `<timeunit> ::= ms | s | sec | min | h`
-* `-f --filter [ none | inferences | <predicate>,<predicate>,... ]`: specify what model contains
+* `-f --filter [ all | inferences | <predicate>,<predicate>,... ]`: specify which predicates to include in models
 * `-e --outputEvery [ change | signal | time | <int>signals | <int><timeunit> ]` for specifying when output is written:
-    * `change`: model changed (after potential filtering)
+    * `change`: model changed (after filtering)
     * `signal`: new signal streamed in (push-based)
     * `time`: a time point passed by (pull-based)
     * `<int>signals`: given number of signals streamed in (generalized push-based)
