@@ -180,8 +180,8 @@ object Program {
         withClockTime(clockTime)
 
       val preparedReasoner = reasoner match {
-        case ReasonerChoice.`incremental` => reasonerBuilder.configure().withIncremental().use()
-        case ReasonerChoice.`clingo` => {
+        case ReasonerChoice.incremental => reasonerBuilder.configure().withIncremental().use()
+        case ReasonerChoice.clingo => {
           val cfg = reasonerBuilder.configure().withClingo().withDefaultEvaluationMode()
           outputTiming match {
             case Time(_) => cfg.usePull()
@@ -196,7 +196,7 @@ object Program {
       } else if (filter.size == 1) {
         filter(0) match {
           case "inferences" => preparedReasoner.withIntensionalFilter().seal()
-          case "all" => preparedReasoner.witheNoFilter().seal()
+          case "all" => preparedReasoner.withNoFilter().seal()
           case pred:String => preparedReasoner.withPredicateFilter(Set(Predicate(pred))).seal()
         }
       } else {

@@ -1,7 +1,8 @@
 package evaluation.diss
 
-import evaluation.diss.instances.{BasicDualInstance, BasicInstance, JoinInstance, SampleInstance}
+import evaluation.diss.instances._
 
+import scala.util.Random
 import scala.util.matching.Regex
 
 /**
@@ -25,20 +26,28 @@ case class Config(var args: Map[String, String]) {
   val printModelAt = Integer.parseInt(args(KEY_PRINT_MODEL_AT))
   val printRulesAt = Integer.parseInt(args(KEY_PRINT_RULES_AT))
   val simplify = (args(KEY_SIMPLIFY) == "true")
+  val overrideRandom = (!args(KEY_RANDOM).isEmpty)
+  val fixedRandom = if (overrideRandom) Integer.parseInt(args(KEY_RANDOM)) else 0
 
   def makeInstance(iterationNr: Int): Instance = {
+
+    val random: Random = new Random(iterationNr)
+
     val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
     val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
     val join:Regex = """join_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg join_wtd_1_10
-    //val joinDual:Regex = """join_dual_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r
-    //val joinSample:Regex = """join_dual_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r
+    val reach:Regex = """reach_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_wtd_1_10
+    val reach2:Regex = """reach2_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reachlt_wtd_1_10
+
     def i(s: String) = Integer.parseInt(s)
     instance match {
       case SAMPLE => SampleInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
       case join(winType,mod,signalEvery,scale) => JoinInstance(winType+mod,windowSize,i(signalEvery),i(scale))
-      case x => throw new RuntimeException("unknown evaluation instance: "+x)
+      case reach(winType,mod,signalEvery,scale) => ReachInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
+      case reach2(winType,mod,signalEvery,scale) => Reach2Instance(random,winType+mod,windowSize,i(signalEvery),i(scale))
+      case x => throw new RuntimeException(f"unknown evaluation instance: $x")
     }
   }
 
@@ -49,7 +58,9 @@ object Config {
   def buildArgMap(args: Array[String]): Map[String, String] = {
 
     if (args.length % 2 == 1) {
-      println("need even number of args. given: " + args)
+      print(f"need even number of args. given ${args.length}: ")
+      args.foreach(a => print(f" $a"))
+      println()
       System.exit(1)
     }
     if (args.length == 0) {
@@ -90,6 +101,8 @@ object Config {
     defaultArg(KEY_HEADER, "false")
     defaultArg(KEY_WITH_DEBUG, "false")
     defaultArg(KEY_SIMPLIFY, "false")
+    //
+    defaultArg(KEY_RANDOM, "")
 
     argMap
   }
@@ -109,6 +122,8 @@ object Config {
   val KEY_PRINT_RULES = "printRules"
   val KEY_PRINT_RULES_AT = "printRulesAt"
   val KEY_PRINT_MODEL_AT = "printModelAt"
+  //
+  val KEY_RANDOM = "rand"
   //
   val KEY_SIMPLIFY = "simplify"
 

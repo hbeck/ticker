@@ -144,7 +144,7 @@ class JtmsDoyle(override val network: TruthMaintenanceNetwork = TruthMaintenance
   def checkJtmsSemantics(): Unit = {
     if (!doJtmsSemanticsCheck) return
     if (network.atomsNeedingSupp exists (network.supp(_).isEmpty)) {
-      throw new RuntimeException("model: " + getModel() + "\nno support for atoms " + (network.atomsNeedingSupp filter (network.supp(_).isEmpty)))
+      throw new RuntimeException(f"model: ${getModel()} \nno support for atoms ${(network.atomsNeedingSupp filter (network.supp(_).isEmpty))}")
     }
   }
 
@@ -152,7 +152,7 @@ class JtmsDoyle(override val network: TruthMaintenanceNetwork = TruthMaintenance
     if (!doSelfSupportCheck) return
     if (network.inAtoms exists unfoundedSelfSupport) {
       //throw new RuntimeException("model: "+getModel()+"\nself support exists")
-      Console.err.println("model: " + getModel() + "\nself support exists")
+      Console.err.println(f"model: ${getModel()} \nself support exists")
       failed = true
       invalidateModel()
     }
@@ -162,13 +162,13 @@ class JtmsDoyle(override val network: TruthMaintenanceNetwork = TruthMaintenance
     if (!doConsistencyCheck) return
     if ((network.inAtoms diff network.factAtoms) exists (a => !(network.justifications(a) exists network.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: in-atom has no valid justification")
-      Console.err.println("model: " + getModel() + "\ninconsistent state: in-atom has no valid justification")
+      Console.err.println(f"model: ${getModel()} \ninconsistent state: in-atom has no valid justification")
       failed = true
       invalidateModel()
     }
     if ((network.outAtoms diff network.factAtoms) exists (a => (network.justifications(a) exists network.valid))) {
       //throw new RuntimeException("model: "+getModel()+"\ninconsistent state: out-atom has valid justification")
-      Console.err.println("model: " + getModel() + "\ninconsistent state: out-atom has valid justification")
+      Console.err.println(f"model: ${getModel()} \ninconsistent state: out-atom has valid justification")
       failed = true
       invalidateModel()
     }

@@ -31,6 +31,7 @@ class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork = TruthM
   }
 
   override def updateImplementation(atoms: Set[Atom]): Unit = {
+
     atoms foreach setUnknown
     atoms foreach findStatus
 

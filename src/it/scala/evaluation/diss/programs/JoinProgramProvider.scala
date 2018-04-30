@@ -1,22 +1,22 @@
 package evaluation.diss.programs
 
 import core.Atom
-import core.lars.{LarsProgram, LarsRule}
-import evaluation.diss.instances.AnalyticCommon
-import evaluation.diss.PreparedAtoms._
+import core.lars.LarsProgram
 import evaluation.diss.Helpers._
+import evaluation.diss.PreparedAtoms._
+import evaluation.diss.programs.AnalyticProgramProvider.makeWindowAtom
 
 trait JoinProgramProvider extends AnalyticProgramProvider with Scalable {
 
-  val aY: Atom = "a(Y)"
+  val aXZ: Atom = "a(X,Z)"
   val bXY: Atom = "b(X,Y)"
   val cYZ: Atom = "c(Y,Z)"
 
   def program(): LarsProgram = {
-    val wbXY = AnalyticCommon.windowAtom(winMod,windowSize,bXY)
-    val wcYZ = AnalyticCommon.windowAtom(winMod,windowSize,cYZ)
-    val rules = Seq[LarsRule](rule(aY,Set(wbXY,wcYZ,gX,gY,gZ))) ++ ((1 to scale).map{ i => fact(g(i)) })
-    LarsProgram(rules)
+    val wbXY = makeWindowAtom(winMod,windowSize,bXY)
+    val wcYZ = makeWindowAtom(winMod,windowSize,cYZ)
+    LarsProgram.from(aXZ <= wbXY and wcYZ and gX and gY and gZ) ++
+    LarsProgram.from((1 to scale).map{ i => fact(g(i)) }.toSet)
   }
 
 }

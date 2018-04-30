@@ -56,6 +56,8 @@ object DissEvalMain {
   //
   //
 
+  def rnd(d: Double) = Math.round(100.0 * d)/100.0
+
   def evaluate(config: Config) = {
 
     if (config.withDebug) println(config)
@@ -71,7 +73,7 @@ object DissEvalMain {
       "init_time" -> executionTimes.initializationTimes.avg,
       "add_time" -> executionTimes.appendTimes.avg,
       "eval_time_per_tp" -> (1.0*executionTimes.avgEvaluationTimePerRun.toSeconds)/(1.0*config.timePoints),
-      "tp_per_sec" -> 10E6*(1.0*config.timePoints)/(1.0*executionTimes.avgEvaluationTimePerRun.toMicros)
+      "tp_per_sec" -> rnd(10E6*(1.0*config.timePoints)/(1.0*executionTimes.avgEvaluationTimePerRun.toMicros))
       //"eval_time" -> executionTimes.evaluateTimes.avg,
       //"add_time_per_tp" -> (1.0*executionTimes.appendTimes.avg)/(1.0*config.timePoints)
       //"eval_time_per_tp" -> (1.0*executionTimes.evaluateTimes.avg)/(1.0*config.timePoints)
@@ -133,7 +135,8 @@ object DissEvalMain {
       val preparedReasoner: PreparedReasonerConfiguration = config.reasoner match {
         case Config.CLINGO => builder.configure().withClingo().withDefaultEvaluationMode().usePush()
         case Config.INCREMENTAL => {
-          jtms = JtmsDoyleHeuristics(new Random(iterationNr))
+          val randomSeed = if (config.overrideRandom) config.fixedRandom else iterationNr
+          jtms = JtmsDoyleHeuristics(new Random(randomSeed))
           if (config.semantics_checks) {
             jtms.doConsistencyCheck = true
             jtms.doJtmsSemanticsCheck = true

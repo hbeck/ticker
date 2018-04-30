@@ -33,14 +33,21 @@ object Helpers {
 
   def mustHave(model:Model, a: Atom, t: Int): Unit = {
     if (!model.contains(a)) {
-      println("model at t="+t+" should contain atom "+a+": "+model)
+      println(f"model at t=$t should contain atom $a: $model")
       assert(false)
     }
   }
 
   def mustNotHave(model:Model, a: Atom, t: Int): Unit = {
     if (model.contains(a)) {
-      println("model at t="+t+" should not contain atom "+a+": "+model)
+      println(f"model at t=$t should not contain atom $a: $model")
+      assert(false)
+    }
+  }
+
+  def mustBeEmpty(model: Model, t: Int): Unit = {
+    if (!model.isEmpty) {
+      println(f"model at t=$t should be empty: $model")
       assert(false)
     }
   }

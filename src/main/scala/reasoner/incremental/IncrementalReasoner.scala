@@ -1,7 +1,7 @@
 package reasoner.incremental
 
 import core._
-import core.asp.{NormalRule, UserDefinedAspRule}
+import core.asp.NormalRule
 import core.lars.TimePoint
 import reasoner.common.Tick
 import reasoner.incremental.jtms.algorithms.Jtms
@@ -15,16 +15,19 @@ import scala.collection.immutable.HashMap
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
 case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms: Jtms) extends Reasoner {
+  //println(f"${incrementalRuleMaker.staticGroundRules.size} static ground rules")
 
-  incrementalRuleMaker.staticGroundRules.foreach(jtms.add(_))
+  incrementalRuleMaker.staticGroundRules.filter(_.isFact).foreach(jtms.add(_))
+  incrementalRuleMaker.staticGroundRules.filter(r => !r.isFact).foreach(jtms.add(_))
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!
+
   incrementTick() //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(timepoint: TimePoint)(atoms: Atom*) {
     if (timepoint.value < currentTick.time) {
-      throw new RuntimeException("cannot append signal at past time t=" + timepoint + ". system time already at t'=" + currentTick.time)
+      throw new RuntimeException(f"cannot append signal at past time t=$timepoint. system time already at t'={currentTick.time}")
     }
     updateToTimePoint(timepoint)
     atoms foreach addSignalAtCurrentTime
@@ -32,7 +35,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
   override def evaluate(timepoint: TimePoint): Result = {
     if (timepoint.value < currentTick.time) {
-      return new UnknownResult("cannot evaluate past time t=" + timepoint + ". system time already at t'=" + currentTick.time)
+      return new UnknownResult(f"cannot evaluate past time t=$timepoint. system time already at t'=${currentTick.time}")
     }
     updateToTimePoint(timepoint)
     Result(jtms.getModel())
@@ -61,7 +64,6 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   }
 
   def incrementTick(signal: Option[Atom] = None) {
-
     val timeIncrease = signal.isEmpty
 
     val expiredRules = if (timeIncrease) {
@@ -83,10 +85,6 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
     //println(jtms.getModel())
   }
-
-  val THEHEAD = Atom(Predicate("covT_10_b"),Seq(IntValue(18)))
-  val THEPOSBODY = Set(Atom(Predicate("tick"),Seq(IntValue(18),IntValue(17))))
-  val THERULE = UserDefinedAspRule[Atom](THEHEAD,THEPOSBODY,Set())
 
   object expiration {
 

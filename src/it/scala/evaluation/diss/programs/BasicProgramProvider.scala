@@ -1,15 +1,14 @@
 package evaluation.diss.programs
 
-import core.lars.{LarsProgram, LarsRule}
-import evaluation.diss.instances.AnalyticCommon
-import evaluation.diss.Helpers._
+import core.lars.LarsProgram
 import evaluation.diss.PreparedAtoms.{a, b}
+import evaluation.diss.programs.AnalyticProgramProvider.makeWindowAtom
 
 trait BasicProgramProvider extends AnalyticProgramProvider {
 
   def program(): LarsProgram = {
-    val windowAtom = AnalyticCommon.windowAtom(winMod,windowSize,b)
-    LarsProgram(Seq[LarsRule](rule(a,windowAtom)))
+    val windowAtom = makeWindowAtom(winMod,windowSize,b)
+    LarsProgram.from(a <= windowAtom)
   }
 
 }
