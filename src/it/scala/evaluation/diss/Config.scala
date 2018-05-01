@@ -37,17 +37,38 @@ case class Config(var args: Map[String, String]) {
     val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
     val join:Regex = """join_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg join_wtd_1_10
     val reach:Regex = """reach_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_wtd_1_10
-    val reach2:Regex = """reach2_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reachlt_wtd_1_10
+    val reachLt:Regex = """reach_lt_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_lt_wtd_1_10
+    val reachPerc:Regex = """rp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg rp_lt_wtd_e10_n100_p30
+    val linReachPerc:Regex = """lrp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg lrp_wtd_e10_n100_p30
+    val reachAvail:Regex = """ra_w(t|c)(a|d|b)_n([0-9]+)_av(0?|1)\.([0-9]*)_fe([0-9]+)_p([0-9]+)""".r //eg ra_wtd_n100_av0.9_fe0_p30
 
-    def i(s: String) = Integer.parseInt(s)
     instance match {
       case SAMPLE => SampleInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
       case join(winType,mod,signalEvery,scale) => JoinInstance(winType+mod,windowSize,i(signalEvery),i(scale))
       case reach(winType,mod,signalEvery,scale) => ReachInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
-      case reach2(winType,mod,signalEvery,scale) => Reach2Instance(random,winType+mod,windowSize,i(signalEvery),i(scale))
+      case reachLt(winType,mod,signalEvery,scale) => ReachLtInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
+      case reachPerc(winType,mod,signalEvery,scale,percent) => ReachPercInstance(random,winType+mod,windowSize,i(signalEvery),i(scale),i(percent))
+      case linReachPerc(winType,mod,signalEvery,scale,percent) => LinReachPercInstance(random,winType+mod,windowSize,i(signalEvery),i(scale),i(percent))
+      case reachAvail(winType,mod,scale,availL,availR,failSignalEvery,percent) => {
+        ReachAvailInstance(random,winType+mod,windowSize,i(scale),d(availL,availR),i(failSignalEvery),i(percent))
+      }
       case x => throw new RuntimeException(f"unknown evaluation instance: $x")
+    }
+
+  }
+
+  def i(s: String): Int = Integer.parseInt(s)
+  //("0","98") or ("","98") ==> 0.98. args: left and right of dot
+  def d(left: String, right: String): Double = {
+    val l = if (left.isEmpty) 0 else Integer.parseInt(left)
+    val r = if (right.isEmpty) 0 else Integer.parseInt(right)
+    if (l==0) {
+      (1.0*r)/(1.0*Math.pow(10,right.length))
+    } else {
+      if (l != 0) { throw new RuntimeException(f"unknown probability $left.$right") }
+      1.0
     }
   }
 
@@ -87,8 +108,8 @@ object Config {
 
     defaultArg(KEY_INSTANCE, "test")
     defaultArg(KEY_REASONER, INCREMENTAL)
-    defaultArg(KEY_PRE_RUNS, "2")
-    defaultArg(KEY_RUNS, "5")
+    defaultArg(KEY_PRE_RUNS, "0")
+    defaultArg(KEY_RUNS, "1")
     defaultArg(KEY_TIMEPOINTS, "100")
     defaultArg(KEY_WINDOW_SIZE, "10")
     //

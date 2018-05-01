@@ -51,4 +51,22 @@ class ManualInstanceTests extends FunSuite {
     DissEvalMain.main(args)
   }
 
+  test("rp_wtd_e10_n20_p70") {
+    val instName = "rp_wtd_e10_n20_p70"
+    val args = (f"$stdArgs inst $instName rand -1").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("lrp_wtd_e10_n20_p70") {
+    val instName = "lrp_wtd_e10_n20_p70"
+    val args = (f"$stdArgs inst $instName rand -1").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("ra_wtd_n10_av.9_fe2_p95") {
+    val instName = "ra_wtd_n10_av.9_fe2_p95"
+    val args = (f"$stdArgs inst $instName rand -1").split(" ")
+    DissEvalMain.main(args)
+  }
+
 }

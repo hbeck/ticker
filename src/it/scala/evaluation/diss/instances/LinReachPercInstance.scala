@@ -4,20 +4,26 @@ import core.{Atom, IntValue, Model}
 import evaluation.diss.Instance
 import evaluation.diss.PreparedAtoms.string2Atom
 import evaluation.diss.programs.AnalyticProgramProvider._
-import evaluation.diss.programs.{RandomProvider, Reach2ProgramProvider}
+import evaluation.diss.programs.{RandomProvider, LinReachLtProgramProvider}
 
 import scala.util.Random
 
 /**
-  * Created by hb on 30.04.18.
+  * Created by hb on 01.05.18.
   *
   * wm: window and modality indicator: {ta,td,tb,ca,cd,cb}
   * scale: nr of nodes
+  * percent: lower tier of node indexes that do *not* get a fail signal. measure of model maintainability.
   */
-case class Reach2Instance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends Instance with Reach2ProgramProvider with RandomProvider {
+case class LinReachPercInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int, percent: Int) extends Instance with LinReachLtProgramProvider with RandomProvider {
 
   assert(signalEvery > 0)
   assert(scale > 0)
+  assert(percent >= 0)
+  assert(percent <= 100)
+
+  val offset:Int = (0.01*percent*scale).toInt //e.g. 30% of 200 = 60
+  val shifterUpperBound = scale-offset //140 --> 0..139. actual range adds offset
 
   val winMod = winModFromString(wm)
 
@@ -25,7 +31,7 @@ case class Reach2Instance(random: Random, wm: String, windowSize: Int, signalEve
 
   def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (t % signalEvery == 0) {
-      val i = random.nextInt(scale)
+      val i = random.nextInt(shifterUpperBound+1)+offset //--> (0+60..140+60) = 60..200 [fail(0)..fail(59) are not produced. last edge (200,201)]
       val atom: Atom = f"fail($i)"
       currFailAtom = Some(atom)
       Seq[Atom](atom)

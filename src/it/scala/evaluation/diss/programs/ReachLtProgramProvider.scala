@@ -1,13 +1,14 @@
 package evaluation.diss.programs
 
-import core.Atom
+import core.{Atom, Lt}
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.PreparedAtoms._
+import evaluation.diss.PreparedVariables._
 import evaluation.diss.programs.AnalyticProgramProvider.makeWindowAtom
 
-//full grounding
-trait ReachProgramProvider extends AnalyticProgramProvider with Scalable {
+//ground only relevant
+trait ReachLtProgramProvider extends AnalyticProgramProvider with Scalable {
 
   val reachXY: Atom = "reach(X,Y)"
   val reachYZ: Atom = "reach(Y,Z)"
@@ -23,9 +24,9 @@ trait ReachProgramProvider extends AnalyticProgramProvider with Scalable {
     val facts: Set[LarsRule] = (1 to scale).map{ i => fact(edge(i-1,i)) }.toSet
     LarsProgram.from(facts) ++
     LarsProgram.from(
-      reachXY <= edgeXY not blockXY,
-      reachXZ <= reachXY and reachYZ,
-      blockXY <= edgeXY and wFailX
+      reachXY <= edgeXY and Lt(X,Y) not blockXY,
+      reachXZ <= reachXY and reachYZ and Lt(X,Y) and Lt(Y,Z),
+      blockXY <= edgeXY and wFailX and Lt(X,Y)
     )
 
   }
