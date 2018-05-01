@@ -200,8 +200,8 @@ case class ExecutionTimePerRun(initializationTime: Long, appendTime: DurationSer
 
 case class BatchExecution(runs: List[ExecutionTimePerRun]) {
   val initializationTimes: DurationSeries = DurationSeries.fromMillis(runs.map(_.initializationTime))
-  val appendTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.appendTime).flatMap(_.durations))
-  val evaluateTimes: DurationSeries = DurationSeries.fromExecutionTimes(runs.map(_.evaluateTime).flatMap(_.durations))
+  val appendTimes: DurationSeries = DurationSeries.fromDurations(runs.map(_.appendTime).flatMap(_.durations))
+  val evaluateTimes: DurationSeries = DurationSeries.fromDurations(runs.map(_.evaluateTime).flatMap(_.durations))
 
   val totalTime: Duration = initializationTimes.total + appendTimes.total + evaluateTimes.total
 

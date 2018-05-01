@@ -9,12 +9,18 @@ import scala.concurrent.duration.Duration
 /**
   * Created by FM on 21.07.16.
   */
-case class DurationSeries(durations: Seq[Duration]) {
-  val max: Duration = durations.max
-  val min: Duration = durations.min
-  val avg: Duration = durations.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s) / durations.length.toDouble
-  val median: Duration = durations.sorted.drop(durations.length / 2).head
-  val total: Duration = Duration.create(durations.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
+case class DurationSeries(durations: Seq[Duration]) extends NumberSeries[Duration] {
+  override val max: Duration = durations.max
+  override val min: Duration = durations.min
+  override val avg: Duration = (durations.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s)) / durations.length.toDouble
+  override val median: Duration = durations.sorted.drop(durations.length / 2).head
+  override val total: Duration = Duration.create(durations.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
+
+  def +(other: DurationSeries): DurationSeries = {
+    assert(this.durations.size == other.durations.size)
+    val newDurations: Seq[Duration] = this.durations.zip(other.durations).map{ pair => pair._1 + pair._2 }
+    DurationSeries(newDurations)
+  }
 
   override def toString = {
     val unit = TimeUnit.MILLISECONDS
@@ -42,17 +48,19 @@ case class DurationSeries(durations: Seq[Duration]) {
 }
 
 object DurationSeries {
-  def fromExecutionTimes(executionTimes: Seq[Duration]): DurationSeries = {
-    if (executionTimes.isEmpty) {
+  def fromDurations(durationSeq: Seq[Duration]): DurationSeries = {
+    if (durationSeq.isEmpty) {
       DurationSeries(Seq(Duration.Zero))
     } else {
-      DurationSeries(executionTimes)
+      DurationSeries(durationSeq)
     }
   }
 
-  def fromMillis(executionTimes: Seq[Long]): DurationSeries = fromExecutionTimes(executionTimes.map(toDuration))
+  def fromMillis(seq: Seq[Long]): DurationSeries = fromDurations(seq.map(toDuration))
+  def fromMillisDoubles(seq: Seq[Double]): DurationSeries = fromDurations(seq.map(toDuration))
 
   private def toDuration(millis: Long) = Duration.create(millis, TimeUnit.MILLISECONDS)
+  private def toDuration(double: Double) = Duration.create(double, TimeUnit.MILLISECONDS)
 }
 
 trait ConfigurationResult {
