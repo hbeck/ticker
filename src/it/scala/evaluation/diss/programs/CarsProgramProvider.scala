@@ -20,7 +20,7 @@ trait CarsProgramProvider extends ProgramProvider with Scalable {
 
   def program(): LarsProgram = {
     val facts: Set[LarsRule] = (1 to scale).map{ i => fact(car(i)) }.toSet
-    LarsProgram.from(facts)
+    LarsProgram.from(facts) ++
     LarsProgram.from(
       moreThanK <= wt_D(timeWindowSize,x),
       AtAtom(T,x) <= carC and wc_At(k+1,T,recC) not wc_D(k,recC)

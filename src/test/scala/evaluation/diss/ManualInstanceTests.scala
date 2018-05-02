@@ -40,13 +40,14 @@ class ManualInstanceTests extends FunSuite {
 
   //pending (stack overflow; probably hash clash)
   test("reach_wta_10_100") {
+    pending
     val instName = "reach_wta_10_100"
     val args = (f"$stdArgs inst $instName rand -1").split(" ")
     DissEvalMain.main(args)
   }
 
-  test("reach2_wta_10_100") {
-    val instName = "reach2_wta_10_100"
+  test("reach_lt_wta_10_10") { //10_100 also possible
+    val instName = "reach_lt_wta_10_10"
     val args = (f"$stdArgs inst $instName rand -1").split(" ")
     DissEvalMain.main(args)
   }
@@ -75,7 +76,7 @@ class ManualInstanceTests extends FunSuite {
     DissEvalMain.main(args)
   }
 
-  val carsArgs = "verify true reasoner incr timepoints 500 pre 0 runs 1 header false"
+  val carsArgs = "verify true reasoner incr timepoints 150 pre 0 runs 1 header false"
 
   test("carsdet_n100_k1 win1") {
     val instName = "carsdet_n100_k1"

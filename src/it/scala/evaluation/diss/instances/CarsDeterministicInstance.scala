@@ -24,16 +24,16 @@ case class CarsDeterministicInstance(scale: Int, timeWindowSize: Int, k: Int) ex
   //every time point add a car recording
   def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     val i = {
-      if (t == 0) 0 else t % scale //note no car(0)
+      if (t == 0) 1 else (t % scale) + 1
     }
-    print(f"\nt=$t: rec($i). ")
+    //print(f"\nt=$t: rec($i). ")
     Seq(rec(i))
   }
 
   override def verifyOutput(result: Result, t: Int): Unit = {
     val model = result.model
-    print(f"model: $model")
-    if (timeWindowSize > k && t > k) {
+    //print(f"model: $model")
+    if ((timeWindowSize+1) > k && (t+1) > k) { //-1 since current time point is included, +1 offset from index 0
       mustHave(model,moreThanK,t)
     } else {
       mustNotHave(model,moreThanK,t)
