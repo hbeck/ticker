@@ -75,4 +75,49 @@ class ManualInstanceTests extends FunSuite {
     DissEvalMain.main(args)
   }
 
+  val carsArgs = "verify true reasoner incr timepoints 500 pre 0 runs 1 header false"
+
+  test("carsdet_n100_k1 win1") {
+    val instName = "carsdet_n100_k1"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 1").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k1 win2") {
+    val instName = "carsdet_n100_k1"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 2").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k1 win3") {
+    val instName = "carsdet_n100_k1"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 3").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k25 win24") {
+    val instName = "carsdet_n100_k25"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 24").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k25 win25") {
+    val instName = "carsdet_n100_k25"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 25").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k25 win26") {
+    val instName = "carsdet_n100_k25"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 26").split(" ")
+    DissEvalMain.main(args)
+  }
+
+  test("carsdet_n100_k25 win27") {
+    val instName = "carsdet_n100_k25"
+    val args = (f"$carsArgs inst $instName rand -1 winsize 27").split(" ")
+    DissEvalMain.main(args)
+  }
+
+
 }

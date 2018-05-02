@@ -44,6 +44,7 @@ case class Config(var args: Map[String, String]) {
     val linReachPerc:Regex = """lrp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg lrp_wtd_e10_n100_p30
     val reachAvail:Regex = """ra_w(t|c)(a|d|b)_n([0-9]+)_av(0?|1)\.([0-9]*)_fe([0-9]+)_p([0-9]+)""".r //eg ra_wtd_n100_av0.9_fe0_p30
     val tme:Regex = """tme_w(t|c)(a|d|b)_n([0-9]+)_a(0?|1)\.([0-9]*)""".r //eg tme_wtd_n100_a0.9
+    val carsdet:Regex = """carsdet_n([0-9]+)_k([0-9]+)""".r //eg carsdet_n100_k10
 
     instance match {
       case SAMPLE => SampleInstance()
@@ -58,6 +59,7 @@ case class Config(var args: Map[String, String]) {
         ReachAvailInstance(random,winType+mod,windowSize,i(scale),d(availL,availR),i(failSignalEvery),i(percent))
       }
       case tme(winType,mod,scale,signalProbL,signalProbR) => TwoModelsEasyInstance(random,winType+mod,windowSize,i(scale),d(signalProbL,signalProbR))
+      case carsdet(scale,k) => CarsDeterministicInstance(i(scale), windowSize, i(k))
       case x => throw new RuntimeException(f"unknown evaluation instance: $x")
     }
 

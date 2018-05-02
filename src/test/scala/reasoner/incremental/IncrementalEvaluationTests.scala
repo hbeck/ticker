@@ -28,7 +28,26 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
 
   //
 
-  test("cars 1") {
+  val moreThanK = Atom(Predicate("moreThanK"))
+  val x = Atom(Predicate("x"))
+  val C = StringVariable("C")
+  val carC = Atom(Predicate("car"),Seq(C))
+  val recC = Atom(Predicate("rec"),Seq(C))
+  val T = StringVariable("T")
+
+  def car(i: Int) = Atom(Predicate("car"),Seq(""+i))
+  def rec(i: Int) = Atom(Predicate("rec"),Seq(""+i))
+
+  def moreThanKProgram(n: Int, k: Int, nrOfCars: Int): LarsProgram = {
+    val carFacts: Set[LarsRule] = (1 to nrOfCars) map { i => LarsFact(car(i)) } toSet
+    val program: LarsProgram = LarsProgram.from(
+      moreThanK <= WindowAtom(TimeWindow(n), Diamond, x),
+      AtAtom(T,x) <= carC and WindowAtom(TupleWindow(k+1), At(T), recC) not WindowAtom(TupleWindow(k), Diamond, recC)
+    ) ++ LarsProgram.from(carFacts)
+    program
+  }
+
+  test("cars 1 (moreThanK): n10 k5 c20") {
 
     val n=10 //time window size
     val k=5 //threshold of nr of cars
@@ -38,22 +57,7 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
     assert(n > 0)
     assert(nrOfCars > k)
 
-    val moreThanK = Atom(Predicate("moreThanK"))
-    val x = Atom(Predicate("x"))
-    val C = StringVariable("C")
-    val carC = Atom(Predicate("car"),Seq(C))
-    val recC = Atom(Predicate("rec"),Seq(C))
-    val T = StringVariable("T")
-
-    def car(i: Int) = Atom(Predicate("car"),Seq(""+i))
-    def rec(i: Int) = Atom(Predicate("rec"),Seq(""+i))
-
-    val carFacts: Set[LarsRule] = (1 to nrOfCars) map { i => LarsFact(car(i)) } toSet
-
-    val program = LarsProgram.from(
-      moreThanK <= WindowAtom(TimeWindow(n), Diamond, x),
-      AtAtom(T,x) <= carC and WindowAtom(TupleWindow(k+1), At(T), recC) not WindowAtom(TupleWindow(k), Diamond, recC)
-    ) ++ LarsProgram.from(carFacts)
+    val program = moreThanKProgram(n,k,nrOfCars)
 
     val reasoner = reasonerBuilder(program)
 
@@ -84,6 +88,41 @@ class IncrementalEvaluationTests extends FunSuite with JtmsIncrementalReasoner {
 
     t = t+1
     hasN(t,moreThanK)
+
+  }
+
+  test("cars 1 (moreThanK): n26 k25 c100") {
+
+    val n=26 //time window size
+    val k=25 //threshold of nr of cars
+    val nrOfCars = 100
+
+    //needed for test:
+    assert(n > 0)
+    assert(nrOfCars > k)
+
+    val program = moreThanKProgram(n,k,nrOfCars)
+
+    val reasoner = reasonerBuilder(program)
+
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+
+    empty(0)
+
+    //all cars appear on the first time point
+    for (t <- 1 to 25) {
+      append(t,rec(t))
+      hasN(t,moreThanK)
+    }
+    append(26,rec(26))
+    has(26,moreThanK)
+    for (t <- 27 to 50) {
+      append(t,rec(t))
+      has(t,moreThanK)
+    }
 
   }
 
