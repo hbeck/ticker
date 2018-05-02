@@ -1,44 +1,18 @@
 package evaluation.diss.programs.traits
 
-import core.{Atom, Model}
+import core.Atom
 import evaluation.diss.Helpers._
-import evaluation.diss.PreparedVariables.T
-import evaluation.diss.programs.traits.Analytic.WindowModalityCombi
-import evaluation.diss.programs.traits.Analytic._
-import reasoner.Result
+import evaluation.diss.Prepared.T
+import evaluation.diss.programs.traits.AnalyticProgramProvider.WindowModalityCombi
 
-trait Analytic extends ProgramProvider with Verifiable {
+trait AnalyticProgramProvider extends ProgramProvider {
 
   def winMod: WindowModalityCombi
   def windowSize: Int
 
-  override def verifyOutput(result: Result, t: Int): Unit = {
-    val model = result.model
-    winMod match {
-      case `time_at` => verify_time_at(model,t)
-      case `time_diamond` => verify_time_diamond(model,t)
-      case `time_box` => verify_time_box(model,t)
-      case `count_at` => verify_count_at(model,t)
-      case `count_diamond` => verify_count_diamond(model,t)
-      case `count_box` => verify_count_box(model,t)
-    }
-  }
-
-  def verify_time_at(model: Model, t: Int):Unit
-
-  def verify_time_diamond(model: Model, t: Int): Unit
-
-  def verify_time_box(model: Model, t: Int): Unit
-
-  def verify_count_at(model: Model, t: Int): Unit
-
-  def verify_count_diamond(model: Model, t: Int)
-
-  def verify_count_box(model: Model, t: Int): Unit
-
 }
 
-object Analytic {
+object AnalyticProgramProvider {
 
   sealed abstract class WindowModalityCombi
   object time_at extends WindowModalityCombi

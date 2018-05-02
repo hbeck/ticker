@@ -1,12 +1,41 @@
 package evaluation.diss
 
-import core.{Atom, Model}
+import core._
 import core.lars._
 
 /**
   * Created by hb on 05.04.18.
   */
 object Helpers {
+
+  implicit def string2Atom(atomStr: String): Atom = {
+    if (atomStr.indexOf("(") == -1) return Atom(Predicate(atomStr))
+    val tokens: Seq[String] = {
+      atomStr.replace("("," ").
+        replace(")","").
+        replace(","," ").split(" ")
+    }
+
+    val predicate = Predicate(tokens(0))
+
+    val arguments: Seq[Argument] = tokens.tail.map { s =>
+      if (s.charAt(0).isLower) {
+        StringValue(s)
+      }
+      else if (s.charAt(0).isUpper) {
+        Variable(s)
+      }
+      else if (s.charAt(0).isDigit) {
+        IntValue(s)
+      }
+      else {
+        throw new RuntimeException("cannot parse " + s + " within atom " + atomStr)
+      }
+    }
+
+    Atom(predicate,arguments)
+
+  }
 
   def wt_At(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
   def wt_D(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)

@@ -1,7 +1,7 @@
 package evaluation.diss.instances
 
 import core.Atom
-import evaluation.diss.Instance
+import evaluation.diss.instances.traits.Instance
 import evaluation.diss.programs.CarsProgramProvider
 import reasoner.Result
 

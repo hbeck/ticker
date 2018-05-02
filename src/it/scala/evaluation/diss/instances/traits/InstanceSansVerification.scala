@@ -1,8 +1,8 @@
-package evaluation.diss.programs.traits
+package evaluation.diss.instances.traits
 
 import reasoner.Result
 
-trait NoVerification extends Verifiable {
+trait InstanceSansVerification extends Instance {
 
   override def verifyOutput(result: Result, t: Int): Unit = {}
 

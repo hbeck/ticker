@@ -1,21 +1,21 @@
-package evaluation.diss.instances
+package evaluation.diss.instances.analytic
 
 import core.{Atom, Model}
-import evaluation.diss.Helpers._
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.{a, b}
-import evaluation.diss.programs.traits.Analytic.winModFromString
+import evaluation.diss.Helpers.{mustHave, mustNotHave}
+import evaluation.diss.Prepared.{a, b}
+import evaluation.diss.instances.traits.AnalyticInstance
 import evaluation.diss.programs.BasicProgramProvider
+import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
 
 /**
   * Created by hb on 17.04.18.
   *
   * wm: window and modality indicator: {ta,td,tb,ca,cd,cb}
   */
-case class BasicDualInstance(winModKey: String, windowSize: Int, noSignalEvery: Int) extends Instance with BasicProgramProvider {
+case class BasicDualInstance(winModKey: String, windowSize: Int, noSignalEvery: Int) extends AnalyticInstance with BasicProgramProvider {
 
   assert(noSignalEvery > 0)
-  
+
   val winMod = winModFromString(winModKey)
 
   //dual to BasicInstance

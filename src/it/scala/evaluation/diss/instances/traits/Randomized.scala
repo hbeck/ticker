@@ -1,4 +1,4 @@
-package evaluation.diss.programs.traits
+package evaluation.diss.instances.traits
 
 import scala.util.Random
 

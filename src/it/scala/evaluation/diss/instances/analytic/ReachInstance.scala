@@ -1,11 +1,9 @@
-package evaluation.diss.instances
-
+package evaluation.diss.instances.analytic
+import evaluation.diss.Helpers.string2Atom
 import core.{Atom, IntValue, Model}
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.programs.traits.Analytic._
-import evaluation.diss.programs.LinReachLtProgramProvider
-import evaluation.diss.programs.traits.Randomized
+import evaluation.diss.instances.traits.{AnalyticInstance, Randomized}
+import evaluation.diss.programs.ReachProgramProvider
+import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 
@@ -15,7 +13,7 @@ import scala.util.Random
   * wm: window and modality indicator: {ta,td,tb,ca,cd,cb}
   * scale: nr of nodes
   */
-case class ReachLtInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends Instance with LinReachLtProgramProvider with Randomized {
+case class ReachInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends AnalyticInstance with ReachProgramProvider with Randomized {
 
   assert(signalEvery > 0)
   assert(scale > 0)

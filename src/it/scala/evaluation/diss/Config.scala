@@ -1,6 +1,8 @@
 package evaluation.diss
 
 import evaluation.diss.instances._
+import evaluation.diss.instances.analytic._
+import evaluation.diss.instances.traits.Instance
 
 import scala.util.Random
 import scala.util.matching.Regex

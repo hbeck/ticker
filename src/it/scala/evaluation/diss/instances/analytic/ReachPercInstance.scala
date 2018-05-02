@@ -1,11 +1,9 @@
-package evaluation.diss.instances
-
+package evaluation.diss.instances.analytic
+import evaluation.diss.Helpers.string2Atom
 import core.{Atom, IntValue, Model}
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.programs.traits.Analytic._
+import evaluation.diss.instances.traits.{AnalyticInstance, Randomized}
 import evaluation.diss.programs.ReachLtProgramProvider
-import evaluation.diss.programs.traits.Randomized
+import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 
@@ -16,7 +14,7 @@ import scala.util.Random
   * scale: nr of nodes
   * percent: lower tier of node indexes that do *not* get a fail signal. measure of model maintainability.
   */
-case class ReachPercInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int, percent: Int) extends Instance with ReachLtProgramProvider with Randomized {
+case class ReachPercInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int, percent: Int) extends AnalyticInstance with ReachLtProgramProvider with Randomized {
 
   assert(signalEvery > 0)
   assert(scale > 0)

@@ -3,11 +3,10 @@ package evaluation.diss.programs
 import core.Atom
 import core.lars.{AtAtom, LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
-import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.PreparedVariables.T
-import evaluation.diss.programs.traits.{ProgramProvider, Scalable, Verifiable}
+import evaluation.diss.Prepared.T
+import evaluation.diss.programs.traits.{ProgramProvider, Scalable}
 
-trait CarsProgramProvider extends ProgramProvider with Verifiable with Scalable {
+trait CarsProgramProvider extends ProgramProvider with Scalable {
 
   val timeWindowSize: Int
   val k: Int

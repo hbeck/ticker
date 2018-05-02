@@ -1,4 +1,4 @@
-package evaluation.diss
+package evaluation.diss.instances.traits
 
 import core.Atom
 import core.lars.LarsProgram

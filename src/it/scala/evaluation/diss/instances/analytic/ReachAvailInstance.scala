@@ -1,11 +1,9 @@
-package evaluation.diss.instances
-
+package evaluation.diss.instances.analytic
+import evaluation.diss.Helpers.string2Atom
 import core.Atom
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.programs.traits.Analytic._
-import evaluation.diss.programs.traits.{NoAnalyticVerification, Randomized}
+import evaluation.diss.instances.traits.{AnalyticInstance, AnalyticInstanceSansVerification, Randomized}
 import evaluation.diss.programs.ReachAvailProgramProvider
+import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 
@@ -17,7 +15,7 @@ import scala.util.Random
   * availSignalProbability: at each time point, for each edge(X,Y) an atom avail(X,Y) is generated with the given probability
   * percentNoFailure: lower tier of node indexes that do *not* get a fail signal. measure of model maintainability.
   */
-case class ReachAvailInstance(random: Random, wm: String, windowSize: Int, scale: Int, availSignalProb: Double, failSignalEvery: Int, percentNoFailure: Int) extends Instance with ReachAvailProgramProvider with Randomized with NoAnalyticVerification {
+case class ReachAvailInstance(random: Random, wm: String, windowSize: Int, scale: Int, availSignalProb: Double, failSignalEvery: Int, percentNoFailure: Int) extends AnalyticInstance with ReachAvailProgramProvider with Randomized with AnalyticInstanceSansVerification {
 
   assert(failSignalEvery >= 0)
   assert(scale > 0)

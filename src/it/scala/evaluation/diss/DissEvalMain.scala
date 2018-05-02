@@ -2,6 +2,7 @@ package evaluation.diss
 
 import common.Util.stopTime
 import core.lars._
+import evaluation.diss.instances.traits.Instance
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
 import reasoner.incremental.jtms.algorithms.JtmsDoyleHeuristics
 import reasoner.{Reasoner, Result}

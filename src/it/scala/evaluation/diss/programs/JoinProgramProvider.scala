@@ -3,11 +3,11 @@ package evaluation.diss.programs
 import core.Atom
 import core.lars.LarsProgram
 import evaluation.diss.Helpers._
-import evaluation.diss.PreparedAtoms._
-import evaluation.diss.programs.traits.Analytic.makeWindowAtom
-import evaluation.diss.programs.traits.{Analytic, Scalable}
+import evaluation.diss.Prepared._
+import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.traits.{AnalyticProgramProvider, Scalable}
 
-trait JoinProgramProvider extends Analytic with Scalable {
+trait JoinProgramProvider extends AnalyticProgramProvider with Scalable {
 
   val aXZ: Atom = "a(X,Z)"
   val bXY: Atom = "b(X,Y)"

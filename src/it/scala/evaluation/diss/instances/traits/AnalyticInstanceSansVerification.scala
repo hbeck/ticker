@@ -1,8 +1,8 @@
-package evaluation.diss.programs.traits
+package evaluation.diss.instances.traits
 
 import core.Model
 
-trait NoAnalyticVerification extends Analytic {
+trait AnalyticInstanceSansVerification extends AnalyticInstance {
 
   override def verify_time_at(model: Model, t: Int):Unit = {}
 

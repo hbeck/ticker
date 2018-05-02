@@ -3,8 +3,8 @@ package evaluation.diss.instances
 import core.Atom
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers.{rule, wt_D}
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.{a,b}
+import evaluation.diss.Prepared.{a, b}
+import evaluation.diss.instances.traits.Instance
 import reasoner.Result
 
 /**

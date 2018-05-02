@@ -1,11 +1,10 @@
-package evaluation.diss.instances
+package evaluation.diss.instances.analytic
 
 import core.{Atom, Model}
-import evaluation.diss.Helpers._
-import evaluation.diss.Instance
-import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.programs.traits.Analytic._
+import evaluation.diss.Helpers.{mustHave, mustNotHave, string2Atom}
+import evaluation.diss.instances.traits.AnalyticInstance
 import evaluation.diss.programs.JoinProgramProvider
+import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
 
 /**
   * Created by hb on 20.04.18.
@@ -13,7 +12,7 @@ import evaluation.diss.programs.JoinProgramProvider
   * wm: window and modality indicator: {ta,td,tb,ca,cd,cb}
   * scale: nr of atoms for guards of form g(X)
   */
-case class JoinInstance(wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends Instance with JoinProgramProvider {
+case class JoinInstance(wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends AnalyticInstance with JoinProgramProvider {
 
   assert(signalEvery > 0)
   assert(scale > 0)

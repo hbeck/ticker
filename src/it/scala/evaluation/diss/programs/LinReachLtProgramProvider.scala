@@ -3,12 +3,11 @@ package evaluation.diss.programs
 import core.lars.{LarsProgram, LarsRule}
 import core.{Atom, Lt}
 import evaluation.diss.Helpers._
-import evaluation.diss.PreparedAtoms._
-import evaluation.diss.PreparedVariables._
-import evaluation.diss.programs.traits.Analytic.makeWindowAtom
-import evaluation.diss.programs.traits.{Analytic, Scalable}
+import evaluation.diss.Prepared._
+import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.traits.{AnalyticProgramProvider, Scalable}
 
-trait LinReachLtProgramProvider extends Analytic with Scalable {
+trait LinReachLtProgramProvider extends AnalyticProgramProvider with Scalable {
 
   val stepXY: Atom = "step(X,Y)"
   val stepYZ: Atom = "step(Y,Z)"
