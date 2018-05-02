@@ -5,10 +5,11 @@ import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.PreparedAtoms._
 import evaluation.diss.PreparedVariables._
-import evaluation.diss.programs.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.traits.Analytic.makeWindowAtom
+import evaluation.diss.programs.traits.{Analytic, Scalable}
 
 //ground only relevant
-trait ReachAvailProgramProvider extends AnalyticProgramProvider with Scalable {
+trait ReachAvailProgramProvider extends Analytic with Scalable {
 
   val reachXY: Atom = "reach(X,Y)"
   val reachYZ: Atom = "reach(Y,Z)"

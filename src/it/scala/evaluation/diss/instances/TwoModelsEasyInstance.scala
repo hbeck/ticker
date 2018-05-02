@@ -2,8 +2,9 @@ package evaluation.diss.instances
 
 import core.Atom
 import evaluation.diss.Instance
-import evaluation.diss.programs.AnalyticProgramProvider._
-import evaluation.diss.programs.{NoVerification, RandomProvider, TwoModelsEasyProgramProvider}
+import evaluation.diss.programs.traits.Analytic._
+import evaluation.diss.programs.traits.{NoAnalyticVerification, Randomized}
+import evaluation.diss.programs.TwoModelsEasyProgramProvider
 
 import scala.util.Random
 
@@ -14,7 +15,7 @@ import scala.util.Random
   * scale: nr of nodes g(X)
   * signalProb: probability of each a(X) (X=1..scale) to be inserted at a time point
   */
-case class TwoModelsEasyInstance(random: Random, wm: String, windowSize: Int, scale: Int, signalProb: Double) extends Instance with TwoModelsEasyProgramProvider with RandomProvider with NoVerification {
+case class TwoModelsEasyInstance(random: Random, wm: String, windowSize: Int, scale: Int, signalProb: Double) extends Instance with TwoModelsEasyProgramProvider with Randomized with NoAnalyticVerification {
 
   assert(signalProb >= 0.0)
   assert(signalProb <= 1.0)

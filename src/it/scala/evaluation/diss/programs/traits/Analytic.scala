@@ -1,19 +1,18 @@
-package evaluation.diss.programs
+package evaluation.diss.programs.traits
 
-import core.{Model,Atom}
-import core.lars.LarsProgram
-import evaluation.diss.programs.AnalyticProgramProvider._
-import reasoner.Result
+import core.{Atom, Model}
 import evaluation.diss.Helpers._
 import evaluation.diss.PreparedVariables.T
+import evaluation.diss.programs.traits.Analytic.WindowModalityCombi
+import evaluation.diss.programs.traits.Analytic._
+import reasoner.Result
 
-trait AnalyticProgramProvider extends ProgramProvider {
+trait Analytic extends ProgramProvider with Verifiable {
 
-  def program: LarsProgram
   def winMod: WindowModalityCombi
   def windowSize: Int
 
-  def verifyOutput(result: Result, t: Int): Unit = {
+  override def verifyOutput(result: Result, t: Int): Unit = {
     val model = result.model
     winMod match {
       case `time_at` => verify_time_at(model,t)
@@ -39,7 +38,7 @@ trait AnalyticProgramProvider extends ProgramProvider {
 
 }
 
-object AnalyticProgramProvider {
+object Analytic {
 
   sealed abstract class WindowModalityCombi
   object time_at extends WindowModalityCombi

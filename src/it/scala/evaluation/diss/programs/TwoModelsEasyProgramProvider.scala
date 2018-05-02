@@ -4,10 +4,11 @@ import core.{Atom, IntValue, Predicate}
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.PreparedAtoms._
-import evaluation.diss.programs.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.traits.Analytic.makeWindowAtom
+import evaluation.diss.programs.traits.{Analytic, Scalable}
 
 //ground only relevant
-trait TwoModelsEasyProgramProvider extends AnalyticProgramProvider with Scalable {
+trait TwoModelsEasyProgramProvider extends Analytic with Scalable {
 
   val qX: Atom = "q(X)"
   val gX: Atom = "g(X)"

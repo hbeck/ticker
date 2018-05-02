@@ -4,7 +4,7 @@ import core.{Atom, Model}
 import evaluation.diss.Helpers._
 import evaluation.diss.Instance
 import evaluation.diss.PreparedAtoms.string2Atom
-import evaluation.diss.programs.AnalyticProgramProvider._
+import evaluation.diss.programs.traits.Analytic._
 import evaluation.diss.programs.JoinProgramProvider
 
 /**

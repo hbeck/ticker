@@ -4,7 +4,7 @@ import core.{Atom, Model}
 import evaluation.diss.Helpers._
 import evaluation.diss.Instance
 import evaluation.diss.PreparedAtoms.{a, b}
-import evaluation.diss.programs.AnalyticProgramProvider.winModFromString
+import evaluation.diss.programs.traits.Analytic.winModFromString
 import evaluation.diss.programs.BasicProgramProvider
 
 /**

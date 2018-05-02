@@ -1,4 +1,4 @@
-package evaluation.diss.programs
+package evaluation.diss.programs.traits
 
 import core.lars.LarsProgram
 
