@@ -47,8 +47,8 @@ object DissEvalMain {
     "avg_init" -> "",
     "avg_proc/tp" -> "",
     "avg_proc/sig" -> "",
-    "tp/s" -> "",
-    "sig/s" -> ""
+    "sig/s" -> "",
+    "tp/s" -> ""
   )
 
   //
@@ -77,10 +77,8 @@ object DissEvalMain {
       "avg_init" -> stats.initializationTimes.avg,
       "avg_proc/tp" -> (1.0*stats.processingTimes.avg)/tp, //tp same for every run
       "avg_proc/sig" -> stats.processingTimesPerSignal.avg,
-      "tp/s" -> rnd2(10E3*tp/(1.0*stats.processingTimes.avg.toMillis)),
-      "sig/s" -> rnd3(stats.signalsPerSecond.avg)
-      //"eval_time_per_tp" -> (1.0*stats.avgEvaluationTimePerRun.toSeconds)/(1.0*config.timePoints),
-      //"tp_per_sec" -> rnd(10E6*(1.0*config.timePoints)/(1.0*stats.avgEvaluationTimePerRun.toMicros)),
+      "sig/s" -> rnd3(stats.signalsPerSecond.avg),
+      "tp/s" -> rnd2(10E3*tp/(1.0*stats.processingTimes.avg.toMillis))
     )
 
     def timeOutput(a: Any) = a match {

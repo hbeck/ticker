@@ -12,15 +12,33 @@ class ManualInstanceTests extends FunSuite {
     runAllBasicConfigs("basic_dual_w")
   }
 
+  test("scaled deterministic basic instance") {
+    runAllScalableDeterministicBasicConfigs("sdbasic_w")
+  }
+
   val stdArgs = "verify true reasoner incr timepoints 100 winsize 10 pre 0 runs 1 header false"
 
-  def runAllBasicConfigs(prefix: String): Unit = {
+  def runAllBasicConfigs(instPrefix: String): Unit = {
     for (window <- Seq("t","c")) {
       for (mod <- Seq("a","d","b")) {
         for (signalEvery <- Seq("1", "2", "9", "10", "11", "20")) {
-          val instName = prefix+window+mod+"_"+signalEvery
+          val instName = instPrefix+window+mod+"_"+signalEvery
           val args = (f"$stdArgs inst $instName").split(" ")
           DissEvalMain.main(args)
+        }
+      }
+    }
+  }
+
+  def runAllScalableDeterministicBasicConfigs(instPrefix: String): Unit = {
+    for (window <- Seq("t","c")) {
+      for (mod <- Seq("a","d","b")) {
+        for (scale <- Seq("1","2","10")) {
+          for (signalEvery <- Seq("1", "2", "9", "10", "11", "20")) {
+            val instName = instPrefix+window+mod+"_n"+scale+"_e"+signalEvery
+            val args = (f"$stdArgs inst $instName").split(" ")
+            DissEvalMain.main(args)
+          }
         }
       }
     }
@@ -119,6 +137,5 @@ class ManualInstanceTests extends FunSuite {
     val args = (f"$carsArgs inst $instName rand -1 winsize 27").split(" ")
     DissEvalMain.main(args)
   }
-
 
 }

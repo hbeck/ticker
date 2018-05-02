@@ -36,7 +36,9 @@ case class Config(var args: Map[String, String]) {
     val random: Random = new Random(iterationNr)
 
     val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
+    val nBasic:Regex = """nbasic_w(t|c)(a|d|b)_([0-9]+)""".r //eg nbasic_wtd_1
     val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
+    val sdBasic:Regex = """sdbasic_w(t|c)(a|d|b)_n([0-9]+)_e([0-9]+)""".r //eg sdbasic_wtd_n1000_e1
     val join:Regex = """join_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg join_wtd_1_10
     val reach:Regex = """reach_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_wtd_1_10
     val reachLt:Regex = """reach_lt_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_lt_wtd_1_10
@@ -44,13 +46,15 @@ case class Config(var args: Map[String, String]) {
     val linReachPerc:Regex = """lrp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg lrp_wtd_e10_n100_p30
     val reachAvail:Regex = """ra_w(t|c)(a|d|b)_n([0-9]+)_av(0?|1)\.([0-9]*)_fe([0-9]+)_p([0-9]+)""".r //eg ra_wtd_n100_av0.9_fe0_p30
     val tme:Regex = """tme_w(t|c)(a|d|b)_n([0-9]+)_a(0?|1)\.([0-9]*)""".r //eg tme_wtd_n100_a0.9
-    val carsdet:Regex = """carsdet_n([0-9]+)_k([0-9]+)""".r //eg carsdet_n100_k10
+    val carsDet:Regex = """carsdet_n([0-9]+)_k([0-9]+)""".r //eg carsdet_n100_k10
 
     instance match {
       case SAMPLE => SampleInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
+      case nBasic(winType,mod,signalEvery) => NBasicInstance(winType+mod,windowSize,i(signalEvery))
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
       case join(winType,mod,signalEvery,scale) => JoinInstance(winType+mod,windowSize,i(signalEvery),i(scale))
+      case sdBasic(winType,mod,scale,allSignalsEvery) => ScalableDeterministicBasicInstance(winType+mod, windowSize, i(scale), i(allSignalsEvery))
       case reach(winType,mod,signalEvery,scale) => ReachInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
       case reachLt(winType,mod,signalEvery,scale) => ReachLtInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
       case reachPerc(winType,mod,signalEvery,scale,percent) => ReachPercInstance(random,winType+mod,windowSize,i(signalEvery),i(scale),i(percent))
@@ -59,7 +63,7 @@ case class Config(var args: Map[String, String]) {
         ReachAvailInstance(random,winType+mod,windowSize,i(scale),d(availL,availR),i(failSignalEvery),i(percent))
       }
       case tme(winType,mod,scale,signalProbL,signalProbR) => TwoModelsEasyInstance(random,winType+mod,windowSize,i(scale),d(signalProbL,signalProbR))
-      case carsdet(scale,k) => CarsDeterministicInstance(i(scale), windowSize, i(k))
+      case carsDet(scale,k) => CarsDeterministicInstance(i(scale), windowSize, i(k))
       case x => throw new RuntimeException(f"unknown evaluation instance: $x")
     }
 
