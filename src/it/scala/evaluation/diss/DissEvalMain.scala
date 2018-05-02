@@ -84,7 +84,10 @@ object DissEvalMain {
     )
 
     def timeOutput(a: Any) = a match {
-      case d: Duration => ((1.0) * d.toMillis) / 1000.0 //sec
+      case d: Duration => {
+        if (d.isFinite()) { ((1.0) * d.toMillis) / 1000.0 }
+        else "INF"
+      } //sec
       //case d: Duration => d.toMillis
       case _ => a
     }

@@ -14,7 +14,12 @@ case class DurationSeries(durations: Seq[Duration]) extends NumberSeries[Duratio
   override val min: Duration = durations.min
   override val avg: Duration = (durations.foldLeft(Duration.Zero.asInstanceOf[Duration])((s, d) => d + s)) / durations.length.toDouble
   override val median: Duration = durations.sorted.drop(durations.length / 2).head
-  override val total: Duration = Duration.create(durations.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
+  override val total: Duration = {
+    durations.find(d => !d.isFinite()) match {
+      case Some(d) => Duration.Inf
+      case _ => Duration.create(durations.map(_.toMillis).sum, TimeUnit.MILLISECONDS)
+    }
+  }
 
   def +(other: DurationSeries): DurationSeries = {
     assert(this.durations.size == other.durations.size)
