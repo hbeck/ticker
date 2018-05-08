@@ -55,6 +55,7 @@ object DissEvalMain {
   //
   //
 
+  def rnd1(d: Double) = Math.round(10.0 * d)/10.0
   def rnd2(d: Double) = Math.round(100.0 * d)/100.0
   def rnd3(d: Double) = Math.round(1000.0 * d)/1000.0
   def rnd4(d: Double) = Math.round(10000.0 * d)/10000.0
@@ -77,8 +78,8 @@ object DissEvalMain {
       "avg_init" -> stats.initializationTimes.avg,
       "avg_proc/tp" -> (1.0*stats.processingTimes.avg)/tp, //tp same for every run
       "avg_proc/sig" -> stats.processingTimesPerSignal.avg,
-      "sig/s" -> rnd3(stats.signalsPerSecond.avg),
-      "tp/s" -> rnd2(10E3*tp/(1.0*stats.processingTimes.avg.toMillis))
+      "sig/s" -> rnd2(stats.signalsPerSecond.avg),
+      "tp/s" -> rnd1(10E3*tp/(1.0*stats.processingTimes.avg.toMillis))
     )
 
     def timeOutput(a: Any) = a match {

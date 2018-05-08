@@ -39,12 +39,14 @@ case class Config(var args: Map[String, String]) {
     val nBasic:Regex = """nbasic_w(t|c)(a|d|b)_([0-9]+)""".r //eg nbasic_wtd_1
     val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
     val sdBasic:Regex = """sdbasic_w(t|c)(a|d|b)_n([0-9]+)_e([0-9]+)""".r //eg sdbasic_wtd_n1000_e1
+    val srBasic:Regex = """srbasic_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg srbasic_wtd_n1000_p0.9 //*
     val join:Regex = """join_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg join_wtd_1_10
     val reach:Regex = """reach_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_wtd_1_10
     val reachLt:Regex = """reach_lt_w(t|c)(a|d|b)_([0-9]+)_([0-9]+)""".r //eg reach_lt_wtd_1_10
     val reachPerc:Regex = """rp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg rp_lt_wtd_e10_n100_p30
     val linReachPerc:Regex = """lrp_w(t|c)(a|d|b)_e([0-9]+)_n([0-9]+)_p([0-9]+)""".r //eg lrp_wtd_e10_n100_p30
-    val reachAvail:Regex = """ra_w(t|c)(a|d|b)_n([0-9]+)_av(0?|1)\.([0-9]*)_fe([0-9]+)_p([0-9]+)""".r //eg ra_wtd_n100_av0.9_fe0_p30
+    val reachSig:Regex = """rs_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rs_wtd_n100_p0.9 //*
+    val reachSigDual:Regex = """rsd_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rsd_wtb_n100_p0.9
     val tme:Regex = """tme_w(t|c)(a|d|b)_n([0-9]+)_a(0?|1)\.([0-9]*)""".r //eg tme_wtd_n100_a0.9
     val carsDet:Regex = """carsdet_n([0-9]+)_k([0-9]+)""".r //eg carsdet_n100_k10
 
@@ -55,12 +57,16 @@ case class Config(var args: Map[String, String]) {
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
       case join(winType,mod,signalEvery,scale) => JoinInstance(winType+mod,windowSize,i(signalEvery),i(scale))
       case sdBasic(winType,mod,scale,allSignalsEvery) => ScalableDeterministicBasicInstance(winType+mod, windowSize, i(scale), i(allSignalsEvery))
+      case srBasic(winType,mod,scale,probL,probR) => ScalableRandomizedBasicInstance(random,winType+mod, windowSize, i(scale), d(probL,probR))
       case reach(winType,mod,signalEvery,scale) => ReachInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
       case reachLt(winType,mod,signalEvery,scale) => ReachLtInstance(random,winType+mod,windowSize,i(signalEvery),i(scale))
       case reachPerc(winType,mod,signalEvery,scale,percent) => ReachPercInstance(random,winType+mod,windowSize,i(signalEvery),i(scale),i(percent))
       case linReachPerc(winType,mod,signalEvery,scale,percent) => LinReachPercInstance(random,winType+mod,windowSize,i(signalEvery),i(scale),i(percent))
-      case reachAvail(winType,mod,scale,availL,availR,failSignalEvery,percent) => {
-        ReachAvailInstance(random,winType+mod,windowSize,i(scale),d(availL,availR),i(failSignalEvery),i(percent))
+      case reachSig(winType,mod,scale,sigL,sigR) => {
+        ReachSigInstance(random,winType+mod,windowSize,i(scale),d(sigL,sigR))
+      }
+      case reachSigDual(winType,mod,scale,sigL,sigR) => {
+        ReachSigDualInstance(random,winType+mod,windowSize,i(scale),d(sigL,sigR))
       }
       case tme(winType,mod,scale,signalProbL,signalProbR) => TwoModelsEasyInstance(random,winType+mod,windowSize,i(scale),d(signalProbL,signalProbR))
       case carsDet(scale,k) => CarsDeterministicInstance(i(scale), windowSize, i(k))

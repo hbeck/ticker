@@ -21,7 +21,7 @@ case class ScalableDeterministicBasicInstance(winModKey: String, windowSize: Int
 
   def a(i: Int): Atom = f"a($i)"
   def b(i: Int): Atom = f"b($i)"
-  //val availAtoms: Map[Int,Atom] = (1 to scale).map{ i => (i,b(i)) }.toMap
+
   val derivations: Seq[Atom] = (1 to scale).map(a(_))
   val signals: Seq[Atom] = (1 to scale).map(b(_))
 
