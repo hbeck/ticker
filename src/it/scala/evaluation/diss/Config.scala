@@ -28,6 +28,7 @@ case class Config(var args: Map[String, String]) {
   val printModelAt = Integer.parseInt(args(KEY_PRINT_MODEL_AT))
   val printRulesAt = Integer.parseInt(args(KEY_PRINT_RULES_AT))
   val simplify = (args(KEY_SIMPLIFY) == "true")
+  val profiling = (args(KEY_PROFILING) == "true")
   val overrideRandom = (!args(KEY_RANDOM).isEmpty)
   val fixedRandom = if (overrideRandom) Integer.parseInt(args(KEY_RANDOM)) else 0
 
@@ -139,6 +140,8 @@ object Config {
     defaultArg(KEY_WITH_DEBUG, "false")
     defaultArg(KEY_SIMPLIFY, "false")
     //
+    defaultArg(KEY_PROFILING, "false")
+    //
     defaultArg(KEY_RANDOM, "")
 
     argMap
@@ -163,6 +166,8 @@ object Config {
   val KEY_RANDOM = "rand"
   //
   val KEY_SIMPLIFY = "simplify"
+  //
+  val KEY_PROFILING = "profiling"
 
   // REASONERS
   val CLINGO = "clingo"

@@ -31,6 +31,18 @@ lazy val ticker = (project in file(".")).
     test in assembly := {}
   )
 
+/*
+lazy val disseval = (project in file(".")).
+  settings(commonSettings: _*).
+  configs(IntegrationTest).
+  settings(Defaults.itSettings: _*).
+  settings(
+    assemblyJarName in assembly := "disseval.jar",
+    mainClass in assembly := Some("evaluation.diss.DissEvalMain"),
+    test in assembly := {}
+  )
+*/
+
 //
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard

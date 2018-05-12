@@ -61,9 +61,11 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
 
   override def add(rule: NormalRule): Unit = {
     register(rule)
+    /* inconsistent case not in ues anymore
     if (network.inconsistent) {
       update(network.unknownAtoms + rule.head) //i.e., recompute()
     } else {
+    */
       if (network.status(rule.head) == in) {
         ruleAlreadyInHeuristic(rule)
         return
@@ -74,7 +76,7 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
       }
       val atoms = network.repercussions(rule.head) + rule.head
       update(atoms)
-    }
+    //}
   }
 
   override def remove(rule: NormalRule): Unit = {

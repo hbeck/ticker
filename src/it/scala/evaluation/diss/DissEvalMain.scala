@@ -16,8 +16,6 @@ import scala.util.Random
   */
 object DissEvalMain {
 
-  val profiling = false
-
   def main(args: Array[String]): Unit = {
     timings(args)
   }
@@ -45,9 +43,9 @@ object DissEvalMain {
     Config.KEY_WINDOW_SIZE -> "",
     "avg_total" -> "",
     "avg_init" -> "",
-    "avg_proc/tp" -> "",
-    "avg_proc/sig" -> "",
-    "sig/s" -> "",
+    "avg_tp" -> "",
+    //"avg_proc/sig" -> "",
+    //"sig/s" -> "",
     "tp/s" -> ""
   )
 
@@ -76,9 +74,9 @@ object DissEvalMain {
       Config.KEY_WINDOW_SIZE -> config.windowSize,
       "avg_total" -> stats.totalRunTimes.avg,
       "avg_init" -> stats.initializationTimes.avg,
-      "avg_proc/tp" -> (1.0*stats.processingTimes.avg)/tp, //tp same for every run
-      "avg_proc/sig" -> stats.processingTimesPerSignal.avg,
-      "sig/s" -> rnd2(stats.signalsPerSecond.avg),
+      "avg_tp" -> (1.0*stats.processingTimes.avg)/tp, //tp same for every run
+      //"avg_proc/sig" -> stats.processingTimesPerSignal.avg,
+      //"sig/s" -> rnd2(stats.signalsPerSecond.avg),
       "tp/s" -> rnd1(10E3*tp/(1.0*stats.processingTimes.avg.toMillis))
     )
 
@@ -123,7 +121,7 @@ object DissEvalMain {
   var jtms: JtmsDoyleHeuristics = null //debugging
 
   def evaluateRun(iterationNr: Int, config: Config): ExecutionStatsPerRun = {
-    if (profiling && iterationNr == 0) {
+    if (config.profiling && iterationNr == 0) {
       println("waiting to start profiling, press return")
       scala.io.StdIn.readLine()
       println("running")
