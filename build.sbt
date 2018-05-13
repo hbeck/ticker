@@ -31,7 +31,7 @@ lazy val ticker = (project in file(".")).
     test in assembly := {}
   )
 
-/*
+
 lazy val disseval = (project in file(".")).
   settings(commonSettings: _*).
   configs(IntegrationTest).
@@ -41,7 +41,7 @@ lazy val disseval = (project in file(".")).
     mainClass in assembly := Some("evaluation.diss.DissEvalMain"),
     test in assembly := {}
   )
-*/
+
 
 //
 assemblyMergeStrategy in assembly := {

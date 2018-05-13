@@ -102,6 +102,7 @@ case class PreparedReasonerConfiguration(larsBasedProgram: LarsBasedProgram, rea
   def withPredicateFilter(restrictTo: Set[Predicate]) = PreparedReasonerConfiguration(larsBasedProgram, reasoner, restrictTo)
   def withIntensionalFilter() = PreparedReasonerConfiguration(larsBasedProgram, reasoner, larsBasedProgram.intensionalPredicates)
 
-  def seal() = ReasonerWithFilter(reasoner, ResultFilter(restrictTo))
+  def seal() = ReasonerWithFilter(reasoner, ResultFilter(Some(restrictTo)))
+  def sealWithoutFilter() = ReasonerWithFilter(reasoner, ResultFilter(None))
 
 }

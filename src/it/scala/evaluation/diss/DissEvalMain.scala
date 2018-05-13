@@ -1,6 +1,5 @@
 package evaluation.diss
 
-import common.Util.stopTime
 import core.lars._
 import evaluation.diss.instances.traits.Instance
 import reasoner.config.{BuildReasoner, PreparedReasonerConfiguration}
@@ -135,8 +134,9 @@ object DissEvalMain {
     val builder = BuildReasoner.withProgram(instance.program)
     var reasoner: Reasoner = null
 
-    val initializationTime = stopTime {
-      val preparedReasoner: PreparedReasonerConfiguration = config.reasoner match {
+    val start1 = System.currentTimeMillis()
+
+        val preparedReasoner: PreparedReasonerConfiguration = config.reasoner match {
         case Config.CLINGO => builder.configure().withClingo().withDefaultEvaluationMode().usePush()
         case Config.INCREMENTAL => {
           val randomSeed = if (config.overrideRandom) config.fixedRandom else iterationNr
@@ -151,7 +151,9 @@ object DissEvalMain {
         case x => throw new RuntimeException("reasoning mode not supported: "+x)
       }
       reasoner = preparedReasoner.seal()
-    }
+
+    val end1 = System.currentTimeMillis()
+    val initializationTime = end1 - start1
 
     val runSingleTimepoint = runTimepoint(instance, reasoner, config) _
 
@@ -171,15 +173,25 @@ object DissEvalMain {
 
     val time = TimePoint(t)
 
-    val appendTime = stopTime {
-      reasoner.append(time)(signals: _*)
-    }
+//    val appendTime = stopTime {
+//      reasoner.append(time)(signals: _*)
+//    }
+
+    val start2 = System.currentTimeMillis()
+    reasoner.append(time)(signals: _*)
+    val end2 = System.currentTimeMillis()
+    val appendTime = end2 - start2
 
     var result: Result = null
 
-    val evaluateTime = stopTime {
-      result = reasoner.evaluate(time)
-    }
+//    val evaluateTime = stopTime {
+//      result = reasoner.evaluate(time)
+//    }
+
+    val start3 = System.currentTimeMillis()
+    result = reasoner.evaluate(time)
+    val end3 = System.currentTimeMillis()
+    val evaluateTime = end3 - start3
 
     if (t == config.printRulesAt && config.reasoner == Config.INCREMENTAL) {
       println(f"\ntms rules at t=$t")

@@ -23,7 +23,9 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!
 
-  incrementTick() //...therefore, surpass the increment and generate groundings for (0,0)
+  val tickIncrementer = new TickIncrementer(this)
+
+  tickIncrementer.incrementTick(currentTick) //...therefore, surpass the increment and generate groundings for (0,0)
 
   override def append(timepoint: TimePoint)(atoms: Atom*) {
     if (timepoint.value < currentTick.time) {
@@ -55,35 +57,12 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
   def singleTimeIncrementTo(time: Long) {
     currentTick = currentTick.incrementTime()
-    incrementTick()
+    tickIncrementer.incrementTick(currentTick)
   }
 
   def addSignalAtCurrentTime(signal: Atom) {
     currentTick = currentTick.incrementCount()
-    incrementTick(Some(signal))
-  }
-
-  def incrementTick(signal: Option[Atom] = None) {
-    val timeIncrease = signal.isEmpty
-
-    val expiredRules = if (timeIncrease) {
-      expiration.expiringRulesAtTimeIncrement()
-    } else {
-      expiration.expiringRulesAtCountIncrement()
-    }
-
-    expiredRules.foreach(jtms.remove(_))
-
-    val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
-    annotatedRules foreach {
-      annotatedRule => {
-        jtms.add(annotatedRule.rule)
-        expiration.registerExpiration(annotatedRule)
-      }
-    }
-
-    //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
-    //println(jtms.getModel())
+    tickIncrementer.incrementTick(currentTick,Some(signal))
   }
 
   object expiration {
