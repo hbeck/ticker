@@ -31,13 +31,25 @@ class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork = TruthM
   }
 
   override def updateImplementation(atoms: Set[Atom]): Unit = {
+    setUnknown(atoms)
+    findStatus(atoms)
+    chooseStatusPreviousModel(prevModel) //addition (explicit for profiling)
+    chooseStatus(atoms)
+  }
 
+  def setUnknown(atoms: Set[Atom]): Unit = {
     atoms foreach setUnknown
+  }
+
+  def findStatus(atoms: Set[Atom]): Unit = {
     atoms foreach findStatus
+  }
 
-    //addition:
-    prevModel foreach chooseStatus
+  def chooseStatusPreviousModel(atoms: Set[Atom]): Unit = {
+    atoms foreach chooseStatus
+  }
 
+  def chooseStatus(atoms: Set[Atom]): Unit = {
     atoms foreach chooseStatus
   }
 
@@ -50,5 +62,7 @@ class JtmsDoyleHeuristics(override val network: TruthMaintenanceNetwork = TruthM
       }
     }
   }
+
+
 
 }

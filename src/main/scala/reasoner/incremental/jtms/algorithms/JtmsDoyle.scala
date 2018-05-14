@@ -72,20 +72,27 @@ class JtmsDoyle(override val network: TruthMaintenanceNetwork = TruthMaintenance
   }
 
   def chooseStatus(a: Atom): Unit = {
-    if (network.status(a) != unknown)
-      return
+    if (!isUnknown(a)) return
 
     if (choice(a)) {
       if (recordChoiceSeq) choiceSeq = choiceSeq :+ a
-      network.unknownCons(a) foreach chooseStatus
+      chooseRecursive(network.unknownCons(a))
       //network.unknownCons(a) foreach findStatus //variant
     } else {
       retractionsAffected = retractionsAffected + 1
-      val aff = shuffle(network.affected(a) + a)
-      //val aff = affected(a) + a
-      aff foreach setUnknown
-      aff foreach chooseStatus
+      retractChoice(a)
     }
+  }
+
+  def chooseRecursive(atoms: Set[Atom]): Unit = {
+    atoms foreach chooseStatus
+  }
+
+  def retractChoice(a: Atom): Unit = {
+    val aff = shuffle(network.affected(a) + a)
+    //val aff = affected(a) + a
+    aff foreach setUnknown
+    aff foreach chooseStatus
   }
 
   var retractionsAffected = 0

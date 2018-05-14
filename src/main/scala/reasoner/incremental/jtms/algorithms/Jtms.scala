@@ -61,7 +61,7 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
 
   override def add(rule: NormalRule): Unit = {
     register(rule)
-    /* inconsistent case not in ues anymore
+    /* inconsistent case not in use anymore
     if (network.inconsistent) {
       update(network.unknownAtoms + rule.head) //i.e., recompute()
     } else {
@@ -81,17 +81,19 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
 
   override def remove(rule: NormalRule): Unit = {
     deregister(rule)
+    /* inconsistent case not in use anymore
     if (network.inconsistent) {
       val h = if (network.allAtoms contains rule.head) Set(rule.head) else Set()
       update(network.unknownAtoms ++ h)
     } else {
+    */
       if (!(network.allAtoms contains rule.head)) return
       if (network.status(rule.head) == out) return
       if (network.suppRule(rule.head).isDefined && network.suppRule(rule.head).get != rule) return
       //.isDefined needed if previous state was inconsistent
       val atoms = network.repercussions(rule.head) + rule.head
       update(atoms)
-    }
+    //}
   }
 
   override def getModel(): Option[Set[Atom]] = {
@@ -135,11 +137,19 @@ abstract class Jtms(val network: TruthMaintenanceNetwork = new OptimizedNetwork(
   }
 
   def findStatus(a: Atom): Unit = {
-    if (network.status(a) != unknown) return
+    if (!isUnknown(a)) return
 
     if (validation(a) || invalidation(a)) {
-      network.unknownCons(a) foreach findStatus
+      recursiveFindStatus(network.unknownCons(a))
     }
+  }
+
+  def isUnknown(a: Atom): Boolean = {
+    network.status(a) == unknown
+  }
+
+  def recursiveFindStatus(atoms: Set[Atom]): Unit = {
+    atoms foreach findStatus
   }
 
   def validation(a: Atom): Boolean = {

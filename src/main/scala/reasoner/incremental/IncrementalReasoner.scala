@@ -30,7 +30,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       throw new RuntimeException(f"cannot append signal at past time t=$timepoint. system time already at t'={currentTick.time}")
     }
     updateToTimePoint(timepoint)
-    atoms foreach addSignalAtCurrentTime
+    addSignals(atoms)
   }
 
   override def evaluate(timepoint: TimePoint): Result = {
@@ -58,6 +58,10 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     incrementTick()
   }
 
+  def addSignals(atoms: Seq[Atom]): Unit = {
+    atoms.foreach(addSignalAtCurrentTime(_))
+  }
+
   def addSignalAtCurrentTime(signal: Atom) {
     currentTick = currentTick.incrementCount()
     incrementTick(Some(signal))
@@ -72,23 +76,39 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
       expiration.expiringRulesAtCountIncrement()
     }
 
-    expiredRules.foreach(jtms.remove(_))
+    removeExpired(expiredRules)
 
     val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
-    annotatedRules foreach {
-      annotatedRule => {
-        jtms.add(annotatedRule.rule)
-        expiration.registerExpiration(annotatedRule)
-      }
-    }
 
-    //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
-    //println(jtms.getModel())
+    processIncrementalRules(annotatedRules)
+  }
+
+  def removeExpired(expiredRules: Seq[NormalRule]): Unit = {
+    expiredRules.foreach(removeExpired(_))
+  }
+
+  def removeExpired(rule: NormalRule): Unit = {
+    jtms.remove(rule)
+  }
+
+  def processIncrementalRules(expiringRules: Seq[ExpiringRule]): Unit = {
+    expiringRules foreach { annotatedRule =>
+      addIncrementalRule(annotatedRule.rule)
+      registerExpiration(annotatedRule)
+    }
+  }
+
+  def addIncrementalRule(rule: NormalRule): Unit = {
+    jtms.add(rule)
+  }
+
+  def registerExpiration(annotatedRule: ExpiringRule): Unit = {
+    expiration.register(annotatedRule)
   }
 
   object expiration {
 
-    def registerExpiration(annotatedRule: AnnotatedNormalRule): Unit = {
+    def register(annotatedRule: AnnotatedNormalRule): Unit = {
       annotatedRule match {
         case RuleExpiringByTimeOnly(rule, exp, mode) => registerByTimeDisj(rule, exp.time)
         case RuleExpiringByCountOnly(rule, exp, mode) => registerByCountDisj(rule, exp.count)
