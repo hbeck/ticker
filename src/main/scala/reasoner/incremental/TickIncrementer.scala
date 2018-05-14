@@ -21,6 +21,7 @@ class TickIncrementer(val reasoner: IncrementalReasoner) {
     expiredRules.foreach(jtms.remove(_))
 
     val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
+    hashTrick(annotatedRules)
     annotatedRules foreach {
       annotatedRule => {
         jtms.add(annotatedRule.rule)
@@ -30,6 +31,14 @@ class TickIncrementer(val reasoner: IncrementalReasoner) {
 
     //println("tick "+currentTick+""+(if (signal.isDefined) ": "+signal.get))
     //println(jtms.getModel())
+  }
+
+  def hashTrick(annotatedRules: Seq[ExpiringRule]): Unit = {
+    annotatedRules.foreach { ar =>
+      ar.rule.atoms.foreach { atom =>
+        atom.hashCode()
+      }
+    }
   }
 
 }

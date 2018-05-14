@@ -87,7 +87,6 @@ trait AtomWithArguments extends Atom {
     AtomWithArguments(this.predicate, newArguments)
   }
 
-
   override def toString = {
     val sb = new StringBuilder
     sb.append(predicate).append("(")
