@@ -127,7 +127,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         tmp.toSeq
       }
 
-      if (!incrementalRuleMaker.hasTupleBoxCombination && !rulesExpiringAtTimeConj.contains(currentTick.time)) {
+      if (!rulesExpiringAtTimeConj.contains(currentTick.time)) {
         return disj
       }
       val conjCandidates: Set[NormalRule] = rulesExpiringAtTimeConj.get(currentTick.time).get
@@ -152,7 +152,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         }
       }
 
-      if (!incrementalRuleMaker.hasTupleBoxCombination && !rulesExpiringAtCountConj.contains(currentTick.count)) {
+      if (!rulesExpiringAtCountConj.contains(currentTick.count)) {
         return disj
       }
       val conjCandidates: Set[NormalRule] = rulesExpiringAtCountConj.get(currentTick.count).get
