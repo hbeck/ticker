@@ -31,6 +31,8 @@ case class Config(var args: Map[String, String]) {
   val profiling = (args(KEY_PROFILING) == "true")
   val overrideRandom = (!args(KEY_RANDOM).isEmpty)
   val fixedRandom = if (overrideRandom) Integer.parseInt(args(KEY_RANDOM)) else 0
+  val prevModelHeuristic = (args(KEY_PREVMODEL_HEURISTIC) == "true")
+  val updateSuppRuleHeuristic = (args(KEY_UPDATE_SUPPRULE_HEURISTIC) == "true")
 
   def makeInstance(iterationNr: Int): Instance = {
 
@@ -143,6 +145,9 @@ object Config {
     defaultArg(KEY_PROFILING, "false")
     //
     defaultArg(KEY_RANDOM, "")
+    //
+    defaultArg(KEY_UPDATE_SUPPRULE_HEURISTIC, "true")
+    defaultArg(KEY_PREVMODEL_HEURISTIC, "false")
 
     argMap
   }
@@ -168,6 +173,9 @@ object Config {
   val KEY_SIMPLIFY = "simplify"
   //
   val KEY_PROFILING = "profiling"
+  //
+  val KEY_PREVMODEL_HEURISTIC = "prevmodel_heur"
+  val KEY_UPDATE_SUPPRULE_HEURISTIC = "update_supprule_heur"
 
   // REASONERS
   val CLINGO = "clingo"
