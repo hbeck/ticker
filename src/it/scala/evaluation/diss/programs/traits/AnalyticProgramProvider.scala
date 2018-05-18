@@ -5,11 +5,8 @@ import evaluation.diss.Helpers._
 import evaluation.diss.Prepared.T
 import evaluation.diss.programs.traits.AnalyticProgramProvider.WindowModalityCombi
 
-trait AnalyticProgramProvider extends ProgramProvider {
-
+trait AnalyticProgramProvider extends ProgramProvider with SingleWindowSize {
   def winMod: WindowModalityCombi
-  def windowSize: Int
-
 }
 
 object AnalyticProgramProvider {

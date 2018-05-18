@@ -145,5 +145,12 @@ class ManualInstanceTests extends FunSuite {
     DissEvalMain.main(args)
   }
 
+  test("strat_n30_p0.5 winsize 100") {
+    val firstArgs = "verify true reasoner incr timepoints 1000 pre 0 runs 1 header false"
+    val instName = "strat_n30_p0.5"
+    val args = (f"$firstArgs inst $instName rand -1 winsize 100").split(" ")
+    DissEvalMain.main(args)
+  }
+
 
 }

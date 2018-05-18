@@ -37,6 +37,8 @@ object Helpers {
 
   }
 
+  implicit def string2Predicate(caption: String): Predicate = Predicate(caption)
+
   def wt_At(windowSize: Int, time: Time, atom: Atom) = WindowAtom(TimeWindow(windowSize), At(time), atom)
   def wt_D(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Diamond, atom)
   def wt_B(windowSize: Int, atom: Atom) = WindowAtom(TimeWindow(windowSize), Box, atom)
