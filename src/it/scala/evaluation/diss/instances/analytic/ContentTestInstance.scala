@@ -15,7 +15,7 @@ case class ContentTestInstance() extends Instance with ContentProgramProvider {
   val scale = 5
   val windowSize = 20
   val nrOfItems = 2
-  val nrOfQualityLevels = 3
+  val nrOfQLevels = 3
 
   implicit def i2IntValue(i: Int) = IntValue(i)
   implicit def s2StringValue(s: String) = StringValue(s)

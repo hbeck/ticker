@@ -13,7 +13,7 @@ import evaluation.diss.programs.properties.AppliedProgramProvider
 trait ContentProgramProvider extends AppliedProgramProvider {
 
   def nrOfItems: Int
-  def nrOfQualityLevels: Int
+  def nrOfQLevels: Int
 
   val item: Predicate = "item"
   val node: Predicate = "node"
@@ -42,7 +42,7 @@ trait ContentProgramProvider extends AppliedProgramProvider {
     val facts: Set[LarsRule] = {
       (1 to scale).map( n => fact(node(f"n$n")) ) ++
       (1 to nrOfItems).map( i => fact(item(f"i$i")) ) ++
-      (1 to nrOfQualityLevels).map( q => fact(qLev(q)) )
+      (1 to nrOfQLevels).map(q => fact(qLev(q)) )
     }.toSet
 
     val k = windowSize

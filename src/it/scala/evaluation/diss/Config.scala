@@ -41,6 +41,7 @@ case class Config(var args: Map[String, String]) {
     val srBasic:Regex = """srbasic_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg srbasic_wtd_n1000_p0.9 //*
     val reachSig:Regex = """rs_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rs_wtd_n100_p0.9 //*
     val strat:Regex = """strat_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg strat_n30_p0.1 //*
+    val content:Regex = """content_n([0-9]+)_i([0-9]+)_q([0-9]+)_pc(0?|1)\.([0-9]*)_pq(0?|1)\.([0-9]*)""".r //content_n10_i100_q5_pc0.05_pq0.1
     //
     val contentTest:Regex = """content_test""".r
     val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
@@ -64,6 +65,9 @@ case class Config(var args: Map[String, String]) {
       }
       case strat(scale,pL,pR) => {
         StrategyInstance(random,windowSize,i(scale),d(pL,pR))
+      }
+      case content(scale,nrOfItems,nrOfQLevels,pcL,pcR,pqL,pqR) => {
+        ContentInstance(random,windowSize,i(scale),i(nrOfItems),i(nrOfQLevels),d(pcL,pcR),d(pqL,pqR))
       }
       //
       case contentTest() => ContentTestInstance()
