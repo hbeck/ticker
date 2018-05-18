@@ -3,7 +3,7 @@ package evaluation.diss.instances.analytic
 import core.Atom
 import evaluation.diss.instances.traits.{AnalyticInstance, AnalyticInstanceSansVerification, Randomized}
 import evaluation.diss.programs.TwoModelsEasyProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider._
+import evaluation.diss.programs.properties.AnalyticProgramProvider._
 
 import scala.util.Random
 

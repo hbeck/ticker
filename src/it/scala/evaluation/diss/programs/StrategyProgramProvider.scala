@@ -4,7 +4,7 @@ import core.not
 import core._
 import core.lars.{AtAtom, ExtendedAtom, LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
-import evaluation.diss.programs.traits.AppliedProgramProvider
+import evaluation.diss.programs.properties.AppliedProgramProvider
 
 //ground only relevant with Lt
 trait StrategyProgramProvider extends AppliedProgramProvider {

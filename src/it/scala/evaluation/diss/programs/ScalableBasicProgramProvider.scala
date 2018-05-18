@@ -3,8 +3,8 @@ package evaluation.diss.programs
 import core.Atom
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
-import evaluation.diss.programs.traits.{AnalyticProgramProvider, Scalable}
-import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.properties.{AnalyticProgramProvider, Scalable}
+import evaluation.diss.programs.properties.AnalyticProgramProvider.makeWindowAtom
 
 trait ScalableBasicProgramProvider extends AnalyticProgramProvider with Scalable {
 

@@ -4,7 +4,7 @@ import core.Atom
 import core.lars.{AtAtom, LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.Prepared.T
-import evaluation.diss.programs.traits.{ProgramProvider, Scalable}
+import evaluation.diss.programs.properties.{ProgramProvider, Scalable}
 
 trait CarsProgramProvider extends ProgramProvider with Scalable {
 

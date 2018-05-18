@@ -4,7 +4,7 @@ import core.{Atom, Model}
 import evaluation.diss.Helpers.{mustHave, mustNotHave, string2Atom}
 import evaluation.diss.instances.traits.AnalyticInstance
 import evaluation.diss.programs.JoinProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
+import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 /**
   * Created by hb on 20.04.18.

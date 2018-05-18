@@ -5,7 +5,7 @@ import evaluation.diss.Helpers.{mustHave, mustNotHave}
 import evaluation.diss.Helpers._
 import evaluation.diss.instances.traits.AnalyticInstance
 import evaluation.diss.programs.ScalableBasicProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
+import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 /**
   * Created by hb on 16.04.18.

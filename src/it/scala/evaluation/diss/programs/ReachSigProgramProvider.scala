@@ -4,8 +4,8 @@ import core.{Atom, Lt}
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.Prepared._
-import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
-import evaluation.diss.programs.traits.{AnalyticProgramProvider, Scalable}
+import evaluation.diss.programs.properties.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.properties.{AnalyticProgramProvider, Scalable}
 
 //ground only relevant with Lt
 trait ReachSigProgramProvider extends AnalyticProgramProvider with Scalable {

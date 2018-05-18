@@ -3,7 +3,7 @@ package evaluation.diss.programs
 import core.lars.{LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.Prepared.{a, b}
-import evaluation.diss.programs.traits.AnalyticProgramProvider
+import evaluation.diss.programs.properties.AnalyticProgramProvider
 
 trait SampleProgramProvider extends AnalyticProgramProvider {
 

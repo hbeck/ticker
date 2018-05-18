@@ -1,8 +1,8 @@
 package evaluation.diss.instances.traits
 
 import core.Model
-import evaluation.diss.programs.traits.AnalyticProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider._
+import evaluation.diss.programs.properties.AnalyticProgramProvider
+import evaluation.diss.programs.properties.AnalyticProgramProvider._
 import reasoner.Result
 
 trait AnalyticInstance extends Instance with AnalyticProgramProvider {

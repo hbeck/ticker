@@ -3,7 +3,7 @@ import evaluation.diss.Helpers.string2Atom
 import core.{Atom, IntValue, Model}
 import evaluation.diss.instances.traits.{AnalyticInstance, Randomized}
 import evaluation.diss.programs.ReachProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
+import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 

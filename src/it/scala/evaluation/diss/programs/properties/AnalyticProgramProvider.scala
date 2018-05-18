@@ -1,9 +1,9 @@
-package evaluation.diss.programs.traits
+package evaluation.diss.programs.properties
 
 import core.Atom
 import evaluation.diss.Helpers._
 import evaluation.diss.Prepared.T
-import evaluation.diss.programs.traits.AnalyticProgramProvider.WindowModalityCombi
+import evaluation.diss.programs.properties.AnalyticProgramProvider.WindowModalityCombi
 
 trait AnalyticProgramProvider extends ProgramProvider with SingleWindowSize {
   def winMod: WindowModalityCombi

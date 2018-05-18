@@ -2,8 +2,8 @@ package evaluation.diss.programs
 
 import core.lars.LarsProgram
 import evaluation.diss.Prepared.{a, b}
-import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
-import evaluation.diss.programs.traits.AnalyticProgramProvider
+import evaluation.diss.programs.properties.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.properties.AnalyticProgramProvider
 
 trait BasicProgramProvider extends AnalyticProgramProvider {
 

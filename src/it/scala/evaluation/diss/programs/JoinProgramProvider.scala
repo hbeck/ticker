@@ -4,8 +4,8 @@ import core.Atom
 import core.lars.LarsProgram
 import evaluation.diss.Helpers._
 import evaluation.diss.Prepared._
-import evaluation.diss.programs.traits.AnalyticProgramProvider.makeWindowAtom
-import evaluation.diss.programs.traits.{AnalyticProgramProvider, Scalable}
+import evaluation.diss.programs.properties.AnalyticProgramProvider.makeWindowAtom
+import evaluation.diss.programs.properties.{AnalyticProgramProvider, Scalable}
 
 trait JoinProgramProvider extends AnalyticProgramProvider with Scalable {
 

@@ -4,7 +4,7 @@ import core.Atom
 import evaluation.diss.Helpers._
 import evaluation.diss.instances.traits.{AnalyticInstance, AnalyticInstanceSansVerification, Randomized}
 import evaluation.diss.programs.ScalableBasicProgramProvider
-import evaluation.diss.programs.traits.AnalyticProgramProvider.winModFromString
+import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 
