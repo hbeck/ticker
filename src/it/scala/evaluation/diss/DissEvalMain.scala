@@ -65,12 +65,12 @@ object DissEvalMain {
 
     val stats = ExecutionStats(run(config))
 
-    val tp = 1.0*config.timePoints
+    val tp = 1.0*config.timepoints
 
     val outputValues = Seq(
       Config.KEY_REASONER -> config.reasoner,
       Config.KEY_INSTANCE -> config.instance,
-      Config.KEY_TIMEPOINTS -> config.timePoints,
+      Config.KEY_TIMEPOINTS -> config.timepoints,
       Config.KEY_WINDOW_SIZE -> config.windowSize,
       "avg_total" -> stats.totalRunTimes.avg,
       "avg_init" -> stats.initializationTimes.avg,
@@ -155,7 +155,7 @@ object DissEvalMain {
 
     val runSingleTimepoint = runTimepoint(instance, reasoner, config) _
 
-    val statsPerTimePoints: List[ExecutionStatsPerTimePoint] = (0 to (config.timePoints - 1)) map runSingleTimepoint toList
+    val statsPerTimePoints: List[ExecutionStatsPerTimePoint] = (0 to (config.timepoints - 1)) map runSingleTimepoint toList
 
     val appendStats = DurationSeries.fromMillis(statsPerTimePoints.map(_.appendTime))
     val evaluateStats = DurationSeries.fromMillis(statsPerTimePoints.map(_.evaluateTime))

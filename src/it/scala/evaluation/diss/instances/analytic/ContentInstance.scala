@@ -21,7 +21,7 @@ case class ContentInstance(random: Random, windowSize: Int, scale: Int, nrOfItem
   //keys: node indexes
   var currentQLevel: Map[Int,Int] = (1 to nrOfNodes).map(n => (n,random.nextInt(nrOfQLevels)+1)).toMap
 
-  def generateSignalsToAddAt(t: Int): Seq[Atom] = {
+  override def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     changedQualityLevels() ++ caches() ++ requests()
   }
 
