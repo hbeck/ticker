@@ -20,6 +20,8 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   incrementalRuleMaker.staticGroundRules.filter(_.isFact).foreach(jtms.add(_))
   incrementalRuleMaker.staticGroundRules.filter(r => !r.isFact).foreach(jtms.add(_))
 
+  //incrementalRuleMaker.staticGroundRules foreach println
+
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!
 
@@ -80,8 +82,16 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
 
     val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
 
+//    if (printed<3) {
+//      println("\n ---")
+//      annotatedRules.foreach( x => println(x.rule))
+//      printed = printed + 1
+//    }
+
     processIncrementalRules(annotatedRules)
   }
+
+  var printed=0
 
   def removeExpired(expiredRules: Seq[NormalRule]): Unit = {
     expiredRules.foreach(removeExpired(_))

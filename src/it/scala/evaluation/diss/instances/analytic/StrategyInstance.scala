@@ -1,5 +1,6 @@
 package evaluation.diss.instances.analytic
 
+import evaluation.diss.Helpers._
 import core.Atom
 import evaluation.diss.Helpers.string2Atom
 import evaluation.diss.instances.traits.{Instance, Randomized}
@@ -25,7 +26,11 @@ case class StrategyInstance(random:Random, windowSize: Int, scale: Int, valueCha
 
   def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (random.nextDouble() <= valueChangeProbability) {
+      val currentBucket = bucketFor(currentValue)
       changeCurrentValue()
+      if (currentBucket != bucketFor(currentValue)) {
+        currentBucketSinceTimePoint = t
+      }
     }
     Seq(alphaAtoms(currentValue))
   }
@@ -45,6 +50,35 @@ case class StrategyInstance(random:Random, windowSize: Int, scale: Int, valueCha
     }
   }
 
-  override def verifyOutput(result: Result, t: Int): Unit = {}
+  sealed trait Bucket
+  case object Upper extends Bucket
+  case object Middle extends Bucket
+  case object Lower extends Bucket
 
+  val aThird: Int = scale / 3
+
+  def bucketFor(v: Int): Bucket = {
+    if (v<=aThird) {
+      Lower
+    } else if (v > 2*aThird) {
+      Upper
+    } else {
+      Middle
+    }
+  }
+
+  var currentBucketSinceTimePoint:Int = 1
+
+  override def verifyOutput(result: Result, t: Int): Unit = {
+    if (t < windowSize+1) return //skip initial segment
+    if (t - currentBucketSinceTimePoint >= windowSize) {
+      bucketFor(currentValue) match {
+        case Upper => mustHave(result.model,lfu,t)
+        case Middle => mustHave(result.model,lru,t)
+        case Lower => mustHave(result.model,fifo,t)
+      }
+    } else {
+      mustHave(result.model,randomAtom,t)
+    }
+  }
 }

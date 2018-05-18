@@ -21,8 +21,8 @@ trait StrategyProgramProvider extends AppliedProgramProvider {
   val mid: Atom = "mid"
   val low: Atom = "low"
   val lfu: Atom = "lfu"
-  val lru: Atom = "mid"
-  val fifo: Atom = "low"
+  val lru: Atom = "lru"
+  val fifo: Atom = "fifo"
   val specific: Atom = "specific"
   val randomAtom: Atom = "random"
 
@@ -42,7 +42,8 @@ trait StrategyProgramProvider extends AppliedProgramProvider {
       nMax(V) <= value(V) and value(V2) and Gt(V2,V),
       max(V) <= value(V) not nMax(V),
       third(V) <= value(V) and max(M) and Divide(M,IntValue(3),V),
-      upper(V) <= value(V) and third(X) and Lt(V,X),
+      upper(V) <= value(V) and third(X) and value(Y) and Times(X,IntValue(2),Y) and Lt(Y,V),
+      lower(V) <= value(V) and third(X) and Leq(V,X),
       middle(V) <= value(V) not upper(V) not lower(V),
       AtAtom(T,high) <= wt_At(windowSize,T,alpha(V)) and upper(V),
       AtAtom(T,mid) <= wt_At(windowSize,T,alpha(V)) and middle(V),
@@ -55,7 +56,6 @@ trait StrategyProgramProvider extends AppliedProgramProvider {
       specific <= fifo,
       randomAtom <= not[ExtendedAtom](specific)
     )
-
   }
 
 }
