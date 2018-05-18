@@ -6,7 +6,10 @@ import core.lars.{AtAtom, ExtendedAtom, LarsProgram, LarsRule}
 import evaluation.diss.Helpers._
 import evaluation.diss.programs.properties.AppliedProgramProvider
 
-//ground only relevant with Lt
+/**
+  * Created by hb on 18.05.18.
+  *
+  */
 trait StrategyProgramProvider extends AppliedProgramProvider {
 
   val value: Predicate = "value"

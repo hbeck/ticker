@@ -20,7 +20,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   incrementalRuleMaker.staticGroundRules.filter(_.isFact).foreach(jtms.add(_))
   incrementalRuleMaker.staticGroundRules.filter(r => !r.isFact).foreach(jtms.add(_))
 
-  //incrementalRuleMaker.staticGroundRules foreach println
+  incrementalRuleMaker.staticGroundRules foreach println
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!

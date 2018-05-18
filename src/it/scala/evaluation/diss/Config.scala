@@ -42,6 +42,7 @@ case class Config(var args: Map[String, String]) {
     val reachSig:Regex = """rs_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rs_wtd_n100_p0.9 //*
     val strat:Regex = """strat_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg strat_n30_p0.1 //*
     //
+    val contentTest:Regex = """content_test""".r
     val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
     val nBasic:Regex = """nbasic_w(t|c)(a|d|b)_([0-9]+)""".r //eg nbasic_wtd_1
     val basicDual:Regex = """basic_dual_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_dual_wtd_1
@@ -65,6 +66,7 @@ case class Config(var args: Map[String, String]) {
         StrategyInstance(random,windowSize,i(scale),d(pL,pR))
       }
       //
+      case contentTest() => ContentTestInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
       case nBasic(winType,mod,signalEvery) => NBasicInstance(winType+mod,windowSize,i(signalEvery))
       case basicDual(winType,mod,signalEvery) => BasicDualInstance(winType+mod,windowSize,i(signalEvery))
