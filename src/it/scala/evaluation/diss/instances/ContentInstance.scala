@@ -1,4 +1,4 @@
-package evaluation.diss.instances.analytic
+package evaluation.diss.instances
 
 import core.Atom
 import evaluation.diss.instances.traits.{Instance, InstanceSansVerification, Randomized}
@@ -34,9 +34,6 @@ case class ContentInstance(random: Random, windowSize: Int, scale: Int, nrOfItem
 
   def randomNodeIndexes(p: Double): Seq[Int] = {
     (1 to nrOfNodes).filter{ n => random.nextDouble() <= p }
-//    (1 to nrOfNodes).map(n => (n, random.nextDouble() <= p)).collect {
-//      case kv if (kv._2) => kv._1
-//    }
   }
 
   def updateQualityLevel(nodeIndex: Int): Unit = {

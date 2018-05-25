@@ -1,9 +1,9 @@
-package evaluation.diss.instances.analytic
+package evaluation.diss.instances
 
 import core.Atom
 import evaluation.diss.instances.traits.{AnalyticInstance, AnalyticInstanceSansVerification, Randomized}
 import evaluation.diss.programs.TwoModelsEasyProgramProvider
-import evaluation.diss.programs.properties.AnalyticProgramProvider._
+import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 

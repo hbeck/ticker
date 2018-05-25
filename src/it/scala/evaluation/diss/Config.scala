@@ -1,7 +1,6 @@
 package evaluation.diss
 
 import evaluation.diss.instances._
-import evaluation.diss.instances.analytic._
 import evaluation.diss.instances.traits.Instance
 
 import scala.util.Random
@@ -38,12 +37,13 @@ case class Config(var args: Map[String, String]) {
 
     val random: Random = new Random(iterationNr)
 
-    val srBasic:Regex = """srbasic_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg srbasic_wtd_n1000_p0.9 //*
-    val reachSig:Regex = """rs_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rs_wtd_n100_p0.9 //*
-    val strat:Regex = """strat_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg strat_n30_p0.1 //*
-    val content:Regex = """content_n([0-9]+)_i([0-9]+)_q([0-9]+)_pc(0?|1)\.([0-9]*)_pq(0?|1)\.([0-9]*)""".r //content_n10_i100_q5_pc0.05_pq0.1
-    val contentPre:Regex = """content_pre_n([0-9]+)_i([0-9]+)_q([0-9]+)_pc(0?|1)\.([0-9]*)_pq(0?|1)\.([0-9]*)""".r //content_pre_n10_i100_q5_pc0.05_pq0.1
+    val srBasic:Regex = """srbasic_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg srbasic_wtd_n1000_p0.9
+    val reachSig:Regex = """rs_w(t|c)(a|d|b)_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg rs_wtd_n100_p0.9
+    val strat:Regex = """strat_n([0-9]+)_p(0?|1)\.([0-9]*)""".r //eg strat_n30_p0.1
+    val content:Regex = """content_n([0-9]+)_i([0-9]+)_q([0-9]+)_pc(0?|1)\.([0-9]*)_pq(0?|1)\.([0-9]*)""".r //content_n10_i100_q5_pc0.5_pq0.5
     //
+    val contentRand:Regex = """cr_n([0-9]+)_i([0-9]+)_q([0-9]+)""".r //cr_n10_i10_q5
+    val contentPre:Regex = """content_pre_n([0-9]+)_i([0-9]+)_q([0-9]+)_pc(0?|1)\.([0-9]*)_pq(0?|1)\.([0-9]*)""".r //content_pre_n10_i100_q5_pc0.05_pq0.1
     val contentTest:Regex = """content_test""".r
     val basic:Regex = """basic_w(t|c)(a|d|b)_([0-9]+)""".r //eg basic_wtd_1
     val nBasic:Regex = """nbasic_w(t|c)(a|d|b)_([0-9]+)""".r //eg nbasic_wtd_1
@@ -70,10 +70,13 @@ case class Config(var args: Map[String, String]) {
       case content(scale,nrOfItems,nrOfQLevels,pcL,pcR,pqL,pqR) => {
         ContentInstance(random,windowSize,i(scale),i(nrOfItems),i(nrOfQLevels),d(pcL,pcR),d(pqL,pqR))
       }
+      //
+      case contentRand(scale,nrOfItems,nrOfQLevels) => {
+        ContentRandInstance(random,windowSize,i(scale),i(nrOfItems),i(nrOfQLevels))
+      }
       case contentPre(scale,nrOfItems,nrOfQLevels,pcL,pcR,pqL,pqR) => {
         ContentStreamPrecomputedInstance(random,windowSize,i(scale),i(nrOfItems),i(nrOfQLevels),d(pcL,pcR),d(pqL,pqR),timepoints)
       }
-      //
       case contentTest() => ContentTestInstance()
       case basic(winType,mod,signalEvery) => BasicInstance(winType+mod,windowSize,i(signalEvery))
       case nBasic(winType,mod,signalEvery) => NBasicInstance(winType+mod,windowSize,i(signalEvery))

@@ -1,7 +1,7 @@
-package evaluation.diss.instances.analytic
+package evaluation.diss.instances
 
 import core.{Atom, IntValue, StringValue}
-import evaluation.diss.Helpers._
+import evaluation.diss.Helpers.{mustHave, mustNotHave}
 import evaluation.diss.instances.traits.Instance
 import evaluation.diss.programs.ContentProgramProvider
 import reasoner.Result

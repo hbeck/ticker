@@ -1,22 +1,29 @@
-package evaluation.diss.instances.analytic
-import evaluation.diss.Helpers.string2Atom
+package evaluation.diss.instances
+
 import core.{Atom, IntValue, Model}
+import evaluation.diss.Helpers.string2Atom
 import evaluation.diss.instances.traits.{AnalyticInstance, Randomized}
-import evaluation.diss.programs.LinReachLtProgramProvider
+import evaluation.diss.programs.ReachLtProgramProvider
 import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString
 
 import scala.util.Random
 
 /**
-  * Created by hb on 30.04.18.
+  * Created by hb on 01.05.18.
   *
   * wm: window and modality indicator: {ta,td,tb,ca,cd,cb}
   * scale: nr of nodes
+  * percent: lower tier of node indexes that do *not* get a fail signal. measure of model maintainability.
   */
-case class ReachLtInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int) extends AnalyticInstance with LinReachLtProgramProvider with Randomized {
+case class ReachPercInstance(random: Random, wm: String, windowSize: Int, signalEvery: Int, scale: Int, percent: Int) extends AnalyticInstance with ReachLtProgramProvider with Randomized {
 
   assert(signalEvery > 0)
   assert(scale > 0)
+  assert(percent >= 0)
+  assert(percent <= 100)
+
+  val offset:Int = (0.01*percent*scale).toInt //e.g. 30% of 200 = 60
+  val shifterUpperBound = scale-offset //140 --> 0..139. actual range adds offset
 
   val winMod = winModFromString(wm)
 
@@ -24,7 +31,7 @@ case class ReachLtInstance(random: Random, wm: String, windowSize: Int, signalEv
 
   def generateSignalsToAddAt(t: Int): Seq[Atom] = {
     if (t % signalEvery == 0) {
-      val i = random.nextInt(scale)
+      val i = random.nextInt(shifterUpperBound+1)+offset //--> (0+60..140+60) = 60..200 [fail(0)..fail(59) are not produced. last edge (200,201)]
       val atom: Atom = f"fail($i)"
       currFailAtom = Some(atom)
       Seq[Atom](atom)

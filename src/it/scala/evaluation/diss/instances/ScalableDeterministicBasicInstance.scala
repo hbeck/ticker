@@ -1,8 +1,7 @@
-package evaluation.diss.instances.analytic
+package evaluation.diss.instances
 
 import core.{Atom, Model}
-import evaluation.diss.Helpers.{mustHave, mustNotHave}
-import evaluation.diss.Helpers._
+import evaluation.diss.Helpers.{mustHave, mustNotHave, string2Atom}
 import evaluation.diss.instances.traits.AnalyticInstance
 import evaluation.diss.programs.ScalableBasicProgramProvider
 import evaluation.diss.programs.properties.AnalyticProgramProvider.winModFromString

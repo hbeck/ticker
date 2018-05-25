@@ -1,4 +1,4 @@
-package evaluation.diss.instances.analytic
+package evaluation.diss.instances
 
 import core.Atom
 import evaluation.diss.instances.traits.{Instance, InstanceSansVerification, Randomized}
