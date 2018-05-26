@@ -15,12 +15,9 @@ import scala.collection.immutable.HashMap
   * (This class coordinates pinning (within IncrementalRuleMaker) and (then) grounding (IncrementalGrounder))
   */
 case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms: Jtms) extends Reasoner {
-  //println(f"${incrementalRuleMaker.staticGroundRules.size} static ground rules")
 
   incrementalRuleMaker.staticGroundRules.filter(_.isFact).foreach(jtms.add(_))
   incrementalRuleMaker.staticGroundRules.filter(r => !r.isFact).foreach(jtms.add(_))
-
-  //incrementalRuleMaker.staticGroundRules foreach println
 
   //time of the truth maintenance network due to previous append and result calls
   var currentTick = Tick(0,0) //using (-1,0), first "+" will fail!
@@ -70,6 +67,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   }
 
   def incrementTick(signal: Option[Atom] = None) {
+    
     val timeIncrease = signal.isEmpty
 
     val expiredRules = if (timeIncrease) {
@@ -81,12 +79,6 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
     removeExpired(expiredRules)
 
     val annotatedRules: Seq[ExpiringRule] = incrementalRuleMaker.incrementalRules(currentTick, signal)
-
-//    if (printed<3) {
-//      println("\n ---")
-//      annotatedRules.foreach( x => println(x.rule))
-//      printed = printed + 1
-//    }
 
     processIncrementalRules(annotatedRules)
   }
