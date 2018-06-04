@@ -3,10 +3,9 @@ package reasoner.incremental.jtms.asp.examples
 import core.Atom
 import core.asp._
 import fixtures.AtomTestFixture
-import reasoner.incremental.jtms.asp.LimitationHandling.assertModelWithKnownLimitation
-import reasoner.incremental.jtms._
-import reasoner.incremental.jtms.algorithms._
 import org.scalatest.FunSuite
+import reasoner.incremental.jtms.algorithms._
+import reasoner.incremental.jtms.asp.LimitationHandling.assertModelWithKnownLimitation
 
 /**
   * Created by hb on 2016-04-28
@@ -561,6 +560,7 @@ class AspAddRemove extends FunSuite with AtomTestFixture {
   }
 
   test("[todo doyle] a :- not b, not c. b :- not c. etc.") {
+    pending
 
     //TODO make invalidateModel compatible for Doyle
 
