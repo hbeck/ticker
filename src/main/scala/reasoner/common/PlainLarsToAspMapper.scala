@@ -237,18 +237,17 @@ case class TupleBoxEncoder(size: Long, atom: Atom, windowAtomEncoding: Atom, gro
         Set[Atom](atom, PinnedAtom.asPinnedAtCntAtom(atom, TimePinVariable, CountPinVariable), coversTime) ++ groundingGuards,
         Set[Atom](coversCount))
 
-      val expSpoilerCoverTime: TickDuration = Tick(1, size)
-      val expSpoilerCoverCount: TickDuration = Tick(1, size)
+      //val ruleDurSpoiler1 = RuleWithDisjunctiveDuration(spoilerRuleCoverTime, Tick(Void,Void), ExpirationOptional, OnTimeAndCountIncrease)
+      val ruleDurSpoiler1 = RuleWithCountDurationOnly(spoilerRuleCoverTime, Tick(Void,size), ExpirationOptional, OnTimeAndCountIncrease)
 
-      val expCoversT: TickDuration = Tick(1, size)
-      val ruleDurCoverT = RuleWithConjunctiveDuration(AspRule(coversTime, tickWithVars), expCoversT, ExpirationObligatory, OnTimeAndCountIncrease)
-      val expCoversC: TickDuration = Tick(Void, size)
-      val ruleDurCoverC = RuleWithCountDurationOnly(AspRule(coversCount, tickWithVars), expCoversC, ExpirationObligatory, OnTimeAndCountIncrease)
+      //val ruleDurSpoiler2 = RuleWithDisjunctiveDuration(spoilerRuleCoverCount, Tick(Void,Void), ExpirationOptional, OnTimeAndCountIncrease)
+      val ruleDurSpoiler2 = RuleWithConjunctiveDuration(spoilerRuleCoverCount, Tick(1, size), ExpirationOptional, OnTimeAndCountIncrease) //CountDurationOnly, Tick(Void,size) not possible!
 
-      Seq(StaticRule(staticRule),
-        RuleWithConjunctiveDuration(spoilerRuleCoverTime, expSpoilerCoverTime, ExpirationObligatory, OnTimeAndCountIncrease),
-        RuleWithConjunctiveDuration(spoilerRuleCoverCount, expSpoilerCoverCount, ExpirationOptional, OnTimeAndCountIncrease),
-        ruleDurCoverT, ruleDurCoverC)
+      val ruleDurCoverT = RuleWithCountDurationOnly(AspRule(coversTime, tickWithVars), Tick(Void,size), ExpirationObligatory, OnTimeAndCountIncrease) //Conjunctive, Tick(1,size) also possible
+
+      val ruleDurCoverC = RuleWithCountDurationOnly(AspRule(coversCount, tickWithVars), Tick(Void, size), ExpirationObligatory, OnTimeAndCountIncrease)
+
+      Seq(StaticRule(staticRule),ruleDurSpoiler1,ruleDurSpoiler2,ruleDurCoverT,ruleDurCoverC)
     }
   }
 
