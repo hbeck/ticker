@@ -61,7 +61,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
 
     var facts: Seq[RuleWithDuration] = if (need_tick_atoms) {
       val tickFact = tickFactAsNormalRule(TimePoint(tick.time),Value(tick.count.toInt))
-      Seq(RuleWithConjunctiveDuration(tickFact,Tick(1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly))
+      Seq(RuleWithCountDurationOnly(tickFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly))
     } else {
       Seq()
     }
@@ -83,7 +83,7 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
         if (hasTimeWindow) {
           facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(maxTimeWindowSize+1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         } else {
-          facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
+          facts = facts :+ RuleWithCountDurationOnly(atom.timePinnedFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         }
       } else if (hasTimeWindow) {
         facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
