@@ -67,7 +67,7 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
   }
 
   def incrementTick(signal: Option[Atom] = None) {
-    
+
     val timeIncrease = signal.isEmpty
 
     val expiredRules = if (timeIncrease) {

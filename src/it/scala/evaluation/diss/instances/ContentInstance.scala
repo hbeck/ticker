@@ -67,7 +67,7 @@ case class ContentInstance(random: Random, windowSize: Int, scale: Int, nrOfItem
 
   def requests(): Seq[Atom] = {
     val i = random.nextInt(nrOfItems)+1
-    val n = random.nextInt(nrOfNodes)
+    val n = random.nextInt(nrOfNodes)+1
     Seq(req(i,n))
   }
 
