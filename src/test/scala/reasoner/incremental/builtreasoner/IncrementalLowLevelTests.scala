@@ -381,10 +381,10 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
     def empty = emptyInReasoner(reasoner) _
     def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
 
-    append(1,b); hasN(1,h)
-    append(1,c); has(1,h)
+    append(5,b); hasN(5,h)
+    append(5,c); has(5,h)
     //
-    append(1,d); hasN(1,h)
+    append(5,d); hasN(5,h)
 
   }
 
