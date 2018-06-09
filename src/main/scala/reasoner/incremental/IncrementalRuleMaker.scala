@@ -76,17 +76,21 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
     //a(x)
     facts = facts :+ RuleWithTimeDurationOnly(atom.signalFact,Tick(1,Void),ExpirationObligatory,OnCountIncreaseOnly)
     if (hasTupleWindow) {
-      //a(x,t,c)
-      facts = facts :+ RuleWithConjunctiveDuration(atom.tickPinnedFact,Tick(1,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
       //a(x,t)
       if (hasTupleBoxCombination) {
+        //a(x,t,c)
+        facts = facts :+ RuleWithConjunctiveDuration(atom.tickPinnedFact,Tick(1,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
         if (hasTimeWindow) {
           facts = facts :+ RuleWithConjunctiveDuration(atom.timePinnedFact,Tick(maxTimeWindowSize+1,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         } else {
           facts = facts :+ RuleWithCountDurationOnly(atom.timePinnedFact,Tick(Void,maxTupleBoxSize),ExpirationOptional,OnCountIncreaseOnly)
         }
-      } else if (hasTimeWindow) {
-        facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
+      } else {
+        //a(x,t,c)
+        facts = facts :+ RuleWithDisjunctiveDuration(atom.tickPinnedFact,Tick(Void,maxTupleWindowSize),ExpirationOptional,OnCountIncreaseOnly)
+        if (hasTimeWindow) {
+          facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
+        }
       }
     } else if (hasTimeWindow) {
       facts = facts :+ RuleWithTimeDurationOnly(atom.timePinnedFact,Tick(maxTimeWindowSize+1,Void),ExpirationOptional,OnCountIncreaseOnly)
