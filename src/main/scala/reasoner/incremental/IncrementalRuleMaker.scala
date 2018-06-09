@@ -227,14 +227,6 @@ case class IncrementalRuleMaker(larsProgramEncoding: LarsProgramEncoding, ground
   val hasTupleAtCombination = maxTupleAtSize > -1
   val hasTimeWindow = maxTimeWindowSize > -1
 
-//  val need_at_cnt_atoms = windowAtoms exists {
-//    case WindowAtom(SlidingTupleWindow(_), _, _) => true
-//    case _ => false
-//  }
-
-//  val need_tick_atoms = windowAtoms exists {
-//    case WindowAtom(SlidingTupleWindow(_), Box, _) => true
-//    case _ => false
-//  }
+  val needConjunctiveAnnotations = hasTupleBoxCombination
 
 }

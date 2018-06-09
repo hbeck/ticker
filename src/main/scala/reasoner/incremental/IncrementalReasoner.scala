@@ -129,9 +129,14 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         tmp.toSeq
       }
 
+      if (!incrementalRuleMaker.needConjunctiveAnnotations) {
+        return disj
+      }
+
       if (!rulesExpiringAtTimeConj.contains(currentTick.time)) {
         return disj
       }
+
       val conjCandidates: Set[NormalRule] = rulesExpiringAtTimeConj.get(currentTick.time).get
       val toExpireNow_vs_toExpireLater: (Set[NormalRule], Set[NormalRule]) = conjCandidates.partition(rule => conjunctiveExpirationCandidates.contains(rule))
       rulesExpiringAtTimeConj = rulesExpiringAtTimeConj - currentTick.time
@@ -154,9 +159,14 @@ case class IncrementalReasoner(incrementalRuleMaker: IncrementalRuleMaker, jtms:
         }
       }
 
+      if (!incrementalRuleMaker.needConjunctiveAnnotations) {
+        return disj
+      }
+
       if (!rulesExpiringAtCountConj.contains(currentTick.count)) {
         return disj
       }
+
       val conjCandidates: Set[NormalRule] = rulesExpiringAtCountConj.get(currentTick.count).get
       val toExpireNow_vs_toExpireLater: (Set[NormalRule], Set[NormalRule]) = conjCandidates.partition(rule => conjunctiveExpirationCandidates.contains(rule))
       rulesExpiringAtCountConj = rulesExpiringAtCountConj - currentTick.count
