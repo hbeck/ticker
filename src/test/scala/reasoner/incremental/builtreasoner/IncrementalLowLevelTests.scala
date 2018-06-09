@@ -366,6 +366,28 @@ class IncrementalLowLevelTests extends FunSuite with JtmsIncrementalReasoner {
 
   }
 
+  test("tuple box - size 2 - spoil2 isolation") {
+
+    //tailored to illustrate the necessity to use [1,m] as duration of the seconds spoiler rule
+    //(structurally appearing also in "tuple box - size 2" test case at t=11, signal d)
+
+    val program = LarsProgram.from(
+      h <= WindowAtom(TupleWindow(2), Box, b)
+    )
+
+    val reasoner = reasonerBuilder(program)
+    def has = containsWithReasoner(reasoner) _
+    def hasN = notContainsWithReasoner(reasoner) _
+    def empty = emptyInReasoner(reasoner) _
+    def append(t: Long, atom: Atom) = reasoner.append(t)(atom)
+
+    append(1,b); hasN(1,h)
+    append(1,c); has(1,h)
+    //
+    append(1,d); hasN(1,h)
+
+  }
+
   test("tuple box - size 2") {
 
     val program = LarsProgram.from(
