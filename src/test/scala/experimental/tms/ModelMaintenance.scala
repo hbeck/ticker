@@ -69,7 +69,11 @@ class ModelMaintenance extends FunSuite with AtomTestFixture{
 
     jtms.add(AspFact(c))
     model = jtms.getModel.get
-    assert(model == Set(a,c) || model == Set(b,c))
+    //theory:
+    //assert(model == Set(a,c) || model == Set(b,c))
+
+    //practice:
+    assert(model == Set(b,c))
 
   }
 
