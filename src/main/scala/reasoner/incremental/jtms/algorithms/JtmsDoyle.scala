@@ -15,7 +15,7 @@ object JtmsDoyle {
     jtms
   }
 
-  def apply(): JtmsDoyle = new JtmsDoyle()
+  def apply(random: Random = new Random()): JtmsDoyle = new JtmsDoyle()
 
 }
 
