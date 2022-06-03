@@ -2,15 +2,15 @@ name := "ticker"
 
 version := "1.0"
 
-scalaVersion := "2.12.5"
+scalaVersion := "2.12.15"
 
 cancelable in Global := true
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12" % "test"
 
-libraryDependencies += "com.github.scopt" %% "scopt" % "3.5.0"
-libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5"
-libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2"
+libraryDependencies += "com.github.scopt" %% "scopt" % "4.0.1"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2"
+libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
 
 scalacOptions += "-feature"
